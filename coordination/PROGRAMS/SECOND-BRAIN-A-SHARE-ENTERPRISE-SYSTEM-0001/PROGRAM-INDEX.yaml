@@ -1,13 +1,14 @@
-schema_version: "1.8"
+schema_version: "1.9"
 program_id: "SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001"
 program_name: "第二大脑＋A股交易研究企业级总工程"
-program_charter: "coordination/BLUEPRINTS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-PROGRAM-CHARTER-v1.4.md"
-project_blueprint_integration_index: "coordination/BLUEPRINTS/PROJECT-BLUEPRINT-INTEGRATION-INDEX-v1.4.md"
+program_charter: "coordination/BLUEPRINTS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-PROGRAM-CHARTER-v1.5.md"
+project_blueprint_integration_index: "coordination/BLUEPRINTS/PROJECT-BLUEPRINT-INTEGRATION-INDEX-v1.5.md"
 blueprint_convergence_map: "coordination/BLUEPRINTS/ENTERPRISE-BLUEPRINT-CONVERGENCE-AND-DEPENDENCY-MAP-v1.0.md"
 authority_interface_registry: "coordination/GOVERNANCE/ENTERPRISE-BLUEPRINT-AUTHORITY-AND-INTERFACE-REGISTRY-v1.0.yaml"
 master_issue: 31
-current_control_issue: 72
-current_status: "ACTIVE_BLUEPRINT_CONVERGENCE"
+current_control_issue: 209
+current_control_route: "coordination/ROUTES/CODEX-E61-ACTIVE-ROUTE-CONTRACT.yaml"
+current_status: "ACTIVE_E61_DURABLE_AUTHORITY_WITH_CLTM_BLUEPRINT_CANDIDATE"
 mode: "project_plan"
 boundary: "research_only / NO_TRADE"
 
@@ -39,7 +40,9 @@ architecture_planes:
 
 program_objectives:
   - "Unify Second Brain, A-share research, data, event intelligence, participant hypotheses, validation and AI operations under one enterprise architecture."
+  - "Treat user-ChatGPT conversation as a first-class W3 experience and knowledge source so mobile/web/desktop dialogue can feed the Second Brain with traceable long-term memory."
   - "Keep market facts, evidence, probability, capital allocation, risk veto and outcome learning under separate single-writer authorities."
+  - "Keep conversational memory, corrections, temporal versions and cross-project context under W3 rather than duplicating user memory inside business repositories."
   - "Require point-in-time A-share rules, T+1, cost, capacity, liquidity and unexecutable-exit modelling."
   - "Validate each signal or contextual module separately before joint economic-increment testing."
   - "Use AMED bounded initiative, negative-result preservation and GPT seven-gate review for every non-trivial task."
@@ -93,13 +96,28 @@ registered_modules:
     workstream: W1
     implementation_issue: 72
     blueprint: "coordination/BLUEPRINTS/ENTERPRISE-BLUEPRINT-CONVERGENCE-AND-DEPENDENCY-MAP-v1.0.md"
-    status: "ACTIVE_PROJECT_PLAN"
+    status: "HISTORICAL_CONTROL_ROUTE_SUPERSEDED_BY_LATER_EPOCHS"
+  - module_id: "KNOWLEDGE-SOURCE-SEMANTIC-RECONSTRUCTION-AND-GRAPH-PROJECTION-0020"
+    workstream: W3
+    implementation_issue: 216
+    blueprint: "coordination/BLUEPRINTS/KNOWLEDGE-SOURCE-SEMANTIC-RECONSTRUCTION-AND-GRAPH-PROJECTION-BLUEPRINT-v1.0.md"
+    status: "ACTIVE_QCLAW_PROJECT_PLAN"
+  - module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
+    workstream: W3
+    cross_workstreams: [W10, W8, W9]
+    implementation_issue: null
+    blueprint: "coordination/BLUEPRINTS/CONVERSATIONAL-LONG-TERM-MEMORY-AND-MOBILE-SECOND-BRAIN-BLUEPRINT-v1.0.md"
+    status: "BLUEPRINT_COMPLETE_IMPLEMENTATION_NOT_STARTED"
 
 canonical_authorities:
   task_governance: W1
   agent_operations: W8
   market_time_rules_replay: W2
   knowledge_evidence_memory: W3
+  conversational_source_episode_memory: W3
+  memory_current_historical_version: W3
+  memory_correction_supersession_revocation: W3
+  memory_router_context_bundle: W3
   event_policy_evidence: W5
   participant_flow_evidence: W13
   strategy_experiment: W4
@@ -114,6 +132,10 @@ shared_contracts:
   market_time_and_availability: W2
   a_share_rule_snapshot: W2
   knowledge_and_evidence: W3
+  conversation_source_and_episode: W3
+  conversational_memory_candidate: W3
+  memory_temporal_version_and_correction: W3
+  memory_recall_and_context_bundle: W3
   event_evidence_packet: W5
   participant_flow_evidence_packet: W13
   strategy_experiment_family: W4
@@ -127,18 +149,19 @@ workstreams:
   - id: W1
     name: "Enterprise Architecture, AMED and Blueprint Convergence"
     owner: "GPT + CODEX"
-    related_issues: [31, 63, 72]
-    status: "ACTIVE"
+    related_issues: [31, 63, 72, 209]
+    status: "ACTIVE_GOVERNANCE"
   - id: W2
     name: "Market Data, A-share Rules and Replay"
     owner: "CODEX + WORKBUDDY"
     related_issues: [6, 67, 68, 69, 71, 72]
     status: "PARTIAL_FOUNDATION_EXISTS"
   - id: W3
-    name: "Knowledge Authority and Long-Term Memory"
-    owner: "CODEX + WORKBUDDY + QCLAW"
-    related_issues: [21, 22, 24, 25, 26, 38, 57, 58, 59, 60, 72]
-    status: "IMPLEMENTED_WITH_OPEN_GATES"
+    name: "Knowledge Authority, Conversational Experience and Long-Term Memory"
+    owner: "CODEX + WORKBUDDY + QCLAW + GPT architecture"
+    related_issues: [21, 22, 24, 25, 26, 38, 57, 58, 59, 60, 209, 216]
+    modules: [MODULE_0020, MODULE_0021]
+    status: "IMPLEMENTED_FOUNDATION_WITH_OPEN_AUTHORITY_AND_CLTM_GATES"
   - id: W4
     name: "Indicators, Strategies, Experiments and Observable Price Structure"
     owner: CODEX
@@ -162,7 +185,7 @@ workstreams:
   - id: W8
     name: "Multi-Agent Collaboration, Deployment and Observability"
     owner: "GPT + CODEX + WORKBUDDY + QCLAW"
-    related_issues: [4, 7, 31, 63, 72]
+    related_issues: [4, 7, 31, 63, 72, 209]
     status: "PARTIAL_FOUNDATION_EXISTS"
   - id: W9
     name: "Shadow Mode, Outcome Calibration and Engineering Learning"
@@ -172,7 +195,8 @@ workstreams:
   - id: W10
     name: "Personal Epistemic Cognitive OS"
     owner: "GPT + CODEX + QCLAW + WORKBUDDY"
-    related_issues: [38, 59, 60, 61, 62, 63, 72]
+    related_issues: [38, 59, 60, 61, 62, 63, 72, 209]
+    consumes_from_w3: [CONVERSATIONAL_LONG_TERM_MEMORY_0021]
     status: "CONTRACTED_NOT_IMPLEMENTED"
   - id: W11
     name: "Expected Value, Kelly-Thorp and Capital Allocation"
@@ -191,22 +215,33 @@ workstreams:
     status: "CONTRACTED_NOT_IMPLEMENTED"
 
 activation_sequence:
-  - "Issue #72 is the only active Codex task after PR #66 bounded acceptance."
-  - "Issue #72 freezes authorities, shared interfaces, maturity and dependency DAG before business slices."
-  - "After #72, GPT ranks W13, PMN, 0017, W12, W11 and 0018 using data readiness, incremental value, risk and validation cost."
-  - "Activate at most one first business vertical slice."
+  - "Current canonical control plane is CODEX-E61-ACTIVE-ROUTE-CONTRACT.yaml with active issue #209; do not rely on historical #72 routing text."
+  - "E61 must establish or truthfully block the real durable authority boundary before any formal PROJECT/GLOBAL memory write is unlocked."
+  - "QCLAW E48 / MODULE_0020 may continue semantic reconstruction and graph projection under its own bounded route and must not bypass E61."
+  - "MODULE_0021 implementation is a future W3 strategic vertical slice; it must not preempt the active Codex route unless GPT/user explicitly reroutes."
+  - "When released, MODULE_0021 starts with canonical audit and Session A-E conversational-memory vertical slice, not a full platform rebuild."
+  - "After the first slice passes GPT review, release MemoryRouter/TrustGate, consolidation and hybrid-retrieval increments separately."
   - "Validate each module separately before joint economic-increment combinations."
-  - "Capital maturity upgrades require W12 probability, W11 allocation, 0018 net-edge/survival and W7 veto gates."
 
 wip_policy:
   codex_single_active_route: true
   max_initial_business_vertical_slices: 1
+  max_initial_cltm_vertical_slices: 1
   no_parallel_consumers_before_shared_interface_freeze: true
   discovery_does_not_expand_wip: true
   no_new_w14_for_0017_or_0018: true
+  no_new_workstream_for_cltm_0021: true
 
-amed_governance_rules:
+named_governance_rules:
   blueprint_presence_is_not_implementation: true
+  conversation_memory_is_w3_core_not_side_database: true
+  native_chatgpt_memory_is_not_durable_w3_authority: true
+  inaccessible_chat_is_not_no_chat: true
+  summary_is_not_raw_episode: true
+  current_memory_is_not_historical_memory: true
+  user_correction_must_not_silently_rewrite_history: true
+  vector_similarity_is_not_memory_truth: true
+  project_relevance_is_not_permission: true
   formula_correctness_is_not_a_share_validation: true
   raw_trade_count_is_not_independent_trials: true
   participant_signature_is_not_identity: true
