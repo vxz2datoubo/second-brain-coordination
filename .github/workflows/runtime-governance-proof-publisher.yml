@@ -35,6 +35,10 @@ jobs:
           PR_NUMBER = 418
           CONTEXT = "r145/runtime-governance-live-proof"
           SHA40 = re.compile(r"^[0-9a-f]{40}$")
+          RUN_BINDING_RE = re.compile(
+              r"^R145_LIVE_ROOT pr=(?P<pr>[1-9][0-9]*) "
+              r"head=(?P<head>[0-9a-f]{40}) base=(?P<base>[0-9a-f]{40})$"
+          )
           FAILURE_CONCLUSIONS = {
               "failure", "timed_out", "cancelled", "action_required",
               "skipped", "neutral", "startup_failure", "stale",
@@ -42,6 +46,18 @@ jobs:
 
           def _sha(value):
               return value if isinstance(value, str) and SHA40.fullmatch(value) else None
+
+          def _parse_run_binding(value):
+              if not isinstance(value, str):
+                  return None
+              match = RUN_BINDING_RE.fullmatch(value)
+              if match is None:
+                  return None
+              return {
+                  "pr": int(match.group("pr")),
+                  "head": match.group("head"),
+                  "base": match.group("base"),
+              }
 
           def _decision(publish, state, head_sha, target_url, reason, run_id):
               return {
@@ -95,21 +111,41 @@ jobs:
               if original_repo.get("full_name") != REPO:
                   return _fail("ORIGINAL_RUN_REPOSITORY_MISMATCH", run_id)
 
-              bindings = original.get("pull_requests")
-              if not isinstance(bindings, list) or len(bindings) != 1:
-                  return _fail("PR_BINDING_AMBIGUOUS_OR_MISSING", run_id)
-              binding = bindings[0] if isinstance(bindings[0], dict) else {}
-              if binding.get("number") != PR_NUMBER:
+              event_title = wr.get("display_title")
+              original_title = original.get("display_title")
+              if event_title != original_title:
+                  return _fail("WORKFLOW_RUN_DISPLAY_TITLE_MISMATCH", run_id)
+              run_binding = _parse_run_binding(original_title)
+              if run_binding is None:
+                  return _fail("RUN_NAME_BINDING_MALFORMED", run_id)
+              if run_binding["pr"] != PR_NUMBER:
                   return _fail("PR_NUMBER_MISMATCH", run_id)
-
-              head = binding.get("head") if isinstance(binding.get("head"), dict) else {}
-              base = binding.get("base") if isinstance(binding.get("base"), dict) else {}
-              head_sha = _sha(head.get("sha"))
-              base_sha = _sha(base.get("sha"))
+              head_sha = _sha(run_binding["head"])
+              base_sha = _sha(run_binding["base"])
               if head_sha is None:
                   return _fail("BOUND_HEAD_SHA_MISSING", run_id)
               if base_sha is None:
                   return _fail("BOUND_BASE_SHA_MISSING", run_id)
+
+              rest_bindings = original.get("pull_requests")
+              if not isinstance(rest_bindings, list):
+                  return _fail("REST_PR_BINDINGS_MALFORMED", run_id)
+              if len(rest_bindings) > 1:
+                  return _fail("REST_PR_BINDING_AMBIGUOUS", run_id)
+              if len(rest_bindings) == 1:
+                  rest_binding = rest_bindings[0] if isinstance(rest_bindings[0], dict) else {}
+                  rest_head = rest_binding.get("head") if isinstance(rest_binding.get("head"), dict) else {}
+                  rest_base = rest_binding.get("base") if isinstance(rest_binding.get("base"), dict) else {}
+                  rest_head_sha = _sha(rest_head.get("sha"))
+                  rest_base_sha = _sha(rest_base.get("sha"))
+                  if rest_binding.get("number") != PR_NUMBER or rest_head_sha is None or rest_base_sha is None:
+                      return _fail("REST_PR_BINDING_MALFORMED", run_id)
+                  if (
+                      rest_binding.get("number") != run_binding["pr"]
+                      or rest_head_sha != head_sha
+                      or rest_base_sha != base_sha
+                  ):
+                      return _fail("REST_PR_BINDING_MISMATCH", run_id)
 
               target_url = original.get("html_url")
               expected_url = f"https://github.com/{REPO}/actions/runs/{run_id}"
