@@ -31,6 +31,7 @@ jobs:
           REPO = "vxz2datoubo/second-brain-coordination"
           ROOT_NAME = "Runtime governance root"
           ROOT_PATH = ".github/workflows/runtime-governance-root.yml"
+          ROOT_FILENAME = "runtime-governance-root.yml"
           PR_NUMBER = 418
           CONTEXT = "r145/runtime-governance-live-proof"
           SHA40 = re.compile(r"^[0-9a-f]{40}$")
@@ -164,7 +165,7 @@ jobs:
                   print(json.dumps({"publisher": "FAIL_CLOSED", "reason": "WORKFLOW_RUN_ID_MISSING", "run_id": run_id}, sort_keys=True))
                   raise SystemExit(2)
 
-              expected = request_json("GET", f"/repos/{REPO}/actions/workflows/{ROOT_PATH}")
+              expected = request_json("GET", f"/repos/{REPO}/actions/workflows/{ROOT_FILENAME}")
               original = request_json("GET", f"/repos/{REPO}/actions/runs/{run_id}?exclude_pull_requests=false")
               current_pr = request_json("GET", f"/repos/{REPO}/pulls/{PR_NUMBER}")
               decision = evaluate_live_proof(event, original, expected, current_pr)
