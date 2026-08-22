@@ -1,0 +1,23 @@
+schema_version: "1.0"
+record_type: "AWSA1PreActivationManifest"
+deployable: false
+purpose: "Review-only resource and IAM manifest; it contains no account IDs, ARNs, keys, secrets, or executable deployment action."
+future_resources:
+  - type: "AWS::KMS::Key"
+    role: "asymmetric signing key; private material non-exportable"
+  - type: "AWS::DynamoDB::Table"
+    role: "approval, grant, revocation and one-time-consumption ledger"
+  - type: "AWS::Lambda::Function"
+    role: "issuer; validates and conditionally consumes before KMS signing"
+  - type: "AWS::IAM::Role"
+    role: "GitHub OIDC requester; InvokeFunction only"
+requester_allowlist:
+  - "lambda:InvokeFunction on the exact issuer function"
+requester_explicit_denies:
+  - "dynamodb:PutItem/UpdateItem except no approval or arbitrary ledger mutation path"
+  - "kms:Sign"
+  - "iam:CreateRole/PutRolePolicy/UpdateAssumeRolePolicy"
+  - "lambda:CreateFunction/UpdateFunctionCode/UpdateFunctionConfiguration"
+  - "kms:PutKeyPolicy/ScheduleKeyDeletion"
+  - "secretsmanager:GetSecretValue"
+activation_gate: "future exact user approval for AWS account, billing, MFA, IAM, KMS, Lambda, DynamoDB and GitHub OIDC supporting controls"

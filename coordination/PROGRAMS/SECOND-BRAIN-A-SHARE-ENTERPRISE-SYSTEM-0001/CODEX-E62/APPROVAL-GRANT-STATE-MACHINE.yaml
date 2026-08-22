@@ -1,0 +1,33 @@
+schema_version: "1.0"
+record_type: "ApprovalGrantStateMachine"
+states: [APPROVED, CLAIMED, SIGNED, FAILED_RETRYABLE, OUTCOME_UNKNOWN, REVOKED, EXPIRED, WRITE_CONSUMED]
+transitions:
+  - from: APPROVED
+    to: CLAIMED
+    guard: "exact requester context and one immutable claim token"
+  - from: CLAIMED
+    to: SIGNED
+    guard: "KMS sign result recorded against canonical payload"
+  - from: CLAIMED
+    to: FAILED_RETRYABLE
+    guard: "failure proven before KMS call"
+  - from: CLAIMED
+    to: OUTCOME_UNKNOWN
+    guard: "KMS timeout or crash window after invocation"
+  - from: OUTCOME_UNKNOWN
+    to: FAILED_RETRYABLE
+    guard: "matching reconciliation proves no signature was produced"
+  - from: SIGNED
+    to: WRITE_CONSUMED
+    guard: "independent private-Git CAS and one-time grant consumption succeed"
+  - from: [APPROVED, CLAIMED, FAILED_RETRYABLE, OUTCOME_UNKNOWN, SIGNED]
+    to: REVOKED
+    guard: "external human control action before write consumption"
+  - from: [APPROVED, CLAIMED, FAILED_RETRYABLE, OUTCOME_UNKNOWN, SIGNED]
+    to: EXPIRED
+    guard: "expiry reached"
+invariants:
+  - "OUTCOME_UNKNOWN never retries signing until reconciled."
+  - "One grant_id produces at most one active signed grant and at most one private-Git consumption."
+  - "WRITE_CONSUMED is terminal."
+  - "REVOKED and EXPIRED deny private-Git consumption."

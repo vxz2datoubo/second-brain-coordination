@@ -1,0 +1,15 @@
+schema_version: "1.0"
+record_type: "PrivateGitFormalWriteGateContract"
+status: "SYNTHETIC_LOCAL_CONTRACT_ONLY"
+acceptance_requires:
+  - "valid unexpired non-revoked ledger-issued ProductionCertificationGrant"
+  - "exact three-digest package identity match"
+  - "target equals future-private-git-knowledge"
+  - "single-use grant state is SIGNED"
+  - "expected_parent equals current private-Git parent"
+  - "formal-record digest and certification provenance"
+rejects: [wrong_target, stale_parent, duplicate_use, revoked_grant, expired_grant, altered_digest, fake_signature, missing_source_evidence]
+on_success:
+  transition: "SIGNED -> WRITE_CONSUMED"
+  receipt: [grant_id, target, expected_parent, formal_record_digest]
+real_repository_creation_or_write_authorized: false
