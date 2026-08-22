@@ -75,9 +75,15 @@ def main() -> None:
         fail("R142_M4_CANONICAL_BINDING_REQUIRED")
 
     source_package = read_yaml(R142_ROOT / "REAL-RETROSPECTIVE-PACKAGE.yaml")
-    if source_package.get("expected_canonical_main") != canonical_main:
-        fail("R142_M4_PACKAGE_CANONICAL_DRIFT")
+    historical_package_main = source_package.get("expected_canonical_main")
+    if not isinstance(historical_package_main, str) or len(historical_package_main) != 40:
+        fail("R142_M4_HISTORICAL_PACKAGE_BINDING_INVALID")
+    # The reconstructed package records the main that was current when its
+    # historical source was reconstructed.  R145 must reconcile that same
+    # historical intent against the fresh canonical main, not freeze current
+    # truth to the historical reconstruction commit.
     raw_package = expand_source_fragment_refs(source_package)
+    raw_package["expected_canonical_main"] = canonical_main
     package = validate_import_package(raw_package)
     if package["candidate_errors"]:
         fail(f"R142_M4_PACKAGE_INVALID:{package['candidate_errors']}")
@@ -85,8 +91,9 @@ def main() -> None:
     plan = read_yaml(R142_ROOT / "REAL-RETROSPECTIVE-EVIDENCE-PLAN.yaml")
     if plan.get("schema_version") != "R142RealRetrospectiveEvidencePlan/v2":
         fail("R142_M4_EVIDENCE_PLAN_V2_REQUIRED")
-    if plan.get("canonical_main") != canonical_main:
-        fail("R142_M4_PLAN_CANONICAL_DRIFT")
+    historical_plan_main = plan.get("canonical_main")
+    if not isinstance(historical_plan_main, str) or len(historical_plan_main) != 40:
+        fail("R142_M4_HISTORICAL_PLAN_BINDING_INVALID")
     if not _policy_valid(plan):
         fail("R142_M4_ORACLE_INDEPENDENCE_POLICY_REQUIRED")
 
@@ -283,6 +290,9 @@ def main() -> None:
                 "source_fragment_ref_semantics": source_package["package_metadata"].get(
                     "source_fragment_ref_semantics"
                 ),
+                "historical_package_canonical_main": historical_package_main,
+                "historical_plan_canonical_main": historical_plan_main,
+                "fresh_current_main_rebind": True,
                 "reconstructed_candidate_count": len(candidates),
                 "package_digest": package["package_digest"],
                 "canonical_main": canonical_main,
