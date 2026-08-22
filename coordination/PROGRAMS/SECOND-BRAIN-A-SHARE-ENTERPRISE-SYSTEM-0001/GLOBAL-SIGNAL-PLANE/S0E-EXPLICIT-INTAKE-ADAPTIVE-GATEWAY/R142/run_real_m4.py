@@ -18,7 +18,7 @@ sys.path[:0] = [str(S0E_ROOT / "src"), str(GLOBAL_SIGNAL_ROOT / "S0-SYNTHETIC" /
 
 from global_signal_gateway.gateway import exact_git_read_proofs, validate_live_observation_proof  # noqa: E402
 from global_signal_gateway.live_observation_provider import (  # noqa: E402
-    CONTROL_PATHS, CONTRACT_REVISION, DOMAIN_REPOSITORY, TARGET_REPOSITORY,
+    ACTIVE_TASK_PATH, CONTROL_PATHS, CONTRACT_REVISION, DOMAIN_REPOSITORY, TARGET_REPOSITORY,
     DomainFreshnessTarget, LiveObservationProvider, LiveObservationRequest,
 )
 from global_signal_gateway.retrospective_evidence import (  # noqa: E402
@@ -30,9 +30,6 @@ from global_signal_gateway.retrospective_intake import (  # noqa: E402
     governed_snapshot_refs, reconcile_package, validate_import_package,
 )
 from global_signal_plane.ledger import DurableSignalLedger  # noqa: E402
-
-TASK = "CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE"
-EPOCH = 142
 
 
 def fail(code: str) -> None:
@@ -65,6 +62,27 @@ def _policy_valid(plan: Mapping[str, Any]) -> bool:
     )
 
 
+def _current_observation_task(canonical_worktree: Path) -> tuple[str, int]:
+    """Bind R137 observation to the exact current canonical task pointer.
+
+    The R142 package is historical evidence.  The R137 provider, however,
+    verifies current control-plane identity.  Reusing the stale R142 task id as
+    if it were still active makes a fresh current observation impossible once a
+    successor task exists.  Read the same exact-main ACTIVE_TASK_PATH that the
+    provider itself validates, then let the provider independently bind its
+    canonical route.
+    """
+    active = read_yaml(canonical_worktree / ACTIVE_TASK_PATH)
+    task_id = active.get("task_id")
+    route_epoch = active.get("route_epoch")
+    canonical_route = active.get("canonical_route")
+    if not isinstance(task_id, str) or not task_id or not isinstance(route_epoch, int):
+        fail("R142_M4_CURRENT_TASK_BINDING_INVALID")
+    if not isinstance(canonical_route, str) or not canonical_route.startswith("coordination/ROUTES/") or not canonical_route.endswith(".yaml"):
+        fail("R142_M4_CURRENT_ROUTE_POINTER_INVALID")
+    return task_id, route_epoch
+
+
 def main() -> None:
     canonical_main = os.environ.get("R142_BASE_SHA", "")
     canonical_worktree = Path(os.environ.get("R142_CANONICAL_WORKTREE", ""))
@@ -79,7 +97,7 @@ def main() -> None:
     if not isinstance(historical_package_main, str) or len(historical_package_main) != 40:
         fail("R142_M4_HISTORICAL_PACKAGE_BINDING_INVALID")
     # The reconstructed package records the main that was current when its
-    # historical source was reconstructed.  R145 must reconcile that same
+    # historical source was reconstructed. R145 must reconcile that same
     # historical intent against the fresh canonical main, not freeze current
     # truth to the historical reconstruction commit.
     raw_package = expand_source_fragment_refs(source_package)
@@ -96,6 +114,8 @@ def main() -> None:
         fail("R142_M4_HISTORICAL_PLAN_BINDING_INVALID")
     if not _policy_valid(plan):
         fail("R142_M4_ORACLE_INDEPENDENCE_POLICY_REQUIRED")
+
+    current_observation_task, current_observation_epoch = _current_observation_task(canonical_worktree)
 
     candidates = {item["candidate_id"]: item for item in package["candidates"]}
     bindings = plan.get("candidate_fact_bindings")
@@ -141,8 +161,8 @@ def main() -> None:
         target_repository=TARGET_REPOSITORY,
         target_branch="main",
         pull_request_number=pr_number,
-        expected_task_id=TASK,
-        expected_route_epoch=EPOCH,
+        expected_task_id=current_observation_task,
+        expected_route_epoch=current_observation_epoch,
         required_control_plane_paths=CONTROL_PATHS,
         required_domain_freshness_targets=(DomainFreshnessTarget(DOMAIN_REPOSITORY),),
         required_review_scope="ALL_RAW_REVIEWS",
@@ -293,6 +313,8 @@ def main() -> None:
                 "historical_package_canonical_main": historical_package_main,
                 "historical_plan_canonical_main": historical_plan_main,
                 "fresh_current_main_rebind": True,
+                "current_observation_task_id": current_observation_task,
+                "current_observation_route_epoch": current_observation_epoch,
                 "reconstructed_candidate_count": len(candidates),
                 "package_digest": package["package_digest"],
                 "canonical_main": canonical_main,
