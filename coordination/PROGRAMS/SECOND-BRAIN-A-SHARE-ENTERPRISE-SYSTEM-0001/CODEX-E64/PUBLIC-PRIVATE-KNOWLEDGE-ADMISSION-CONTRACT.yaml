@@ -1,0 +1,18 @@
+schema_version: "1.1"
+repository_visibility: "PUBLIC_UNCHANGED"
+classes:
+  PUBLIC_SAFE:
+    public_repository_action: "Eligible for candidate promotion after validation and approval."
+    raw_content_action: "May be represented only when independently classified PUBLIC_SAFE."
+  PRIVATE_OR_SENSITIVE:
+    public_repository_action: "BLOCKED"
+    raw_content_action: "Never commit raw content; only redacted metadata/status may be public."
+  SECRET_CREDENTIAL:
+    public_repository_action: "BLOCKED"
+    raw_content_action: "Never commit, echo, or place in a report."
+admission_evidence:
+  required_candidate_fields: [classification_evidence_ref, classification_evidence_object_sha256]
+  resolver_rule: "A read-only canonical resolver must return an upstream PUBLIC_SAFE admission decision bound to the pre-admission subject SHA-256 and repository ID."
+  privacy_rule: "E64 does not inspect or publish raw private source merely to prove classification."
+admission_invariant: "The verifier accepts only resolver-verified PUBLIC_SAFE before approval registration."
+non_claim: "Low watcher count or current public visibility does not make private material safe to publish."

@@ -1,0 +1,13 @@
+schema_version: "1.0"
+integration_status: "BLOCKED_PENDING_E48_R2_ACCEPTANCE"
+producer: "QCLAW E48 R2"
+consumer: "CODEX E64"
+accepted_current_fixture_status: "TYPED_SYNTHETIC_E48_FIXTURE"
+required_producer_fields:
+  - raw_artifact_sha256
+  - canonical_semantic_sha256
+  - l0_provenance_sha256
+field_rule: "Each field is lowercase 64-hex SHA-256; E64 consumes supplied fields and never recomputes a competing semantic digest."
+forbidden:
+  - "legacy short content hash as candidate identity"
+  - "live E48 integration before independent E48 R2 acceptance"
