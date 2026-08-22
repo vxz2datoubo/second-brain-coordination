@@ -1,124 +1,135 @@
-schema_version: "1.2"
-receipt_id: "R145-RUNTIME-GOVERNANCE-PROOF-PUBLISHER-AMENDMENT-0001"
+schema_version: "2.0"
+receipt_id: "R145-RUNTIME-GOVERNANCE-LIVE-PROOF-F04-SHORT-PATH-0001"
 issue: 415
 task_id: "GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145"
 route_epoch: 145
-status: "CONTROL_PLANE_OBSERVABILITY_AMENDMENT / F01_F02_CANONICAL / F03_REMEDIATION_CANDIDATE / REQUIRES_INDEPENDENT_REVIEW_AND_CANONICAL_MERGE"
+status: "F04_SHORT_PATH_REMEDIATION_CANDIDATE / REQUIRES_INDEPENDENT_REVIEW_AND_GOVERNED_CANONICAL_MERGE"
 runtime_pr: 418
 runtime_hold: "STOP_BEFORE_G1_G5"
-problem: "LIVE_ROOT_UNOBSERVABLE_WITH_CURRENT_TOOLING"
+architecture_decision_comment: 5379525091
+blocker: "FAIL_CLOSED_PATH_IS_UNOBSERVABLE_AND_INDIRECT_CHAIN_IS_OVERCOMPLEX"
+principles:
+  - "NATIVE_FIRST"
+  - "SHORTEST_VALID_PATH"
+  - "ONE_CURRENT_AUTHORITY"
 architecture:
-  source_workflow:
+  current_primary_writer: "RUNTIME_GOVERNANCE_ROOT_DIRECT_STATUS"
+  workflow:
     name: "Runtime governance root"
     path: ".github/workflows/runtime-governance-root.yml"
     event: "pull_request_target"
     execution_trust: "CANONICAL_BASE_ONLY"
-    run_name_binding: "R145_LIVE_ROOT pr=<PR> head=<40hex> base=<40hex>"
-    run_name_inputs:
-      - "github.event.pull_request.number"
-      - "github.event.pull_request.head.sha"
-      - "github.event.pull_request.base.sha"
-    permissions:
-      contents: read
-  publisher:
-    name: "Runtime Governance Proof Publisher"
-    path: ".github/workflows/runtime-governance-proof-publisher.yml"
-    event: "workflow_run / completed"
-    checkout_repository: false
-    executes_pr_head_code: false
-    downloads_pr_artifacts: false
-    uses_pr_cache: false
-    secrets_referenced: false
-    permissions:
-      actions: read
-      pull-requests: read
-      statuses: write
-    all_other_permissions: none
-proof_contract:
-  repository: "vxz2datoubo/second-brain-coordination"
-  pr_number: 418
+  root_permissions:
+    contents: read
+    statuses: write
+  all_other_permissions: none
   status_context: "r145/runtime-governance-live-proof"
-  target_url: "ORIGINAL_RUNTIME_GOVERNANCE_ROOT_RUN_HTML_URL"
-  head_source: "CANONICAL_ROOT_RUN_NAME_DISPLAY_TITLE"
-  base_source: "CANONICAL_ROOT_RUN_NAME_DISPLAY_TITLE"
-  workflow_run_display_title_cross_check_required: true
-  rest_pull_requests_role: "OPTIONAL_CONSISTENCY_CROSS_CHECK_ONLY"
-  empty_rest_pull_requests_allowed: true
-  nonempty_rest_pull_requests_must_exactly_match_run_name: true
-  github_sha_as_runtime_head_forbidden: true
-  current_pr_head_cross_check_required: true
-  current_pr_base_cross_check_required: true
-  stale_run_success_for_newer_head_forbidden: true
   status_role: "DISCOVERY_HINT / LIVE_PROOF_POINTER / NOT_ACCEPTANCE_AUTHORITY"
-f01_remediation:
-  review_id: 4996456829
-  blocker: "TESTED_POLICY_IS_NOT_THE_PRIVILEGED_EXECUTION_PATH"
-  disposition: "CANONICAL"
-  privileged_execution_artifact: ".github/workflows/runtime-governance-proof-publisher.yml::inline-python"
-  semantic_test_artifact: "EXACT_WORKFLOW_INLINE_PYTHON_EXTRACTED_AND_EXECUTED"
-  privileged_main_path_tested: true
-  production_only_mutation_sensitivity_required: true
-  shadow_policy_module: "ABSENT"
-  removed_shadow_path: "coordination/CONTROL-TOWER/runtime_governance_proof_policy.py"
-  invariant: "TESTED_POLICY_IS_THE_PRIVILEGED_EXECUTION_PATH"
-f02_remediation:
-  review_id: 4998956888
-  blocker: "WORKFLOW_METADATA_ENDPOINT_USES_FULL_REPO_PATH_AS_WORKFLOW_ID"
-  disposition: "CANONICAL"
-  workflow_metadata_endpoint: "/repos/vxz2datoubo/second-brain-coordination/actions/workflows/runtime-governance-root.yml"
-  returned_metadata_path_required: ".github/workflows/runtime-governance-root.yml"
-f03_remediation:
-  architecture_checkpoint_comment: 5378138908
-  blocker: "WORKFLOW_RUN_PULL_REQUESTS_NONEMPTY_ASSUMPTION_IS_FALSE"
-  disposition: "REMEDIATION_CANDIDATE"
-  primary_binding: "CANONICAL_ROOT_RUN_NAME_DISPLAY_TITLE"
-  strict_format: "R145_LIVE_ROOT pr=418 head=<40hex> base=<40hex>"
-  observed_rest_empty_binding_shape_allowed: true
-  rest_nonempty_binding_is_only_cross_check: true
-  rest_mismatch_or_multiple_fails_closed: true
-  display_title_event_vs_original_mismatch_fails_closed: true
-  current_pr_head_base_drift_is_error: true
-fail_closed:
-  - "WRONG_WORKFLOW_NAME"
-  - "WRONG_WORKFLOW_ID_OR_PATH"
-  - "WRONG_EVENT"
-  - "WRONG_REPOSITORY"
-  - "RUN_NAME_BINDING_MALFORMED"
-  - "RUN_NAME_PR_NOT_418"
-  - "MISSING_OR_INVALID_BOUND_HEAD_OR_BASE_SHA"
-  - "WORKFLOW_RUN_DISPLAY_TITLE_MISMATCH"
-  - "REST_PR_BINDINGS_MALFORMED"
-  - "REST_PR_BINDING_AMBIGUOUS"
-  - "REST_PR_BINDING_MISMATCH"
-  - "STALE_ROOT_RUN_FOR_OLDER_PR_HEAD_OR_BASE"
-  - "UNKNOWN_OR_MALFORMED_CONCLUSION"
+  lifecycle:
+    - "PREFLIGHT_VALIDATE_EVENT_BINDING"
+    - "PUBLISH_PENDING_TO_EVENT_BOUND_HEAD"
+    - "PYTHON_3_11_AND_3_13_REQUIRED_GUARD_MATRIX"
+    - "PUBLISH_SUCCESS_ONLY_AFTER_AGGREGATE_GUARD_SUCCESS"
+    - "PUBLISH_FAILURE_OR_ERROR_ON_GUARD_FAILURE_OR_NONSTANDARD_RESULT"
+  target_url_source: "CURRENT_RUNTIME_GOVERNANCE_ROOT_GITHUB_RUN_ID"
+  head_source: "github.event.pull_request.head.sha"
+  base_source: "github.event.pull_request.base.sha"
+  pr_source: "github.event.pull_request.number"
+  github_sha_as_pr_head_forbidden: true
+  pr_title_body_branch_free_text_forbidden_for_binding: true
+  checkout_pr_head_forbidden: true
+  execute_pr_head_forbidden: true
+  pr_head_treatment: "GIT_DATA_ONLY"
+  acceptance_requires_gpt_log_audit: true
+publisher_retirement:
+  workflow_path: ".github/workflows/runtime-governance-proof-publisher.yml"
+  workflow_state: "ABSENT_FROM_CANONICAL_TREE"
+  previous_role: "HISTORICAL_F01_F03_INDIRECT_LIVE_PROOF_WRITER"
+  current_status_writer_authority: false
+  historical_evidence_retained_in_git_history: true
+  dual_active_writer_for_fixed_context_forbidden: true
+  reason: "F04_SHORT_PATH_ELIMINATES_WORKFLOW_RUN_REDISCOVERY_CHAIN"
+required_guards:
+  transition_lineage:
+    command: "path_action_constraints.py --enforce-transition-lineage"
+    required: true
+  full_write_surface:
+    command: "path_action_policy.py --enforce-full-write-surface"
+    required: true
+  protected_enforcement_roots:
+    required: true
+    paths:
+      - ".github/workflows/r145-final-active-gate.yml"
+      - ".github/workflows/runtime-governance-root.yml"
+      - "coordination/CONTROL-TOWER/path_action_constraints.py"
+      - "coordination/CONTROL-TOWER/path_action_policy.py"
+      - "coordination/CONTROL-TOWER/R145-BOOTSTRAP-CLEANUP-SCOPE-AMENDMENT.yaml"
+  python_matrix:
+    required_versions: ["3.11", "3.13"]
 status_mapping:
-  success: success
-  failure: failure
-  timed_out: failure
-  cancelled: failure
-  action_required: failure
-  skipped: failure
-  neutral: failure
-  startup_failure: failure
-  stale: failure
+  pre_guard: pending
+  all_required_guards_success: success
+  required_guard_failure: failure
+  cancelled: error
+  skipped: error
   unknown: error
+binding_fail_closed:
+  - "WRONG_EVENT_NAME"
+  - "WRONG_EVENT_ACTION"
+  - "WRONG_REPOSITORY"
+  - "PR_NUMBER_NOT_418"
+  - "MISSING_OR_INVALID_HEAD_SHA"
+  - "MISSING_OR_INVALID_BASE_SHA"
+  - "INVALID_CURRENT_ROOT_RUN_IDENTITY"
+  - "BOUND_TARGET_URL_MISMATCH"
 security:
   no_contents_write: true
-  no_issues_write: true
-  no_pull_requests_write: true
+  no_issues_permission: true
+  no_pull_requests_permission: true
+  no_actions_permission: true
   no_deployments: true
   no_packages: true
+  no_secrets_reference: true
   no_production_authority: true
   no_domain_write: true
   no_trading_account_order_fund_authority: true
-  commit_status_never_substitutes_original_logs: true
+  commit_status_never_substitutes_original_jobs_steps_logs: true
+historical_indirect_chain:
+  f01_review: 4996456829
+  f02_review: 4998956888
+  f03_review: 4999374989
+  disposition: "RETIRED_FROM_CURRENT_PRODUCTION_PATH_BY_F04_IF_CANONICAL"
+mandatory_production_tests:
+  actual_root_inline_code_executed: true
+  exact_permissions_tested: true
+  pending_exact_head_tested: true
+  pending_current_run_target_url_tested: true
+  success_ordering_tested: true
+  guard_failure_mapping_tested: true
+  wrong_pr_fail_closed_tested: true
+  malformed_head_base_fail_closed_tested: true
+  free_text_non_binding_tested: true
+  github_sha_substitution_forbidden_tested: true
+  canonical_base_checkout_tested: true
+  head_git_data_only_tested: true
+  protected_roots_tested: true
+  single_active_writer_tested: true
+  production_mutations:
+    - "PERMISSION_MUTATION"
+    - "HEAD_BINDING_MUTATION"
+    - "BASE_BINDING_MUTATION"
+    - "TARGET_URL_MUTATION"
+    - "SUCCESS_ORDERING_MUTATION"
+    - "FAILURE_MAPPING_MUTATION"
+    - "GUARD_REMOVAL_MUTATION"
+    - "PROTECTED_ROOT_GUARD_REMOVAL_MUTATION"
 post_merge_rule: >-
-  Only after independent ACCEPT and governed canonical merge may Architecture Authority authorize one new PR #418
-  non-destructive sync to trigger a real Runtime governance root run and corresponding proof-publisher status.
-  GPT must follow target_url/run ID to original jobs, steps and logs before any LIVE_ROOT_PASS conclusion.
+  This amendment does not itself establish LIVE_ROOT_PASS and does not authorize G1-G5.
+  Only after independent ACCEPT plus governed canonical merge may Architecture Authority authorize a new bounded #418
+  non-destructive retrigger. GPT must follow the direct status target_url to the original Runtime governance root run and
+  independently inspect jobs, steps, and full logs before deciding LIVE_ROOT_PASS.
 rollback: >-
-  Revert only the governed F03 amendment merge commit to restore the pre-F03 root run-name, Publisher binding logic,
-  receipt semantics and tests without rewriting PR #418 runtime history.
+  Revert only the governed F04 amendment merge commit. That restores the previous indirect Publisher workflow,
+  pre-F04 root permissions/status path, receipt semantics, and tests without rewriting PR #418 runtime history.
 self_review_forbidden: true
 self_merge_forbidden: true

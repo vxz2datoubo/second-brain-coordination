@@ -12,297 +12,379 @@ from unittest import mock
 import yaml
 
 ROOT = Path(__file__).resolve().parents[3]
-PUB = ROOT / ".github/workflows/runtime-governance-proof-publisher.yml"
 ROOT_WF = ROOT / ".github/workflows/runtime-governance-root.yml"
+PUB_WF = ROOT / ".github/workflows/runtime-governance-proof-publisher.yml"
 RECEIPT = ROOT / "coordination/CONTROL-TOWER/R145-RUNTIME-GOVERNANCE-PROOF-PUBLISHER.yaml"
 
-HEAD, BASE, H2, B2 = "b"*40, "a"*40, "c"*40, "d"*40
 REPO = "vxz2datoubo/second-brain-coordination"
-PR, WID, RID = 418, 424242, 777001
-NAME = "Runtime governance root"
-PATH = ".github/workflows/runtime-governance-root.yml"
-FILENAME = "runtime-governance-root.yml"
-ENDPOINT = f"/repos/{REPO}/actions/workflows/{FILENAME}"
+PR = 418
+HEAD = "b" * 40
+BASE = "a" * 40
+H2 = "c" * 40
+B2 = "d" * 40
+RUN_ID = "777001"
+TARGET_URL = f"https://github.com/{REPO}/actions/runs/{RUN_ID}"
 CONTEXT = "r145/runtime-governance-live-proof"
-TITLE = f"R145_LIVE_ROOT pr={PR} head={HEAD} base={BASE}"
+PENDING_STEP = "Validate event binding and publish pending"
+FINAL_STEP = "Publish success only after all required guards"
 
-def extract(text=None):
-    raw = PUB.read_text(encoding="utf-8") if text is None else text
-    a = raw.index("          python3 - <<'PY'\n") + len("          python3 - <<'PY'\n")
-    b = raw.index("\n          PY", a)
-    return textwrap.dedent(raw[a:b])
 
-def ns(script=None):
-    n = {"__name__": "r145_test"}
-    exec(compile(extract() if script is None else script, "<publisher>", "exec"), n)
-    return n
+def workflow_text() -> str:
+    return ROOT_WF.read_text(encoding="utf-8")
 
-def rb(pr=PR, head=HEAD, base=BASE):
-    return {"number": pr, "head": {"sha": head}, "base": {"sha": base}}
 
-def fx(conclusion="success", rest=None, title=TITLE):
-    if rest is None:
-        rest = []
-    event = {
-        "action": "completed",
+def extract_step_python(step_name: str, text: str | None = None) -> str:
+    raw = workflow_text() if text is None else text
+    anchor = f"      - name: {step_name}\n"
+    pos = raw.index(anchor)
+    start_marker = "          python3 - <<'PY'\n"
+    start = raw.index(start_marker, pos) + len(start_marker)
+    end = raw.index("\n          PY", start)
+    return textwrap.dedent(raw[start:end])
+
+
+def load_namespace(script: str) -> dict:
+    namespace = {"__name__": "r145_root_test"}
+    exec(compile(script, "<runtime-governance-root-production>", "exec"), namespace)
+    return namespace
+
+
+def event_fixture(pr: int = PR, head: str | None = HEAD, base: str | None = BASE) -> dict:
+    head_obj = {} if head is None else {"sha": head}
+    base_obj = {} if base is None else {"sha": base}
+    return {
         "repository": {"full_name": REPO},
-        "workflow": {"id": WID, "name": NAME, "path": PATH},
-        "workflow_run": {
-            "id": RID, "workflow_id": WID, "name": NAME, "event": "pull_request_target",
-            "status": "completed", "conclusion": conclusion, "display_title": title,
+        "pull_request": {
+            "number": pr,
+            "head": {**head_obj, "ref": "attacker-free-text"},
+            "base": base_obj,
+            "title": "attacker title pr=999 head=deadbeef",
+            "body": "attacker body",
         },
-        "pull_request": {"title": "attacker pr=999", "body": TITLE, "head": {"ref": TITLE}},
     }
-    original = {
-        "id": RID, "workflow_id": WID, "name": NAME, "path": PATH+"@main",
-        "event": "pull_request_target", "status": "completed", "conclusion": conclusion,
-        "display_title": title, "html_url": f"https://github.com/{REPO}/actions/runs/{RID}",
-        "repository": {"full_name": REPO}, "pull_requests": copy.deepcopy(rest),
-    }
-    expected = {"id": WID, "name": NAME, "path": PATH}
-    current = {"number": PR, "head": {"sha": HEAD}, "base": {"sha": BASE}}
-    return event, original, expected, current
 
-class Semantic(unittest.TestCase):
+
+def base_env() -> dict[str, str]:
+    return {
+        "GITHUB_TOKEN": "test-token",
+        "GITHUB_EVENT_NAME": "pull_request_target",
+        "GITHUB_EVENT_ACTION": "synchronize",
+        "GITHUB_REPOSITORY": REPO,
+        "GITHUB_RUN_ID": RUN_ID,
+        "GITHUB_SERVER_URL": "https://github.com",
+    }
+
+
+def run_pending(event: dict | None = None, script: str | None = None, extra_env: dict[str, str] | None = None):
+    namespace = load_namespace(extract_step_python(PENDING_STEP) if script is None else script)
+    calls: list[tuple[str, str, dict | None]] = []
+
+    def fake_request(method, path, body=None):
+        calls.append((method, path, copy.deepcopy(body)))
+        return {"ok": True}
+
+    namespace["request_json"] = fake_request
+    with tempfile.NamedTemporaryFile("w", encoding="utf-8", delete=False) as event_file:
+        json.dump(event_fixture() if event is None else event, event_file)
+        event_path = event_file.name
+    with tempfile.NamedTemporaryFile("w", encoding="utf-8", delete=False) as output_file:
+        output_path = output_file.name
+    env = base_env()
+    env.update({"GITHUB_EVENT_PATH": event_path, "GITHUB_OUTPUT": output_path})
+    if extra_env:
+        env.update(extra_env)
+    code = None
+    try:
+        with mock.patch.dict(namespace["os"].environ, env, clear=True):
+            try:
+                namespace["main"]()
+            except SystemExit as exc:
+                code = exc.code
+        outputs: dict[str, str] = {}
+        for line in Path(output_path).read_text(encoding="utf-8").splitlines():
+            if "=" in line:
+                key, value = line.split("=", 1)
+                outputs[key] = value
+        return calls, code, outputs
+    finally:
+        os.unlink(event_path)
+        os.unlink(output_path)
+
+
+def run_final(
+    guards_result: str,
+    script: str | None = None,
+    head: str = HEAD,
+    base: str = BASE,
+    bound_target_url: str = TARGET_URL,
+    extra_env: dict[str, str] | None = None,
+):
+    namespace = load_namespace(extract_step_python(FINAL_STEP) if script is None else script)
+    calls: list[tuple[str, str, dict | None]] = []
+
+    def fake_request(method, path, body=None):
+        calls.append((method, path, copy.deepcopy(body)))
+        return {"ok": True}
+
+    namespace["request_json"] = fake_request
+    env = base_env()
+    env.update({
+        "HEAD_SHA": head,
+        "BASE_SHA": base,
+        "BOUND_TARGET_URL": bound_target_url,
+        "GUARDS_RESULT": guards_result,
+    })
+    if extra_env:
+        env.update(extra_env)
+    code = None
+    with mock.patch.dict(namespace["os"].environ, env, clear=True):
+        try:
+            namespace["main"]()
+        except SystemExit as exc:
+            code = exc.code
+    return calls, code
+
+
+def status_posts(calls):
+    return [call for call in calls if call[0] == "POST" and "/statuses/" in call[1]]
+
+
+def assert_pending_contract(calls, outputs):
+    posts = status_posts(calls)
+    assert len(posts) == 1
+    assert posts[0][1] == f"/repos/{REPO}/statuses/{HEAD}"
+    assert posts[0][2]["state"] == "pending"
+    assert posts[0][2]["context"] == CONTEXT
+    assert posts[0][2]["target_url"] == TARGET_URL
+    assert outputs == {"head_sha": HEAD, "base_sha": BASE, "target_url": TARGET_URL}
+
+
+def assert_static_contract(text: str):
+    data = yaml.safe_load(text)
+    assert data["permissions"] == {"contents": "read", "statuses": "write"}
+    jobs = data["jobs"]
+    assert jobs["r145-runtime-root-guards"]["strategy"]["matrix"]["python-version"] == ["3.11", "3.13"]
+    assert jobs["r145-runtime-root-guards"]["needs"] == "r145-live-proof-bind"
+    final = jobs["r145-live-proof-finalize"]
+    assert final["needs"] == ["r145-live-proof-bind", "r145-runtime-root-guards"]
+    assert "always()" in final["if"]
+    assert "needs.r145-live-proof-bind.result == 'success'" in final["if"]
+    assert "ref: ${{ needs.r145-live-proof-bind.outputs.base_sha }}" in text
+    assert 'git fetch --no-tags origin "$HEAD_SHA"' in text
+    assert 'git cat-file -e "${HEAD_SHA}^{commit}"' in text
+    assert "python path_action_constraints.py" in text
+    assert "--enforce-transition-lineage" in text
+    assert "python path_action_policy.py" in text
+    assert "--enforce-full-write-surface" in text
+    assert "R145_BASE_TRUSTED_ENFORCEMENT_ROOT_MUTATION_FORBIDDEN" in text
+    assert ".github/workflows/runtime-governance-root.yml" in text
+    assert "GITHUB_SHA" not in text
+    assert "pull_request.title" not in text
+    assert "pull_request.body" not in text
+    assert "pull_request.head.ref" not in text
+    pending_script = extract_step_python(PENDING_STEP, text)
+    assert '"state": "pending"' in pending_script
+    assert '"state": "success"' not in pending_script
+
+
+class ProductionRootPendingTests(unittest.TestCase):
+    def test_pending_targets_exact_event_bound_head(self):
+        calls, code, outputs = run_pending()
+        self.assertIsNone(code)
+        assert_pending_contract(calls, outputs)
+
+    def test_pending_target_url_is_current_root_run(self):
+        calls, code, _ = run_pending()
+        self.assertIsNone(code)
+        self.assertEqual(TARGET_URL, status_posts(calls)[0][2]["target_url"])
+
+    def test_wrong_pr_number_fails_closed_without_status(self):
+        calls, code, _ = run_pending(event_fixture(pr=419))
+        self.assertEqual("ROOT_PR_NUMBER_MISMATCH", code)
+        self.assertEqual([], status_posts(calls))
+
+    def test_malformed_or_missing_head_never_targets_other_sha(self):
+        for head in ("bad", None):
+            with self.subTest(head=head):
+                calls, code, _ = run_pending(event_fixture(head=head))
+                self.assertEqual([], status_posts(calls))
+                self.assertIn("HEAD_SHA", str(code))
+
+    def test_malformed_or_missing_base_never_writes_status(self):
+        for base in ("bad", None):
+            with self.subTest(base=base):
+                calls, code, _ = run_pending(event_fixture(base=base))
+                self.assertEqual([], status_posts(calls))
+                self.assertIn("BASE_SHA", str(code))
+
+    def test_pr_title_body_and_branch_free_text_do_not_bind(self):
+        event = event_fixture()
+        event["pull_request"]["title"] = "R145_LIVE_ROOT pr=999 head=" + H2 + " base=" + B2
+        event["pull_request"]["body"] = "statuses/" + H2
+        event["pull_request"]["head"]["ref"] = "evil-branch-" + H2
+        calls, code, outputs = run_pending(event)
+        self.assertIsNone(code)
+        assert_pending_contract(calls, outputs)
+
+    def test_wrong_event_name_or_action_fails_closed(self):
+        for env in ({"GITHUB_EVENT_NAME": "pull_request"}, {"GITHUB_EVENT_ACTION": "closed"}):
+            with self.subTest(env=env):
+                calls, _, _ = run_pending(extra_env=env)
+                self.assertEqual([], status_posts(calls))
+
+
+class ProductionRootFinalTests(unittest.TestCase):
+    def test_success_posts_only_for_successful_guard_aggregate(self):
+        calls, code = run_final("success")
+        self.assertIsNone(code)
+        post = status_posts(calls)[0]
+        self.assertEqual(f"/repos/{REPO}/statuses/{HEAD}", post[1])
+        self.assertEqual("success", post[2]["state"])
+        self.assertEqual(CONTEXT, post[2]["context"])
+        self.assertEqual(TARGET_URL, post[2]["target_url"])
+
+    def test_guard_failure_posts_failure_to_same_head(self):
+        calls, code = run_final("failure")
+        self.assertEqual(2, code)
+        post = status_posts(calls)[0]
+        self.assertEqual(f"/repos/{REPO}/statuses/{HEAD}", post[1])
+        self.assertEqual("failure", post[2]["state"])
+        self.assertEqual(TARGET_URL, post[2]["target_url"])
+
+    def test_nonstandard_guard_result_posts_error(self):
+        for result in ("cancelled", "skipped", "unknown"):
+            with self.subTest(result=result):
+                calls, code = run_final(result)
+                self.assertEqual(2, code)
+                self.assertEqual("error", status_posts(calls)[0][2]["state"])
+
+    def test_bound_target_url_mismatch_posts_error_with_current_run_url(self):
+        calls, code = run_final("success", bound_target_url="https://attacker.invalid/run")
+        self.assertEqual(2, code)
+        post = status_posts(calls)[0]
+        self.assertEqual("error", post[2]["state"])
+        self.assertEqual(TARGET_URL, post[2]["target_url"])
+
+    def test_invalid_final_head_or_base_does_not_write_other_sha(self):
+        for head, base in (("bad", BASE), (HEAD, "bad")):
+            with self.subTest(head=head, base=base):
+                calls, code = run_final("failure", head=head, base=base)
+                self.assertEqual([], status_posts(calls))
+                self.assertEqual("ROOT_FINAL_BINDING_INVALID", code)
+
+
+class RootStaticSecurityTests(unittest.TestCase):
+    def test_exact_permissions_are_contents_read_and_statuses_write_only(self):
+        assert_static_contract(workflow_text())
+
+    def test_success_job_is_structurally_after_both_guard_lanes(self):
+        text = workflow_text()
+        assert_static_contract(text)
+        self.assertIn("needs: [r145-live-proof-bind, r145-runtime-root-guards]", text)
+        self.assertIn("GUARDS_RESULT: ${{ needs.r145-runtime-root-guards.result }}", text)
+
+    def test_canonical_base_only_checkout_and_head_data_only_are_retained(self):
+        text = workflow_text()
+        self.assertIn("ref: ${{ needs.r145-live-proof-bind.outputs.base_sha }}", text)
+        self.assertIn('git fetch --no-tags origin "$HEAD_SHA"', text)
+        self.assertIn('git cat-file -e "${HEAD_SHA}^{commit}"', text)
+        self.assertNotIn("git checkout \"$HEAD_SHA\"", text)
+        self.assertNotIn("ref: ${{ github.event.pull_request.head.sha }}", text)
+
+    def test_github_sha_cannot_substitute_for_pr_head(self):
+        self.assertNotIn("GITHUB_SHA", workflow_text())
+
+    def test_protected_enforcement_roots_remain_guarded(self):
+        text = workflow_text()
+        for path in (
+            ".github/workflows/r145-final-active-gate.yml",
+            ".github/workflows/runtime-governance-root.yml",
+            "coordination/CONTROL-TOWER/path_action_constraints.py",
+            "coordination/CONTROL-TOWER/path_action_policy.py",
+            "coordination/CONTROL-TOWER/R145-BOOTSTRAP-CLEANUP-SCOPE-AMENDMENT.yaml",
+        ):
+            self.assertIn(path, text)
+        self.assertIn("R145_BASE_TRUSTED_ENFORCEMENT_ROOT_MUTATION_FORBIDDEN", text)
+
+    def test_root_is_only_active_writer_for_fixed_context(self):
+        self.assertFalse(PUB_WF.exists())
+        writers = []
+        for path in (ROOT / ".github/workflows").glob("*.yml"):
+            if CONTEXT in path.read_text(encoding="utf-8"):
+                writers.append(path.name)
+        self.assertEqual(["runtime-governance-root.yml"], sorted(writers))
+
+    def test_receipt_declares_single_current_authority_and_stop_gate(self):
+        receipt = yaml.safe_load(RECEIPT.read_text(encoding="utf-8"))
+        self.assertEqual("STOP_BEFORE_G1_G5", receipt["runtime_hold"])
+        self.assertEqual("RUNTIME_GOVERNANCE_ROOT_DIRECT_STATUS", receipt["architecture"]["current_primary_writer"])
+        self.assertEqual("ABSENT_FROM_CANONICAL_TREE", receipt["publisher_retirement"]["workflow_state"])
+        self.assertEqual({"contents": "read", "statuses": "write"}, receipt["architecture"]["root_permissions"])
+
+
+class ProductionOnlyMutationSensitivityTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.code = extract()
-        cls.eval = staticmethod(ns(cls.code)["evaluate_live_proof"])
+        cls.text = workflow_text()
+        cls.pending = extract_step_python(PENDING_STEP)
+        cls.final = extract_step_python(FINAL_STEP)
 
-    def test_real_observed_empty_rest_pull_requests_valid_run_name_succeeds(self):
-        d = self.eval(*fx(rest=[]))
-        self.assertEqual(("success", HEAD, CONTEXT), (d["state"], d["head_sha"], d["context"]))
+    def test_permission_mutation_is_detected(self):
+        mutated = self.text.replace("  statuses: write\n", "  issues: write\n", 1)
+        with self.assertRaises(AssertionError):
+            assert_static_contract(mutated)
 
-    def test_matching_nonempty_rest_is_only_cross_check(self):
-        self.assertEqual("success", self.eval(*fx(rest=[rb()]))["state"])
+    def test_head_binding_mutation_to_github_sha_is_detected(self):
+        old = 'head_sha = _sha(head.get("sha"))'
+        new = 'head_sha = _sha(os.environ.get("GITHUB_SHA"))'
+        self.assertIn(old, self.pending)
+        calls, _, outputs = run_pending(script=self.pending.replace(old, new, 1), extra_env={"GITHUB_SHA": H2})
+        with self.assertRaises(AssertionError):
+            assert_pending_contract(calls, outputs)
 
-    def test_wrong_pr_number_in_run_name_no_success(self):
-        self.assertNotEqual("success", self.eval(*fx(title=f"R145_LIVE_ROOT pr=419 head={HEAD} base={BASE}"))["state"])
+    def test_base_binding_mutation_is_detected(self):
+        old = 'base_sha = _sha(base.get("sha"))'
+        new = 'base_sha = _sha(os.environ.get("MUTATED_BASE_SHA"))'
+        self.assertIn(old, self.pending)
+        calls, _, outputs = run_pending(script=self.pending.replace(old, new, 1), extra_env={"MUTATED_BASE_SHA": B2})
+        with self.assertRaises(AssertionError):
+            assert_pending_contract(calls, outputs)
 
-    def test_malformed_head_sha_in_run_name_no_success(self):
-        self.assertNotEqual("success", self.eval(*fx(title=f"R145_LIVE_ROOT pr=418 head=bad base={BASE}"))["state"])
+    def test_target_url_mutation_is_detected(self):
+        old = 'return f"{server}/{repo}/actions/runs/{run_id}"'
+        new = 'return f"{server}/{repo}/actions/runs/999"'
+        self.assertIn(old, self.pending)
+        calls, _, outputs = run_pending(script=self.pending.replace(old, new, 1))
+        with self.assertRaises(AssertionError):
+            assert_pending_contract(calls, outputs)
 
-    def test_malformed_base_sha_in_run_name_no_success(self):
-        self.assertNotEqual("success", self.eval(*fx(title=f"R145_LIVE_ROOT pr=418 head={HEAD} base=bad"))["state"])
+    def test_success_ordering_mutation_is_detected(self):
+        old = "needs: [r145-live-proof-bind, r145-runtime-root-guards]"
+        new = "needs: r145-live-proof-bind"
+        self.assertIn(old, self.text)
+        with self.assertRaises(AssertionError):
+            assert_static_contract(self.text.replace(old, new, 1))
 
-    def test_missing_head_or_base_in_run_name_no_success(self):
-        for title in (f"R145_LIVE_ROOT pr=418 base={BASE}", f"R145_LIVE_ROOT pr=418 head={HEAD}"):
-            with self.subTest(title=title):
-                self.assertNotEqual("success", self.eval(*fx(title=title))["state"])
+    def test_failure_mapping_mutation_is_detected(self):
+        old = '"state": "failure",\n                      "head_sha": head_sha,'
+        new = '"state": "success",\n                      "head_sha": head_sha,'
+        self.assertIn(old, self.final)
+        calls, _ = run_final("failure", script=self.final.replace(old, new, 1))
+        with self.assertRaises(AssertionError):
+            self.assertEqual("failure", status_posts(calls)[0][2]["state"])
 
-    def test_current_head_drift_is_stale_error(self):
-        e,o,x,c=fx(); c["head"]["sha"]=H2
-        d=self.eval(e,o,x,c); self.assertEqual(("error",HEAD),(d["state"],d["head_sha"]))
+    def test_guard_removal_mutation_is_detected(self):
+        old = "python path_action_policy.py"
+        self.assertIn(old, self.text)
+        with self.assertRaises(AssertionError):
+            assert_static_contract(self.text.replace(old, "python removed_guard.py", 1))
 
-    def test_current_base_drift_is_stale_error(self):
-        e,o,x,c=fx(); c["base"]["sha"]=B2
-        d=self.eval(e,o,x,c); self.assertEqual(("error",HEAD),(d["state"],d["head_sha"]))
-
-    def test_nonempty_rest_binding_mismatch_fails_closed(self):
-        for bind in (rb(pr=419), rb(head=H2), rb(base=B2)):
-            with self.subTest(bind=bind):
-                d=self.eval(*fx(rest=[bind])); self.assertFalse(d["publish"])
-
-    def test_multiple_rest_bindings_fail_closed(self):
-        self.assertFalse(self.eval(*fx(rest=[rb(),rb()]))["publish"])
-
-    def test_workflow_run_and_original_display_title_mismatch_fails_closed(self):
-        e,o,x,c=fx(); e["workflow_run"]["display_title"]=f"R145_LIVE_ROOT pr=418 head={H2} base={BASE}"
-        self.assertFalse(self.eval(e,o,x,c)["publish"])
-
-    def test_pr_title_body_free_text_not_binding(self):
-        e,o,x,c=fx(); e["pull_request"]={"title":TITLE.replace("418","999"),"body":"free","head":{"ref":"free"}}
-        self.assertEqual("success", self.eval(e,o,x,c)["state"])
-
-    def test_workflow_repo_event_id_path_checks_retained(self):
-        mutations = [
-            lambda e,o,x,c: o.__setitem__("name","bad"),
-            lambda e,o,x,c: o.__setitem__("workflow_id",WID+1),
-            lambda e,o,x,c: o.__setitem__("event","pull_request"),
-            lambda e,o,x,c: o["repository"].__setitem__("full_name","bad/repo"),
-            lambda e,o,x,c: o.__setitem__("path",".github/workflows/bad.yml@main"),
-        ]
-        for mutate in mutations:
-            e,o,x,c=fx(); mutate(e,o,x,c)
-            with self.subTest(mutate=mutate):
-                self.assertNotEqual("success", self.eval(e,o,x,c)["state"])
-
-    def test_failure_and_unknown_never_success(self):
-        self.assertEqual("failure", self.eval(*fx("failure"))["state"])
-        self.assertEqual("error", self.eval(*fx("mystery"))["state"])
-
-    def test_target_url_binds_original_run(self):
-        e,o,x,c=fx(); o["html_url"]="https://attacker.invalid/"
-        self.assertNotEqual("success", self.eval(e,o,x,c)["state"])
-
-class MainPath(unittest.TestCase):
-    def run_main(self, pack, script=None):
-        event, original, expected, current = pack
-        n=ns(script); calls=[]
-        def req(method,path,body=None):
-            calls.append((method,path,copy.deepcopy(body)))
-            if method=="GET" and path==ENDPOINT: return copy.deepcopy(expected)
-            if method=="GET" and path==f"/repos/{REPO}/actions/runs/{RID}?exclude_pull_requests=false": return copy.deepcopy(original)
-            if method=="GET" and path==f"/repos/{REPO}/pulls/{PR}": return copy.deepcopy(current)
-            if method=="POST" and path==f"/repos/{REPO}/statuses/{HEAD}": return {"ok":True}
-            raise AssertionError((method,path,body))
-        n["request_json"]=req
-        with tempfile.NamedTemporaryFile("w",encoding="utf-8",delete=False) as f:
-            json.dump(event,f); p=f.name
-        try:
-            with mock.patch.dict(n["os"].environ,{"GITHUB_EVENT_PATH":p,"GITHUB_TOKEN":"x"},clear=False):
-                code=None
-                try: n["main"]()
-                except SystemExit as ex: code=ex.code
-            return calls,code
-        finally: os.unlink(p)
-
-    def test_main_empty_rest_posts_success_to_run_name_head(self):
-        calls,code=self.run_main(fx(rest=[])); self.assertIsNone(code)
-        posts=[c for c in calls if c[0]=="POST"]
-        self.assertEqual((f"/repos/{REPO}/statuses/{HEAD}","success",CONTEXT),
-                         (posts[0][1],posts[0][2]["state"],posts[0][2]["context"]))
-
-    def test_metadata_endpoint_f02_remains_exact(self):
-        calls,_=self.run_main(fx())
-        self.assertEqual([("GET",ENDPOINT,None)],[c for c in calls if c[0]=="GET" and "/actions/workflows/" in c[1]])
-
-class ProductionMutation(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls): cls.code=extract()
-
-    def test_f03_production_mutations_are_detected(self):
-        cases=[
-            ("run_name_fallback",'run_binding = _parse_run_binding(original_title)',
-             'run_binding = {"pr": PR_NUMBER, "head": current_pr["head"]["sha"], "base": current_pr["base"]["sha"]}'),
-            ("display_crosscheck",'if event_title != original_title:',"if False:"),
-            ("rest_crosscheck",'if (\n            rest_binding.get("number") != run_binding["pr"]',
-             'if False and (\n            rest_binding.get("number") != run_binding["pr"]'),
-        ]
-        for name,old,new in cases:
-            self.assertIn(old,self.code)
-            m=self.code.replace(old,new,1)
-            if name=="run_name_fallback":
-                e,o,x,c=fx(title="attacker free text")
-            elif name=="display_crosscheck":
-                e,o,x,c=fx(); e["workflow_run"]["display_title"]=f"R145_LIVE_ROOT pr=418 head={H2} base={BASE}"
-            else:
-                e,o,x,c=fx(rest=[rb(head=H2)])
-            d=ns(m)["evaluate_live_proof"](e,o,x,c)
-            with self.subTest(name=name), self.assertRaises(AssertionError):
-                self.assertNotEqual("success",d["state"])
-
-    def test_f02_full_path_filename_mutations_rejected_by_transport(self):
-        for old,new in [
-            ('f"/repos/{REPO}/actions/workflows/{ROOT_FILENAME}"','f"/repos/{REPO}/actions/workflows/{ROOT_PATH}"'),
-            ('ROOT_FILENAME = "runtime-governance-root.yml"','ROOT_FILENAME = "wrong.yml"'),
-        ]:
-            self.assertIn(old,self.code)
-            with self.subTest(new=new), self.assertRaises(AssertionError):
-                MainPath().run_main(fx(),self.code.replace(old,new,1))
-
-    def test_f01_previous_security_mutations_still_detected(self):
-        cases=[
-            ('if target_url != expected_url:',"if False:","url"),
-            ('CONTEXT = "r145/runtime-governance-live-proof"','CONTEXT = "bad/context"',"context"),
-            ('if conclusion == "success":','if conclusion in {"success","failure"}:',"failure"),
-        ]
-        for old,new,kind in cases:
-            self.assertIn(old,self.code); m=self.code.replace(old,new,1)
-            if kind=="url":
-                e,o,x,c=fx(); o["html_url"]="https://bad/"
-                d=ns(m)["evaluate_live_proof"](e,o,x,c)
-                check=lambda: self.assertNotEqual("success",d["state"])
-            elif kind=="context":
-                d=ns(m)["evaluate_live_proof"](*fx())
-                check=lambda: self.assertEqual(CONTEXT,d["context"])
-            else:
-                d=ns(m)["evaluate_live_proof"](*fx("failure"))
-                check=lambda: self.assertNotEqual("success",d["state"])
-            with self.subTest(kind=kind), self.assertRaises(AssertionError):
-                check()
-
-class Static(unittest.TestCase):
-    def test_root_run_name_strict_and_free_text_absent(self):
-        t=ROOT_WF.read_text()
-        self.assertIn("run-name: R145_LIVE_ROOT pr=${{ github.event.pull_request.number }} head=${{ github.event.pull_request.head.sha }} base=${{ github.event.pull_request.base.sha }}",t)
-        for bad in ("pull_request.title","pull_request.body","pull_request.head.ref"): self.assertNotIn(bad,t)
-
-    def test_root_permissions_and_base_trust_unchanged(self):
-        t=ROOT_WF.read_text()
-        self.assertIn("permissions:\n  contents: read\n",t)
-        self.assertIn("ref: ${{ github.event.pull_request.base.sha }}",t)
-        self.assertIn('git fetch --no-tags origin "$HEAD_SHA"',t)
-        self.assertNotIn("ref: ${{ github.event.pull_request.head.sha }}",t)
-
-    def test_publisher_permissions_exact_no_head_execution_no_github_sha(self):
-        t=PUB.read_text(); d=yaml.safe_load(t)
-        self.assertEqual({"actions":"read","pull-requests":"read","statuses":"write"},d["permissions"])
-        for bad in ("actions/checkout","secrets.","actions/cache","download-artifact","GITHUB_SHA","github.event.pull_request.head"): self.assertNotIn(bad,t)
-
-    def test_publisher_uses_strict_display_title_binding_and_no_shadow(self):
-        s=extract()
-        for needle in ("RUN_BINDING_RE = re.compile(","event_title = wr.get(\"display_title\")",
-                       "original_title = original.get(\"display_title\")",
-                       "run_binding = _parse_run_binding(original_title)",
-                       'rest_bindings = original.get("pull_requests")'):
-            self.assertIn(needle,s)
-        self.assertNotIn("runtime_governance_proof_policy",s)
-
-    def test_receipt_matches_f03_and_stop_gate(self):
-        r=yaml.safe_load(RECEIPT.read_text())
-        self.assertEqual("STOP_BEFORE_G1_G5",r["runtime_hold"])
-        self.assertEqual("CANONICAL_ROOT_RUN_NAME_DISPLAY_TITLE",r["proof_contract"]["head_source"])
-        self.assertTrue(r["proof_contract"]["empty_rest_pull_requests_allowed"])
-        self.assertEqual("WORKFLOW_RUN_PULL_REQUESTS_NONEMPTY_ASSUMPTION_IS_FALSE",r["f03_remediation"]["blocker"])
-        self.assertFalse(r["architecture"]["publisher"]["checkout_repository"])
+    def test_protected_root_guard_removal_is_detected(self):
+        old = "R145_BASE_TRUSTED_ENFORCEMENT_ROOT_MUTATION_FORBIDDEN"
+        self.assertIn(old, self.text)
+        with self.assertRaises(AssertionError):
+            assert_static_contract(self.text.replace(old, "REMOVED_PROTECTED_ROOT_GUARD", 1))
 
 
-# Granular named regressions keep each security boundary independently visible in CI logs.
-def _add_case(name, fn):
-    setattr(Semantic, "test_granular_" + name, fn)
-
-def _identity_case(field, value):
-    def test(self):
-        e,o,x,c=fx()
-        if field=="repo":
-            o["repository"]["full_name"]=value
-        else:
-            o[field]=value
-        self.assertNotEqual("success",self.eval(e,o,x,c)["state"])
-    return test
-
-for _n,_f,_v in [
-    ("wrong_name","name","bad"),("wrong_workflow_id","workflow_id",WID+1),
-    ("wrong_event","event","pull_request"),("wrong_repo","repo","bad/repo"),
-    ("wrong_path","path",".github/workflows/bad.yml@main"),
-]:
-    _add_case(_n,_identity_case(_f,_v))
-
-def _rest_case(kind):
-    def test(self):
-        bind=rb(pr=419) if kind=="pr" else rb(head=H2) if kind=="head" else rb(base=B2)
-        self.assertFalse(self.eval(*fx(rest=[bind]))["publish"])
-    return test
-
-for _k in ("pr","head","base"):
-    _add_case("rest_mismatch_"+_k,_rest_case(_k))
-
-def _conclusion_case(value):
-    def test(self):
-        self.assertNotEqual("success",self.eval(*fx(value))["state"])
-    return test
-
-for _v in ("cancelled","timed_out","skipped"):
-    _add_case("conclusion_"+_v,_conclusion_case(_v))
-
-def _missing_case(which):
-    def test(self):
-        title=f"R145_LIVE_ROOT pr=418 base={BASE}" if which=="head" else f"R145_LIVE_ROOT pr=418 head={HEAD}"
-        self.assertNotEqual("success",self.eval(*fx(title=title))["state"])
-    return test
-
-for _w in ("head","base"):
-    _add_case("missing_"+_w,_missing_case(_w))
-
-if __name__=="__main__": unittest.main()
+if __name__ == "__main__":
+    unittest.main()

@@ -7,10 +7,133 @@ on:
 
 permissions:
   contents: read
+  statuses: write
 
 jobs:
-  r145-runtime-root:
+  r145-live-proof-bind:
+    name: Bind event and publish pending
     if: github.event.pull_request.number == 418
+    runs-on: ubuntu-latest
+    outputs:
+      head_sha: ${{ steps.bind.outputs.head_sha }}
+      base_sha: ${{ steps.bind.outputs.base_sha }}
+      target_url: ${{ steps.bind.outputs.target_url }}
+    steps:
+      - name: Validate event binding and publish pending
+        id: bind
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_EVENT_ACTION: ${{ github.event.action }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import os
+          import re
+          import urllib.error
+          import urllib.request
+
+          REPO = "vxz2datoubo/second-brain-coordination"
+          PR_NUMBER = 418
+          CONTEXT = "r145/runtime-governance-live-proof"
+          SHA40 = re.compile(r"^[0-9a-f]{40}$")
+          ALLOWED_ACTIONS = {"opened", "reopened", "synchronize", "ready_for_review"}
+
+          def _sha(value):
+              return value if isinstance(value, str) and SHA40.fullmatch(value) else None
+
+          def _run_url():
+              repo = os.environ.get("GITHUB_REPOSITORY", "")
+              run_id = os.environ.get("GITHUB_RUN_ID", "")
+              server = os.environ.get("GITHUB_SERVER_URL", "").rstrip("/")
+              if repo != REPO or not run_id.isdigit() or server != "https://github.com":
+                  return None
+              return f"{server}/{repo}/actions/runs/{run_id}"
+
+          def _binding(event):
+              if os.environ.get("GITHUB_EVENT_NAME") != "pull_request_target":
+                  raise SystemExit("ROOT_EVENT_NAME_MISMATCH")
+              if os.environ.get("GITHUB_EVENT_ACTION") not in ALLOWED_ACTIONS:
+                  raise SystemExit("ROOT_EVENT_ACTION_MISMATCH")
+              repo = event.get("repository") if isinstance(event.get("repository"), dict) else {}
+              if repo.get("full_name") != REPO:
+                  raise SystemExit("ROOT_REPOSITORY_MISMATCH")
+              pr = event.get("pull_request") if isinstance(event.get("pull_request"), dict) else {}
+              if pr.get("number") != PR_NUMBER:
+                  raise SystemExit("ROOT_PR_NUMBER_MISMATCH")
+              head = pr.get("head") if isinstance(pr.get("head"), dict) else {}
+              base = pr.get("base") if isinstance(pr.get("base"), dict) else {}
+              head_sha = _sha(head.get("sha"))
+              base_sha = _sha(base.get("sha"))
+              if head_sha is None:
+                  raise SystemExit("ROOT_HEAD_SHA_MISSING_OR_INVALID")
+              if base_sha is None:
+                  raise SystemExit("ROOT_BASE_SHA_MISSING_OR_INVALID")
+              return head_sha, base_sha
+
+          def request_json(method, path, body=None):
+              token = os.environ.get("GITHUB_TOKEN", "")
+              if not token:
+                  raise SystemExit("ROOT_STATUS_TOKEN_MISSING")
+              headers = {
+                  "Accept": "application/vnd.github+json",
+                  "Authorization": f"Bearer {token}",
+                  "X-GitHub-Api-Version": "2022-11-28",
+                  "User-Agent": "r145-runtime-governance-root",
+              }
+              data = None if body is None else json.dumps(body, sort_keys=True).encode("utf-8")
+              req = urllib.request.Request(f"https://api.github.com{path}", data=data, headers=headers, method=method)
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as response:
+                      return json.loads(response.read().decode("utf-8"))
+              except urllib.error.HTTPError as exc:
+                  detail = exc.read().decode("utf-8", errors="replace")
+                  raise SystemExit(f"GITHUB_API_HTTP_{exc.code}:{path}:{detail[:300]}") from exc
+
+          def main():
+              event_path = os.environ.get("GITHUB_EVENT_PATH", "")
+              output_path = os.environ.get("GITHUB_OUTPUT", "")
+              if not event_path or not output_path:
+                  raise SystemExit("ROOT_EVENT_OR_OUTPUT_PATH_MISSING")
+              with open(event_path, "r", encoding="utf-8") as handle:
+                  event = json.load(handle)
+              head_sha, base_sha = _binding(event)
+              target_url = _run_url()
+              if target_url is None:
+                  raise SystemExit("ROOT_RUN_IDENTITY_INVALID")
+              payload = {
+                  "state": "pending",
+                  "target_url": target_url,
+                  "description": "ROOT_GUARDS_RUNNING; not acceptance authority",
+                  "context": CONTEXT,
+              }
+              request_json("POST", f"/repos/{REPO}/statuses/{head_sha}", payload)
+              with open(output_path, "a", encoding="utf-8") as handle:
+                  handle.write(f"head_sha={head_sha}\n")
+                  handle.write(f"base_sha={base_sha}\n")
+                  handle.write(f"target_url={target_url}\n")
+              print(json.dumps({
+                  "live_proof": "PENDING_PUBLISHED",
+                  "head_sha": head_sha,
+                  "base_sha": base_sha,
+                  "target_url": target_url,
+                  "context": CONTEXT,
+                  "acceptance_authority": False,
+              }, sort_keys=True))
+
+          if __name__ == "__main__":
+              main()
+          PY
+
+  r145-runtime-root-guards:
+    name: Python ${{ matrix.python-version }} runtime root guards
+    needs: r145-live-proof-bind
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -20,7 +143,7 @@ jobs:
       - name: Checkout canonical base only
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.base.sha }}
+          ref: ${{ needs.r145-live-proof-bind.outputs.base_sha }}
           fetch-depth: 0
 
       - name: Setup Python
@@ -34,7 +157,7 @@ jobs:
       - name: Fetch runtime head as data only
         shell: bash
         env:
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          HEAD_SHA: ${{ needs.r145-live-proof-bind.outputs.head_sha }}
         run: |
           set -euo pipefail
           git fetch --no-tags origin "$HEAD_SHA"
@@ -44,8 +167,8 @@ jobs:
         working-directory: coordination/CONTROL-TOWER
         shell: bash
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BASE_SHA: ${{ needs.r145-live-proof-bind.outputs.base_sha }}
+          HEAD_SHA: ${{ needs.r145-live-proof-bind.outputs.head_sha }}
         run: |
           set -euo pipefail
           ROUTE_FILE="coordination/ROUTES/GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145.yaml"
@@ -73,8 +196,8 @@ jobs:
       - name: Assert runtime did not mutate enforcement roots
         shell: bash
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BASE_SHA: ${{ needs.r145-live-proof-bind.outputs.base_sha }}
+          HEAD_SHA: ${{ needs.r145-live-proof-bind.outputs.head_sha }}
         run: |
           set -euo pipefail
           PROTECTED=(
@@ -89,3 +212,130 @@ jobs:
             git diff --name-status "$BASE_SHA" "$HEAD_SHA" -- "${PROTECTED[@]}"
             exit 2
           fi
+
+  r145-live-proof-finalize:
+    name: Publish final live proof status
+    needs: [r145-live-proof-bind, r145-runtime-root-guards]
+    if: ${{ always() && needs.r145-live-proof-bind.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish success only after all required guards
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          HEAD_SHA: ${{ needs.r145-live-proof-bind.outputs.head_sha }}
+          BASE_SHA: ${{ needs.r145-live-proof-bind.outputs.base_sha }}
+          BOUND_TARGET_URL: ${{ needs.r145-live-proof-bind.outputs.target_url }}
+          GUARDS_RESULT: ${{ needs.r145-runtime-root-guards.result }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import os
+          import re
+          import urllib.error
+          import urllib.request
+
+          REPO = "vxz2datoubo/second-brain-coordination"
+          CONTEXT = "r145/runtime-governance-live-proof"
+          SHA40 = re.compile(r"^[0-9a-f]{40}$")
+
+          def _sha(value):
+              return value if isinstance(value, str) and SHA40.fullmatch(value) else None
+
+          def _run_url():
+              repo = os.environ.get("GITHUB_REPOSITORY", "")
+              run_id = os.environ.get("GITHUB_RUN_ID", "")
+              server = os.environ.get("GITHUB_SERVER_URL", "").rstrip("/")
+              if repo != REPO or not run_id.isdigit() or server != "https://github.com":
+                  return None
+              return f"{server}/{repo}/actions/runs/{run_id}"
+
+          def final_decision(head_sha, base_sha, bound_target_url, guards_result):
+              head_sha = _sha(head_sha)
+              base_sha = _sha(base_sha)
+              expected_target_url = _run_url()
+              if head_sha is None or base_sha is None or expected_target_url is None:
+                  return None
+              if bound_target_url != expected_target_url:
+                  return {
+                      "state": "error",
+                      "head_sha": head_sha,
+                      "target_url": expected_target_url,
+                      "reason": "ROOT_BOUND_TARGET_URL_MISMATCH",
+                  }
+              if guards_result == "success":
+                  return {
+                      "state": "success",
+                      "head_sha": head_sha,
+                      "target_url": expected_target_url,
+                      "reason": "ALL_REQUIRED_GUARDS_SUCCEEDED",
+                  }
+              if guards_result == "failure":
+                  return {
+                      "state": "failure",
+                      "head_sha": head_sha,
+                      "target_url": expected_target_url,
+                      "reason": "REQUIRED_GUARD_FAILED",
+                  }
+              return {
+                  "state": "error",
+                  "head_sha": head_sha,
+                  "target_url": expected_target_url,
+                  "reason": f"REQUIRED_GUARD_RESULT_{str(guards_result).upper()}",
+              }
+
+          def request_json(method, path, body=None):
+              token = os.environ.get("GITHUB_TOKEN", "")
+              if not token:
+                  raise SystemExit("ROOT_STATUS_TOKEN_MISSING")
+              headers = {
+                  "Accept": "application/vnd.github+json",
+                  "Authorization": f"Bearer {token}",
+                  "X-GitHub-Api-Version": "2022-11-28",
+                  "User-Agent": "r145-runtime-governance-root",
+              }
+              data = None if body is None else json.dumps(body, sort_keys=True).encode("utf-8")
+              req = urllib.request.Request(f"https://api.github.com{path}", data=data, headers=headers, method=method)
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as response:
+                      return json.loads(response.read().decode("utf-8"))
+              except urllib.error.HTTPError as exc:
+                  detail = exc.read().decode("utf-8", errors="replace")
+                  raise SystemExit(f"GITHUB_API_HTTP_{exc.code}:{path}:{detail[:300]}") from exc
+
+          def main():
+              decision = final_decision(
+                  os.environ.get("HEAD_SHA", ""),
+                  os.environ.get("BASE_SHA", ""),
+                  os.environ.get("BOUND_TARGET_URL", ""),
+                  os.environ.get("GUARDS_RESULT", ""),
+              )
+              if decision is None:
+                  raise SystemExit("ROOT_FINAL_BINDING_INVALID")
+              payload = {
+                  "state": decision["state"],
+                  "target_url": decision["target_url"],
+                  "description": f'{decision["reason"]}; not acceptance authority'[:140],
+                  "context": CONTEXT,
+              }
+              request_json("POST", f'/repos/{REPO}/statuses/{decision["head_sha"]}', payload)
+              print(json.dumps({
+                  "live_proof": "FINAL_STATUS_PUBLISHED",
+                  "state": decision["state"],
+                  "head_sha": decision["head_sha"],
+                  "base_sha": os.environ.get("BASE_SHA", ""),
+                  "target_url": decision["target_url"],
+                  "context": CONTEXT,
+                  "reason": decision["reason"],
+                  "acceptance_authority": False,
+              }, sort_keys=True))
+              if decision["state"] != "success":
+                  raise SystemExit(2)
+
+          if __name__ == "__main__":
+              main()
+          PY
