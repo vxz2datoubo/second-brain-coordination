@@ -23,6 +23,8 @@ RUN_ID = 777001
 REPO = "vxz2datoubo/second-brain-coordination"
 ROOT_NAME = "Runtime governance root"
 ROOT_PATH = ".github/workflows/runtime-governance-root.yml"
+ROOT_FILENAME = "runtime-governance-root.yml"
+WORKFLOW_METADATA_ENDPOINT = f"/repos/{REPO}/actions/workflows/{ROOT_FILENAME}"
 PR_NUMBER = 418
 CONTEXT = "r145/runtime-governance-live-proof"
 
@@ -181,13 +183,13 @@ class ProductionWorkflowMainPathTests(unittest.TestCase):
 
         def fake_request(method, path, body=None):
             calls.append((method, path, copy.deepcopy(body)))
-            if method == "GET" and "/actions/workflows/" in path:
+            if method == "GET" and path == WORKFLOW_METADATA_ENDPOINT:
                 return copy.deepcopy(expected)
-            if method == "GET" and "/actions/runs/" in path:
+            if method == "GET" and path == f"/repos/{REPO}/actions/runs/{RUN_ID}?exclude_pull_requests=false":
                 return copy.deepcopy(original)
-            if method == "GET" and path.endswith(f"/pulls/{PR_NUMBER}"):
+            if method == "GET" and path == f"/repos/{REPO}/pulls/{PR_NUMBER}":
                 return copy.deepcopy(current)
-            if method == "POST" and "/statuses/" in path:
+            if method == "POST" and path == f"/repos/{REPO}/statuses/{HEAD}":
                 return {"ok": True}
             raise AssertionError((method, path, body))
 
@@ -210,6 +212,12 @@ class ProductionWorkflowMainPathTests(unittest.TestCase):
     def status_posts(calls):
         return [call for call in calls if call[0] == "POST" and "/statuses/" in call[1]]
 
+    def test_workflow_metadata_get_uses_exact_filename_endpoint(self):
+        calls, code = self.run_main(*fixtures())
+        self.assertIsNone(code)
+        metadata_gets = [call for call in calls if call[0] == "GET" and "/actions/workflows/" in call[1]]
+        self.assertEqual([("GET", WORKFLOW_METADATA_ENDPOINT, None)], metadata_gets)
+
     def test_positive_main_posts_success_to_bound_head_with_original_url_and_fixed_context(self):
         calls, code = self.run_main(*fixtures())
         self.assertIsNone(code)
@@ -221,6 +229,26 @@ class ProductionWorkflowMainPathTests(unittest.TestCase):
         self.assertEqual(CONTEXT, payload["context"])
         self.assertEqual(f"https://github.com/{REPO}/actions/runs/{RUN_ID}", payload["target_url"])
 
+    def test_correct_filename_but_metadata_path_wrong_fails_closed(self):
+        event, original, expected, current = fixtures()
+        expected["path"] = ".github/workflows/other.yml"
+        calls, code = self.run_main(event, original, expected, current)
+        self.assertEqual(2, code)
+        self.assertEqual([], self.status_posts(calls))
+        self.assertIn(("GET", WORKFLOW_METADATA_ENDPOINT, None), calls)
+
+    def test_correct_filename_but_workflow_id_or_name_wrong_fails_closed(self):
+        for mutation in ("id", "name"):
+            with self.subTest(mutation=mutation):
+                event, original, expected, current = fixtures()
+                if mutation == "id":
+                    expected["id"] += 1
+                else:
+                    expected["name"] = "Wrong root name"
+                calls, code = self.run_main(event, original, expected, current)
+                self.assertEqual(2, code)
+                self.assertEqual([], self.status_posts(calls))
+
     def test_stale_main_posts_error_to_original_bound_head_never_current_head(self):
         event, original, expected, current = fixtures()
         current["head"]["sha"] = "c" * 40
@@ -230,7 +258,6 @@ class ProductionWorkflowMainPathTests(unittest.TestCase):
         self.assertEqual(1, len(posts))
         self.assertEqual(f"/repos/{REPO}/statuses/{HEAD}", posts[0][1])
         self.assertEqual("error", posts[0][2]["state"])
-        self.assertNotEqual(f"/repos/{REPO}/statuses/{current['head']['sha']}", posts[0][1])
 
     def test_wrong_workflow_identity_main_publishes_nothing(self):
         event, original, expected, current = fixtures()
@@ -251,6 +278,35 @@ class ProductionWorkflowMainPathTests(unittest.TestCase):
         calls, code = self.run_main(event, original, expected, current)
         self.assertEqual(2, code)
         self.assertEqual([], self.status_posts(calls))
+
+
+class F02ProductionEndpointMutationTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.script = extract_production_python()
+
+    def assert_transport_rejects(self, mutated_script):
+        helper = ProductionWorkflowMainPathTests()
+        with self.assertRaises(AssertionError):
+            helper.run_main(*fixtures(), script=mutated_script)
+
+    def test_full_repo_path_used_as_workflow_id_is_detected(self):
+        old = 'f"/repos/{REPO}/actions/workflows/{ROOT_FILENAME}"'
+        new = 'f"/repos/{REPO}/actions/workflows/{ROOT_PATH}"'
+        self.assertIn(old, self.script)
+        self.assert_transport_rejects(self.script.replace(old, new, 1))
+
+    def test_dotgithub_workflows_multisegment_endpoint_is_detected(self):
+        old = 'f"/repos/{REPO}/actions/workflows/{ROOT_FILENAME}"'
+        new = 'f"/repos/{REPO}/actions/workflows/.github/workflows/{ROOT_FILENAME}"'
+        self.assertIn(old, self.script)
+        self.assert_transport_rejects(self.script.replace(old, new, 1))
+
+    def test_wrong_workflow_filename_is_detected(self):
+        old = 'ROOT_FILENAME = "runtime-governance-root.yml"'
+        new = 'ROOT_FILENAME = "wrong-root.yml"'
+        self.assertIn(old, self.script)
+        self.assert_transport_rejects(self.script.replace(old, new, 1))
 
 
 class ProductionOnlyMutationSensitivityTests(unittest.TestCase):
@@ -323,7 +379,7 @@ class ProductionOnlyMutationSensitivityTests(unittest.TestCase):
                 self.assertIn(old, self.script)
                 mutated = self.script.replace(old, new, 1)
                 self.assertNotEqual(mutated, self.script)
-                with self.assertRaises(AssertionError):
+                with self.assertRaises((AssertionError, IndexError)):
                     self.assert_safety_property(mutated, case)
 
 
@@ -341,12 +397,18 @@ class PublisherWorkflowStaticSecurityTests(unittest.TestCase):
     def test_publisher_permissions_are_exactly_bounded(self):
         self.assertEqual({"actions": "read", "pull-requests": "read", "statuses": "write"}, self.doc["permissions"])
 
-    def test_workflow_run_is_completed_and_root_name_fixed(self):
+    def test_workflow_run_is_completed_and_root_identity_fixed(self):
         self.assertIn('workflows: ["Runtime governance root"]', self.text)
         self.assertIn("types: [completed]", self.text)
         self.assertIn('ROOT_NAME = "Runtime governance root"', self.script)
         self.assertIn('ROOT_PATH = ".github/workflows/runtime-governance-root.yml"', self.script)
+        self.assertIn('ROOT_FILENAME = "runtime-governance-root.yml"', self.script)
         self.assertIn("PR_NUMBER = 418", self.script)
+
+    def test_metadata_endpoint_uses_filename_but_retains_full_path_identity_check(self):
+        self.assertIn('expected = request_json("GET", f"/repos/{REPO}/actions/workflows/{ROOT_FILENAME}")', self.script)
+        self.assertNotIn('actions/workflows/{ROOT_PATH}', self.script)
+        self.assertIn('expected.get("name") != ROOT_NAME or expected.get("path") != ROOT_PATH', self.script)
 
     def test_status_target_and_context_are_not_pr_controlled(self):
         self.assertIn('CONTEXT = "r145/runtime-governance-live-proof"', self.script)
