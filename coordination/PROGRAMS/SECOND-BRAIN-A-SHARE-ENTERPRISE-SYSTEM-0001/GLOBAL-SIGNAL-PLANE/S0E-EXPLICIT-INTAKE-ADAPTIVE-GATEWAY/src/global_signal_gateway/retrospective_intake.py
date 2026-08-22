@@ -13,6 +13,7 @@ import json
 import re
 from typing import Any, Mapping, Sequence
 
+from .domain_authority import authority_evidence_is_bound, resolve_candidate_domain_authority
 from .gateway import (
     GatewayError,
     SIGNAL_KINDS,
@@ -284,6 +285,13 @@ def _evidence(candidate_id: str, value: Any) -> dict[str, Any]:
     for field in EVIDENCE_BOOLEAN_FIELDS:
         if field not in value or not isinstance(value[field], bool):
             raise RetrospectiveIntakeError("INVALID_EVIDENCE_BOOLEAN", f"{path}{field}")
+    if "authority_domain_id" in value and (not isinstance(value["authority_domain_id"], str) or not value["authority_domain_id"].strip()):
+        raise RetrospectiveIntakeError("INVALID_AUTHORITY_DOMAIN_ID", f"{path}authority_domain_id")
+    if "authority_evidence_refs" in value and (
+        not isinstance(value["authority_evidence_refs"], list)
+        or not all(isinstance(ref, str) and ref.strip() for ref in value["authority_evidence_refs"])
+    ):
+        raise RetrospectiveIntakeError("INVALID_AUTHORITY_EVIDENCE_REFS", f"{path}authority_evidence_refs")
     _safe(value, path)
     return json.loads(canonical(dict(value)))
 
@@ -391,6 +399,7 @@ def _decision(candidate: Mapping[str, Any], disposition: str, reason: str,
     return {
         "candidate_id": candidate["candidate_id"],
         "candidate_digest": candidate["candidate_digest"],
+        "primary_domain": candidate["proposed_primary_domain"],
         "disposition": disposition,
         "reason": reason,
         "evidence_refs": refs,
@@ -411,12 +420,28 @@ def reconcile_candidate(candidate: Mapping[str, Any], snapshot: Mapping[str, Any
         return _decision(candidate, "INSUFFICIENT_PROVENANCE", exc.code)
     if not ev["provenance_complete"] or not _minimum_provenance(candidate):
         return _decision(candidate, "INSUFFICIENT_PROVENANCE", "PROVENANCE_INCOMPLETE", ev)
+
+    domain_binding = resolve_candidate_domain_authority(
+        candidate,
+        snapshot,
+        expected_canonical_main=expected_canonical_main,
+        coordinator_repository=CANONICAL_REPOSITORY,
+    )
+    if not domain_binding.get("valid"):
+        return _decision(
+            candidate, "NEEDS_REVALIDATION", str(domain_binding.get("reason", "DOMAIN_ROUTE_UNRESOLVED")),
+            ev, domain_binding.get("authority_refs", []),
+        )
+    if not authority_evidence_is_bound(ev, domain_binding):
+        return _decision(candidate, "NEEDS_REVALIDATION", "DOMAIN_AUTHORITY_EVIDENCE_NOT_BOUND", ev, domain_binding["authority_refs"])
+    owner_refs = list(domain_binding["authority_refs"])
+
     s0c = _s0c_projection_observation(ledger)
     if s0c is not None:
         s0c_ref, projection = s0c
         expected_signal_id = f"signal:r142-{candidate['candidate_id']}"
         if any(item.get("signal_id") == expected_signal_id for item in projection.get("signals", [])):
-            return _decision(candidate, "ALREADY_CANONICAL", "S0C_CURRENT_PROJECTION_ALREADY_CONTAINS_CANDIDATE", ev, [s0c_ref])
+            return _decision(candidate, "ALREADY_CANONICAL", "S0C_CURRENT_PROJECTION_ALREADY_CONTAINS_CANDIDATE", ev, [*owner_refs, s0c_ref])
     precedence: Sequence[tuple[str, str, str]] = (
         ("superseded_refs", "SUPERSEDED", "CURRENT_CANONICAL_SUPERSESSION"),
         ("contradicts_refs", "CONTRADICTS", "CURRENT_CONTRADICTION_REQUIRES_REVIEW"),
@@ -430,9 +455,9 @@ def reconcile_candidate(candidate: Mapping[str, Any], snapshot: Mapping[str, Any
     )
     for field, disposition, reason in precedence:
         if ev[field]:
-            return _decision(candidate, disposition, reason, ev)
+            return _decision(candidate, disposition, reason, ev, owner_refs)
     if not ev["desired_effect_unmet"]:
-        return _decision(candidate, "NEEDS_REVALIDATION", "NO_EVIDENCE_FOR_SAFE_ADMISSION", ev)
+        return _decision(candidate, "NEEDS_REVALIDATION", "NO_EVIDENCE_FOR_SAFE_ADMISSION", ev, owner_refs)
     binding = _new_admission_binding(
         snapshot,
         expected_canonical_main=expected_canonical_main,
@@ -441,8 +466,8 @@ def reconcile_candidate(candidate: Mapping[str, Any], snapshot: Mapping[str, Any
         ledger=ledger,
     )
     if not binding["valid"]:
-        return _decision(candidate, "NEEDS_REVALIDATION", str(binding["reason"]), ev, binding.get("refs", []))
-    return _decision(candidate, "NEW_DURABLE_SIGNAL", "GOVERNED_CURRENT_OBSERVATION_PROVES_STILL_UNMET", ev, binding["refs"])
+        return _decision(candidate, "NEEDS_REVALIDATION", str(binding["reason"]), ev, [*owner_refs, *binding.get("refs", [])])
+    return _decision(candidate, "NEW_DURABLE_SIGNAL", "OWNER_DOMAIN_CANONICAL_AND_GOVERNED_CURRENT_OBSERVATION_PROVE_STILL_UNMET", ev, [*owner_refs, *binding["refs"]])
 
 
 def reconcile_package(package: Mapping[str, Any], snapshot: Mapping[str, Any], *, expected_canonical_main: str,
@@ -453,7 +478,7 @@ def reconcile_package(package: Mapping[str, Any], snapshot: Mapping[str, Any], *
     for error in parsed["candidate_errors"]:
         disposition = "REJECT_PRIVATE_OR_UNSAFE" if error["code"] == "PRIVATE_OR_UNSAFE" else "INSUFFICIENT_PROVENANCE"
         results.append({
-            "candidate_id": error["candidate_id"], "candidate_digest": "UNKNOWN",
+            "candidate_id": error["candidate_id"], "candidate_digest": "UNKNOWN", "primary_domain": "UNKNOWN",
             "disposition": disposition, "reason": error["code"], "evidence_refs": [], "authority_evidence_refs": [],
             "dependency_refs": [], "closed_task_refs": [], "historical_status": "UNKNOWN",
         })

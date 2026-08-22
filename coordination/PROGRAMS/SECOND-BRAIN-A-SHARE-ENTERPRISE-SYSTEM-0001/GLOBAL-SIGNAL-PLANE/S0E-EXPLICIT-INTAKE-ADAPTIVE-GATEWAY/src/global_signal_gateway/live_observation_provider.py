@@ -115,6 +115,38 @@ def _canonical_route_path(active: Mapping[str, Any], tree: Mapping[str, str]) ->
     return path
 
 
+def _route_binding(route: Mapping[str, Any]) -> tuple[str, int]:
+    """Read legacy top-level or current nested route identity without ambiguity.
+
+    R144 moved task identity under ``binding``. Supporting that already-
+    canonical schema is an additive compatibility adaptation, not a weaker
+    check: if both representations exist they must agree exactly.
+    """
+    nested_value = route.get("binding")
+    if nested_value is None:
+        nested: Mapping[str, Any] = {}
+    elif isinstance(nested_value, Mapping):
+        nested = nested_value
+    else:
+        raise GatewayError("ACTIVE_ROUTE_BINDING_INVALID")
+
+    top_task = route.get("task_id")
+    top_epoch = route.get("route_epoch")
+    nested_task = nested.get("task_id")
+    nested_epoch = nested.get("route_epoch")
+
+    if top_task is not None and nested_task is not None and top_task != nested_task:
+        raise GatewayError("ACTIVE_ROUTE_BINDING_AMBIGUOUS")
+    if top_epoch is not None and nested_epoch is not None and top_epoch != nested_epoch:
+        raise GatewayError("ACTIVE_ROUTE_BINDING_AMBIGUOUS")
+
+    task_id = top_task if top_task is not None else nested_task
+    route_epoch = top_epoch if top_epoch is not None else nested_epoch
+    if not isinstance(task_id, str) or not task_id or not isinstance(route_epoch, int):
+        raise GatewayError("ACTIVE_ROUTE_BINDING_INVALID")
+    return task_id, route_epoch
+
+
 @dataclass(frozen=True)
 class DomainFreshnessTarget:
     repository: str
@@ -220,7 +252,7 @@ class LiveObservationEvidenceBundle:
 
 
 class LiveObservationProvider:
-    """Serial, fixed-host observer.  Subclassing `_get_json` is test-only."""
+    """Serial, fixed-host observer. Subclassing `_get_json` is test-only."""
 
     def _get_json(self, path: str) -> tuple[Mapping[str, str], Any, Mapping[str, Any]]:
         if (not path.startswith("/repos/") or "//" in path or ".." in PurePosixPath(path).parts
@@ -377,11 +409,12 @@ class LiveObservationProvider:
             route = _mapping(yaml.safe_load(route_payload.decode("utf-8")), "ACTIVE_ROUTE_INVALID")
         except (UnicodeDecodeError, yaml.YAMLError) as exc:
             raise GatewayError("CONTROL_PLANE_YAML_INVALID") from exc
+        route_task_id, route_epoch = _route_binding(route)
         if (
-            route.get("task_id") != active.get("task_id")
-            or route.get("route_epoch") != active.get("route_epoch")
-            or route.get("task_id") != request.expected_task_id
-            or route.get("route_epoch") != request.expected_route_epoch
+            route_task_id != active.get("task_id")
+            or route_epoch != active.get("route_epoch")
+            or route_task_id != request.expected_task_id
+            or route_epoch != request.expected_route_epoch
         ):
             raise GatewayError("ACTIVE_ROUTE_BINDING_MISMATCH")
         pr_first, item = self._pr(request.target_repository, request.pull_request_number); metadata.append(item)
@@ -421,7 +454,7 @@ class LiveObservationProvider:
 
 
 def verify_r137_proof(proof: AuthorityBoundLiveObservationProof, checked_at: datetime) -> bool:
-    """Static production verifier.  No registration API and no network call."""
+    """Static production verifier. No registration API and no network call."""
     if proof.provider_id != PROVIDER_ID or not proof.provider_attribution_ref.startswith("provider://r137/evidence/"):
         return False
     bundle = _BUNDLES.get(proof.provider_attribution_ref)
