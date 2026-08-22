@@ -1,9 +1,9 @@
-schema_version: "1.1"
+schema_version: "1.2"
 receipt_id: "R145-RUNTIME-GOVERNANCE-PROOF-PUBLISHER-AMENDMENT-0001"
 issue: 415
 task_id: "GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145"
 route_epoch: 145
-status: "CONTROL_PLANE_OBSERVABILITY_AMENDMENT_CANDIDATE / F01_REMEDIATED / REQUIRES_INDEPENDENT_REVIEW_AND_CANONICAL_MERGE"
+status: "CONTROL_PLANE_OBSERVABILITY_AMENDMENT / F01_F02_CANONICAL / F03_REMEDIATION_CANDIDATE / REQUIRES_INDEPENDENT_REVIEW_AND_CANONICAL_MERGE"
 runtime_pr: 418
 runtime_hold: "STOP_BEFORE_G1_G5"
 problem: "LIVE_ROOT_UNOBSERVABLE_WITH_CURRENT_TOOLING"
@@ -13,6 +13,11 @@ architecture:
     path: ".github/workflows/runtime-governance-root.yml"
     event: "pull_request_target"
     execution_trust: "CANONICAL_BASE_ONLY"
+    run_name_binding: "R145_LIVE_ROOT pr=<PR> head=<40hex> base=<40hex>"
+    run_name_inputs:
+      - "github.event.pull_request.number"
+      - "github.event.pull_request.head.sha"
+      - "github.event.pull_request.base.sha"
     permissions:
       contents: read
   publisher:
@@ -34,15 +39,21 @@ proof_contract:
   pr_number: 418
   status_context: "r145/runtime-governance-live-proof"
   target_url: "ORIGINAL_RUNTIME_GOVERNANCE_ROOT_RUN_HTML_URL"
-  head_source: "ORIGINAL_WORKFLOW_RUN_PULL_REQUEST_BINDING"
+  head_source: "CANONICAL_ROOT_RUN_NAME_DISPLAY_TITLE"
+  base_source: "CANONICAL_ROOT_RUN_NAME_DISPLAY_TITLE"
+  workflow_run_display_title_cross_check_required: true
+  rest_pull_requests_role: "OPTIONAL_CONSISTENCY_CROSS_CHECK_ONLY"
+  empty_rest_pull_requests_allowed: true
+  nonempty_rest_pull_requests_must_exactly_match_run_name: true
   github_sha_as_runtime_head_forbidden: true
   current_pr_head_cross_check_required: true
+  current_pr_base_cross_check_required: true
   stale_run_success_for_newer_head_forbidden: true
   status_role: "DISCOVERY_HINT / LIVE_PROOF_POINTER / NOT_ACCEPTANCE_AUTHORITY"
 f01_remediation:
   review_id: 4996456829
   blocker: "TESTED_POLICY_IS_NOT_THE_PRIVILEGED_EXECUTION_PATH"
-  disposition: "REMEDIATED_CANDIDATE"
+  disposition: "CANONICAL"
   privileged_execution_artifact: ".github/workflows/runtime-governance-proof-publisher.yml::inline-python"
   semantic_test_artifact: "EXACT_WORKFLOW_INLINE_PYTHON_EXTRACTED_AND_EXECUTED"
   privileged_main_path_tested: true
@@ -50,26 +61,36 @@ f01_remediation:
   shadow_policy_module: "ABSENT"
   removed_shadow_path: "coordination/CONTROL-TOWER/runtime_governance_proof_policy.py"
   invariant: "TESTED_POLICY_IS_THE_PRIVILEGED_EXECUTION_PATH"
-  mutation_matrix:
-    - "WORKFLOW_ID_BINDING"
-    - "WORKFLOW_PATH_BINDING"
-    - "EXACTLY_ONE_PR_418_BINDING"
-    - "BOUND_HEAD_SHA_VALIDATION"
-    - "CURRENT_PR_STALE_HEAD_BASE_CROSS_CHECK"
-    - "FIXED_STATUS_TARGET_SHA"
-    - "FIXED_STATUS_CONTEXT"
-    - "ORIGINAL_ROOT_TARGET_URL"
-    - "NON_SUCCESS_CANNOT_BECOME_SUCCESS"
+f02_remediation:
+  review_id: 4998956888
+  blocker: "WORKFLOW_METADATA_ENDPOINT_USES_FULL_REPO_PATH_AS_WORKFLOW_ID"
+  disposition: "CANONICAL"
+  workflow_metadata_endpoint: "/repos/vxz2datoubo/second-brain-coordination/actions/workflows/runtime-governance-root.yml"
+  returned_metadata_path_required: ".github/workflows/runtime-governance-root.yml"
+f03_remediation:
+  architecture_checkpoint_comment: 5378138908
+  blocker: "WORKFLOW_RUN_PULL_REQUESTS_NONEMPTY_ASSUMPTION_IS_FALSE"
+  disposition: "REMEDIATION_CANDIDATE"
+  primary_binding: "CANONICAL_ROOT_RUN_NAME_DISPLAY_TITLE"
+  strict_format: "R145_LIVE_ROOT pr=418 head=<40hex> base=<40hex>"
+  observed_rest_empty_binding_shape_allowed: true
+  rest_nonempty_binding_is_only_cross_check: true
+  rest_mismatch_or_multiple_fails_closed: true
+  display_title_event_vs_original_mismatch_fails_closed: true
+  current_pr_head_base_drift_is_error: true
 fail_closed:
   - "WRONG_WORKFLOW_NAME"
   - "WRONG_WORKFLOW_ID_OR_PATH"
   - "WRONG_EVENT"
   - "WRONG_REPOSITORY"
-  - "PR_NOT_418"
-  - "EMPTY_PR_BINDING"
-  - "AMBIGUOUS_PR_BINDING"
-  - "MISSING_OR_INVALID_HEAD_SHA"
-  - "STALE_ROOT_RUN_FOR_OLDER_PR_HEAD"
+  - "RUN_NAME_BINDING_MALFORMED"
+  - "RUN_NAME_PR_NOT_418"
+  - "MISSING_OR_INVALID_BOUND_HEAD_OR_BASE_SHA"
+  - "WORKFLOW_RUN_DISPLAY_TITLE_MISMATCH"
+  - "REST_PR_BINDINGS_MALFORMED"
+  - "REST_PR_BINDING_AMBIGUOUS"
+  - "REST_PR_BINDING_MISMATCH"
+  - "STALE_ROOT_RUN_FOR_OLDER_PR_HEAD_OR_BASE"
   - "UNKNOWN_OR_MALFORMED_CONCLUSION"
 status_mapping:
   success: success
@@ -93,9 +114,11 @@ security:
   no_trading_account_order_fund_authority: true
   commit_status_never_substitutes_original_logs: true
 post_merge_rule: >-
-  Only after independent ACCEPT and canonical merge may PR #418 non-destructively sync current main to trigger a new real
-  Runtime governance root run and corresponding proof-publisher status. GPT must follow target_url/run ID to original jobs,
-  steps and logs before any LIVE_ROOT_PASS conclusion.
-rollback: "Revert the canonical merge commit for this amendment; this removes the publisher and Program Control Tower trigger addition without touching PR #418 runtime history."
+  Only after independent ACCEPT and governed canonical merge may Architecture Authority authorize one new PR #418
+  non-destructive sync to trigger a real Runtime governance root run and corresponding proof-publisher status.
+  GPT must follow target_url/run ID to original jobs, steps and logs before any LIVE_ROOT_PASS conclusion.
+rollback: >-
+  Revert only the governed F03 amendment merge commit to restore the pre-F03 root run-name, Publisher binding logic,
+  receipt semantics and tests without rewriting PR #418 runtime history.
 self_review_forbidden: true
 self_merge_forbidden: true
