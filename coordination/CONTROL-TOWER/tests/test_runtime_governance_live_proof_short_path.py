@@ -50,12 +50,15 @@ def load_namespace(script: str) -> dict:
 
 
 def event_fixture(pr: int = PR, head: str | None = HEAD, base: str | None = BASE) -> dict:
+    base_obj = {"ref": "main", "repo": {"full_name": REPO}}
+    if base is not None:
+        base_obj["sha"] = base
     return {
         "repository": {"full_name": REPO},
         "pull_request": {
             "number": pr,
             "head": ({"ref": "attacker-free-text"} if head is None else {"sha": head, "ref": "attacker-free-text"}),
-            "base": ({} if base is None else {"sha": base}),
+            "base": base_obj,
             "title": "attacker title pr=999 head=deadbeef",
             "body": "attacker body",
         },
@@ -160,6 +163,7 @@ def assert_static_contract(text: str):
     assert final["needs"] == ["r145-live-proof-bind", "r145-runtime-root-guards"]
     assert "always()" in final["if"]
     assert "needs.r145-live-proof-bind.result == 'success'" in final["if"]
+    assert "pull_request_target:\n    branches:\n      - main\n" in text
     assert "ref: ${{ needs.r145-live-proof-bind.outputs.base_sha }}" in text
     assert 'git fetch --no-tags origin "$HEAD_SHA"' in text
     assert 'git cat-file -e "${HEAD_SHA}^{commit}"' in text
@@ -173,6 +177,8 @@ def assert_static_contract(text: str):
     assert "pull_request.body" not in text
     assert "pull_request.head.ref" not in text
     pending_script = extract_step_python(PENDING_STEP, text)
+    assert 'if base.get("ref") != "main":' in pending_script
+    assert 'if base_repo.get("full_name") != REPO:' in pending_script
     assert '"state": "pending"' in pending_script
     assert '"state": "success"' not in pending_script
 
@@ -206,6 +212,37 @@ class ProductionRootPendingTests(unittest.TestCase):
                 calls, code, _ = run_pending(event_fixture(base=base))
                 self.assertEqual([], status_posts(calls))
                 self.assertIn("BASE_SHA", str(code))
+
+    def test_non_main_base_ref_fails_closed_without_status(self):
+        event = event_fixture()
+        event["pull_request"]["base"]["ref"] = "attacker-base"
+        calls, code, _ = run_pending(event)
+        self.assertEqual("ROOT_BASE_REF_MISMATCH", code)
+        self.assertEqual([], status_posts(calls))
+
+    def test_wrong_base_repository_fails_closed_without_status(self):
+        event = event_fixture()
+        event["pull_request"]["base"]["repo"]["full_name"] = "attacker/fork"
+        calls, code, _ = run_pending(event)
+        self.assertEqual("ROOT_BASE_REPOSITORY_MISMATCH", code)
+        self.assertEqual([], status_posts(calls))
+
+    def test_missing_base_identity_fails_closed_without_status(self):
+        for missing in ("ref", "repo"):
+            with self.subTest(missing=missing):
+                event = event_fixture()
+                event["pull_request"]["base"].pop(missing)
+                calls, code, _ = run_pending(event)
+                self.assertEqual([], status_posts(calls))
+                expected = "ROOT_BASE_REF_MISMATCH" if missing == "ref" else "ROOT_BASE_REPOSITORY_MISMATCH"
+                self.assertEqual(expected, code)
+
+    def test_retarget_attack_non_main_synchronize_cannot_mint_pending(self):
+        event = event_fixture()
+        event["pull_request"]["base"]["ref"] = "stale-weakened-governance"
+        calls, code, _ = run_pending(event, extra_env={"GITHUB_EVENT_ACTION": "synchronize"})
+        self.assertEqual("ROOT_BASE_REF_MISMATCH", code)
+        self.assertEqual([], status_posts(calls))
 
     def test_pr_title_body_and_branch_free_text_do_not_bind(self):
         event = event_fixture()
@@ -267,6 +304,9 @@ class RootStaticSecurityTests(unittest.TestCase):
     def test_exact_permissions_are_contents_read_and_statuses_write_only(self):
         assert_static_contract(workflow_text())
 
+    def test_trigger_is_mechanically_limited_to_main(self):
+        self.assertIn("pull_request_target:\n    branches:\n      - main\n", workflow_text())
+
     def test_success_job_is_structurally_after_both_guard_lanes(self):
         text = workflow_text()
         assert_static_contract(text)
@@ -299,9 +339,11 @@ class RootStaticSecurityTests(unittest.TestCase):
     def test_root_is_only_active_writer_for_fixed_context(self):
         self.assertFalse(PUB_WF.exists())
         writers = []
-        for path in (ROOT / ".github/workflows").glob("*.yml"):
-            if CONTEXT in path.read_text(encoding="utf-8"):
-                writers.append(path.name)
+        workflow_dir = ROOT / ".github/workflows"
+        for pattern in ("*.yml", "*.yaml"):
+            for path in workflow_dir.glob(pattern):
+                if CONTEXT in path.read_text(encoding="utf-8"):
+                    writers.append(path.name)
         self.assertEqual(["runtime-governance-root.yml"], sorted(writers))
 
     def test_receipt_declares_single_current_authority_and_stop_gate(self):
@@ -324,6 +366,12 @@ class ProductionOnlyMutationSensitivityTests(unittest.TestCase):
         with self.assertRaises(AssertionError):
             assert_static_contract(mutated)
 
+    def test_trigger_main_branch_fence_removal_is_detected(self):
+        old = "    branches:\n      - main\n"
+        self.assertIn(old, self.text)
+        with self.assertRaises(AssertionError):
+            assert_static_contract(self.text.replace(old, "", 1))
+
     def test_head_binding_mutation_to_github_sha_is_detected(self):
         old = 'head_sha = _sha(head.get("sha"))'
         new = 'head_sha = _sha(os.environ.get("GITHUB_SHA"))'
@@ -339,6 +387,24 @@ class ProductionOnlyMutationSensitivityTests(unittest.TestCase):
         calls, _, outputs = run_pending(script=self.pending.replace(old, new, 1), extra_env={"MUTATED_BASE_SHA": B2})
         with self.assertRaises(AssertionError):
             assert_pending_contract(calls, outputs)
+
+    def test_base_ref_binding_weakening_is_detected(self):
+        old = 'if base.get("ref") != "main":'
+        self.assertIn(old, self.pending)
+        event = event_fixture()
+        event["pull_request"]["base"]["ref"] = "attacker-base"
+        calls, _, _ = run_pending(event=event, script=self.pending.replace(old, "if False:", 1))
+        with self.assertRaises(AssertionError):
+            self.assertEqual([], status_posts(calls))
+
+    def test_base_repo_binding_weakening_is_detected(self):
+        old = 'if base_repo.get("full_name") != REPO:'
+        self.assertIn(old, self.pending)
+        event = event_fixture()
+        event["pull_request"]["base"]["repo"]["full_name"] = "attacker/fork"
+        calls, _, _ = run_pending(event=event, script=self.pending.replace(old, "if False:", 1))
+        with self.assertRaises(AssertionError):
+            self.assertEqual([], status_posts(calls))
 
     def test_target_url_mutation_is_detected(self):
         old = 'return f"{server}/{repo}/actions/runs/{run_id}"'
