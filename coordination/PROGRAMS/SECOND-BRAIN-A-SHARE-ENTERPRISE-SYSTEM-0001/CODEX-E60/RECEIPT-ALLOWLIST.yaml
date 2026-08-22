@@ -1,0 +1,31 @@
+schema_version: "1.0"
+record_type: "ReceiptOnlyAllowlist"
+task_id: "CODEX-E59-POST-AUDIT-CANONICAL-TRUST-ROOT-EXTERNAL-ATTESTATION-RESOURCE-TREE-CLOSURE-0056-E60"
+agent_id: "CODEX"
+receipt_parent_required: "777cbe88b2c220a1d4e86e6f701b1ab41a4ee3e2"
+purpose: "Declare the exact evidence-only surface for the sole E60 receipt commit."
+status: "PENDING_RECEIPT_COMMIT"
+allowed_paths:
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E60/RECEIPT-ALLOWLIST.yaml"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E60/AMED-AGENT-EXECUTION-RECEIPT.yaml"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E60/AMED-RESEARCH-LEDGER.yaml"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E60/AMED-IMPROVEMENT-LEDGER.yaml"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E60/DISCOVERY-REPORT.yaml"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E60/WPDCR-REPORT.yaml"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E60/TEST-RECEIPT.yaml"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E60/UNKNOWN-REGISTRY.yaml"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E60/AI_HANDOFF.yaml"
+forbidden_change_classes:
+  - "runtime_source"
+  - "tests"
+  - "workflows"
+  - "production_configuration"
+  - "provider_configuration"
+  - "protected_route_contract"
+  - "market_or_account_data"
+verification:
+  required_parent: "git rev-parse HEAD^"
+  required_changed_path_check: "git diff-tree --no-commit-id --name-only -r HEAD"
+  required_scope_check: "git diff --cached --check"
+  post_push_provider_required: true
+  final_external_anchor_required: true
