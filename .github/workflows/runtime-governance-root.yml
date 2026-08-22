@@ -3,6 +3,8 @@ run-name: R145_LIVE_ROOT pr=${{ github.event.pull_request.number }} head=${{ git
 
 on:
   pull_request_target:
+    branches:
+      - main
     types: [opened, reopened, synchronize, ready_for_review]
 
 permissions:
@@ -69,6 +71,11 @@ jobs:
                   raise SystemExit("ROOT_PR_NUMBER_MISMATCH")
               head = pr.get("head") if isinstance(pr.get("head"), dict) else {}
               base = pr.get("base") if isinstance(pr.get("base"), dict) else {}
+              if base.get("ref") != "main":
+                  raise SystemExit("ROOT_BASE_REF_MISMATCH")
+              base_repo = base.get("repo") if isinstance(base.get("repo"), dict) else {}
+              if base_repo.get("full_name") != REPO:
+                  raise SystemExit("ROOT_BASE_REPOSITORY_MISMATCH")
               head_sha = _sha(head.get("sha"))
               base_sha = _sha(base.get("sha"))
               if head_sha is None:
