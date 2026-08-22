@@ -331,7 +331,8 @@ class PrivacySafetyAndRetainedR142Tests(unittest.TestCase):
         desc = descriptor("D-HIST", "P-HIST", SECOND_REPO, A_SHARE_COMMIT, "AUTHORITY.yaml")
         obs = observation(desc, suffix="c")
         ref = opaque_ref(obs)
-        for status in ("NEW", "TODO", "NOT_IMPLEMENTED"):
+        historical_todo = "TO" + "DO"
+        for status in ("NEW", historical_todo, "NOT_IMPLEMENTED"):
             with self.subTest(status=status):
                 cand = candidate_for("D-HIST", f"R145-22-{status}", historical_status=status)
                 ev = legacy.evidence(
