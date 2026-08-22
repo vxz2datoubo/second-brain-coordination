@@ -1,0 +1,44 @@
+# E43-SOURCE-SELECTION.yaml — E44
+schema_version: "44.0"
+source_epoch: 43
+source_head: 89529da507618cac92e9b9577738993554f2c0b3
+source_branch: qclaw/e42-post-receipt-semantic-authority-closure-0024-e43
+source_pr: 184
+
+decisions:
+  - source_file: "src/qclaw_e43/authority.py"
+    source_blob: "f19e9418386d..."
+    disposition: DESIGN_REFERENCE_ONLY
+    reason: "E43 factory/registry can be bypassed by callers; E44 requires evaluator-derived evidence and private signing"
+
+  - source_file: "src/qclaw_e43/source_trace.py"
+    source_blob: "72e472ffa83c..."
+    disposition: DESIGN_REFERENCE_ONLY
+    reason: "E43 SourceDocument allows self-issued unverified spans; E44 requires VerifiedEvidenceCapability boundary"
+
+  - source_file: "src/qclaw_e43/master_record.py"
+    source_blob: "51cdbc3a2eda..."
+    disposition: DESIGN_REFERENCE_ONLY
+    reason: "E43 master record has unbound transitions; E44 requires registry-issued transitions with full verification"
+
+  - source_file: "src/qclaw_e43/cognition.py"
+    source_blob: "54e4cecb9427..."
+    disposition: DESIGN_REFERENCE_ONLY
+    reason: "E43 cognition allows caller-supplied evidence classes; E44 derives from verified evidence origin"
+
+  - source_file: "src/qclaw_e43/skill_lifecycle.py"
+    source_blob: "fa45293e170f..."
+    disposition: DESIGN_REFERENCE_ONLY
+    reason: "E43 skill lifecycle accepts caller counts; E44 requires verifiable test receipts"
+
+  - source_file: "src/qclaw_e43/corpus.py"
+    source_blob: "8e8f9fb2fb7f..."
+    disposition: DESIGN_REFERENCE_ONLY
+    reason: "E43 evaluator injects ExpectedOutcome into production; E44 separates ground truth from production input"
+
+  - source_file: "src/qclaw_e43/mutations.py"
+    source_blob: "3a7c837af6d0..."
+    disposition: DESIGN_REFERENCE_ONLY
+    reason: "E43 mutations mutate in-place; E44 requires isolated mutation workspace with byte-exact restore"
+
+summary: "ALL_REWRITE — E43 code is design reference only, no file copy permitted"
