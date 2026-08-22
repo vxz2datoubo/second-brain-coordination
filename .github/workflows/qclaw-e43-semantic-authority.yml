@@ -1,0 +1,102 @@
+name: QCLAW E43 Semantic Authority Evaluation
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - qclaw/e42-post-receipt-semantic-authority-closure-0024-e43
+
+jobs:
+  evaluate:
+    name: Python ${{ matrix.python }} seed ${{ matrix.hash_seed }}
+    runs-on: ubuntu-latest
+    if-no-files-found: error
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.11', '3.13']
+        hash_seed: [0, 1, 777]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python ${{ matrix.python }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Assert exact head
+        run: |
+          EXPECTED="${{ github.event.pull_request.head.sha || github.sha }}"
+          ACTUAL=$(git rev-parse HEAD)
+          echo "Expected: $EXPECTED"
+          echo "Actual:   $ACTUAL"
+          test "$EXPECTED" = "$ACTUAL" || { echo "HEAD MISMATCH"; exit 1; }
+      - name: Run E43 full test suite
+        env:
+          PYTHONHASHSEED: ${{ matrix.hash_seed }}
+        working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-E42-POST-RECEIPT-SEMANTIC-AUTHORITY-CLOSURE-0024-E43
+        run: |
+          python -m unittest discover -s tests -p "test_q*.py" -v
+      - name: Run end-to-end corpus evaluator
+        env:
+          PYTHONHASHSEED: ${{ matrix.hash_seed }}
+        working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-E42-POST-RECEIPT-SEMANTIC-AUTHORITY-CLOSURE-0024-E43
+        run: |
+          python -c "
+          import sys; sys.path.insert(0,'src')
+          from qclaw_e43.corpus import build_evaluation_corpus, CorpusEvaluator
+          cases, ch = build_evaluation_corpus()
+          ev = CorpusEvaluator()
+          for c in cases:
+              r = ev.evaluate(c)
+              print(f'{c.case_id}: {r[\"verdict\"]}')
+          print(f'PASS={ev.pass_count} FAIL={ev.fail_count} CORPUS_HASH={ch}')
+          "
+      - name: Generate canonical artifacts
+        env:
+          PYTHONHASHSEED: ${{ matrix.hash_seed }}
+        working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-E42-POST-RECEIPT-SEMANTIC-AUTHORITY-CLOSURE-0024-E43
+        run: |
+          mkdir -p artifacts
+          # Canonical source snapshot
+          find src -name "*.py" -print0 | sort -z | xargs -0 cat > artifacts/canonical-source-concat.txt
+          sha256sum artifacts/canonical-source-concat.txt > artifacts/canonical-source-concat.txt.sha256
+          # Test output
+          python -m unittest discover -s tests -p "test_q*.py" -v > artifacts/evaluator-test-output.txt 2>&1 || true
+          sha256sum artifacts/evaluator-test-output.txt > artifacts/evaluator-test-output.txt.sha256
+          # Environment evidence
+          echo "head=${{ github.event.pull_request.head.sha || github.sha }}" > artifacts/environment.txt
+          echo "python=${{ matrix.python }}" >> artifacts/environment.txt
+          echo "hash_seed=${{ matrix.hash_seed }}" >> artifacts/environment.txt
+          echo "os=ubuntu-latest" >> artifacts/environment.txt
+          sha256sum artifacts/environment.txt > artifacts/environment.txt.sha256
+      - name: Upload canonical artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: e43-artifact-py${{ matrix.python }}-seed${{ matrix.hash_seed }}
+          path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-E42-POST-RECEIPT-SEMANTIC-AUTHORITY-CLOSURE-0024-E43/artifacts/
+          if-no-files-found: error
+
+  byte-compare:
+    name: Byte-exact artifact compare
+    runs-on: ubuntu-latest
+    needs: evaluate
+    steps:
+      - uses: actions/download-artifact@v4
+      - name: Compare all 6 artifacts
+        run: |
+          mkdir -p all-artifacts
+          for d in e43-artifact-*/; do
+            cp -r "$d" all-artifacts/
+          done
+          echo "=== E43 Artifact Byte Comparison ==="
+          COUNT=$(find all-artifacts -name "canonical-source-concat.txt.sha256" | wc -l)
+          echo "Found $COUNT artifacts (expected 6)"
+          test "$COUNT" -eq 6 || { echo "ARTIFACT COUNT MISMATCH"; exit 1; }
+          FIRST=$(find all-artifacts -name "canonical-source-concat.txt" | head -1)
+          SHA_FIRST=$(sha256sum "$FIRST" | awk '{print $1}')
+          for f in $(find all-artifacts -name "canonical-source-concat.txt"); do
+            SHA=$(sha256sum "$f" | awk '{print $1}')
+            echo "  $f: $SHA"
+            test "$SHA" = "$SHA_FIRST" || { echo "BYTE MISMATCH"; exit 1; }
+          done
+          echo "All 6 canonical artifacts byte-identical ✅"
