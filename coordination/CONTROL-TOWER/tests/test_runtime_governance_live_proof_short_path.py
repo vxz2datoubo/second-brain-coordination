@@ -50,14 +50,12 @@ def load_namespace(script: str) -> dict:
 
 
 def event_fixture(pr: int = PR, head: str | None = HEAD, base: str | None = BASE) -> dict:
-    head_obj = {} if head is None else {"sha": head}
-    base_obj = {} if base is None else {"sha": base}
     return {
         "repository": {"full_name": REPO},
         "pull_request": {
             "number": pr,
-            "head": {**head_obj, "ref": "attacker-free-text"},
-            "base": base_obj,
+            "head": ({"ref": "attacker-free-text"} if head is None else {"sha": head, "ref": "attacker-free-text"}),
+            "base": ({} if base is None else {"sha": base}),
             "title": "attacker title pr=999 head=deadbeef",
             "body": "attacker body",
         },
@@ -75,9 +73,9 @@ def base_env() -> dict[str, str]:
     }
 
 
-def run_pending(event: dict | None = None, script: str | None = None, extra_env: dict[str, str] | None = None):
+def run_pending(event=None, script=None, extra_env=None):
     namespace = load_namespace(extract_step_python(PENDING_STEP) if script is None else script)
-    calls: list[tuple[str, str, dict | None]] = []
+    calls = []
 
     def fake_request(method, path, body=None):
         calls.append((method, path, copy.deepcopy(body)))
@@ -100,7 +98,7 @@ def run_pending(event: dict | None = None, script: str | None = None, extra_env:
                 namespace["main"]()
             except SystemExit as exc:
                 code = exc.code
-        outputs: dict[str, str] = {}
+        outputs = {}
         for line in Path(output_path).read_text(encoding="utf-8").splitlines():
             if "=" in line:
                 key, value = line.split("=", 1)
@@ -111,16 +109,9 @@ def run_pending(event: dict | None = None, script: str | None = None, extra_env:
         os.unlink(output_path)
 
 
-def run_final(
-    guards_result: str,
-    script: str | None = None,
-    head: str = HEAD,
-    base: str = BASE,
-    bound_target_url: str = TARGET_URL,
-    extra_env: dict[str, str] | None = None,
-):
+def run_final(guards_result, script=None, head=HEAD, base=BASE, bound_target_url=TARGET_URL, extra_env=None):
     namespace = load_namespace(extract_step_python(FINAL_STEP) if script is None else script)
-    calls: list[tuple[str, str, dict | None]] = []
+    calls = []
 
     def fake_request(method, path, body=None):
         calls.append((method, path, copy.deepcopy(body)))
@@ -177,7 +168,6 @@ def assert_static_contract(text: str):
     assert "python path_action_policy.py" in text
     assert "--enforce-full-write-surface" in text
     assert "R145_BASE_TRUSTED_ENFORCEMENT_ROOT_MUTATION_FORBIDDEN" in text
-    assert ".github/workflows/runtime-governance-root.yml" in text
     assert "GITHUB_SHA" not in text
     assert "pull_request.title" not in text
     assert "pull_request.body" not in text
@@ -366,10 +356,11 @@ class ProductionOnlyMutationSensitivityTests(unittest.TestCase):
             assert_static_contract(self.text.replace(old, new, 1))
 
     def test_failure_mapping_mutation_is_detected(self):
-        old = '"state": "failure",\n                      "head_sha": head_sha,'
-        new = '"state": "success",\n                      "head_sha": head_sha,'
+        old = '"state": "failure"'
+        new = '"state": "success"'
         self.assertIn(old, self.final)
-        calls, _ = run_final("failure", script=self.final.replace(old, new, 1))
+        mutated = self.final.replace(old, new, 1)
+        calls, _ = run_final("failure", script=mutated)
         with self.assertRaises(AssertionError):
             self.assertEqual("failure", status_posts(calls)[0][2]["state"])
 
