@@ -57,11 +57,25 @@ jobs:
           set -euo pipefail
           MODE="$(python r145_lifecycle_gate.py --repo-root ../.. --mode-only)"
           echo "R145_LIFECYCLE_MODE=${MODE}"
+
           if [ "$MODE" = "CLOSED_FAIL_CLOSED" ]; then
-            python r145_lifecycle_gate.py --repo-root ../..
-            echo "R145_CLOSEOUT_FAIL_CLOSED_PASS"
+            if [ "${{ github.event_name }}" != "pull_request" ]; then
+              echo "R145_CLOSEOUT_REQUIRES_PULL_REQUEST_BOUND_DIFF" >&2
+              exit 2
+            fi
+            MERGE_SHA="$(git rev-parse HEAD)"
+            BASE_SHA="$(git rev-parse "${MERGE_SHA}^1")"
+            HEAD_SHA="$(git rev-parse "${MERGE_SHA}^2")"
+            echo "R145_CLOSEOUT_BASE_SHA=${BASE_SHA}"
+            echo "R145_CLOSEOUT_HEAD_SHA=${HEAD_SHA}"
+            python r145_lifecycle_gate.py \
+              --repo-root ../.. \
+              --base-sha "$BASE_SHA" \
+              --head-sha "$HEAD_SHA"
+            echo "R145_CLOSEOUT_REAL_DIFF_FAIL_CLOSED_PASS"
             exit 0
           fi
+
           if [ "$MODE" != "ACTIVE_PATH_ACTION" ]; then
             echo "R145_LIFECYCLE_INVALID_MIXED_STATE" >&2
             python r145_lifecycle_gate.py --repo-root ../.. || true
