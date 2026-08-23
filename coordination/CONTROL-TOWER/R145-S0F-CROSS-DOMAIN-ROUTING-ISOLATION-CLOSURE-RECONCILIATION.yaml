@@ -1,4 +1,4 @@
-schema_version: "1.2"
+schema_version: "1.3"
 receipt_id: "R145-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-CLOSURE-RECONCILIATION-0001"
 repository: "vxz2datoubo/second-brain-coordination"
 issue: 415
@@ -15,6 +15,7 @@ accepted_runtime:
   blocker_count: 0
   review_disposition: "ACCEPT"
   runtime_merge_commit: "935840769ca9ac032807066b3e0d3d1b780a55b4"
+  runtime_merge_tree: "615043bbb9159f19e603a741d5ad3ccbd837cef3"
   merge_parent_1: "46225404edd35c0c4c5d7fac852643d4c5b3f808"
   merge_parent_2: "a82606b2d3b6605c51bd05e98cd5f87b72850389"
   runtime_governance_live_proof_run: 32644667245
@@ -78,14 +79,14 @@ closeout_identity:
   branch: "gpt/r145-control-plane-closeout"
   pr: 441
   base_main: "935840769ca9ac032807066b3e0d3d1b780a55b4"
-  validated_pre_receipt_head: "cb44a3a934b8dba615f5343259014d58764715a8"
-  validated_merge_ref: "445987348ddc6f2a950571fd9696385a768e4686"
+  validated_pre_receipt_head: "17b28308e88dbfeff614b2a9242c7ce97c633830"
+  validated_merge_ref: "e25286a8ab8baab54c2796684c8c64441742f9b3"
   final_receipt_commit_semantics: "RECEIPT_ONLY / NO_AUTHORITY_SEMANTIC_CHANGE"
   final_exact_head: "GITHUB_PR_HEAD_AFTER_THIS_RECEIPT_ONLY_COMMIT"
   final_head_binding_rule: >-
     This receipt binds the fully validated pre-receipt authority head and exact CI. The commit that changes this file is
     receipt-only, avoiding a self-referential SHA field. Independent review must fresh-read PR #441 and verify that the final
-    exact PR head is exactly one receipt-only descendant of cb44a3a934b8dba615f5343259014d58764715a8 and that current main has not drifted.
+    exact PR head is exactly one receipt-only descendant of 17b28308e88dbfeff614b2a9242c7ce97c633830 and that current main has not drifted.
 
 closeout_effects:
   gpt_engineering_worker:
@@ -112,13 +113,13 @@ closeout_effects:
 
 validation_evidence:
   program_control_tower:
-    run: 32651766336
+    run: 32653093755
     result: "SUCCESS"
-    python_3_11_job: 97224382087
+    python_3_11_job: 97227603536
     python_3_11_result: "SUCCESS"
-    python_3_13_job: 97224381935
+    python_3_13_job: 97227603730
     python_3_13_result: "SUCCESS"
-    targeted_tests_per_lane: 170
+    targeted_tests_per_lane: 178
     targeted_tests_result: "PASS"
     foundation_structural_check: "PASS"
     control_tower_errors: []
@@ -133,15 +134,26 @@ validation_evidence:
       lane_b_lane_c: "O0"
     claim_projection: "MATCH"
   r145_lifecycle_gate:
-    run: 32651766339
+    run: 32653093753
     result: "SUCCESS"
-    python_3_11_job: 97224381981
+    python_3_11_job: 97227603597
     python_3_11_result: "SUCCESS"
-    python_3_13_job: 97224381899
+    python_3_13_job: 97227603638
     python_3_13_result: "SUCCESS"
     lifecycle_mode: "CLOSED_FAIL_CLOSED"
     lifecycle_findings: []
-    marker: "R145_CLOSEOUT_FAIL_CLOSED_PASS"
+    marker: "R145_CLOSEOUT_REAL_DIFF_FAIL_CLOSED_PASS"
+    real_diff_binding:
+      base_sha: "935840769ca9ac032807066b3e0d3d1b780a55b4"
+      head_sha: "17b28308e88dbfeff614b2a9242c7ce97c633830"
+      accepted_runtime_head: "a82606b2d3b6605c51bd05e98cd5f87b72850389"
+      accepted_runtime_merge: "935840769ca9ac032807066b3e0d3d1b780a55b4"
+      accepted_runtime_tree: "615043bbb9159f19e603a741d5ad3ccbd837cef3"
+      exact_closeout_diff_status: "PASS"
+      exact_closeout_diff_findings: []
+      full_diff_write_surface_status: "PASS"
+      full_diff_write_surface_findings: []
+      exact_changed_paths: 10
     lane_a_authorization_witness:
       fresh: true
       reason: "MATCH"
@@ -150,19 +162,38 @@ validation_evidence:
       route_epoch: null
       task_id: null
   lifecycle_compatibility_repair:
-    trigger: >-
+    original_trigger: >-
       The historical R145 final ACTIVE gate originally assumed the active worker slot must always exist, so a valid post-merge
       closeout produced PATH_ACTION_AUTHORITY_IDENTITY_NOT_UNIQUE after the slot was released.
-    intermediate_failure_run: 32651436554
-    intermediate_failure_code: "PATH_ACTION_AUTHORITY_IDENTITY_NOT_UNIQUE"
-    intermediate_evidence: "worker_slot_id GPT-WORKER-R145-PROGRAMMING-1 match_count=0"
-    remediation: "BOUNDED_R145_LIFECYCLE_FAIL_CLOSED_SUPPORT"
+    independent_rereview_result_at_beb93a: "CHANGES_REQUIRED"
+    blocker_f01: >-
+      CLOSED_FAIL_CLOSED previously validated only lifecycle state documents and returned success before executing a guard bound
+      to the real PR diff, allowing a theoretical fully CLOSED state plus unauthorized S0E/runtime/protected-root mutation to
+      false-green.
+    remediation: "REAL_PR_DIFF_EXACT_SURFACE + ACCEPTED_RUNTIME_PROVENANCE_BINDING"
     active_enforcement_preserved: true
     active_path_action_guards_unchanged: true
     closed_mode_requires_complete_triplet_release: true
+    closed_mode_requires_pull_request_bound_diff: true
+    closed_mode_exact_diff_surface_paths: 10
+    closed_mode_reuses_full_diff_write_surface_validator: true
+    closed_mode_binds_accepted_runtime_merge_parent_and_tree: true
     mixed_or_partial_closeout_fails_closed: true
-    adversarial_lifecycle_tests: 9
+    adversarial_lifecycle_tests_total: 17
+    f01_new_regressions:
+      - "S0E runtime mutation fails closed"
+      - "runtime-governance-root mutation fails closed"
+      - "path_action_policy mutation fails closed"
+      - "rename/multi-path diff fails closed"
+      - "incomplete closeout topology fails closed"
+      - "wrong Git action on allowed path fails closed"
+      - "receipt exact accepted head drift fails closed"
+      - "exact closeout diff positive control"
     protected_runtime_guard_regressions_remain_green: true
+    runtime_governance_root_modified: false
+    path_action_constraints_modified: false
+    path_action_policy_modified: false
+    accepted_s0e_runtime_modified: false
     workflow_changed: ".github/workflows/r145-final-active-gate.yml"
     verifier_added: "coordination/CONTROL-TOWER/r145_lifecycle_gate.py"
     tests_added: "coordination/CONTROL-TOWER/tests/test_r145_lifecycle_gate.py"
@@ -184,10 +215,13 @@ successor_release_rule:
 
 closeout_validation_required:
   - "fresh final PR head/current main/merge-ref readback"
-  - "final receipt commit is exactly one descendant of cb44a3a934b8dba615f5343259014d58764715a8 and changes this receipt only"
-  - "final exact-head Program Control Tower Python 3.11 and 3.13 regressions PASS"
+  - "final receipt commit is exactly one descendant of 17b28308e88dbfeff614b2a9242c7ce97c633830 and changes this receipt only"
+  - "final exact-head Program Control Tower Python 3.11 and 3.13 regressions PASS with 178 tests"
   - "final exact-head R145 lifecycle gate Python 3.11 and 3.13 PASS in CLOSED_FAIL_CLOSED mode"
-  - "changed-path inventory contains closeout/control-plane lifecycle surfaces only and no accepted R145 runtime source"
+  - "final exact-head CLOSED mode binds real merge-ref parent1/base and parent2/head"
+  - "final exact-head real diff is exactly the ten authorized closeout/lifecycle paths with exact Git status"
+  - "S0E/runtime/protected enforcement-root mutations are outside CLOSED authorization and fail closed"
+  - "accepted runtime merge parent2 and tree remain bound to accepted exact head/tree"
   - "worker slot projection shows no active R145 worker"
   - "Lane-A Work Claim projection is CLOSED_NO_ACTIVE_IMPLEMENTATION"
   - "R145 route is NON_EXECUTABLE"
