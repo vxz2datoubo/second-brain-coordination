@@ -1,0 +1,152 @@
+schema_version: "1.0"
+receipt_id: "R145-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-CLOSURE-RECONCILIATION-0001"
+repository: "vxz2datoubo/second-brain-coordination"
+issue: 415
+route_epoch: 145
+architecture_owner: "GPT"
+boundary: "CONTROL_PLANE_CLOSEOUT_ONLY / NO_RUNTIME_CHANGE / NO_DOMAIN_WRITE / NO_TRADE"
+status: "CLOSEOUT_CANDIDATE / REQUIRES_INDEPENDENT_EXACT_HEAD_REVIEW"
+
+accepted_runtime:
+  task_id: "GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145"
+  runtime_pr: 418
+  accepted_exact_head: "a82606b2d3b6605c51bd05e98cd5f87b72850389"
+  independent_review: 5002670436
+  blocker_count: 0
+  review_disposition: "ACCEPT"
+  runtime_merge_commit: "935840769ca9ac032807066b3e0d3d1b780a55b4"
+  merge_parent_1: "46225404edd35c0c4c5d7fac852643d4c5b3f808"
+  merge_parent_2: "a82606b2d3b6605c51bd05e98cd5f87b72850389"
+  runtime_governance_live_proof_run: 32644667245
+  exact_head_ci:
+    s0e: 32644669176
+    r142_retrospective_intake: 32644669178
+    r137_live_observation: 32644669169
+    phase3_integrated_offline_memory: 32644669150
+    r145_final_active_gate: 32644669147
+    r140_domain_learning_recall: 32644669146
+    r139_domain_learning_handoff: 32644669154
+    r138_capability_execution: 32644669127
+
+post_merge_reconciliation:
+  canonical_main_at_release_decision: "935840769ca9ac032807066b3e0d3d1b780a55b4"
+  runtime_pr_state: "MERGED"
+  stale_control_plane_observed: true
+  stale_surfaces:
+    - "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+    - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+    - "coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml"
+    - "coordination/CONTROL-TOWER/RELEASE-GATE.yaml"
+    - "coordination/ROUTES/GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145.yaml"
+    - "coordination/PROGRAM-CONTROL-TOWER.md"
+  reason: >-
+    Runtime merge does not itself release an execution lease. The accepted R145 worker slot, Lane-A Work Claim and executable
+    route remained ACTIVE on canonical main immediately after PR #418 merged and therefore require a separate independently
+    reviewed control-plane closeout.
+
+signal_tower_preflight:
+  normal_mode: "ON_DEMAND / SIGNAL_IS_NOT_TASK"
+  GLOBAL_SHALLOW:
+    result: "PASS"
+    observations:
+      - "R145 runtime PR #418 is independently accepted and merged on canonical main"
+      - "Lane-B has no active implementation"
+      - "Lane-C is closed"
+      - "R145 is the only stale active implementation lease"
+  DELTA:
+    result: "PASS"
+    material_change: "PR #418 merged as 935840769ca9ac032807066b3e0d3d1b780a55b4 while R145 active control surfaces remained open"
+  TARGETED_DEEP:
+    result: "PASS"
+    inspected:
+      - "GPT worker slot"
+      - "Lane-A Work Claim"
+      - "R145 route"
+      - "Release Gate"
+      - "Program Lane projection"
+      - "R142/R143/R144 post-merge closeout precedents"
+  CONDITIONAL_RESEARCH:
+    required: false
+    reason: "No external fact is required for deterministic post-merge lease release."
+  RELEASE_DECISION:
+    result: "RELEASE_BOUNDED_R145_POST_MERGE_CONTROL_PLANE_CLOSEOUT"
+    runtime_change_allowed: false
+    control_plane_closeout_allowed: true
+    automatic_successor_release: false
+
+closeout_identity:
+  branch: "gpt/r145-control-plane-closeout"
+  pr: 441
+  base_main: "935840769ca9ac032807066b3e0d3d1b780a55b4"
+  final_exact_head: "PENDING_FINAL_RECEIPT_BINDING"
+  final_head_binding_rule: >-
+    The final exact PR head must be recorded from GitHub after all authoritative closeout/projection fixes settle. A final
+    receipt-only commit may bind its parent and validation evidence without claiming a self-referential commit SHA.
+
+closeout_effects:
+  gpt_engineering_worker:
+    expected_active_slots: 0
+    execution_allowed: false
+  lane_a_work_claim:
+    expected_state: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
+    runtime_write_allowed: false
+    write_paths: []
+    authority_claims: []
+  r145_route:
+    expected_state: "CLOSED_HISTORY_ONLY"
+    execution_allowed: false
+    runtime_code_change_allowed: false
+  release_gate:
+    expected_lane_a_state: "R145_S0F_ACCEPTED_MERGED / NO_ACTIVE_IMPLEMENTATION"
+    implementation_route_allowed: false
+    runtime_write_allowed: false
+  program_lane:
+    expected_state: "R145_S0F_ACCEPTED_MERGED / NO_ACTIVE_IMPLEMENTATION"
+    active_execution_route: null
+    implementation_owner: null
+  accepted_runtime_remains_canonical_history: true
+
+successor_release_rule:
+  automatic_resume: false
+  automatic_task_creation: false
+  admission_bridge_424_auto_start: false
+  new_epoch_auto_start: false
+  requires:
+    - "fresh Signal Tower GLOBAL_SHALLOW + DELTA + TARGETED_DEEP preflight"
+    - "fresh governed Task/Route contract"
+    - "fresh exact Work Claim"
+    - "fresh worker slot if GPT Engineering Worker executes"
+    - "fresh authorization witness"
+    - "fresh collision/WIP scan"
+
+closeout_validation_required:
+  - "exact closeout branch head and current main"
+  - "changed-path allowlist contains control-plane closeout surfaces only"
+  - "Program Control Tower Python 3.11 and 3.13 regressions PASS"
+  - "worker slot projection shows no active R145 worker"
+  - "Lane-A Work Claim projection is CLOSED_NO_ACTIVE_IMPLEMENTATION"
+  - "R145 route is NON_EXECUTABLE"
+  - "Release Gate exposes no R145 runtime write authority"
+  - "Program Lane exposes no active R145 execution route/owner"
+  - "no new implementation task or successor lease is activated"
+  - "independent GPT exact-head review before merge"
+
+hard_locks:
+  - "NO_R145_RUNTIME_CHANGE"
+  - "NO_CROSS_REPO_WRITE"
+  - "NO_DOMAIN_CANONICAL_MIGRATION"
+  - "NO_W3_WRITE"
+  - "NO_A_SHARE_W2_WRITE"
+  - "NO_PRIVATE_BODY_COPY_TO_PUBLIC_REPO"
+  - "NO_AUTOMATIC_SIGNAL_TO_TASK"
+  - "NO_AUTOMATIC_SUCCESSOR_RELEASE"
+  - "NO_ADMISSION_BRIDGE_424_AUTO_START"
+  - "NO_NEW_EPOCH"
+  - "NO_TRADE"
+  - "NO_ACCOUNT_ORDER_FUND"
+  - "NO_PRODUCTION_PRIVATE"
+  - "NO_SECRET_PERMISSION_EXPANSION"
+  - "NO_SELF_REVIEW"
+  - "NO_SELF_MERGE"
+
+completion_signal: "R145_POST_MERGE_CONTROL_PLANE_CLOSEOUT_READY_FOR_INDEPENDENT_GPT_REVIEW"
