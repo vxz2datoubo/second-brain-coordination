@@ -3,8 +3,9 @@
 Caller supplied descriptors and observations are declarations only. They never
 mint owner-domain canonical truth by themselves. A non-legacy domain binding is
 accepted only when the declared authority object is matched to an existing
-sealed R136 exact-read proof and to a fresh governed live observation proving
-that the declared CANONICAL_MAIN commit is still canonical.
+sealed R136 exact-read proof, a semantic authority identity derived from that
+same verified Git payload, and a fresh governed live observation proving that
+the declared CANONICAL_MAIN commit is still canonical.
 
 This module remains read-only: it does not discover repositories, mutate domain
 repositories, create tasks, grant write permissions, or persist private bodies.
@@ -19,6 +20,7 @@ import re
 from typing import Any, Mapping, Sequence
 
 from .gateway import validate_exact_read_proof, validate_live_observation_proof
+from .semantic_authority import semantic_authority_ref, validate_semantic_exact_read_proof
 
 
 SHA40 = re.compile(r"^[0-9a-f]{40}$")
@@ -94,7 +96,7 @@ def _reject_private_or_extra(value: Mapping[str, Any], allowed: frozenset[str], 
 
 
 def trusted_exact_read_ref(proof: Any) -> str:
-    """Opaque public-safe identity derived only after sealed-proof validation."""
+    """Exact Git-object identity only; this is not semantic owner authority."""
     return (
         f"exact-read://{proof.repository}@{proof.commit}/{proof.path}"
         f"#blob={proof.blob_sha};sha256={proof.content_sha256};execution={proof.execution_id}"
@@ -165,6 +167,15 @@ class DomainAuthorityDescriptor:
 
     def descriptor_ref(self) -> str:
         return f"domain-authority://{self.domain_id}#sha256={_digest(self.public_dict())}"
+
+    def semantic_identity(self) -> dict[str, str]:
+        return {
+            "domain_id": self.domain_id,
+            "project_id": self.project_id,
+            "authority_schema_version": self.authority_schema_version,
+            "writeback_owner": self.writeback_owner,
+            "observation_mode": self.observation_mode,
+        }
 
 
 @dataclass(frozen=True)
@@ -288,12 +299,15 @@ class DomainAuthorityResolver:
         )
 
     @staticmethod
-    def _trusted_exact_refs(
+    def _proof_refs(
         descriptor: DomainAuthorityDescriptor,
         observation: DomainAuthorityObservation,
         exact_read_proofs: Sequence[Any],
-    ) -> tuple[str, ...]:
-        refs: set[str] = set()
+    ) -> tuple[tuple[str, ...], tuple[str, ...]]:
+        """Return exact-object refs and the subset with source-derived semantics."""
+        exact_refs: set[str] = set()
+        semantic_refs: set[str] = set()
+        expected_semantics = descriptor.semantic_identity()
         for proof in exact_read_proofs:
             if not validate_exact_read_proof(
                 proof, repository=descriptor.repository, commit=descriptor.canonical_commit
@@ -308,8 +322,10 @@ class DomainAuthorityResolver:
                 or not proof.execution_id.strip()
             ):
                 continue
-            refs.add(trusted_exact_read_ref(proof))
-        return tuple(sorted(refs))
+            exact_refs.add(trusted_exact_read_ref(proof))
+            if validate_semantic_exact_read_proof(proof, expected_identity=expected_semantics):
+                semantic_refs.add(semantic_authority_ref(proof))
+        return tuple(sorted(exact_refs)), tuple(sorted(semantic_refs))
 
     def resolve(
         self,
@@ -359,12 +375,18 @@ class DomainAuthorityResolver:
                 "authority_refs": [descriptor_ref],
             }
         observation = exact[0]
-        trusted_exact_refs = self._trusted_exact_refs(descriptor, observation, exact_read_proofs)
-        if not trusted_exact_refs:
+        exact_refs, trusted_semantic_refs = self._proof_refs(descriptor, observation, exact_read_proofs)
+        if not exact_refs:
             return {
                 "valid": False,
                 "reason": "DOMAIN_AUTHORITY_EXACT_READ_PROOF_REQUIRED",
                 "authority_refs": [descriptor_ref],
+            }
+        if not trusted_semantic_refs:
+            return {
+                "valid": False,
+                "reason": "DOMAIN_AUTHORITY_SEMANTIC_IDENTITY_UNVERIFIED",
+                "authority_refs": [descriptor_ref, *exact_refs],
             }
         if not self._freshness_valid(
             descriptor,
@@ -375,10 +397,10 @@ class DomainAuthorityResolver:
             return {
                 "valid": False,
                 "reason": "DOMAIN_AUTHORITY_CANONICAL_FRESHNESS_UNVERIFIED",
-                "authority_refs": [descriptor_ref, *trusted_exact_refs],
+                "authority_refs": [descriptor_ref, *trusted_semantic_refs],
             }
         provider_ref = str(live_observation_proof.provider_attribution_ref)
-        authority_refs = sorted({descriptor_ref, provider_ref, *trusted_exact_refs})
+        authority_refs = sorted({descriptor_ref, provider_ref, *trusted_semantic_refs})
         return {
             "valid": True,
             "reason": "DOMAIN_CANONICAL_AUTHORITY_BOUND",
@@ -388,12 +410,12 @@ class DomainAuthorityResolver:
             "canonical_commit": descriptor.canonical_commit,
             "writeback_owner": descriptor.writeback_owner,
             "authority_refs": authority_refs,
-            "trusted_authority_refs": list(trusted_exact_refs),
+            "trusted_authority_refs": list(trusted_semantic_refs),
             "provider_attribution_ref": provider_ref,
             "binding_digest": _digest({
                 "descriptor": descriptor.public_dict(),
                 "observation": observation.public_dict(),
-                "trusted_exact_refs": trusted_exact_refs,
+                "trusted_semantic_refs": trusted_semantic_refs,
                 "provider_attribution_ref": provider_ref,
             }),
             "legacy_compatibility": False,
