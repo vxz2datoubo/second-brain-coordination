@@ -24,8 +24,12 @@ from global_signal_gateway.domain_authority import (
     project_cross_domain_relation,
     trusted_exact_read_ref,
 )
-from global_signal_gateway.gateway import AuthorityBoundLiveObservationProof, exact_git_read_proofs
-from global_signal_gateway.semantic_authority import exact_semantic_authority_proof, semantic_authority_ref
+from global_signal_gateway.gateway import AuthorityBoundLiveObservationProof, GatewayError, exact_git_read_proofs
+from global_signal_gateway.semantic_authority import (
+    exact_semantic_authority_proof,
+    governed_authority_source_ref,
+    semantic_authority_ref,
+)
 from global_signal_gateway.retrospective_intake import reconcile_package
 from global_signal_plane.ledger import DurableSignalLedger
 import test_r142_retrospective_intake as legacy
@@ -123,7 +127,7 @@ def exact_authority(
     authority_path: str = "PROJECT_INDEX.yaml",
     visibility: str = "PUBLIC_OR_METADATA_ONLY",
 ):
-    """Create a real Git object and seal source-derived semantic owner identity."""
+    """Create a real Git object and seal semantics only after governed source attestation."""
     with tempfile.TemporaryDirectory() as directory:
         root = Path(directory)
         subprocess.check_call(["git", "init", "-q", str(root)])
@@ -147,20 +151,33 @@ def exact_authority(
         )
         commit = git("rev-parse", "HEAD", cwd=root)
         desc = descriptor(domain_id, project_id, repository, commit, authority_path, visibility=visibility)
-        proof = exact_semantic_authority_proof(
+        exact_source = exact_git_read_proofs(
             root,
             repository=repository,
             commit=commit,
-            path=authority_path,
-            execution_id=f"r145-domain-{domain_id.casefold()}",
-        )
+            paths=(authority_path,),
+            execution_id=f"r145-source-{domain_id.casefold()}",
+        )[0]
+        with governed_domain_provider(
+            repository,
+            commit,
+            authority_proofs=(exact_source,),
+        ) as governed_source:
+            proof = exact_semantic_authority_proof(
+                root,
+                repository=repository,
+                commit=commit,
+                path=authority_path,
+                execution_id=f"r145-domain-{domain_id.casefold()}",
+                governed_source_proof=governed_source,
+            )
         obs = observation_from_proof(desc, proof)
         yield root, desc, obs, proof
 
 
 @contextmanager
-def governed_domain_provider(repository: str, commit: str):
-    """Test-only sealed live provider whose verifier binds the exact domain main digest."""
+def governed_domain_provider(repository: str, commit: str, *, authority_proofs=()):
+    """Test-only sealed provider; optional exact refs attest governed authority sources."""
     provider_id = "test-only-r145-domain-provider"
     now = datetime.now(timezone.utc)
     bindings = {
@@ -177,7 +194,11 @@ def governed_domain_provider(repository: str, commit: str):
         "domain_freshness_ref": canonical_domain_freshness_ref(repository, commit),
         "pending_approval_ref": "approval-r145",
     }
-    exact_refs = ("provider://synthetic/r145/pr", "provider://synthetic/r145/control-plane")
+    exact_refs = (
+        "provider://synthetic/r145/pr",
+        "provider://synthetic/r145/control-plane",
+        *(governed_authority_source_ref(proof) for proof in authority_proofs),
+    )
     observed_at = (now - timedelta(seconds=2)).isoformat()
     fresh_until = (now + timedelta(minutes=5)).isoformat()
     evidence_digest = gateway_module.digest({
@@ -256,6 +277,39 @@ class DomainOwnershipIsolationTests(unittest.TestCase):
         result = DomainAuthorityResolver([desc]).resolve("AI_FILM_SYSTEM", [obs])
         self.assertFalse(result["valid"])
         self.assertEqual("DOMAIN_AUTHORITY_EXACT_READ_PROOF_REQUIRED", result["reason"])
+
+    def test_02b_self_declared_semantics_without_governed_source_ref_cannot_mint(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            subprocess.check_call(["git", "init", "-q", str(root)])
+            git("config", "user.email", "r145-tests@example.invalid", cwd=root)
+            git("config", "user.name", "R145 Tests", cwd=root)
+            path = "SELF_ASSERTED.yaml"
+            (root / path).write_text(
+                "domain_id: AI_FILM_SYSTEM\n"
+                "project_id: EUSTIA_AI_FILM\n"
+                "authority_schema_version: EUSTIA_AI_FILM/v1\n"
+                "writeback_owner: AI_FILM_SYSTEM\n"
+                "observation_mode: READ_ONLY_METADATA_ONLY\n"
+                "source_authority: this_file\n",
+                encoding="utf-8",
+            )
+            git("add", path, cwd=root)
+            subprocess.check_call(
+                ["git", "-C", str(root), "-c", "commit.gpgsign=false", "commit", "-q", "-m", "self asserted"]
+            )
+            commit = git("rev-parse", "HEAD", cwd=root)
+            with governed_domain_provider(FILM_REPO, commit) as live:
+                with self.assertRaises(GatewayError) as got:
+                    exact_semantic_authority_proof(
+                        root,
+                        repository=FILM_REPO,
+                        commit=commit,
+                        path=path,
+                        execution_id="r145-self-asserted",
+                        governed_source_proof=live,
+                    )
+        self.assertEqual("GOVERNED_AUTHORITY_SOURCE_UNVERIFIED", got.exception.code)
 
     def test_03_genuine_sealed_exact_read_plus_live_canonical_proof_binds(self):
         with exact_authority() as (_, desc, obs, exact_proof), governed_domain_provider(FILM_REPO, desc["canonical_commit"]) as live:
@@ -398,13 +452,26 @@ class ExtensibilityAndPrivacyTests(unittest.TestCase):
             subprocess.check_call(["git", "-C", str(root), "-c", "commit.gpgsign=false", "commit", "-q", "-m", "second authority"])
             current_commit = git("rev-parse", "HEAD", cwd=root)
             two = descriptor("D2", "P2", SECOND_REPO, current_commit, "authority/two.yaml")
-            two_proof = exact_semantic_authority_proof(
+            two_source = exact_git_read_proofs(
                 root,
                 repository=SECOND_REPO,
                 commit=current_commit,
-                path="authority/two.yaml",
-                execution_id="r145-d2",
-            )
+                paths=("authority/two.yaml",),
+                execution_id="r145-d2-source",
+            )[0]
+            with governed_domain_provider(
+                SECOND_REPO,
+                current_commit,
+                authority_proofs=(two_source,),
+            ) as governed_source:
+                two_proof = exact_semantic_authority_proof(
+                    root,
+                    repository=SECOND_REPO,
+                    commit=current_commit,
+                    path="authority/two.yaml",
+                    execution_id="r145-d2",
+                    governed_source_proof=governed_source,
+                )
             two_obs = observation_from_proof(two, two_proof)
             with governed_domain_provider(SECOND_REPO, legacy.MAIN) as live:
                 first = DomainAuthorityResolver([one]).resolve(
