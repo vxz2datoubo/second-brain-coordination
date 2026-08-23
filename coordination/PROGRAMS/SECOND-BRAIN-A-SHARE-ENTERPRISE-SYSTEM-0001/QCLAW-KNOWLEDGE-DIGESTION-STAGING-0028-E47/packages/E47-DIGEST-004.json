@@ -1,0 +1,104 @@
+{
+  "schema": "QCLAW-CANDIDATE-KNOWLEDGE-PACKAGE-V1",
+  "package_id": "E47-DIGEST-004",
+  "package_version": 1,
+  "content_hash": "f37e11c664bbfbce",
+  "source": {
+    "source_id": "workspace-p1-blocking",
+    "source_url": "file://workspace/P1-BLOCKING-FAILURE-ASSESSMENT_20260724_0811.yaml",
+    "source_title": "P1 Blocking Failure Assessment — Codex PR #79 D0",
+    "source_hash": "36a42abe80e87ff574ebd7457cb31d9bb8d1856282f9ab64c524eff952cb55ef",
+    "source_size_bytes": 24834,
+    "ingested_at": "2026-08-08T17:02:20.068806+00:00"
+  },
+  "summary": "3 atoms (1 failure condition, 1 mechanism, 1 hypothesis). 2 relations. 1 unknown. Cross-reference with DIGEST-003.",
+  "atoms": [
+    {
+      "atom_id": "D001",
+      "atom_type": "FAILURE_CONDITION",
+      "content": "P1阻断评估识别了Codex D0计划中不可通过P1审计的系统性缺陷。根因自验证循环: 验证器与被验证对象共享未验证的brain_core路径。",
+      "source_spans": [
+        {
+          "byte_start": 0,
+          "byte_end": 8303,
+          "line_start": 1,
+          "line_end": 190,
+          "span_label": "first_third"
+        },
+        {
+          "byte_start": 8303,
+          "byte_end": 16584,
+          "line_start": 190,
+          "line_end": 366,
+          "span_label": "middle_third"
+        }
+      ],
+      "evidence_kind": "INFERENCE",
+      "confidence": "MEDIUM",
+      "scope": "",
+      "invalidation_conditions": ""
+    },
+    {
+      "atom_id": "D002",
+      "atom_type": "MECHANISM",
+      "content": "Agent对P1阻断评估的核心机制分析: 自验证循环意味着任何验证输出在结构上不可信, 因为验证器与系统受同一组未验证路径约束。此分析来源于对整个blocking failure assessment的解读, 非source的逐字引用。",
+      "source_spans": [
+        {
+          "byte_start": 8303,
+          "byte_end": 16584,
+          "line_start": 190,
+          "line_end": 366,
+          "span_label": "middle_third"
+        }
+      ],
+      "evidence_kind": "INFERENCE",
+      "confidence": "MEDIUM",
+      "scope": "",
+      "invalidation_conditions": ""
+    },
+    {
+      "atom_id": "D003",
+      "atom_type": "HYPOTHESIS",
+      "content": "Agent假设: D0设计工件的价值在于提供参考框架, 但不能替代P1所需的可运行审计证据。此假设来源于P1审计方法论(见DIGEST-003 C005)与本次blocking assessment的交叉印证。",
+      "source_spans": [
+        {
+          "byte_start": 0,
+          "byte_end": 8303,
+          "line_start": 1,
+          "line_end": 190,
+          "span_label": "first_third"
+        }
+      ],
+      "evidence_kind": "INFERENCE",
+      "confidence": "LOW",
+      "scope": "",
+      "invalidation_conditions": ""
+    }
+  ],
+  "relations": [
+    {
+      "source_atom_id": "D002",
+      "target_atom_id": "D001",
+      "relation_type": "SUPPORTS",
+      "span_index": -1
+    },
+    {
+      "source_atom_id": "D003",
+      "target_atom_id": "D002",
+      "relation_type": "REFINES",
+      "span_index": -1
+    }
+  ],
+  "contradictions": [],
+  "unknowns": [
+    {
+      "unknown_id": "U012",
+      "question": "P1阻断评估中的具体修复建议是否已在后续epoch中被采纳?",
+      "related_atom_ids": [
+        "D001"
+      ]
+    }
+  ],
+  "memory_records": [],
+  "skills": []
+}
