@@ -156,7 +156,7 @@ class DurableAdmissionBridgeTests(unittest.TestCase):
         self.assertEqual("ADMITTED", receipt["admission_status"])
         self.assertEqual("AI_FILM_SYSTEM", receipt["primary_domain"])
         self.assertEqual("VERIFIED_SAME_LEDGER", receipt["readback_verification_status"])
-        self.assertTrue(any(ref.startswith("governed-semantic-authority://") for ref in receipt["authority_refs"]))
+        self.assertIn(r145.semantic_authority_ref(exact_proof), receipt["authority_refs"])
 
     def test_unknown_domain_fails_before_append(self):
         known = r145.descriptor("KNOWN_DOMAIN", "KNOWN_PROJECT", "synthetic/repo", "1" * 40, "AUTHORITY.yaml")
