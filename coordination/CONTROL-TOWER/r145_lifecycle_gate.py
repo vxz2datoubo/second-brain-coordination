@@ -2,10 +2,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 from pathlib import Path
 from typing import Any
 
 from control_tower import load_yaml
+from path_action_constraints import _git_diff_entries
+from path_action_policy import validate_full_diff_write_surface
 
 WORKER_REGISTRY = "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
 CLAIMS_FILE = "coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml"
@@ -22,10 +25,40 @@ LANE_ID = "LANE-A-HARNESS-INTEGRATION"
 TASK_ID = "GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145"
 ROUTE_EPOCH = 145
 RUNTIME_PR = 418
+ACCEPTED_RUNTIME_HEAD = "a82606b2d3b6605c51bd05e98cd5f87b72850389"
+ACCEPTED_RUNTIME_MERGE = "935840769ca9ac032807066b3e0d3d1b780a55b4"
+ACCEPTED_RUNTIME_TREE = "615043bbb9159f19e603a741d5ad3ccbd837cef3"
 
 ACTIVE_MODE = "ACTIVE_PATH_ACTION"
 CLOSED_MODE = "CLOSED_FAIL_CLOSED"
 INVALID_MODE = "INVALID_MIXED_STATE"
+
+# R145 closeout is a one-time, exact control-plane/lifecycle mutation.  CLOSED mode
+# must never become a generic write authority.  These are the only base->head
+# changes accepted by the lifecycle gate, with exact Git status semantics.
+CLOSEOUT_REQUIRED_DIFF: dict[str, str] = {
+    ".github/workflows/r145-final-active-gate.yml": "M",
+    "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml": "M",
+    "coordination/ACTIVE-PROGRAM-LANES.yaml": "M",
+    "coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml": "M",
+    CLOSEOUT_RECEIPT_FILE: "A",
+    "coordination/CONTROL-TOWER/RELEASE-GATE.yaml": "M",
+    "coordination/CONTROL-TOWER/r145_lifecycle_gate.py": "A",
+    "coordination/CONTROL-TOWER/tests/test_r145_lifecycle_gate.py": "A",
+    "coordination/PROGRAM-CONTROL-TOWER.md": "M",
+    ROUTE_FILE: "M",
+}
+
+# The closeout itself necessarily amends r145-final-active-gate.yml to introduce
+# lifecycle semantics.  It is the sole protected-root exception and is still
+# exact-path/status pinned above.  Every other R145 protected enforcement root
+# remains mechanically immutable in CLOSED mode.
+CLOSEOUT_FORBIDDEN_PROTECTED_PATHS = (
+    ".github/workflows/runtime-governance-root.yml",
+    "coordination/CONTROL-TOWER/path_action_constraints.py",
+    "coordination/CONTROL-TOWER/path_action_policy.py",
+    "coordination/CONTROL-TOWER/R145-BOOTSTRAP-CLEANUP-SCOPE-AMENDMENT.yaml",
+)
 
 
 def _find_one(items: Any, key: str, value: Any) -> dict[str, Any] | None:
@@ -138,6 +171,8 @@ def evaluate_documents(
         (receipt_doc.get("status") in {"READY_FOR_INDEPENDENT_EXACT_HEAD_REVIEW", "CLOSEOUT_CANDIDATE / REQUIRES_INDEPENDENT_EXACT_HEAD_REVIEW"}, "R145_CLOSEOUT_RECEIPT_STATE_INVALID", receipt_doc.get("status")),
         (accepted_runtime.get("task_id") == TASK_ID, "R145_CLOSEOUT_RECEIPT_TASK_MISMATCH", accepted_runtime.get("task_id")),
         (accepted_runtime.get("runtime_pr") == RUNTIME_PR, "R145_CLOSEOUT_RECEIPT_PR_MISMATCH", accepted_runtime.get("runtime_pr")),
+        (accepted_runtime.get("accepted_exact_head") == ACCEPTED_RUNTIME_HEAD, "R145_CLOSEOUT_RECEIPT_HEAD_MISMATCH", accepted_runtime.get("accepted_exact_head")),
+        (accepted_runtime.get("runtime_merge_commit") == ACCEPTED_RUNTIME_MERGE, "R145_CLOSEOUT_RECEIPT_MERGE_MISMATCH", accepted_runtime.get("runtime_merge_commit")),
         (accepted_runtime.get("review_disposition") == "ACCEPT", "R145_CLOSEOUT_RECEIPT_REVIEW_NOT_ACCEPT", accepted_runtime.get("review_disposition")),
         (accepted_runtime.get("blocker_count") == 0, "R145_CLOSEOUT_RECEIPT_BLOCKERS_RETAINED", accepted_runtime.get("blocker_count")),
         (closeout_effects.get("gpt_engineering_worker", {}).get("expected_active_slots") == 0, "R145_CLOSEOUT_RECEIPT_EXPECTS_ACTIVE_SLOT", closeout_effects.get("gpt_engineering_worker")),
@@ -151,6 +186,147 @@ def evaluate_documents(
     if findings:
         return {"status": "FAIL", "mode": INVALID_MODE, "findings": findings}
     return {"status": "PASS", "mode": CLOSED_MODE, "findings": []}
+
+
+def evaluate_closeout_diff_entries(entries: list[tuple[str, tuple[str, ...]]]) -> dict[str, Any]:
+    findings: list[dict[str, Any]] = []
+    actual: dict[str, str] = {}
+    for status, paths in entries:
+        if len(paths) != 1:
+            findings.append(
+                {
+                    "code": "R145_CLOSEOUT_RENAME_OR_MULTI_PATH_DIFF_FORBIDDEN",
+                    "git_status": status,
+                    "paths": list(paths),
+                }
+            )
+        for path in paths:
+            if path in actual:
+                findings.append({"code": "R145_CLOSEOUT_DUPLICATE_DIFF_PATH", "path": path})
+            actual[path] = status[:1].upper()
+
+    expected = dict(CLOSEOUT_REQUIRED_DIFF)
+    for path, expected_status in expected.items():
+        actual_status = actual.get(path)
+        if actual_status != expected_status:
+            findings.append(
+                {
+                    "code": "R145_CLOSEOUT_REQUIRED_DIFF_STATUS_MISMATCH",
+                    "path": path,
+                    "expected": expected_status,
+                    "actual": actual_status,
+                }
+            )
+    for path, actual_status in actual.items():
+        if path not in expected:
+            findings.append(
+                {
+                    "code": "R145_CLOSEOUT_DIFF_OUTSIDE_AUTHORIZED_SURFACE",
+                    "path": path,
+                    "actual": actual_status,
+                }
+            )
+
+    return {
+        "status": "PASS" if not findings else "FAIL",
+        "expected": expected,
+        "actual": actual,
+        "findings": findings,
+    }
+
+
+def _git_output(repo_root: Path, *args: str) -> str:
+    return subprocess.check_output(["git", *args], cwd=repo_root, text=True, stderr=subprocess.STDOUT).strip()
+
+
+def evaluate_closeout_git(repo_root: Path, base_sha: str, head_sha: str) -> dict[str, Any]:
+    root = repo_root.resolve()
+    findings: list[dict[str, Any]] = []
+
+    try:
+        subprocess.run(
+            ["git", "merge-base", "--is-ancestor", ACCEPTED_RUNTIME_MERGE, base_sha],
+            cwd=root,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+    except (subprocess.CalledProcessError, FileNotFoundError) as exc:
+        findings.append(
+            {
+                "code": "R145_CLOSEOUT_BASE_NOT_DESCENDANT_OF_ACCEPTED_RUNTIME_MERGE",
+                "base_sha": base_sha,
+                "accepted_runtime_merge": ACCEPTED_RUNTIME_MERGE,
+                "detail": str(exc),
+            }
+        )
+
+    try:
+        runtime_parent_2 = _git_output(root, "rev-parse", f"{ACCEPTED_RUNTIME_MERGE}^2")
+        runtime_tree = _git_output(root, "rev-parse", f"{ACCEPTED_RUNTIME_MERGE}^{{tree}}")
+        if runtime_parent_2 != ACCEPTED_RUNTIME_HEAD:
+            findings.append(
+                {
+                    "code": "R145_CLOSEOUT_ACCEPTED_RUNTIME_PARENT_DRIFT",
+                    "expected": ACCEPTED_RUNTIME_HEAD,
+                    "actual": runtime_parent_2,
+                }
+            )
+        if runtime_tree != ACCEPTED_RUNTIME_TREE:
+            findings.append(
+                {
+                    "code": "R145_CLOSEOUT_ACCEPTED_RUNTIME_TREE_DRIFT",
+                    "expected": ACCEPTED_RUNTIME_TREE,
+                    "actual": runtime_tree,
+                }
+            )
+    except (subprocess.CalledProcessError, FileNotFoundError) as exc:
+        findings.append({"code": "R145_CLOSEOUT_ACCEPTED_RUNTIME_OBJECT_UNAVAILABLE", "detail": str(exc)})
+
+    try:
+        entries = _git_diff_entries(root, base_sha, head_sha)
+        exact = evaluate_closeout_diff_entries(entries)
+        findings.extend(exact["findings"])
+    except (subprocess.CalledProcessError, FileNotFoundError) as exc:
+        entries = []
+        exact = {"status": "FAIL", "expected": dict(CLOSEOUT_REQUIRED_DIFF), "actual": {}, "findings": []}
+        findings.append({"code": "R145_CLOSEOUT_REAL_DIFF_UNAVAILABLE", "detail": str(exc)})
+
+    # Reuse the canonical full-diff write-surface validator so CLOSED mode is
+    # mechanically checked against the real base/head diff instead of merely
+    # trusting lifecycle state documents.
+    try:
+        surface = validate_full_diff_write_surface(
+            root,
+            base_sha=base_sha,
+            head_sha=head_sha,
+            write_paths=sorted(CLOSEOUT_REQUIRED_DIFF),
+            protected_paths=list(CLOSEOUT_FORBIDDEN_PROTECTED_PATHS),
+        )
+        if surface.get("status") != "PASS":
+            for item in surface.get("findings", []):
+                findings.append(
+                    {
+                        "code": item.get("code", "R145_CLOSEOUT_FULL_DIFF_POLICY_FAILED"),
+                        "policy_finding": item,
+                    }
+                )
+    except (subprocess.CalledProcessError, FileNotFoundError) as exc:
+        surface = {"status": "FAIL", "checked": [], "findings": []}
+        findings.append({"code": "R145_CLOSEOUT_FULL_DIFF_POLICY_UNAVAILABLE", "detail": str(exc)})
+
+    return {
+        "status": "PASS" if not findings else "FAIL",
+        "base_sha": base_sha,
+        "head_sha": head_sha,
+        "accepted_runtime_head": ACCEPTED_RUNTIME_HEAD,
+        "accepted_runtime_merge": ACCEPTED_RUNTIME_MERGE,
+        "accepted_runtime_tree": ACCEPTED_RUNTIME_TREE,
+        "exact_closeout_diff": exact,
+        "full_diff_write_surface": surface,
+        "findings": findings,
+    }
 
 
 def evaluate_repository(repo_root: Path) -> dict[str, Any]:
@@ -169,12 +345,36 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Fail-closed R145 ACTIVE-vs-CLOSED lifecycle gate.")
     parser.add_argument("--repo-root", default="../..")
     parser.add_argument("--mode-only", action="store_true")
+    parser.add_argument("--base-sha")
+    parser.add_argument("--head-sha")
     args = parser.parse_args()
-    result = evaluate_repository(Path(args.repo_root))
+    if bool(args.base_sha) != bool(args.head_sha):
+        parser.error("--base-sha and --head-sha must be supplied together")
+
+    root = Path(args.repo_root)
+    result = evaluate_repository(root)
     if args.mode_only:
         print(result["mode"])
-    else:
-        print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
+        return 0 if result["status"] == "PASS" else 2
+
+    if result["status"] == "PASS" and result["mode"] == CLOSED_MODE:
+        if not args.base_sha or not args.head_sha:
+            result = {
+                "status": "FAIL",
+                "mode": INVALID_MODE,
+                "findings": [{"code": "R145_CLOSEOUT_DIFF_BINDING_REQUIRED"}],
+            }
+        else:
+            diff_result = evaluate_closeout_git(root, args.base_sha, args.head_sha)
+            result = {
+                **result,
+                "closeout_git": diff_result,
+                "status": "PASS" if diff_result["status"] == "PASS" else "FAIL",
+                "mode": CLOSED_MODE if diff_result["status"] == "PASS" else INVALID_MODE,
+                "findings": diff_result["findings"],
+            }
+
+    print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
     return 0 if result["status"] == "PASS" else 2
 
 
