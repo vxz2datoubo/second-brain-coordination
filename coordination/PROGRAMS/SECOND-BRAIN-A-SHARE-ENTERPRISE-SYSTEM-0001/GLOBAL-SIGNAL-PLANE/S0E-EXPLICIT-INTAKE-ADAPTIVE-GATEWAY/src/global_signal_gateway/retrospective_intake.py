@@ -426,6 +426,8 @@ def reconcile_candidate(candidate: Mapping[str, Any], snapshot: Mapping[str, Any
         snapshot,
         expected_canonical_main=expected_canonical_main,
         coordinator_repository=CANONICAL_REPOSITORY,
+        exact_read_proofs=exact_read_proofs,
+        live_observation_proof=live_observation_proof,
     )
     if not domain_binding.get("valid"):
         return _decision(

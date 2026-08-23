@@ -1,10 +1,13 @@
 """R145 domain-neutral authority binding and Signal-to-Task domain guards.
 
-This module is deliberately data-only.  It does not discover repositories, read
-private bodies, mutate domain repositories, create tasks, or grant write
-permissions.  Callers supply governed descriptors and public-safe canonical
-observation metadata.  The resolver binds those records mechanically before a
-retrospective candidate may make an owner-domain completion judgment.
+Caller supplied descriptors and observations are declarations only. They never
+mint owner-domain canonical truth by themselves. A non-legacy domain binding is
+accepted only when the declared authority object is matched to an existing
+sealed R136 exact-read proof and to a fresh governed live observation proving
+that the declared CANONICAL_MAIN commit is still canonical.
+
+This module remains read-only: it does not discover repositories, mutate domain
+repositories, create tasks, grant write permissions, or persist private bodies.
 """
 from __future__ import annotations
 
@@ -14,6 +17,8 @@ import hashlib
 import json
 import re
 from typing import Any, Mapping, Sequence
+
+from .gateway import validate_exact_read_proof, validate_live_observation_proof
 
 
 SHA40 = re.compile(r"^[0-9a-f]{40}$")
@@ -88,6 +93,19 @@ def _reject_private_or_extra(value: Mapping[str, Any], allowed: frozenset[str], 
         raise DomainAuthorityError("DOMAIN_AUTHORITY_UNRECOGNIZED_FIELD", f"{path}{extra[0]}")
 
 
+def trusted_exact_read_ref(proof: Any) -> str:
+    """Opaque public-safe identity derived only after sealed-proof validation."""
+    return (
+        f"exact-read://{proof.repository}@{proof.commit}/{proof.path}"
+        f"#blob={proof.blob_sha};sha256={proof.content_sha256};execution={proof.execution_id}"
+    )
+
+
+def canonical_domain_freshness_ref(repository: str, commit: str) -> str:
+    """R137-compatible digest of one governed domain main observation."""
+    return _digest([f"github://{repository}@{commit}:refs/heads/main"])
+
+
 @dataclass(frozen=True)
 class DomainAuthorityDescriptor:
     domain_id: str
@@ -109,7 +127,10 @@ class DomainAuthorityDescriptor:
         required = DESCRIPTOR_FIELDS - {"repository_visibility"}
         missing = sorted(required - set(value))
         if missing:
-            raise DomainAuthorityError("DOMAIN_AUTHORITY_DESCRIPTOR_FIELD_MISSING", f"/domain_authority_descriptors/{missing[0]}")
+            raise DomainAuthorityError(
+                "DOMAIN_AUTHORITY_DESCRIPTOR_FIELD_MISSING",
+                f"/domain_authority_descriptors/{missing[0]}",
+            )
         domain_id = _string(value["domain_id"], "/domain_id")
         project_id = _string(value["project_id"], "/project_id")
         repository = _string(value["repository"], "/repository")
@@ -171,7 +192,10 @@ class DomainAuthorityObservation:
         required = OBSERVATION_FIELDS - {"repository_visibility"}
         missing = sorted(required - set(value))
         if missing:
-            raise DomainAuthorityError("DOMAIN_AUTHORITY_OBSERVATION_FIELD_MISSING", f"/domain_authority_observations/{missing[0]}")
+            raise DomainAuthorityError(
+                "DOMAIN_AUTHORITY_OBSERVATION_FIELD_MISSING",
+                f"/domain_authority_observations/{missing[0]}",
+            )
         domain_id = _string(value["domain_id"], "/domain_id")
         project_id = _string(value["project_id"], "/project_id")
         repository = _string(value["repository"], "/repository")
@@ -196,7 +220,10 @@ class DomainAuthorityObservation:
             raise DomainAuthorityError("DOMAIN_OBSERVATION_MODE_INVALID", "/observation_mode")
         if not SHA40.fullmatch(commit) or not SHA40.fullmatch(blob) or not SHA256.fullmatch(content_sha):
             raise DomainAuthorityError("DOMAIN_AUTHORITY_HASH_INVALID")
-        return cls(domain_id, project_id, repository, ref_kind, commit, authority_path, blob, content_sha, schema, mode, source_kind, observed_at, tuple(refs), visibility)
+        return cls(
+            domain_id, project_id, repository, ref_kind, commit, authority_path, blob,
+            content_sha, schema, mode, source_kind, observed_at, tuple(refs), visibility,
+        )
 
     def opaque_ref(self) -> str:
         return (
@@ -225,7 +252,7 @@ class DomainAuthorityObservation:
 
 
 class DomainAuthorityResolver:
-    """Descriptor-driven resolver; adding a domain requires data, not resolver code."""
+    """Descriptor-driven resolver whose truth boundary is sealed proof, not metadata."""
 
     def __init__(self, descriptors: Sequence[Mapping[str, Any]]) -> None:
         parsed = [DomainAuthorityDescriptor.from_mapping(item) for item in descriptors]
@@ -235,21 +262,84 @@ class DomainAuthorityResolver:
                 raise DomainAuthorityError("DOMAIN_ROUTE_AMBIGUOUS", f"/domain/{item.domain_id}")
             self._by_domain[item.domain_id] = item
 
-    def resolve(self, domain_id: str, observations: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+    @staticmethod
+    def _freshness_valid(
+        descriptor: DomainAuthorityDescriptor,
+        *,
+        live_observation_proof: Any,
+        expected_canonical_main: str | None,
+        coordinator_repository: str | None,
+    ) -> bool:
+        if descriptor.canonical_ref_kind != "CANONICAL_MAIN":
+            return False
+        if not validate_live_observation_proof(live_observation_proof):
+            return False
+        if not isinstance(expected_canonical_main, str) or not isinstance(coordinator_repository, str):
+            return False
+        if (
+            live_observation_proof.repository != coordinator_repository
+            or live_observation_proof.current_main_sha != expected_canonical_main
+        ):
+            return False
+        if descriptor.repository == coordinator_repository:
+            return descriptor.canonical_commit == expected_canonical_main
+        return live_observation_proof.domain_freshness_ref == canonical_domain_freshness_ref(
+            descriptor.repository, descriptor.canonical_commit
+        )
+
+    @staticmethod
+    def _trusted_exact_refs(
+        descriptor: DomainAuthorityDescriptor,
+        observation: DomainAuthorityObservation,
+        exact_read_proofs: Sequence[Any],
+    ) -> tuple[str, ...]:
+        refs: set[str] = set()
+        for proof in exact_read_proofs:
+            if not validate_exact_read_proof(
+                proof, repository=descriptor.repository, commit=descriptor.canonical_commit
+            ):
+                continue
+            if (
+                proof.path != descriptor.authority_path_or_contract_ref
+                or proof.path != observation.authority_path_or_contract_ref
+                or proof.blob_sha != observation.authority_blob_sha
+                or proof.content_sha256 != observation.authority_content_sha256
+                or not isinstance(proof.execution_id, str)
+                or not proof.execution_id.strip()
+            ):
+                continue
+            refs.add(trusted_exact_read_ref(proof))
+        return tuple(sorted(refs))
+
+    def resolve(
+        self,
+        domain_id: str,
+        observations: Sequence[Mapping[str, Any]],
+        *,
+        exact_read_proofs: Sequence[Any] = (),
+        live_observation_proof: Any = None,
+        expected_canonical_main: str | None = None,
+        coordinator_repository: str | None = None,
+    ) -> dict[str, Any]:
         descriptor = self._by_domain.get(domain_id)
         if descriptor is None:
             return {"valid": False, "reason": "DOMAIN_ROUTE_UNRESOLVED", "authority_refs": []}
+        descriptor_ref = descriptor.descriptor_ref()
         try:
-            candidates = [DomainAuthorityObservation.from_mapping(item) for item in observations if isinstance(item, Mapping) and item.get("domain_id") == domain_id]
+            candidates = [
+                DomainAuthorityObservation.from_mapping(item)
+                for item in observations
+                if isinstance(item, Mapping) and item.get("domain_id") == domain_id
+            ]
         except DomainAuthorityError as exc:
-            return {"valid": False, "reason": exc.code, "authority_refs": [descriptor.descriptor_ref()]}
+            return {"valid": False, "reason": exc.code, "authority_refs": [descriptor_ref]}
         if not candidates:
-            return {"valid": False, "reason": "DOMAIN_AUTHORITY_UNAVAILABLE", "authority_refs": [descriptor.descriptor_ref()]}
+            return {"valid": False, "reason": "DOMAIN_AUTHORITY_UNAVAILABLE", "authority_refs": [descriptor_ref]}
         if any(item.project_id != descriptor.project_id for item in candidates):
-            return {"valid": False, "reason": "DOMAIN_PROJECT_ID_MISMATCH", "authority_refs": [descriptor.descriptor_ref()]}
+            return {"valid": False, "reason": "DOMAIN_PROJECT_ID_MISMATCH", "authority_refs": [descriptor_ref]}
         canonical = [item for item in candidates if item.source_kind in CANONICAL_REF_KINDS]
         if not canonical:
-            return {"valid": False, "reason": "NON_CANONICAL_SOURCE_ONLY", "authority_refs": [descriptor.descriptor_ref()]}
+            return {"valid": False, "reason": "NON_CANONICAL_SOURCE_ONLY", "authority_refs": [descriptor_ref]}
         exact = [item for item in canonical if (
             item.repository == descriptor.repository
             and item.canonical_ref_kind == descriptor.canonical_ref_kind
@@ -257,14 +347,38 @@ class DomainAuthorityResolver:
             and item.authority_path_or_contract_ref == descriptor.authority_path_or_contract_ref
             and item.authority_schema_version == descriptor.authority_schema_version
             and item.observation_mode == descriptor.observation_mode
+            and item.repository_visibility == descriptor.repository_visibility
         )]
         if not exact:
-            return {"valid": False, "reason": "DOMAIN_CANONICAL_DRIFT", "authority_refs": [descriptor.descriptor_ref()]}
+            return {"valid": False, "reason": "DOMAIN_CANONICAL_DRIFT", "authority_refs": [descriptor_ref]}
         fingerprints = {_digest(item.public_dict()) for item in exact}
         if len(fingerprints) != 1:
-            return {"valid": False, "reason": "DOMAIN_AUTHORITY_OBSERVATION_AMBIGUOUS", "authority_refs": [descriptor.descriptor_ref()]}
+            return {
+                "valid": False,
+                "reason": "DOMAIN_AUTHORITY_OBSERVATION_AMBIGUOUS",
+                "authority_refs": [descriptor_ref],
+            }
         observation = exact[0]
-        refs = sorted({descriptor.descriptor_ref(), observation.opaque_ref(), *observation.evidence_refs})
+        trusted_exact_refs = self._trusted_exact_refs(descriptor, observation, exact_read_proofs)
+        if not trusted_exact_refs:
+            return {
+                "valid": False,
+                "reason": "DOMAIN_AUTHORITY_EXACT_READ_PROOF_REQUIRED",
+                "authority_refs": [descriptor_ref],
+            }
+        if not self._freshness_valid(
+            descriptor,
+            live_observation_proof=live_observation_proof,
+            expected_canonical_main=expected_canonical_main,
+            coordinator_repository=coordinator_repository,
+        ):
+            return {
+                "valid": False,
+                "reason": "DOMAIN_AUTHORITY_CANONICAL_FRESHNESS_UNVERIFIED",
+                "authority_refs": [descriptor_ref, *trusted_exact_refs],
+            }
+        provider_ref = str(live_observation_proof.provider_attribution_ref)
+        authority_refs = sorted({descriptor_ref, provider_ref, *trusted_exact_refs})
         return {
             "valid": True,
             "reason": "DOMAIN_CANONICAL_AUTHORITY_BOUND",
@@ -273,14 +387,29 @@ class DomainAuthorityResolver:
             "repository": descriptor.repository,
             "canonical_commit": descriptor.canonical_commit,
             "writeback_owner": descriptor.writeback_owner,
-            "authority_refs": refs,
-            "binding_digest": _digest({"descriptor": descriptor.public_dict(), "observation": observation.public_dict()}),
+            "authority_refs": authority_refs,
+            "trusted_authority_refs": list(trusted_exact_refs),
+            "provider_attribution_ref": provider_ref,
+            "binding_digest": _digest({
+                "descriptor": descriptor.public_dict(),
+                "observation": observation.public_dict(),
+                "trusted_exact_refs": trusted_exact_refs,
+                "provider_attribution_ref": provider_ref,
+            }),
             "legacy_compatibility": False,
         }
 
 
-def resolve_candidate_domain_authority(candidate: Mapping[str, Any], snapshot: Mapping[str, Any], *, expected_canonical_main: str, coordinator_repository: str) -> dict[str, Any]:
-    """Resolve owner authority, retaining only the existing R142 local-domain compatibility seam."""
+def resolve_candidate_domain_authority(
+    candidate: Mapping[str, Any],
+    snapshot: Mapping[str, Any],
+    *,
+    expected_canonical_main: str,
+    coordinator_repository: str,
+    exact_read_proofs: Sequence[Any] = (),
+    live_observation_proof: Any = None,
+) -> dict[str, Any]:
+    """Resolve owner authority, retaining only the existing R142 local compatibility seam."""
     domain_id = str(candidate.get("proposed_primary_domain", ""))
     descriptors = snapshot.get("domain_authority_descriptors")
     observations = snapshot.get("domain_authority_observations")
@@ -288,14 +417,40 @@ def resolve_candidate_domain_authority(candidate: Mapping[str, Any], snapshot: M
         if not isinstance(descriptors, list) or not isinstance(observations, list):
             return {"valid": False, "reason": "DOMAIN_AUTHORITY_BUNDLE_INVALID", "authority_refs": []}
         try:
-            return DomainAuthorityResolver(descriptors).resolve(domain_id, observations)
+            resolved = DomainAuthorityResolver(descriptors).resolve(
+                domain_id,
+                observations,
+                exact_read_proofs=exact_read_proofs,
+                live_observation_proof=live_observation_proof,
+                expected_canonical_main=expected_canonical_main,
+                coordinator_repository=coordinator_repository,
+            )
         except DomainAuthorityError as exc:
             return {"valid": False, "reason": exc.code, "authority_refs": []}
+        if not resolved.get("valid"):
+            return resolved
+        trusted_refs = set(map(str, resolved.get("trusted_authority_refs", [])))
+        provenance = set(map(str, snapshot.get("source_provenance_refs", [])))
+        provider_ref = str(resolved.get("provider_attribution_ref", ""))
+        if not trusted_refs or provider_ref not in provenance or not provenance.intersection(trusted_refs):
+            return {
+                "valid": False,
+                "reason": "DOMAIN_AUTHORITY_PROVENANCE_NOT_BOUND",
+                "authority_refs": resolved.get("authority_refs", []),
+            }
+        coverage = snapshot.get("scan_coverage")
+        domain_scan = coverage.get("domain_canonical") if isinstance(coverage, Mapping) else None
+        scan_refs = set(map(str, domain_scan.get("evidence_refs", []))) if isinstance(domain_scan, Mapping) else set()
+        if not isinstance(domain_scan, Mapping) or domain_scan.get("status") != "SCANNED" or not scan_refs.intersection(trusted_refs):
+            return {
+                "valid": False,
+                "reason": "DOMAIN_AUTHORITY_SCAN_NOT_BOUND",
+                "authority_refs": resolved.get("authority_refs", []),
+            }
+        return resolved
 
-    # R142 already treats SHARED_COGNITIVE_OS as local Second Brain canonical
-    # truth.  Preserve that single historical seam without turning repository
-    # identity into a generic domain fallback.  Every other domain requires a
-    # governed descriptor bundle.
+    # Historical R142 local-domain compatibility is intentionally narrow. It
+    # does not generalize repository identity into a domain-authority fallback.
     if domain_id != "SHARED_COGNITIVE_OS":
         return {"valid": False, "reason": "DOMAIN_ROUTE_UNRESOLVED", "authority_refs": []}
     if snapshot.get("canonical_main") != expected_canonical_main:
@@ -326,6 +481,7 @@ def resolve_candidate_domain_authority(candidate: Mapping[str, Any], snapshot: M
         "canonical_commit": descriptor.canonical_commit,
         "writeback_owner": descriptor.writeback_owner,
         "authority_refs": authority_refs,
+        "trusted_authority_refs": authority_refs,
         "binding_digest": _digest({"descriptor": descriptor.public_dict(), "evidence_refs": authority_refs}),
         "legacy_compatibility": True,
     }
@@ -339,38 +495,55 @@ def authority_evidence_is_bound(evidence: Mapping[str, Any], binding: Mapping[st
     refs = evidence.get("authority_evidence_refs")
     if not isinstance(refs, list) or not refs:
         return False
-    return bool(set(map(str, refs)).intersection(map(str, binding.get("authority_refs", []))))
+    trusted = binding.get("trusted_authority_refs")
+    if not isinstance(trusted, list) or not trusted:
+        return False
+    return bool(set(map(str, refs)).intersection(map(str, trusted)))
 
 
-def evaluate_signal_task_route_domain_guard(*, signal_primary_domain: str, task_target_domain: str, route_authority_domain: str, writeback_owner_domain: str, governed_cross_domain_task_ref: str | None = None) -> dict[str, Any]:
-    """Validate compatibility only; this function cannot create a task or authority."""
+def evaluate_signal_task_route_domain_guard(
+    *,
+    signal_primary_domain: str,
+    task_target_domain: str,
+    route_authority_domain: str,
+    writeback_owner_domain: str,
+    governed_cross_domain_task_ref: str | None = None,
+) -> dict[str, Any]:
+    """Validate domain identity only; caller text can never mint a cross-domain exception.
+
+    R145 intentionally fails closed for cross-domain Signal -> Task promotion.
+    A future positive path must pass a separately governed, independently
+    verified canonical task binding rather than a string/URI reference.
+    """
     domains = tuple(_string(value, "/domain") for value in (
         signal_primary_domain, task_target_domain, route_authority_domain, writeback_owner_domain,
     ))
     same_domain = len(set(domains)) == 1
-    governed_cross_domain = bool(
-        governed_cross_domain_task_ref
-        and task_target_domain == route_authority_domain == writeback_owner_domain
-    )
-    eligible = same_domain or governed_cross_domain
+    unverified_cross_domain_ref = bool(governed_cross_domain_task_ref) and not same_domain
     reason = "DOMAIN_IDENTITY_MATCH" if same_domain else (
-        "GOVERNED_CROSS_DOMAIN_SHARED_CAPABILITY_TASK" if governed_cross_domain else "DOMAIN_IDENTITY_MISMATCH_BLOCK"
+        "GOVERNED_CROSS_DOMAIN_TASK_BINDING_REQUIRED"
+        if unverified_cross_domain_ref
+        else "DOMAIN_IDENTITY_MISMATCH_BLOCK"
     )
     return {
-        "eligible_for_normal_release_gates": eligible,
+        "eligible_for_normal_release_gates": same_domain,
         "reason": reason,
         "signal_primary_domain": signal_primary_domain,
         "task_target_domain": task_target_domain,
         "route_authority_domain": route_authority_domain,
         "writeback_owner_domain": writeback_owner_domain,
         "governed_cross_domain_task_ref": governed_cross_domain_task_ref or "NONE",
+        "cross_domain_exception_verified": False,
         "automatic_task_created": False,
         "write_permission_created": False,
         "ownership_transferred": False,
     }
 
 
-def project_cross_domain_relation(*, relation: str, source_domain: str, related_domain: str, accepted_as_shared_capability: bool = False) -> dict[str, Any]:
+def project_cross_domain_relation(
+    *, relation: str, source_domain: str, related_domain: str,
+    accepted_as_shared_capability: bool = False,
+) -> dict[str, Any]:
     if relation not in ALLOWED_CROSS_DOMAIN_RELATIONS:
         raise DomainAuthorityError("CROSS_DOMAIN_RELATION_INVALID", "/relation")
     return {
@@ -384,17 +557,23 @@ def project_cross_domain_relation(*, relation: str, source_domain: str, related_
     }
 
 
-def deterministic_domain_evidence_receipt(*, descriptors: Sequence[Mapping[str, Any]], observations: Sequence[Mapping[str, Any]], checks: Mapping[str, Any]) -> dict[str, Any]:
-    """Public-safe deterministic evidence identity for replay/audit."""
+def deterministic_domain_evidence_receipt(
+    *, descriptors: Sequence[Mapping[str, Any]], observations: Sequence[Mapping[str, Any]], checks: Mapping[str, Any]
+) -> dict[str, Any]:
+    """Public-safe deterministic declaration receipt; never effective authority."""
     parsed_descriptors = [DomainAuthorityDescriptor.from_mapping(item).public_dict() for item in descriptors]
     parsed_observations = [DomainAuthorityObservation.from_mapping(item).public_dict() for item in observations]
     body = {
         "schema_version": "R145DomainAuthorityEvidence/v1",
         "descriptors": sorted(parsed_descriptors, key=lambda item: item["domain_id"]),
-        "observations": sorted(parsed_observations, key=lambda item: (item["domain_id"], item["canonical_commit"], item["source_kind"])),
+        "observations": sorted(
+            parsed_observations,
+            key=lambda item: (item["domain_id"], item["canonical_commit"], item["source_kind"]),
+        ),
         "checks": json.loads(_canonical(dict(checks))),
         "private_body_persisted": False,
         "cross_repo_mutation_available": False,
         "automatic_task_created": False,
+        "effective_truth_authority": False,
     }
     return {**body, "receipt_sha256": _digest(body)}
