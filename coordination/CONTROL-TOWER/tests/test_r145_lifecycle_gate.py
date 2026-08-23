@@ -9,7 +9,16 @@ CONTROL_TOWER = Path(__file__).resolve().parents[1]
 if str(CONTROL_TOWER) not in sys.path:
     sys.path.insert(0, str(CONTROL_TOWER))
 
-from r145_lifecycle_gate import ACTIVE_MODE, CLOSED_MODE, INVALID_MODE, evaluate_documents
+from r145_lifecycle_gate import (
+    ACCEPTED_RUNTIME_HEAD,
+    ACCEPTED_RUNTIME_MERGE,
+    ACTIVE_MODE,
+    CLOSED_MODE,
+    CLOSEOUT_REQUIRED_DIFF,
+    INVALID_MODE,
+    evaluate_closeout_diff_entries,
+    evaluate_documents,
+)
 
 
 TASK_ID = "GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145"
@@ -76,6 +85,8 @@ def closed_docs():
         "accepted_runtime": {
             "task_id": TASK_ID,
             "runtime_pr": 418,
+            "accepted_exact_head": ACCEPTED_RUNTIME_HEAD,
+            "runtime_merge_commit": ACCEPTED_RUNTIME_MERGE,
             "review_disposition": "ACCEPT",
             "blocker_count": 0,
         },
@@ -117,6 +128,10 @@ def active_docs():
         }
     )
     return worker, claims, route, release, lanes, receipt
+
+
+def exact_closeout_entries():
+    return [(status, (path,)) for path, status in sorted(CLOSEOUT_REQUIRED_DIFF.items())]
 
 
 class R145LifecycleGateTests(unittest.TestCase):
@@ -168,6 +183,11 @@ class R145LifecycleGateTests(unittest.TestCase):
         docs[5]["accepted_runtime"]["review_disposition"] = "CHANGES_REQUIRED"
         self.assert_invalid(tuple(docs), "R145_CLOSEOUT_RECEIPT_REVIEW_NOT_ACCEPT")
 
+    def test_closeout_receipt_must_bind_exact_accepted_head(self):
+        docs = list(closed_docs())
+        docs[5]["accepted_runtime"]["accepted_exact_head"] = "0" * 40
+        self.assert_invalid(tuple(docs), "R145_CLOSEOUT_RECEIPT_HEAD_MISMATCH")
+
     def test_partial_closeout_with_stale_slot_fails_closed(self):
         docs = list(closed_docs())
         stale = copy.deepcopy(active_docs()[0]["worker_slots"][0])
@@ -175,6 +195,58 @@ class R145LifecycleGateTests(unittest.TestCase):
         stale["status"] = "CLOSED"
         docs[0]["worker_slots"] = [stale]
         self.assert_invalid(tuple(docs), "R145_CLOSEOUT_SLOT_STILL_PRESENT")
+
+    def test_exact_closeout_diff_surface_passes(self):
+        result = evaluate_closeout_diff_entries(exact_closeout_entries())
+        self.assertEqual("PASS", result["status"])
+        self.assertEqual(CLOSEOUT_REQUIRED_DIFF, result["actual"])
+
+    def test_closed_mode_rejects_s0e_runtime_mutation(self):
+        entries = exact_closeout_entries() + [
+            (
+                "M",
+                (
+                    "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/"
+                    "GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/domain_authority.py",
+                ),
+            )
+        ]
+        result = evaluate_closeout_diff_entries(entries)
+        self.assertEqual("FAIL", result["status"])
+        self.assertIn("R145_CLOSEOUT_DIFF_OUTSIDE_AUTHORIZED_SURFACE", {item["code"] for item in result["findings"]})
+
+    def test_closed_mode_rejects_runtime_governance_root_mutation(self):
+        entries = exact_closeout_entries() + [("M", (".github/workflows/runtime-governance-root.yml",))]
+        result = evaluate_closeout_diff_entries(entries)
+        self.assertEqual("FAIL", result["status"])
+        self.assertIn("R145_CLOSEOUT_DIFF_OUTSIDE_AUTHORIZED_SURFACE", {item["code"] for item in result["findings"]})
+
+    def test_closed_mode_rejects_path_action_policy_mutation(self):
+        entries = exact_closeout_entries() + [("M", ("coordination/CONTROL-TOWER/path_action_policy.py",))]
+        result = evaluate_closeout_diff_entries(entries)
+        self.assertEqual("FAIL", result["status"])
+        self.assertIn("R145_CLOSEOUT_DIFF_OUTSIDE_AUTHORIZED_SURFACE", {item["code"] for item in result["findings"]})
+
+    def test_closed_mode_rejects_rename_even_inside_allowlist(self):
+        entries = exact_closeout_entries()
+        entries[0] = ("R100", (entries[0][1][0], "coordination/CONTROL-TOWER/renamed.yml"))
+        result = evaluate_closeout_diff_entries(entries)
+        self.assertEqual("FAIL", result["status"])
+        self.assertIn("R145_CLOSEOUT_RENAME_OR_MULTI_PATH_DIFF_FORBIDDEN", {item["code"] for item in result["findings"]})
+
+    def test_closed_mode_requires_complete_exact_closeout_topology(self):
+        entries = exact_closeout_entries()[1:]
+        result = evaluate_closeout_diff_entries(entries)
+        self.assertEqual("FAIL", result["status"])
+        self.assertIn("R145_CLOSEOUT_REQUIRED_DIFF_STATUS_MISMATCH", {item["code"] for item in result["findings"]})
+
+    def test_closed_mode_rejects_wrong_action_on_allowed_path(self):
+        entries = exact_closeout_entries()
+        path = "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+        entries = [("D" if paths == (path,) else status, paths) for status, paths in entries]
+        result = evaluate_closeout_diff_entries(entries)
+        self.assertEqual("FAIL", result["status"])
+        self.assertIn("R145_CLOSEOUT_REQUIRED_DIFF_STATUS_MISMATCH", {item["code"] for item in result["findings"]})
 
 
 if __name__ == "__main__":
