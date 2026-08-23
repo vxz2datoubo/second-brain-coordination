@@ -1,14 +1,14 @@
-schema_version: "1.2"
+schema_version: "1.3"
 route_id: "GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145"
 repository: "vxz2datoubo/second-brain-coordination"
-status: "ACTIVE_IMPLEMENTATION"
-execution_allowed: true
-runtime_code_change_allowed: true
+status: "CLOSED_HISTORY_ONLY"
+execution_allowed: false
+runtime_code_change_allowed: false
 automatic_resume: false
 merge_authorized: false
 self_review_forbidden: true
 
-authority_effective_only_when_final_gate_is_canonical_main: true
+authority_effective_only_when_final_gate_is_canonical_main: false
 
 binding:
   task_id: "GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145"
@@ -43,8 +43,8 @@ mode:
   value: "project_plan"
   label: "【Codex模式：项目计划模式】"
   reason: >-
-    This bounded implementation repairs a multi-system authority-routing defect in retrospective Signal reconciliation. It extends
-    existing R135/R142 seams and may not create a second domain authority or write into domain repositories.
+    Historical R145 implementation route. The S0F cross-domain routing isolation runtime was independently accepted and merged;
+    this route no longer grants execution or write authority. Any successor requires a fresh Signal Tower + Control Tower governed release.
 
 boundary: "SHARED_SIGNAL_ROUTING / READ_ONLY_CROSS_REPO / NO_DOMAIN_WRITE / NO_W3_WRITE / NO_TRADE / NO_PRODUCTION"
 
@@ -86,15 +86,8 @@ required_domains:
     repository: "GOVERNED_DESCRIPTOR_REQUIRED"
 
 write_scope:
-  implementation:
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0D-READ-ONLY-SHADOW/**"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/**"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0F-CROSS-DOMAIN-ROUTING-ISOLATION/BOOTSTRAP-NON-EXECUTABLE.yaml"
-  exact_action_constraints:
-    - path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0F-CROSS-DOMAIN-ROUTING-ISOLATION/BOOTSTRAP-NON-EXECUTABLE.yaml"
-      allowed_actions: ["DELETE"]
-      transition_baseline_sha: "6c59f197ef515b1c282aa6a08c7759ed96749957"
-      required_final_state: "ABSENT"
+  implementation: []
+  exact_action_constraints: []
   governance_owned_enforcement_paths:
     - ".github/workflows/r145-final-active-gate.yml"
     - ".github/workflows/runtime-governance-root.yml"
@@ -116,15 +109,15 @@ write_scope:
     - "governance-root or action-validator mutation from runtime PR #418"
 
 activation_contract:
-  activation_state: "ACTIVE"
-  execution_allowed: true
-  worker_slot_required: true
+  activation_state: "CLOSED"
+  execution_allowed: false
+  worker_slot_required: false
   worker_slot_id: "GPT-WORKER-R145-PROGRAMMING-1"
-  exact_lane_a_work_claim_required: true
-  implementation_branch_and_pr_required: true
-  fresh_authorization_witness_required: true
-  fresh_control_tower_collision_wip_scan_required: true
-  fresh_main_binding_required: true
+  matching_work_claim_required: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
+  implementation_branch_and_pr_required: false
+  fresh_authorization_witness_required: false
+  fresh_control_tower_collision_wip_scan_required: false
+  fresh_main_binding_required: false
   planning_review_required: true
   independent_activation_review_required: true
   final_gate_canonical: true
@@ -132,6 +125,18 @@ activation_contract:
   runtime_enforcement_root_execution_source: "BASE_TRUSTED_PULL_REQUEST_TARGET"
   world_model_concurrent_engineering_may_continue: true
   world_model_access_mode: "READ_ONLY / CANONICAL_MAIN_OR_IMMUTABLE_ACCEPTED_REF_ONLY"
+
+completion:
+  implementation_status: "ACCEPTED / MERGED / DONE_HISTORICAL"
+  accepted_exact_head: "a82606b2d3b6605c51bd05e98cd5f87b72850389"
+  independent_final_review: 5002670436
+  implementation_merge_commit: "935840769ca9ac032807066b3e0d3d1b780a55b4"
+  merge_parent_1: "46225404edd35c0c4c5d7fac852643d4c5b3f808"
+  merge_parent_2: "a82606b2d3b6605c51bd05e98cd5f87b72850389"
+  runtime_governance_live_proof_run: 32644667245
+  execution_lease: "RELEASED_BY_R145_CLOSEOUT_CANDIDATE"
+  closeout_receipt: "coordination/CONTROL-TOWER/R145-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-CLOSURE-RECONCILIATION.yaml"
+  successor_rule: "NO_AUTOMATIC_RESUME / NEW_GOVERNED_TASK_RELEASE_REQUIRED"
 
 privacy_contract:
   private_world_model_repo_body_persistence: "FORBIDDEN"
@@ -176,4 +181,4 @@ hard_locks:
 
 planning_completion_signal: "R145_CROSS_DOMAIN_ROUTING_ISOLATION_PLANNING_READY_FOR_GPT_REVIEW"
 implementation_completion_signal: "GLOBAL_SIGNAL_TOWER_S0F_CROSS_DOMAIN_ROUTING_ISOLATION_READY_FOR_GPT_REVIEW"
-next_command: "AFTER_SCOPE_AMENDMENT_CANONICAL_SYNC_RUNTIME_BRANCH_DELETE_BOOTSTRAP_MARKER_THEN_CONTINUE_G1_G5"
+next_command: "WAIT_FOR_NEW_GOVERNED_SUCCESSOR_RELEASE"

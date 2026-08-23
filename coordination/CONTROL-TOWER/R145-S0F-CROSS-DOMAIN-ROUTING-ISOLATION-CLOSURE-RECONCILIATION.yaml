@@ -1,0 +1,251 @@
+schema_version: "1.3"
+receipt_id: "R145-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-CLOSURE-RECONCILIATION-0001"
+repository: "vxz2datoubo/second-brain-coordination"
+issue: 415
+route_epoch: 145
+architecture_owner: "GPT"
+boundary: "CONTROL_PLANE_CLOSEOUT_ONLY / NO_RUNTIME_CHANGE / NO_DOMAIN_WRITE / NO_TRADE"
+status: "READY_FOR_INDEPENDENT_EXACT_HEAD_REVIEW"
+
+accepted_runtime:
+  task_id: "GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145"
+  runtime_pr: 418
+  accepted_exact_head: "a82606b2d3b6605c51bd05e98cd5f87b72850389"
+  independent_review: 5002670436
+  blocker_count: 0
+  review_disposition: "ACCEPT"
+  runtime_merge_commit: "935840769ca9ac032807066b3e0d3d1b780a55b4"
+  runtime_merge_tree: "615043bbb9159f19e603a741d5ad3ccbd837cef3"
+  merge_parent_1: "46225404edd35c0c4c5d7fac852643d4c5b3f808"
+  merge_parent_2: "a82606b2d3b6605c51bd05e98cd5f87b72850389"
+  runtime_governance_live_proof_run: 32644667245
+  exact_head_ci:
+    s0e: 32644669176
+    r142_retrospective_intake: 32644669178
+    r137_live_observation: 32644669169
+    phase3_integrated_offline_memory: 32644669150
+    r145_final_active_gate: 32644669147
+    r140_domain_learning_recall: 32644669146
+    r139_domain_learning_handoff: 32644669154
+    r138_capability_execution: 32644669127
+
+post_merge_reconciliation:
+  canonical_main_at_release_decision: "935840769ca9ac032807066b3e0d3d1b780a55b4"
+  runtime_pr_state: "MERGED"
+  stale_control_plane_observed: true
+  stale_surfaces:
+    - "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+    - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+    - "coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml"
+    - "coordination/CONTROL-TOWER/RELEASE-GATE.yaml"
+    - "coordination/ROUTES/GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145.yaml"
+    - "coordination/PROGRAM-CONTROL-TOWER.md"
+  reason: >-
+    Runtime merge does not itself release an execution lease. The accepted R145 worker slot, Lane-A Work Claim and executable
+    route remained ACTIVE on canonical main immediately after PR #418 merged and therefore require a separate independently
+    reviewed control-plane closeout.
+
+signal_tower_preflight:
+  normal_mode: "ON_DEMAND / SIGNAL_IS_NOT_TASK"
+  GLOBAL_SHALLOW:
+    result: "PASS"
+    observations:
+      - "R145 runtime PR #418 is independently accepted and merged on canonical main"
+      - "Lane-B has no active implementation"
+      - "Lane-C is closed"
+      - "R145 was the only stale active implementation lease"
+  DELTA:
+    result: "PASS"
+    material_change: "PR #418 merged as 935840769ca9ac032807066b3e0d3d1b780a55b4 while R145 active control surfaces remained open"
+  TARGETED_DEEP:
+    result: "PASS"
+    inspected:
+      - "GPT worker slot"
+      - "Lane-A Work Claim"
+      - "R145 route"
+      - "Release Gate"
+      - "Program Lane projection"
+      - "R142/R143/R144 post-merge closeout precedents"
+  CONDITIONAL_RESEARCH:
+    required: false
+    reason: "No external fact is required for deterministic post-merge lease release."
+  RELEASE_DECISION:
+    result: "RELEASE_BOUNDED_R145_POST_MERGE_CONTROL_PLANE_CLOSEOUT"
+    runtime_change_allowed: false
+    control_plane_closeout_allowed: true
+    automatic_successor_release: false
+
+closeout_identity:
+  branch: "gpt/r145-control-plane-closeout"
+  pr: 441
+  base_main: "935840769ca9ac032807066b3e0d3d1b780a55b4"
+  validated_pre_receipt_head: "17b28308e88dbfeff614b2a9242c7ce97c633830"
+  validated_merge_ref: "e25286a8ab8baab54c2796684c8c64441742f9b3"
+  final_receipt_commit_semantics: "RECEIPT_ONLY / NO_AUTHORITY_SEMANTIC_CHANGE"
+  final_exact_head: "GITHUB_PR_HEAD_AFTER_THIS_RECEIPT_ONLY_COMMIT"
+  final_head_binding_rule: >-
+    This receipt binds the fully validated pre-receipt authority head and exact CI. The commit that changes this file is
+    receipt-only, avoiding a self-referential SHA field. Independent review must fresh-read PR #441 and verify that the final
+    exact PR head is exactly one receipt-only descendant of 17b28308e88dbfeff614b2a9242c7ce97c633830 and that current main has not drifted.
+
+closeout_effects:
+  gpt_engineering_worker:
+    expected_active_slots: 0
+    execution_allowed: false
+  lane_a_work_claim:
+    expected_state: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
+    runtime_write_allowed: false
+    write_paths: []
+    authority_claims: []
+  r145_route:
+    expected_state: "CLOSED_HISTORY_ONLY"
+    execution_allowed: false
+    runtime_code_change_allowed: false
+  release_gate:
+    expected_lane_a_state: "R145_S0F_ACCEPTED_MERGED / NO_ACTIVE_IMPLEMENTATION"
+    implementation_route_allowed: false
+    runtime_write_allowed: false
+  program_lane:
+    expected_state: "R145_S0F_ACCEPTED_MERGED / NO_ACTIVE_IMPLEMENTATION"
+    active_execution_route: null
+    implementation_owner: null
+  accepted_runtime_remains_canonical_history: true
+
+validation_evidence:
+  program_control_tower:
+    run: 32653093755
+    result: "SUCCESS"
+    python_3_11_job: 97227603536
+    python_3_11_result: "SUCCESS"
+    python_3_13_job: 97227603730
+    python_3_13_result: "SUCCESS"
+    targeted_tests_per_lane: 178
+    targeted_tests_result: "PASS"
+    foundation_structural_check: "PASS"
+    control_tower_errors: []
+    projection_matches: true
+    worker_slot_structural_check: "PASS"
+    worker_slots: []
+    lane_a_claim_state: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
+    lane_a_execution_agent: null
+    pairwise_collision_levels:
+      lane_a_lane_b: "O0"
+      lane_a_lane_c: "O0"
+      lane_b_lane_c: "O0"
+    claim_projection: "MATCH"
+  r145_lifecycle_gate:
+    run: 32653093753
+    result: "SUCCESS"
+    python_3_11_job: 97227603597
+    python_3_11_result: "SUCCESS"
+    python_3_13_job: 97227603638
+    python_3_13_result: "SUCCESS"
+    lifecycle_mode: "CLOSED_FAIL_CLOSED"
+    lifecycle_findings: []
+    marker: "R145_CLOSEOUT_REAL_DIFF_FAIL_CLOSED_PASS"
+    real_diff_binding:
+      base_sha: "935840769ca9ac032807066b3e0d3d1b780a55b4"
+      head_sha: "17b28308e88dbfeff614b2a9242c7ce97c633830"
+      accepted_runtime_head: "a82606b2d3b6605c51bd05e98cd5f87b72850389"
+      accepted_runtime_merge: "935840769ca9ac032807066b3e0d3d1b780a55b4"
+      accepted_runtime_tree: "615043bbb9159f19e603a741d5ad3ccbd837cef3"
+      exact_closeout_diff_status: "PASS"
+      exact_closeout_diff_findings: []
+      full_diff_write_surface_status: "PASS"
+      full_diff_write_surface_findings: []
+      exact_changed_paths: 10
+    lane_a_authorization_witness:
+      fresh: true
+      reason: "MATCH"
+      claim_state: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
+      execution_agent: null
+      route_epoch: null
+      task_id: null
+  lifecycle_compatibility_repair:
+    original_trigger: >-
+      The historical R145 final ACTIVE gate originally assumed the active worker slot must always exist, so a valid post-merge
+      closeout produced PATH_ACTION_AUTHORITY_IDENTITY_NOT_UNIQUE after the slot was released.
+    independent_rereview_result_at_beb93a: "CHANGES_REQUIRED"
+    blocker_f01: >-
+      CLOSED_FAIL_CLOSED previously validated only lifecycle state documents and returned success before executing a guard bound
+      to the real PR diff, allowing a theoretical fully CLOSED state plus unauthorized S0E/runtime/protected-root mutation to
+      false-green.
+    remediation: "REAL_PR_DIFF_EXACT_SURFACE + ACCEPTED_RUNTIME_PROVENANCE_BINDING"
+    active_enforcement_preserved: true
+    active_path_action_guards_unchanged: true
+    closed_mode_requires_complete_triplet_release: true
+    closed_mode_requires_pull_request_bound_diff: true
+    closed_mode_exact_diff_surface_paths: 10
+    closed_mode_reuses_full_diff_write_surface_validator: true
+    closed_mode_binds_accepted_runtime_merge_parent_and_tree: true
+    mixed_or_partial_closeout_fails_closed: true
+    adversarial_lifecycle_tests_total: 17
+    f01_new_regressions:
+      - "S0E runtime mutation fails closed"
+      - "runtime-governance-root mutation fails closed"
+      - "path_action_policy mutation fails closed"
+      - "rename/multi-path diff fails closed"
+      - "incomplete closeout topology fails closed"
+      - "wrong Git action on allowed path fails closed"
+      - "receipt exact accepted head drift fails closed"
+      - "exact closeout diff positive control"
+    protected_runtime_guard_regressions_remain_green: true
+    runtime_governance_root_modified: false
+    path_action_constraints_modified: false
+    path_action_policy_modified: false
+    accepted_s0e_runtime_modified: false
+    workflow_changed: ".github/workflows/r145-final-active-gate.yml"
+    verifier_added: "coordination/CONTROL-TOWER/r145_lifecycle_gate.py"
+    tests_added: "coordination/CONTROL-TOWER/tests/test_r145_lifecycle_gate.py"
+  no_runtime_file_changed: true
+  no_successor_activated: true
+
+successor_release_rule:
+  automatic_resume: false
+  automatic_task_creation: false
+  admission_bridge_424_auto_start: false
+  new_epoch_auto_start: false
+  requires:
+    - "fresh Signal Tower GLOBAL_SHALLOW + DELTA + TARGETED_DEEP preflight"
+    - "fresh governed Task/Route contract"
+    - "fresh exact Work Claim"
+    - "fresh worker slot if GPT Engineering Worker executes"
+    - "fresh authorization witness"
+    - "fresh collision/WIP scan"
+
+closeout_validation_required:
+  - "fresh final PR head/current main/merge-ref readback"
+  - "final receipt commit is exactly one descendant of 17b28308e88dbfeff614b2a9242c7ce97c633830 and changes this receipt only"
+  - "final exact-head Program Control Tower Python 3.11 and 3.13 regressions PASS with 178 tests"
+  - "final exact-head R145 lifecycle gate Python 3.11 and 3.13 PASS in CLOSED_FAIL_CLOSED mode"
+  - "final exact-head CLOSED mode binds real merge-ref parent1/base and parent2/head"
+  - "final exact-head real diff is exactly the ten authorized closeout/lifecycle paths with exact Git status"
+  - "S0E/runtime/protected enforcement-root mutations are outside CLOSED authorization and fail closed"
+  - "accepted runtime merge parent2 and tree remain bound to accepted exact head/tree"
+  - "worker slot projection shows no active R145 worker"
+  - "Lane-A Work Claim projection is CLOSED_NO_ACTIVE_IMPLEMENTATION"
+  - "R145 route is NON_EXECUTABLE"
+  - "Release Gate exposes no R145 runtime write authority"
+  - "Program Lane exposes no active R145 execution route/owner"
+  - "no new implementation task or successor lease is activated"
+  - "independent GPT exact-head review before merge"
+
+hard_locks:
+  - "NO_R145_RUNTIME_CHANGE"
+  - "NO_CROSS_REPO_WRITE"
+  - "NO_DOMAIN_CANONICAL_MIGRATION"
+  - "NO_W3_WRITE"
+  - "NO_A_SHARE_W2_WRITE"
+  - "NO_PRIVATE_BODY_COPY_TO_PUBLIC_REPO"
+  - "NO_AUTOMATIC_SIGNAL_TO_TASK"
+  - "NO_AUTOMATIC_SUCCESSOR_RELEASE"
+  - "NO_ADMISSION_BRIDGE_424_AUTO_START"
+  - "NO_NEW_EPOCH"
+  - "NO_TRADE"
+  - "NO_ACCOUNT_ORDER_FUND"
+  - "NO_PRODUCTION_PRIVATE"
+  - "NO_SECRET_PERMISSION_EXPANSION"
+  - "NO_SELF_REVIEW"
+  - "NO_SELF_MERGE"
+
+completion_signal: "R145_POST_MERGE_CONTROL_PLANE_CLOSEOUT_READY_FOR_INDEPENDENT_GPT_REVIEW"

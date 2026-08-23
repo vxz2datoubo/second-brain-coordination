@@ -11,6 +11,8 @@ on:
       - "coordination/CONTROL-TOWER/RELEASE-GATE.yaml"
       - "coordination/CONTROL-TOWER/R145-FINAL-ACTIVE-GATE-RECEIPT.yaml"
       - "coordination/CONTROL-TOWER/R145-BOOTSTRAP-CLEANUP-SCOPE-AMENDMENT.yaml"
+      - "coordination/CONTROL-TOWER/r145_lifecycle_gate.py"
+      - "coordination/CONTROL-TOWER/tests/test_r145_lifecycle_gate.py"
       - "coordination/CONTROL-TOWER/path_action_constraints.py"
       - "coordination/CONTROL-TOWER/path_action_policy.py"
       - "coordination/CONTROL-TOWER/tests/test_path_action_constraints.py"
@@ -48,11 +50,38 @@ jobs:
       - name: Verify fresh Lane-A authorization witness
         working-directory: coordination/CONTROL-TOWER
         run: python run_authorization_witness.py verify --repo-root ../.. --lane LANE-A-HARNESS-INTEGRATION --witness-file /tmp/r145-lane-a-witness.json
-      - name: Enforce Worker Claim Route path-action contract
+      - name: Enforce R145 lifecycle and Worker Claim Route path-action contract
         working-directory: coordination/CONTROL-TOWER
         shell: bash
         run: |
           set -euo pipefail
+          MODE="$(python r145_lifecycle_gate.py --repo-root ../.. --mode-only)"
+          echo "R145_LIFECYCLE_MODE=${MODE}"
+
+          if [ "$MODE" = "CLOSED_FAIL_CLOSED" ]; then
+            if [ "${{ github.event_name }}" != "pull_request" ]; then
+              echo "R145_CLOSEOUT_REQUIRES_PULL_REQUEST_BOUND_DIFF" >&2
+              exit 2
+            fi
+            MERGE_SHA="$(git rev-parse HEAD)"
+            BASE_SHA="$(git rev-parse "${MERGE_SHA}^1")"
+            HEAD_SHA="$(git rev-parse "${MERGE_SHA}^2")"
+            echo "R145_CLOSEOUT_BASE_SHA=${BASE_SHA}"
+            echo "R145_CLOSEOUT_HEAD_SHA=${HEAD_SHA}"
+            python r145_lifecycle_gate.py \
+              --repo-root ../.. \
+              --base-sha "$BASE_SHA" \
+              --head-sha "$HEAD_SHA"
+            echo "R145_CLOSEOUT_REAL_DIFF_FAIL_CLOSED_PASS"
+            exit 0
+          fi
+
+          if [ "$MODE" != "ACTIVE_PATH_ACTION" ]; then
+            echo "R145_LIFECYCLE_INVALID_MIXED_STATE" >&2
+            python r145_lifecycle_gate.py --repo-root ../.. || true
+            exit 2
+          fi
+
           ROUTE_FILE="coordination/ROUTES/GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145.yaml"
           REQUIRED_CONTRACT_FILE="coordination/CONTROL-TOWER/R145-BOOTSTRAP-CLEANUP-SCOPE-AMENDMENT.yaml"
           ARGS=(

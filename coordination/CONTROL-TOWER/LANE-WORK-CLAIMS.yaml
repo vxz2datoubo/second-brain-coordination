@@ -1,4 +1,4 @@
-schema_version: "3.19"
+schema_version: "3.20"
 claims_id: "PROGRAM-CONTROL-TOWER-LANE-WORK-CLAIMS-0001"
 issue: 310
 owner: "USER"
@@ -43,73 +43,27 @@ claims:
       reopen_rule: "BUG / SECURITY_GAP / CONTRACT_DEFECT / PROVEN_REGRESSION only"
 
   - lane_id: "LANE-A-HARNESS-INTEGRATION"
-    claim_state: "ACTIVE_IMPLEMENTATION"
-    execution_agent: "GPT_ENGINEERING_WORKER"
-    worker_slot_id: "GPT-WORKER-R145-PROGRAMMING-1"
-    resource_class: "LIGHT_TO_MEDIUM_IMPLEMENTATION"
-    route_binding:
-      worker_slot_id: "GPT-WORKER-R145-PROGRAMMING-1"
-      task_id: "GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145"
-      route_epoch: 145
-      issue: 415
-      pr: 418
-      branch: "gpt/r145-cross-domain-routing-isolation-runtime"
-    implementation_scope:
-      planning_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R145-PLANNING.yaml"
-      final_active_gate_receipt: "coordination/CONTROL-TOWER/R145-FINAL-ACTIVE-GATE-RECEIPT.yaml"
-      phase: "R145_S0F_CROSS_DOMAIN_ROUTING_ISOLATION_ACTIVE_IMPLEMENTATION"
-      runtime_write_allowed: true
-      authority_effective_only_after_final_gate_merge: true
-      runtime_pr: 418
-      runtime_branch: "gpt/r145-cross-domain-routing-isolation-runtime"
-      final_active_gate_pr: 419
-      final_active_gate_branch: "gpt/r145-final-active-gate"
-      intended_executor_window: "编程1"
-      cross_repo_write_allowed: false
-      ai_film_write_allowed: false
-      world_model_write_allowed: false
-      a_share_w2_write_allowed: false
-      w3_write_allowed: false
-      automatic_task_creation_allowed: false
-      production_allowed: false
-      trading_allowed: false
-      r145_workflow_write_allowed: false
-      runtime_enforcement_root: ".github/workflows/runtime-governance-root.yml"
-      bootstrap_cleanup_reason: "Remove pre-activation marker that otherwise causes retained R142 whole-PR allowlist false-red."
-    write_paths:
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0D-READ-ONLY-SHADOW/**"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/**"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0F-CROSS-DOMAIN-ROUTING-ISOLATION/BOOTSTRAP-NON-EXECUTABLE.yaml"
-    path_action_constraints:
-      - path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0F-CROSS-DOMAIN-ROUTING-ISOLATION/BOOTSTRAP-NON-EXECUTABLE.yaml"
-        allowed_actions: ["DELETE"]
-        transition_baseline_sha: "6c59f197ef515b1c282aa6a08c7759ed96749957"
-        required_final_state: "ABSENT"
-    read_paths:
-      - "coordination/TASK-BRIEFS/GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145.yaml"
-      - "coordination/ROUTES/GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145.yaml"
-      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/CROSS-PROJECT-DOMAIN-CONSUMER-BOUNDARY.yaml"
-      - "coordination/CONTROL-TOWER"
-      - "coordination/ACTIVE-PROGRAM-LANES.yaml"
-    interfaces:
-      - name: "R135-READ-ONLY-CROSS-REPO-SHADOW"
-        mode: "extend/reuse"
-        frozen: false
-      - name: "R142-RETROSPECTIVE-INTAKE"
-        mode: "extend"
-        frozen: false
-      - name: "DOMAIN-AUTHORITY-BOUNDARY"
-        mode: "adapt-existing"
-        frozen: false
-      - name: "W3-DOMAIN-AUTHORITY"
-        mode: "read/reference-only"
-        frozen: true
-    read_domains: [W1, W3]
+    claim_state: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
+    execution_agent: null
+    resource_class: "NO_ACTIVE_IMPLEMENTATION"
+    route_binding: null
+    write_paths: []
+    read_paths: []
+    interfaces: []
+    read_domains: []
     write_domains: []
-    authority_claims:
-      - "S0F_CROSS_DOMAIN_ROUTING_ISOLATION_EXTENSION_ONLY"
-      - "R145_BOOTSTRAP_MARKER_DELETE_ONLY"
-      - "R145_RUNTIME_WORKFLOW_MUTATION_FORBIDDEN"
+    authority_claims: []
+    closure_receipt:
+      closure_issue: 415
+      merged_pr: 418
+      merge_commit: "935840769ca9ac032807066b3e0d3d1b780a55b4"
+      tested_head: "a82606b2d3b6605c51bd05e98cd5f87b72850389"
+      final_review: 5002670436
+      receipt_ref: "coordination/CONTROL-TOWER/R145-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-CLOSURE-RECONCILIATION.yaml"
+      completed_route_epoch: 145
+      result: "R145_S0F_CROSS_DOMAIN_ROUTING_ISOLATION_ACCEPTED_MERGED"
+      runtime_write_allowed: false
+      reopen_rule: "NEW_GOVERNED_TASK + FRESH_SIGNAL_TOWER_PREFLIGHT + FRESH_WORK_CLAIM + FRESH_AUTHORIZATION_WITNESS"
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
     claim_state: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
@@ -136,11 +90,10 @@ claims:
 
 release_semantics:
   lane_a_r145: >-
-    R145 planning PR #416 is independently accepted and merged as d06dc93cd1c05d11f8c200039880de3b07c11a23. Runtime bootstrap
-    Draft PR #418 exists from that canonical main. Final ACTIVE gate PR #419 independently accepted and merged as
-    cecd7427d16ab9ab20d00aeb8227402608708044, activating 编程1 on bounded Lane-A S0D/S0E write surfaces. A later G0 compatibility
-    finding adds exactly one delete-only cleanup path for the spent S0F bootstrap marker; it grants no general S0F write authority
-    and no R145 workflow write authority. Runtime enforcement remains governance-owned outside PR #418's writable surface.
+    R145 S0F cross-domain routing isolation runtime PR #418 was independently accepted on exact head
+    a82606b2d3b6605c51bd05e98cd5f87b72850389 and merged as 935840769ca9ac032807066b3e0d3d1b780a55b4.
+    This closeout releases the GPT worker slot, Lane-A Work Claim and executable R145 route while preserving the merged runtime as
+    canonical history. Signal Tower normal operation remains ON_DEMAND / SIGNAL_IS_NOT_TASK; any successor requires a fresh governed release.
   lane_b_r143: >-
     R143 W2 S1 runtime implementation PR #411 was independently accepted and merged as 4423349b6154986b74b6f172d7e01643f8bd46f9.
     Its closeout released the GPT worker slot, Lane-B Work Claim, W2/C2 writer surface and executable route. No successor is active.
@@ -152,11 +105,14 @@ release_semantics:
   r145_planning_review: 4989615283
   r145_planning_merge: "d06dc93cd1c05d11f8c200039880de3b07c11a23"
   r145_runtime_pr: 418
+  r145_runtime_merge: "935840769ca9ac032807066b3e0d3d1b780a55b4"
+  r145_accepted_head: "a82606b2d3b6605c51bd05e98cd5f87b72850389"
+  r145_final_review: 5002670436
   r145_final_active_gate_pr: 419
   r145_final_active_gate_merge: "cecd7427d16ab9ab20d00aeb8227402608708044"
   r145_worker_slot_id: "GPT-WORKER-R145-PROGRAMMING-1"
-  r145_runtime_authorized_when_this_gate_is_canonical: true
-  r145_bootstrap_cleanup_scope: "EXACT_PATH_DELETE_ONLY"
+  r145_runtime_authorized_when_this_gate_is_canonical: false
+  r145_bootstrap_cleanup_scope: "EXACT_PATH_DELETE_ONLY / SATISFIED_HISTORICAL"
   r145_runtime_workflow_write_authorized: false
   r145_runtime_governance_root: ".github/workflows/runtime-governance-root.yml"
   r143_w2_runtime_authorized_now: false
