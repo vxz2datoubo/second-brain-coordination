@@ -1,11 +1,11 @@
-schema_version: "1.0"
+schema_version: "1.1"
 receipt_id: "R145-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-CLOSURE-RECONCILIATION-0001"
 repository: "vxz2datoubo/second-brain-coordination"
 issue: 415
 route_epoch: 145
 architecture_owner: "GPT"
 boundary: "CONTROL_PLANE_CLOSEOUT_ONLY / NO_RUNTIME_CHANGE / NO_DOMAIN_WRITE / NO_TRADE"
-status: "CLOSEOUT_CANDIDATE / REQUIRES_INDEPENDENT_EXACT_HEAD_REVIEW"
+status: "READY_FOR_INDEPENDENT_EXACT_HEAD_REVIEW"
 
 accepted_runtime:
   task_id: "GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145"
@@ -52,7 +52,7 @@ signal_tower_preflight:
       - "R145 runtime PR #418 is independently accepted and merged on canonical main"
       - "Lane-B has no active implementation"
       - "Lane-C is closed"
-      - "R145 is the only stale active implementation lease"
+      - "R145 was the only stale active implementation lease"
   DELTA:
     result: "PASS"
     material_change: "PR #418 merged as 935840769ca9ac032807066b3e0d3d1b780a55b4 while R145 active control surfaces remained open"
@@ -78,10 +78,14 @@ closeout_identity:
   branch: "gpt/r145-control-plane-closeout"
   pr: 441
   base_main: "935840769ca9ac032807066b3e0d3d1b780a55b4"
-  final_exact_head: "PENDING_FINAL_RECEIPT_BINDING"
+  validated_pre_receipt_head: "a72989ac590faede973ce6c4213177a11bff2057"
+  validated_merge_ref: "855a6dfa0ff2c4b4bf5fce33f2be946b0d803b2c"
+  final_receipt_commit_semantics: "RECEIPT_ONLY / NO_AUTHORITY_SEMANTIC_CHANGE"
+  final_exact_head: "GITHUB_PR_HEAD_AFTER_THIS_RECEIPT_ONLY_COMMIT"
   final_head_binding_rule: >-
-    The final exact PR head must be recorded from GitHub after all authoritative closeout/projection fixes settle. A final
-    receipt-only commit may bind its parent and validation evidence without claiming a self-referential commit SHA.
+    This receipt binds the fully validated pre-receipt authority head and its exact CI. The commit that changes this file is
+    receipt-only, avoiding a self-referential SHA field. Independent review must fresh-read PR #441 and mechanically verify that
+    the final exact PR head is a direct descendant by exactly one receipt-only commit and that current main has not drifted.
 
 closeout_effects:
   gpt_engineering_worker:
@@ -106,6 +110,46 @@ closeout_effects:
     implementation_owner: null
   accepted_runtime_remains_canonical_history: true
 
+validation_evidence:
+  program_control_tower_run: 32651436612
+  python_3_11_job: 97223563570
+  python_3_11_result: "SUCCESS"
+  python_3_13_job: 97223563480
+  python_3_13_result: "SUCCESS"
+  targeted_tests_per_lane: 161
+  targeted_tests_result: "PASS"
+  foundation_structural_check: "PASS"
+  control_tower_errors: []
+  projection_matches: true
+  worker_slot_structural_check: "PASS"
+  worker_slots: []
+  lane_a_claim_state: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
+  lane_a_execution_agent: null
+  pairwise_collision_levels:
+    lane_a_lane_b: "O0"
+    lane_a_lane_c: "O0"
+    lane_b_lane_c: "O0"
+  claim_projection: "MATCH"
+  lane_a_authorization_witness:
+    fresh: true
+    reason: "MATCH"
+    route_epoch: null
+    task_id: null
+  intermediate_historical_active_gate:
+    run: 32651436554
+    result: "EXPECTED_FAIL_CLOSED_AFTER_LEASE_RELEASE / NOT_CLOSEOUT_ACCEPTANCE_GATE"
+    python_3_11_job: 97223563036
+    python_3_13_job: 97223562856
+    failure_step: "Enforce Worker Claim Route path-action contract"
+    failure_code: "PATH_ACTION_AUTHORITY_IDENTITY_NOT_UNIQUE"
+    evidence: "worker_slot_id GPT-WORKER-R145-PROGRAMMING-1 match_count=0"
+    interpretation: >-
+      The historical R145 final ACTIVE gate is intentionally an activation/execution-authority gate. It is triggered by shared
+      control-plane paths, but after closeout it cannot resolve the released active worker slot. Its fail-closed result is negative
+      evidence that no stale ACTIVE authority remains; it is not used as closeout acceptance evidence and no workflow weakening is made.
+  no_workflow_mutation_to_make_closeout_green: true
+  no_runtime_file_changed: true
+
 successor_release_rule:
   automatic_resume: false
   automatic_task_creation: false
@@ -120,9 +164,10 @@ successor_release_rule:
     - "fresh collision/WIP scan"
 
 closeout_validation_required:
-  - "exact closeout branch head and current main"
-  - "changed-path allowlist contains control-plane closeout surfaces only"
-  - "Program Control Tower Python 3.11 and 3.13 regressions PASS"
+  - "fresh final PR head/current main/merge-ref readback"
+  - "final receipt commit is exactly one descendant of a72989ac590faede973ce6c4213177a11bff2057 and changes this receipt only"
+  - "final exact-head Program Control Tower Python 3.11 and 3.13 regressions PASS"
+  - "changed-path allowlist contains the seven control-plane closeout surfaces only"
   - "worker slot projection shows no active R145 worker"
   - "Lane-A Work Claim projection is CLOSED_NO_ACTIVE_IMPLEMENTATION"
   - "R145 route is NON_EXECUTABLE"
