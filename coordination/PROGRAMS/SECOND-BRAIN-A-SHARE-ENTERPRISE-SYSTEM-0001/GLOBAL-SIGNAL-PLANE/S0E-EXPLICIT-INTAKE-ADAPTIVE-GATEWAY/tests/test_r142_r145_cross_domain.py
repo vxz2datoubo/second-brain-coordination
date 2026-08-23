@@ -25,6 +25,7 @@ from global_signal_gateway.domain_authority import (
     trusted_exact_read_ref,
 )
 from global_signal_gateway.gateway import AuthorityBoundLiveObservationProof, exact_git_read_proofs
+from global_signal_gateway.semantic_authority import exact_semantic_authority_proof, semantic_authority_ref
 from global_signal_gateway.retrospective_intake import reconcile_package
 from global_signal_plane.ledger import DurableSignalLedger
 import test_r142_retrospective_intake as legacy
@@ -122,7 +123,7 @@ def exact_authority(
     authority_path: str = "PROJECT_INDEX.yaml",
     visibility: str = "PUBLIC_OR_METADATA_ONLY",
 ):
-    """Create a real Git object/tree/worktree and mint the existing sealed R136 proof."""
+    """Create a real Git object and seal source-derived semantic owner identity."""
     with tempfile.TemporaryDirectory() as directory:
         root = Path(directory)
         subprocess.check_call(["git", "init", "-q", str(root)])
@@ -130,8 +131,14 @@ def exact_authority(
         git("config", "user.name", "R145 Tests", cwd=root)
         target = root / authority_path
         target.parent.mkdir(parents=True, exist_ok=True)
+        mode = "READ_ONLY_METADATA_ONLY" if repository != SECOND_REPO else "READ_ONLY"
         target.write_text(
-            f"schema_version: {project_id}/v1\nproject_id: {project_id}\nsource_authority: this_file\n",
+            f"domain_id: {domain_id}\n"
+            f"project_id: {project_id}\n"
+            f"authority_schema_version: {project_id}/v1\n"
+            f"writeback_owner: {domain_id}\n"
+            f"observation_mode: {mode}\n"
+            "source_authority: this_file\n",
             encoding="utf-8",
         )
         git("add", authority_path, cwd=root)
@@ -140,13 +147,13 @@ def exact_authority(
         )
         commit = git("rev-parse", "HEAD", cwd=root)
         desc = descriptor(domain_id, project_id, repository, commit, authority_path, visibility=visibility)
-        proof = exact_git_read_proofs(
+        proof = exact_semantic_authority_proof(
             root,
             repository=repository,
             commit=commit,
-            paths=(authority_path,),
+            path=authority_path,
             execution_id=f"r145-domain-{domain_id.casefold()}",
-        )[0]
+        )
         obs = observation_from_proof(desc, proof)
         yield root, desc, obs, proof
 
@@ -255,7 +262,7 @@ class DomainOwnershipIsolationTests(unittest.TestCase):
             result = resolve_verified(desc, obs, exact_proof, live)
         self.assertTrue(result["valid"])
         self.assertEqual("DOMAIN_CANONICAL_AUTHORITY_BOUND", result["reason"])
-        self.assertEqual([trusted_exact_read_ref(exact_proof)], result["trusted_authority_refs"])
+        self.assertEqual([semantic_authority_ref(exact_proof)], result["trusted_authority_refs"])
         self.assertNotIn(obs["evidence_refs"][0], result["authority_refs"])
 
     def test_04_wrong_git_blob_fails_closed(self):
@@ -294,19 +301,23 @@ class DomainOwnershipIsolationTests(unittest.TestCase):
     def test_09_descriptor_ref_or_arbitrary_ref_never_counts_as_authority_evidence(self):
         with exact_authority() as (_, desc, obs, exact_proof), governed_domain_provider(FILM_REPO, desc["canonical_commit"]) as live:
             binding = resolve_verified(desc, obs, exact_proof, live)
-            for ref in (DomainAuthorityDescriptor.from_mapping(desc).descriptor_ref(), "opaque://caller/chosen"):
+            for ref in (
+                DomainAuthorityDescriptor.from_mapping(desc).descriptor_ref(),
+                trusted_exact_read_ref(exact_proof),
+                "opaque://caller/chosen",
+            ):
                 ev = legacy.evidence(authority_domain_id=desc["domain_id"], authority_evidence_refs=[ref])
                 self.assertFalse(domain_authority_module.authority_evidence_is_bound(ev, binding))
             trusted = legacy.evidence(
                 authority_domain_id=desc["domain_id"],
-                authority_evidence_refs=[trusted_exact_read_ref(exact_proof)],
+                authority_evidence_refs=[semantic_authority_ref(exact_proof)],
             )
             self.assertTrue(domain_authority_module.authority_evidence_is_bound(trusted, binding))
 
     def test_10_reconciliation_requires_snapshot_provenance_and_domain_scan_to_reference_sealed_read(self):
         with exact_authority() as (_, desc, obs, exact_proof), governed_domain_provider(FILM_REPO, desc["canonical_commit"]) as live:
             cand = candidate_for("AI_FILM_SYSTEM", "R145-10")
-            trusted_ref = trusted_exact_read_ref(exact_proof)
+            trusted_ref = semantic_authority_ref(exact_proof)
             ev = legacy.evidence(authority_domain_id="AI_FILM_SYSTEM", authority_evidence_refs=[trusted_ref])
             snap = explicit_snapshot(cand, [desc], [obs], ev)
             snap["source_provenance_refs"].append(live.provider_attribution_ref)
@@ -325,7 +336,7 @@ class DomainOwnershipIsolationTests(unittest.TestCase):
     def test_11_external_true_new_requires_owner_exact_read_and_local_admission_proofs(self):
         with exact_authority() as (_, desc, obs, domain_exact), governed_domain_provider(FILM_REPO, desc["canonical_commit"]) as live:
             cand = candidate_for("AI_FILM_SYSTEM", "R145-NEW")
-            trusted_ref = trusted_exact_read_ref(domain_exact)
+            trusted_ref = semantic_authority_ref(domain_exact)
             ev = legacy.evidence(authority_domain_id="AI_FILM_SYSTEM", authority_evidence_refs=[trusted_ref])
             with tempfile.TemporaryDirectory() as directory:
                 ledger = DurableSignalLedger(Path(directory) / "ledger.sqlite")
@@ -372,18 +383,28 @@ class ExtensibilityAndPrivacyTests(unittest.TestCase):
         with exact_authority(
             domain_id="D1", project_id="P1", repository=SECOND_REPO, authority_path="authority/one.yaml",
         ) as (_, one, one_obs, one_proof):
-            # A second proof must come from the same canonical commit for same-repo identity.
             root = Path(_)
             second_path = root / "authority/two.yaml"
-            second_path.write_text("schema_version: P2/v1\nproject_id: P2\nsource_authority: this_file\n", encoding="utf-8")
+            second_path.write_text(
+                "domain_id: D2\n"
+                "project_id: P2\n"
+                "authority_schema_version: P2/v1\n"
+                "writeback_owner: D2\n"
+                "observation_mode: READ_ONLY\n"
+                "source_authority: this_file\n",
+                encoding="utf-8",
+            )
             git("add", "authority/two.yaml", cwd=root)
             subprocess.check_call(["git", "-C", str(root), "-c", "commit.gpgsign=false", "commit", "-q", "-m", "second authority"])
             current_commit = git("rev-parse", "HEAD", cwd=root)
-            # The first proof is now intentionally stale, demonstrating source-drift protection.
             two = descriptor("D2", "P2", SECOND_REPO, current_commit, "authority/two.yaml")
-            two_proof = exact_git_read_proofs(
-                root, repository=SECOND_REPO, commit=current_commit, paths=("authority/two.yaml",), execution_id="r145-d2"
-            )[0]
+            two_proof = exact_semantic_authority_proof(
+                root,
+                repository=SECOND_REPO,
+                commit=current_commit,
+                path="authority/two.yaml",
+                execution_id="r145-d2",
+            )
             two_obs = observation_from_proof(two, two_proof)
             with governed_domain_provider(SECOND_REPO, legacy.MAIN) as live:
                 first = DomainAuthorityResolver([one]).resolve(
