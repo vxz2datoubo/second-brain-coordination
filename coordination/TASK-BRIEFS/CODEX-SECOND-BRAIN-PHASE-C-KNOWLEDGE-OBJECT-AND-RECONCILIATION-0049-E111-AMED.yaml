@@ -1,0 +1,101 @@
+schema_version: "1.0"
+task_id: "CODEX-SECOND-BRAIN-PHASE-C-KNOWLEDGE-OBJECT-AND-RECONCILIATION-0049-E111"
+agent: "CODEX"
+mode: "project_plan"
+weight: "STRATEGIC"
+research_trigger: "L2_TARGETED_IF_NEW_RECONCILIATION_ALGORITHM_OR_KNOWLEDGE_SCHEMA_PATTERN_IS_SELECTED"
+mission_intent:
+  root_goal: >-
+    Implement PHASE_C of the GPT Second Brain Knowledge Digestion skill: KnowledgeEpisode/KnowledgeAtom schema compatible with W3,
+    12-action ReconciliationEngine with audit log and rollback, GraphEvolutionManager, compatibility migration from existing Memory Palace atoms,
+    20+ synthetic tests, and 5 human-readable Markdown templates. This is the knowledge object and reconciliation layer that sits atop
+    the R109-accepted Memory Palace foundation.
+  user_capability_outcome: >-
+    GPT can digest any input into source-anchored atomic knowledge, reconcile it against existing knowledge before writing (rather than
+    blind append), maintain a conflict-aware evolution graph, and render human-readable notes. All operations are auditable and rollbackable.
+  success_condition: >-
+    20 reconciliation tests pass (>=95% accuracy), atomization quality tests pass, graph consistency tests pass, zero scope leakage,
+    temporal reasoning correct, compatibility migration works, all 5 Markdown templates render, and existing 246 Phase 3 regression tests still pass.
+  stop_condition: >-
+    Any need for live GPT bridge (PHASE_D), production deployment, real private data write, trading system integration,
+    formal skill promotion (PHASE_G), or modification of W3 canonical structure.
+system_position:
+  workstream: "W3 / CLTM-0021 / Second Brain LANE-C"
+  upstream: "R109 Memory Palace foundation (PR #280 merged), PHASE_B completed"
+  reused_capability: "W3 MemoryStore, CLTM-0021 retrieval pipeline, existing relation_vocabulary, epistemic_roles, freshness_classes, AMED governance"
+  downstream: "PHASE_D GPT live bridge, PHASE_E proactive recall router, PHASE_F evaluation"
+  system_of_record: "W3 existing memory/knowledge authority"
+  projections: ["KnowledgeAtom", "KnowledgeEpisode", "ReconciliationAuditLog", "ConflictSet", "CuratedGraphView (P1, not in PHASE_C)"]
+hard_boundaries:
+  - "Do not modify W3 canonical atom structure; KnowledgeAtom is a compatible wrapper/extension"
+  - "Do not create a second canonical knowledge database"
+  - "No live GPT bridge (PHASE_D); this is offline implementation only"
+  - "No real private data; use synthetic fixtures only"
+  - "No trading system integration or risk gate modification"
+  - "No formal skill promotion (PHASE_G locked)"
+  - "No merge/rebase/force/direct-main implementation"
+  - "No market/account/order/trading access"
+  - "Distillation Layer 2-4 AI generation is P1; PHASE_C only implements field structure + Layer 0-1"
+  - "MOC CuratedGraphView is P1; PHASE_C only implements 5 templates (no MOC template)"
+active_discovery_duty:
+  - "Audit KnowledgeAtom schema against existing W3 Memory Palace atom structure for compatibility"
+  - "Identify failure modes specific to 12-action reconciliation (false merge, false supersede, conflict set corruption)"
+  - "Check whether reconciliation threshold (0.85 initial heuristic) needs per-atom-type differentiation"
+  - "Check privacy, dependency, performance and orphan-process risks"
+  - "Verify compatibility migration does not lose any existing atom data"
+  - "Record negative results and ambiguities rather than forcing completeness"
+improvement_authority:
+  A: "safe local compatible implementation/test/refactor inside PHASE_C scope"
+  B: "bounded schema adapter/export/template improvement with evidence, tests and rollback"
+  C: "new shared canonical schema/runtime/cloud service/skill only proposal"
+  D: "secrets, permission changes, W3 canonical modification, destructive migration, trading => stop/user gate"
+exploration_budget:
+  primary_delivery_share: "75%"
+  active_discovery_share: "15%"
+  system_opportunity_share: "10%"
+  max_new_architecture_proposals: 2
+  max_new_skill_candidates: 0
+  max_unplanned_files: 8
+  scope_expansion_without_gate: false
+required_reads:
+  - "Issue #<new PHASE_C issue> body and comments"
+  - "coordination/ACTIVE-CODEX-TASK.yaml"
+  - "coordination/BLUEPRINTS/SECOND-BRAIN-PHASE-C-KNOWLEDGE-OBJECT-AND-RECONCILIATION-BLUEPRINT-v1.0.md (v1.1)"
+  - "coordination/BLUEPRINTS/SECOND-BRAIN-GENERIC-METHODOLOGY-ENTERPRISE-INTEGRATION-BLUEPRINT-v1.0.md (v1.1)"
+  - "coordination/SKILLS/GPT-SECOND-BRAIN-KNOWLEDGE-DIGESTION-ASSOCIATIVE-RECALL-SKILL-v1.0.yaml (v1.1)"
+  - "PR #280 accepted R109 implementation/tests"
+  - "AMED/PMA-BIG/WPDCR/PDER governance named by AGENTS.md"
+minimum_deliverables:
+  - "KnowledgeEpisode and KnowledgeAtom Python dataclasses/Pydantic models with all fields from blueprint v1.1"
+  - "CounterEvidenceRef, OrganizationalLayer, DistillationLayers, SourceRef, Scope sub-structures"
+  - "ReconciliationEngine with 12 actions (NEW/DUPLICATE/MERGE/REFINE/SUPPORT/WEAKEN/CONTRADICT/SUPERSEDE/REVOKE/REVALIDATE/RESOLVE_UNKNOWN/UNKNOWN)"
+  - "ReconciliationAuditLog with rollback mechanism"
+  - "GraphEvolutionManager (KnowledgeRelation, ConflictSet, lineage chain management)"
+  - "Compatibility migration layer (Memory Palace old atom -> KnowledgeAtom, with rollback)"
+  - "20 synthetic reconciliation tests (REC-001 through REC-020)"
+  - "Atomization quality tests (over/under fragmentation, source fidelity, epistemic accuracy)"
+  - "Graph consistency tests (acyclic lineage, conflict set integrity, edge completeness, rollback consistency)"
+  - "Scope isolation tests (zero cross-scope leakage, zero tolerance)"
+  - "Temporal reasoning tests (expiry, CURRENT vs HISTORICAL, transient decay)"
+  - "Compatibility migration tests (lossless, reversible)"
+  - "5 Markdown templates (project, literature, permanent, daily, weekly_review)"
+  - "Post-write verification (exact recall, paraphrase recall with fixtures, graph recall, scope, temporal)"
+  - "UNKNOWN + AMED/WPDCR/AI_HANDOFF receipts"
+validation:
+  - "KnowledgeAtom serializes to W3-compatible format and back without loss"
+  - "20/20 reconciliation tests pass or >=95% accuracy (max 1 failure)"
+  - "over/under fragmentation rate <5%"
+  - "source span fidelity 100%"
+  - "lineage chain is acyclic"
+  - "conflict set members all marked CONFLICTED"
+  - "zero cross-scope leakage in all tests"
+  - "CURRENT query returns only lineage_head atoms; HISTORICAL returns predecessors"
+  - "compatibility migration is lossless and reversible"
+  - "all 5 templates render from canonical objects"
+  - "human edits round-trip through HumanAnnotation"
+  - "all reconciliation actions have audit log entries"
+  - "rollback restores pre-action state"
+  - "existing 246 Phase 3 regression tests still pass"
+  - "no private data, no secrets, no trading logic in code or fixtures"
+  - "resource postflight clean"
+completion_signal: "CODEX_PHASE_C_KNOWLEDGE_OBJECT_AND_RECONCILIATION_READY_FOR_GPT_REVIEW"
