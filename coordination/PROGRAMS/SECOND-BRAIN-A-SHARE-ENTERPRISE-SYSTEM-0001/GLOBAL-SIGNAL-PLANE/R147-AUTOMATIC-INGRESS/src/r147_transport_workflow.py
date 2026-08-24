@@ -26,6 +26,7 @@ STATE_PREFIX = f"{R147_ROOT}/transport/"
 _REQUEST_RE = re.compile(rf"^{re.escape(REQUEST_PREFIX)}[^/]+\.json$")
 _RECEIPT_RE = re.compile(rf"^{re.escape(STATE_PREFIX)}receipts/[^/]+\.json$")
 JOURNAL_PATH = f"{STATE_PREFIX}admitted_events.jsonl"
+_FRESHNESS_RETRY_CODE = "DOMAIN_AUTHORITY_CANONICAL_FRESHNESS_UNVERIFIED"
 
 
 class TransportWorkflowError(RuntimeError):
@@ -33,6 +34,15 @@ class TransportWorkflowError(RuntimeError):
         super().__init__(f"{code}:{detail}" if detail else code)
         self.code = code
         self.detail = detail
+
+
+class RequestIsolationError(RuntimeError):
+    """A bounded request-file failure that may become only that request's receipt."""
+
+    def __init__(self, code: str, path: str = "/request") -> None:
+        super().__init__(code)
+        self.code = code
+        self.path = path
 
 
 @dataclass(frozen=True)
@@ -49,6 +59,15 @@ def _run_git(root: Path, *args: str) -> subprocess.CompletedProcess[str]:
         ["git", "-C", str(root), *args],
         capture_output=True,
         text=True,
+        check=False,
+    )
+
+
+def _run_git_bytes(root: Path, *args: str) -> subprocess.CompletedProcess[bytes]:
+    return subprocess.run(
+        ["git", "-C", str(root), *args],
+        capture_output=True,
+        text=False,
         check=False,
     )
 
@@ -216,18 +235,55 @@ def _fetch_and_reset_to_remote(
     return remote_ref
 
 
+def _refresh_runtime_main(root: Path, *, remote_branch: str = "main") -> str:
+    """Align the authority runtime checkout to the current remote canonical main.
+
+    This does not weaken R145 freshness. It only ensures the local canonical
+    runtime cannot remain pinned to an older main after the workflow checkout.
+    The later live observation must still independently prove freshness.
+    """
+    remote_ref = f"refs/remotes/origin/{remote_branch}"
+    fetch = _run_git(
+        root,
+        "fetch",
+        "--no-tags",
+        "origin",
+        f"+refs/heads/{remote_branch}:{remote_ref}",
+    )
+    if fetch.returncode:
+        raise TransportWorkflowError("R147_RUNTIME_MAIN_FETCH_FAILED", fetch.stderr.strip())
+    target = _git(root, "rev-parse", remote_ref)
+    current = _git(root, "rev-parse", "HEAD")
+    if current != target:
+        _git(root, "reset", "--hard", target)
+        _git(root, "clean", "-fd")
+    aligned = _git(root, "rev-parse", "HEAD")
+    if aligned != target:
+        raise TransportWorkflowError(
+            "R147_RUNTIME_MAIN_ALIGNMENT_FAILED",
+            f"{aligned}!={target}",
+        )
+    return aligned
+
+
 def _materialize_request(root: Path, change: RequestChange) -> Path:
     if not _REQUEST_RE.fullmatch(change.path):
         raise TransportWorkflowError("R147_REQUEST_PATH_INVALID", change.path)
-    show = _run_git(root, "show", f"{change.commit}:{change.path}")
+    show = _run_git_bytes(root, "show", f"{change.commit}:{change.path}")
     if show.returncode:
+        detail = show.stderr.decode("utf-8", errors="replace").strip()
         raise TransportWorkflowError(
             "R147_REQUEST_BLOB_UNAVAILABLE",
-            f"{change.commit}:{change.path}",
+            f"{change.commit}:{change.path}::{detail}",
         )
+    try:
+        show.stdout.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        # Do not echo the offending bytes or any private content.
+        raise RequestIsolationError("R147_REQUEST_FILE_INVALID", "/request") from exc
     target = root / change.path
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(show.stdout, encoding="utf-8")
+    target.write_bytes(show.stdout)
     return target
 
 
@@ -274,6 +330,7 @@ def persist_push_batch(
     remote_branch: str = "signal-tower/ingress",
     main_ref: str = "origin/main",
     max_push_attempts: int = 5,
+    max_runtime_reconcile_attempts: int = 3,
     processor: Callable[..., Mapping[str, Any]] | None = None,
     authority_materializer: Callable[[Mapping[str, Any]], Any] | None = None,
     before_push_hook: Callable[[int], None] | None = None,
@@ -285,9 +342,18 @@ def persist_push_batch(
     transport state, replay the manifest against that state, and use an ordinary
     fast-forward push. A non-fast-forward push never discards the receipt: the
     whole operation is recomputed on the newer journal and retried, without force.
+
+    The production authority runtime is refreshed before its first observation.
+    If canonical R145 still reports a coordinator-main freshness mismatch because
+    main advanced during observation/binding, R147 discards that failed attempt,
+    refreshes the runtime, rebuilds the batch-local authority materializer, and
+    re-observes. The stale freshness failure is never persisted as a terminal
+    request receipt. Exhaustion is an infrastructure failure and fails closed.
     """
     if max_push_attempts < 1:
         raise TransportWorkflowError("R147_PUSH_ATTEMPTS_INVALID")
+    if max_runtime_reconcile_attempts < 1:
+        raise TransportWorkflowError("R147_RUNTIME_RECONCILE_ATTEMPTS_INVALID")
     manifest = enumerate_push_request_changes(
         transport_root,
         before=before,
@@ -295,7 +361,10 @@ def persist_push_batch(
         created=created,
         main_ref=main_ref,
     )
-    if processor is None:
+
+    production_materializer = processor is None and authority_materializer is None
+
+    def build_default_processor() -> Callable[..., Mapping[str, Any]]:
         from r147_ingress import (
             FreshAuthorityMaterialCache,
             GithubR145AuthorityMaterializer,
@@ -313,13 +382,35 @@ def persist_push_batch(
             else FreshAuthorityMaterialCache(base_materializer)
         )
 
-        def processor(**kwargs: Any) -> Mapping[str, Any]:
+        def invoke(**kwargs: Any) -> Mapping[str, Any]:
             return process_github_request(
                 **kwargs,
                 authority_materializer=shared_materializer,
             )
+
+        return invoke
+
+    processor_fn = processor
+    if processor_fn is None:
+        if production_materializer:
+            _refresh_runtime_main(runtime_root)
+        processor_fn = build_default_processor()
     elif authority_materializer is not None:
         raise TransportWorkflowError("R147_AUTHORITY_MATERIALIZER_WITH_CUSTOM_PROCESSOR_FORBIDDEN")
+
+    def isolated_failure(change: RequestChange, code: str, path: str) -> Mapping[str, Any]:
+        from r147_ingress import AutomaticSignalTowerIngress, _write_receipt
+        isolated_attempt = Path(change.path).stem
+        receipt = AutomaticSignalTowerIngress._failure_receipt(
+            {"attempt_id": isolated_attempt},
+            code=code,
+            path=path,
+        )
+        _write_receipt(
+            transport_root / STATE_PREFIX / "receipts" / f"{isolated_attempt}.json",
+            receipt,
+        )
+        return receipt
 
     last_push_error = ""
     for push_attempt in range(1, max_push_attempts + 1):
@@ -330,35 +421,46 @@ def persist_push_batch(
         )
         receipt_attempts: list[str] = []
         for change in manifest:
-            request_path = _materialize_request(transport_root, change)
-            try:
-                receipt = processor(
-                    runtime_root=runtime_root,
-                    transport_root=transport_root,
-                    request_path=request_path,
-                    observation_pr=observation_pr,
-                )
-            except Exception as exc:
-                from global_signal_gateway.gateway import GatewayError
-                request_failure_codes = {
-                    "R147_REQUEST_FILE_INVALID",
-                    "R147_REQUEST_FILENAME_ID_MISMATCH",
-                    "R147_REQUEST_PATH_OUTSIDE_TRANSPORT_ROOT",
-                    "R147_REQUEST_PATH_INVALID",
-                }
-                if not isinstance(exc, GatewayError) or getattr(exc, "code", None) not in request_failure_codes:
-                    raise
-                from r147_ingress import AutomaticSignalTowerIngress, _write_receipt
-                isolated_attempt = Path(change.path).stem
-                receipt = AutomaticSignalTowerIngress._failure_receipt(
-                    {"attempt_id": isolated_attempt},
-                    code=str(exc.code),
-                    path=str(exc.path),
-                )
-                _write_receipt(
-                    transport_root / STATE_PREFIX / "receipts" / f"{isolated_attempt}.json",
-                    receipt,
-                )
+            runtime_attempt = 0
+            while True:
+                runtime_attempt += 1
+                try:
+                    request_path = _materialize_request(transport_root, change)
+                    receipt = processor_fn(
+                        runtime_root=runtime_root,
+                        transport_root=transport_root,
+                        request_path=request_path,
+                        observation_pr=observation_pr,
+                    )
+                except RequestIsolationError as exc:
+                    receipt = isolated_failure(change, exc.code, exc.path)
+                except Exception as exc:
+                    from global_signal_gateway.gateway import GatewayError
+                    request_failure_codes = {
+                        "R147_REQUEST_FILE_INVALID",
+                        "R147_REQUEST_FILENAME_ID_MISMATCH",
+                        "R147_REQUEST_PATH_OUTSIDE_TRANSPORT_ROOT",
+                        "R147_REQUEST_PATH_INVALID",
+                    }
+                    if not isinstance(exc, GatewayError) or getattr(exc, "code", None) not in request_failure_codes:
+                        raise
+                    receipt = isolated_failure(change, str(exc.code), str(exc.path))
+
+                if (
+                    receipt.get("status") == "NEEDS_REVALIDATION"
+                    and receipt.get("code") == _FRESHNESS_RETRY_CODE
+                ):
+                    if runtime_attempt >= max_runtime_reconcile_attempts:
+                        raise TransportWorkflowError(
+                            "R147_RUNTIME_MAIN_RECONCILE_EXHAUSTED",
+                            change.path,
+                        )
+                    _refresh_runtime_main(runtime_root)
+                    if production_materializer:
+                        processor_fn = build_default_processor()
+                    continue
+                break
+
             attempt_id = receipt.get("attempt_id")
             if not isinstance(attempt_id, str) or not attempt_id:
                 raise TransportWorkflowError(
