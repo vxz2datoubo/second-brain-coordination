@@ -1,0 +1,117 @@
+name: R147 B04 remediation patch temp
+
+on:
+  push:
+    branches:
+      - "gpt/r147-automatic-signal-tower-ingress"
+    paths:
+      - ".github/workflows/r147-b04-remediation-temp.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gpt/r147-automatic-signal-tower-ingress
+          fetch-depth: 0
+      - name: Patch B04 and merge-range handling
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          root = Path("coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/R147-AUTOMATIC-INGRESS")
+          ingress = root / "src/r147_ingress.py"
+          transport = root / "src/r147_transport_workflow.py"
+          tests = root / "tests/test_r147_review_remediation.py"
+
+          text = ingress.read_text(encoding="utf-8")
+          old = '''    public_safe,\n    semantic_capture,\n    temporary_exact_clone,\n)\n'''
+          new = '''    public_safe,\n    semantic_capture,\n    temporary_exact_clone,\n    validate_live_observation_proof,\n)\n'''
+          if old not in text:
+              raise SystemExit("R147_B04_IMPORT_PATTERN_NOT_FOUND")
+          text = text.replace(old, new, 1)
+
+          old = '''@dataclass(frozen=True)\nclass TrustedAuthorityMaterial:\n    resolver: DomainAuthorityResolver\n    observations: tuple[Mapping[str, Any], ...]\n    exact_read_proofs: tuple[Any, ...]\n    live_observation_proof: Any\n    expected_canonical_main: str\n    coordinator_repository: str\n\n\nclass GitReplayTransport:\n'''
+          new = '''@dataclass(frozen=True)\nclass TrustedAuthorityMaterial:\n    resolver: DomainAuthorityResolver\n    observations: tuple[Mapping[str, Any], ...]\n    exact_read_proofs: tuple[Any, ...]\n    live_observation_proof: Any\n    expected_canonical_main: str\n    coordinator_repository: str\n\n\nclass FreshAuthorityMaterialCache:\n    \"\"\"Batch-local cache over canonical sealed R137/R145 material.\n\n    This is not a provider or resolver. The underlying canonical materializer is\n    still the only issuer. Reuse is domain-scoped and every cache hit is checked\n    again by the canonical live-proof validator; stale material is discarded and\n    refreshed through the original materializer.\n    \"\"\"\n\n    def __init__(\n        self,\n        materializer: Callable[[Mapping[str, Any]], TrustedAuthorityMaterial],\n    ) -> None:\n        self._materializer = materializer\n        self._by_domain: dict[str, TrustedAuthorityMaterial] = {}\n\n    def __call__(self, request: Mapping[str, Any]) -> TrustedAuthorityMaterial:\n        domain_value = request.get(\"proposed_primary_domain\")\n        if not isinstance(domain_value, str) or not domain_value.strip():\n            raise GatewayError(\"R147_AUTHORITY_CACHE_DOMAIN_INVALID\", \"/proposed_primary_domain\")\n        domain_id = domain_value.strip()\n        cached = self._by_domain.get(domain_id)\n        if cached is not None and validate_live_observation_proof(cached.live_observation_proof):\n            return cached\n\n        material = self._materializer(request)\n        if (\n            not isinstance(material, TrustedAuthorityMaterial)\n            or not validate_live_observation_proof(material.live_observation_proof)\n        ):\n            self._by_domain.pop(domain_id, None)\n            raise GatewayError(\"R147_LIVE_AUTHORITY_MATERIAL_NOT_FRESH\", \"/authority\")\n        self._by_domain[domain_id] = material\n        return material\n\n\nclass GitReplayTransport:\n'''
+          if old not in text:
+              raise SystemExit("R147_B04_CACHE_INSERT_PATTERN_NOT_FOUND")
+          text = text.replace(old, new, 1)
+
+          old = '''def process_github_request(\n    *,\n    runtime_root: Path,\n    transport_root: Path,\n    request_path: Path,\n    observation_pr: int,\n) -> dict[str, Any]:\n'''
+          new = '''def process_github_request(\n    *,\n    runtime_root: Path,\n    transport_root: Path,\n    request_path: Path,\n    observation_pr: int,\n    authority_materializer: Callable[[Mapping[str, Any]], TrustedAuthorityMaterial] | None = None,\n) -> dict[str, Any]:\n'''
+          if old not in text:
+              raise SystemExit("R147_B04_PROCESS_SIGNATURE_PATTERN_NOT_FOUND")
+          text = text.replace(old, new, 1)
+
+          old = '''    ingress = AutomaticSignalTowerIngress(\n        transport=GitReplayTransport(state_root / \"admitted_events.jsonl\"),\n        authority_materializer=GithubR145AuthorityMaterializer(\n            runtime_root=runtime_root,\n            observation_pr=observation_pr,\n        ),\n        caller_authorization_ref=\"authorization://github-actions/r147-authorized-chatgpt-ingress\",\n    )\n'''
+          new = '''    if authority_materializer is None:\n        authority_materializer = GithubR145AuthorityMaterializer(\n            runtime_root=runtime_root,\n            observation_pr=observation_pr,\n        )\n    ingress = AutomaticSignalTowerIngress(\n        transport=GitReplayTransport(state_root / \"admitted_events.jsonl\"),\n        authority_materializer=authority_materializer,\n        caller_authorization_ref=\"authorization://github-actions/r147-authorized-chatgpt-ingress\",\n    )\n'''
+          if old not in text:
+              raise SystemExit("R147_B04_PROCESS_MATERIALIZER_PATTERN_NOT_FOUND")
+          text = text.replace(old, new, 1)
+          ingress.write_text(text, encoding="utf-8")
+
+          text = transport.read_text(encoding="utf-8")
+          old = '''    changes: list[RequestChange] = []\n    for commit in commits:\n        rows = _git(\n            root,\n            \"diff-tree\",\n            \"--root\",\n            \"--no-commit-id\",\n            \"--name-status\",\n            \"--no-renames\",\n            \"-r\",\n            commit,\n        ).splitlines()\n        if not rows:\n            raise TransportWorkflowError(\"R147_REQUEST_COMMIT_EMPTY\", commit)\n        for row in rows:\n            parts = row.split(\"\\t\", 1)\n            if len(parts) != 2:\n                raise TransportWorkflowError(\"R147_CHANGE_ROW_INVALID\", row)\n            status, path = parts\n            if status not in {\"A\", \"M\"}:\n                raise TransportWorkflowError(\n                    \"R147_TRIGGER_MUTATION_FORBIDDEN\",\n                    f\"{status}:{path}\",\n                )\n            if not _REQUEST_RE.fullmatch(path):\n                raise TransportWorkflowError(\"R147_TRIGGER_SCOPE_FORBIDDEN\", path)\n            changes.append(RequestChange(commit=commit, path=path))\n'''
+          new = '''    changes: list[RequestChange] = []\n    for commit in commits:\n        parent_row = _git(root, \"rev-list\", \"--parents\", \"-n\", \"1\", commit).split()\n        is_merge = len(parent_row) > 2\n        if is_merge:\n            # Combined diff reports only merge-result changes that differ from all\n            # parents. A rowless merge is structural only and its non-merge parent\n            # commits are already enumerated by rev-list. Merge-resolution changes\n            # are audited and replayed exactly at the merge commit.\n            merge_paths = [\n                line.strip()\n                for line in _git(\n                    root,\n                    \"diff-tree\",\n                    \"--cc\",\n                    \"--no-commit-id\",\n                    \"--name-only\",\n                    \"--no-renames\",\n                    \"-r\",\n                    commit,\n                ).splitlines()\n                if line.strip()\n            ]\n            for path in merge_paths:\n                if not _REQUEST_RE.fullmatch(path):\n                    raise TransportWorkflowError(\"R147_TRIGGER_SCOPE_FORBIDDEN\", path)\n                changes.append(RequestChange(commit=commit, path=path))\n            continue\n\n        rows = _git(\n            root,\n            \"diff-tree\",\n            \"--root\",\n            \"--no-commit-id\",\n            \"--name-status\",\n            \"--no-renames\",\n            \"-r\",\n            commit,\n        ).splitlines()\n        if not rows:\n            raise TransportWorkflowError(\"R147_REQUEST_COMMIT_EMPTY\", commit)\n        for row in rows:\n            parts = row.split(\"\\t\", 1)\n            if len(parts) != 2:\n                raise TransportWorkflowError(\"R147_CHANGE_ROW_INVALID\", row)\n            status, path = parts\n            if status not in {\"A\", \"M\"}:\n                raise TransportWorkflowError(\n                    \"R147_TRIGGER_MUTATION_FORBIDDEN\",\n                    f\"{status}:{path}\",\n                )\n            if not _REQUEST_RE.fullmatch(path):\n                raise TransportWorkflowError(\"R147_TRIGGER_SCOPE_FORBIDDEN\", path)\n            changes.append(RequestChange(commit=commit, path=path))\n'''
+          if old not in text:
+              raise SystemExit("R147_P2_MERGE_ENUM_PATTERN_NOT_FOUND")
+          text = text.replace(old, new, 1)
+
+          old = '''    processor: Callable[..., Mapping[str, Any]] | None = None,\n    before_push_hook: Callable[[int], None] | None = None,\n) -> dict[str, Any]:\n'''
+          new = '''    processor: Callable[..., Mapping[str, Any]] | None = None,\n    authority_materializer: Callable[[Mapping[str, Any]], Any] | None = None,\n    before_push_hook: Callable[[int], None] | None = None,\n) -> dict[str, Any]:\n'''
+          if old not in text:
+              raise SystemExit("R147_B04_PERSIST_SIGNATURE_PATTERN_NOT_FOUND")
+          text = text.replace(old, new, 1)
+
+          old = '''    if processor is None:\n        from r147_ingress import process_github_request as processor  # local import: canonical runtime seam\n\n    last_push_error = \"\"\n'''
+          new = '''    if processor is None:\n        from r147_ingress import (\n            FreshAuthorityMaterialCache,\n            GithubR145AuthorityMaterializer,\n            process_github_request,\n        )\n        shared_materializer = authority_materializer\n        if shared_materializer is None:\n            shared_materializer = FreshAuthorityMaterialCache(\n                GithubR145AuthorityMaterializer(\n                    runtime_root=runtime_root,\n                    observation_pr=observation_pr,\n                )\n            )\n\n        def processor(**kwargs: Any) -> Mapping[str, Any]:\n            return process_github_request(\n                **kwargs,\n                authority_materializer=shared_materializer,\n            )\n    elif authority_materializer is not None:\n        raise TransportWorkflowError(\"R147_AUTHORITY_MATERIALIZER_WITH_CUSTOM_PROCESSOR_FORBIDDEN\")\n\n    last_push_error = \"\"\n'''
+          if old not in text:
+              raise SystemExit("R147_B04_SHARED_MATERIALIZER_PATTERN_NOT_FOUND")
+          text = text.replace(old, new, 1)
+          transport.write_text(text, encoding="utf-8")
+
+          text = tests.read_text(encoding="utf-8")
+          text = text.replace(
+              '"""Adversarial regressions for the three R147 P1 review blockers."""',
+              '"""Adversarial regressions for R147 operational review blockers."""',
+              1,
+          )
+          old = 'from r147_ingress import GitReplayTransport, derive_envelope, validate_transport_request  # noqa: E402\n'
+          new = 'from r147_ingress import FreshAuthorityMaterialCache, GitReplayTransport, derive_envelope, validate_transport_request  # noqa: E402\n'
+          if old not in text:
+              raise SystemExit("R147_B04_TEST_IMPORT_PATTERN_NOT_FOUND")
+          text = text.replace(old, new, 1)
+          old = '''def write_request(root: Path, name: str, attempt: str) -> str:\n    relative = f\"{R147_ROOT}/transport/requests/{name}.json\"\n    target = root / relative\n    target.parent.mkdir(parents=True, exist_ok=True)\n    target.write_text(json.dumps({\"attempt_id\": attempt}) + \"\\n\", encoding=\"utf-8\")\n    return relative\n'''
+          new = '''def write_request(root: Path, name: str, attempt: str, payload=None) -> str:\n    relative = f\"{R147_ROOT}/transport/requests/{name}.json\"\n    target = root / relative\n    target.parent.mkdir(parents=True, exist_ok=True)\n    value = {\"attempt_id\": attempt} if payload is None else dict(payload)\n    target.write_text(json.dumps(value, sort_keys=True) + \"\\n\", encoding=\"utf-8\")\n    return relative\n'''
+          if old not in text:
+              raise SystemExit("R147_B04_TEST_WRITE_REQUEST_PATTERN_NOT_FOUND")
+          text = text.replace(old, new, 1)
+
+          marker = '''\n\nif __name__ == \"__main__\":\n    unittest.main()\n'''
+          if marker not in text:
+              raise SystemExit("R147_B04_TEST_FOOTER_NOT_FOUND")
+          additions = r'''\n    def test_compatible_batch_reuses_one_fresh_authority_material_under_one_call_budget(self):\n        with tempfile.TemporaryDirectory() as directory:\n            base_dir = Path(directory)\n            remote = base_dir / "remote.git"\n            seed = base_dir / "seed"\n            worker = base_dir / "worker"\n            verifier = base_dir / "verifier"\n            runtime = base_dir / "runtime"\n            runtime.mkdir()\n\n            subprocess.run(["git", "init", "--bare", "-q", str(remote)], check=True)\n            git(base_dir, "init", "-q", str(seed))\n            configure(seed)\n            (seed / "README.md").write_text("base\\n", encoding="utf-8")\n            git(seed, "add", "README.md")\n            git(seed, "commit", "-q", "-m", "base")\n            git(seed, "branch", "-M", "main")\n            before = git(seed, "rev-parse", "HEAD")\n            git(seed, "remote", "add", "origin", str(remote))\n            git(seed, "push", "-q", "origin", "main")\n            git(seed, "checkout", "-q", "-b", "signal-tower/ingress")\n\n            attempts = []\n            for index in range(4):\n                attempt = f"budget-{index}"\n                attempts.append(attempt)\n                payload = request(\n                    attempt_id=attempt,\n                    capture_identity=f"budget-capture-{index}",\n                )\n                path = write_request(seed, attempt, attempt, payload)\n                git(seed, "add", path)\n                git(seed, "commit", "-q", "-m", f"request {index}")\n            after = git(seed, "rev-parse", "HEAD")\n            git(seed, "push", "-q", "origin", "signal-tower/ingress")\n\n            subprocess.run(["git", "clone", "-q", str(remote), str(worker)], check=True)\n            git(worker, "checkout", "-q", "signal-tower/ingress")\n\n            with AuthorityHarness() as authority:\n                calls = []\n\n                def one_call_budget(_request):\n                    calls.append(True)\n                    if len(calls) > 1:\n                        raise AssertionError("simulated live-observation budget exhausted")\n                    return authority.material\n\n                result = persist_push_batch(\n                    runtime_root=runtime,\n                    transport_root=worker,\n                    before=before,\n                    after=after,\n                    created=False,\n                    observation_pr=443,\n                    authority_materializer=FreshAuthorityMaterialCache(one_call_budget),\n                )\n\n            self.assertEqual("PERSISTED", result["status"])\n            self.assertEqual(1, len(calls), "compatible batch must spend one authority observation budget")\n            self.assertEqual(attempts, result["receipt_attempts"])\n\n            subprocess.run(["git", "clone", "-q", str(remote), str(verifier)], check=True)\n            git(verifier, "checkout", "-q", "signal-tower/ingress")\n            for attempt in attempts:\n                receipt_path = verifier / R147_ROOT / "transport" / "receipts" / f"{attempt}.json"\n                payload = json.loads(receipt_path.read_text(encoding="utf-8"))\n                self.assertTrue(payload["durable_success"], payload)\n                self.assertEqual("ADMITTED", payload["status"], payload)\n\n    def test_push_range_skips_structural_merge_node_and_keeps_parent_requests(self):\n        with tempfile.TemporaryDirectory() as directory:\n            root = Path(directory)\n            git(root, "init", "-q")\n            configure(root)\n            (root / "README.md").write_text("base\\n", encoding="utf-8")\n            git(root, "add", "README.md")\n            git(root, "commit", "-q", "-m", "base")\n            before = git(root, "rev-parse", "HEAD")\n            main_branch = git(root, "branch", "--show-current")\n\n            git(root, "checkout", "-q", "-b", "request-side")\n            side_path = write_request(root, "merge-side", "merge-side")\n            git(root, "add", side_path)\n            git(root, "commit", "-q", "-m", "side request")\n\n            git(root, "checkout", "-q", main_branch)\n            main_path = write_request(root, "merge-main", "merge-main")\n            git(root, "add", main_path)\n            git(root, "commit", "-q", "-m", "main request")\n            git(root, "merge", "-q", "--no-ff", "request-side", "-m", "merge request histories")\n            after = git(root, "rev-parse", "HEAD")\n\n            changes = enumerate_push_request_changes(\n                root,\n                before=before,\n                after=after,\n                created=False,\n            )\n            paths = [item.path for item in changes]\n            self.assertCountEqual([main_path, side_path], paths)\n            self.assertEqual(2, len(paths), "structural merge commit must not create a phantom request")\n'''
+          additions = additions.replace('\\n', '\n')
+          text = text.replace(marker, additions + marker, 1)
+          tests.write_text(text, encoding="utf-8")
+          PY
+          git diff --check
+      - name: Commit remediation and remove temporary workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/r147-b04-remediation-temp.yml
+          git add coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/R147-AUTOMATIC-INGRESS/src/r147_ingress.py
+          git add coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/R147-AUTOMATIC-INGRESS/src/r147_transport_workflow.py
+          git add coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/R147-AUTOMATIC-INGRESS/tests/test_r147_review_remediation.py
+          git commit -m "R147: reuse fresh authority proof across batches"
+          git push origin HEAD:gpt/r147-automatic-signal-tower-ingress
