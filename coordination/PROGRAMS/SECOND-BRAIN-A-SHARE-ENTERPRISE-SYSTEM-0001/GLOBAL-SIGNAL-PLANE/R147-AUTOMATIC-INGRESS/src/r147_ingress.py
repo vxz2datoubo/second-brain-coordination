@@ -27,6 +27,7 @@ from global_signal_gateway.gateway import (
     public_safe,
     semantic_capture,
     temporary_exact_clone,
+    validate_live_observation_proof,
 )
 from global_signal_gateway.live_observation_provider import (
     ACTIVE_TASK_PATH,
@@ -258,6 +259,42 @@ class TrustedAuthorityMaterial:
     live_observation_proof: Any
     expected_canonical_main: str
     coordinator_repository: str
+
+
+class FreshAuthorityMaterialCache:
+    """Batch-local cache over canonical sealed R137/R145 material.
+
+    This is not a provider or resolver. The underlying canonical materializer is
+    still the only issuer. Reuse is domain-scoped and every cache hit is checked
+    again by the canonical live-proof validator; stale material is discarded and
+    refreshed through the original materializer.
+    """
+
+    def __init__(
+        self,
+        materializer: Callable[[Mapping[str, Any]], TrustedAuthorityMaterial],
+    ) -> None:
+        self._materializer = materializer
+        self._by_domain: dict[str, TrustedAuthorityMaterial] = {}
+
+    def __call__(self, request: Mapping[str, Any]) -> TrustedAuthorityMaterial:
+        domain_value = request.get("proposed_primary_domain")
+        if not isinstance(domain_value, str) or not domain_value.strip():
+            raise GatewayError("R147_AUTHORITY_CACHE_DOMAIN_INVALID", "/proposed_primary_domain")
+        domain_id = domain_value.strip()
+        cached = self._by_domain.get(domain_id)
+        if cached is not None and validate_live_observation_proof(cached.live_observation_proof):
+            return cached
+
+        material = self._materializer(request)
+        if (
+            not isinstance(material, TrustedAuthorityMaterial)
+            or not validate_live_observation_proof(material.live_observation_proof)
+        ):
+            self._by_domain.pop(domain_id, None)
+            raise GatewayError("R147_LIVE_AUTHORITY_MATERIAL_NOT_FRESH", "/authority")
+        self._by_domain[domain_id] = material
+        return material
 
 
 class GitReplayTransport:
@@ -653,6 +690,7 @@ def process_github_request(
     transport_root: Path,
     request_path: Path,
     observation_pr: int,
+    authority_materializer: Callable[[Mapping[str, Any]], TrustedAuthorityMaterial] | None = None,
 ) -> dict[str, Any]:
     state_root = transport_root / (
         "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/"
@@ -670,12 +708,14 @@ def process_github_request(
     if not isinstance(attempt, str) or request_path.stem != attempt:
         raise GatewayError("R147_REQUEST_FILENAME_ID_MISMATCH", "/attempt_id")
 
-    ingress = AutomaticSignalTowerIngress(
-        transport=GitReplayTransport(state_root / "admitted_events.jsonl"),
-        authority_materializer=GithubR145AuthorityMaterializer(
+    if authority_materializer is None:
+        authority_materializer = GithubR145AuthorityMaterializer(
             runtime_root=runtime_root,
             observation_pr=observation_pr,
-        ),
+        )
+    ingress = AutomaticSignalTowerIngress(
+        transport=GitReplayTransport(state_root / "admitted_events.jsonl"),
+        authority_materializer=authority_materializer,
         caller_authorization_ref="authorization://github-actions/r147-authorized-chatgpt-ingress",
     )
     receipt = ingress.process(raw)

@@ -1,4 +1,4 @@
-"""Adversarial regressions for the three R147 P1 review blockers."""
+"""Adversarial regressions for R147 operational review blockers."""
 from __future__ import annotations
 
 import json
@@ -21,7 +21,7 @@ sys.path[:0] = [
     str(R147 / "tests"),
 ]
 
-from r147_ingress import GitReplayTransport, derive_envelope, validate_transport_request  # noqa: E402
+from r147_ingress import FreshAuthorityMaterialCache, GitReplayTransport, derive_envelope, validate_transport_request  # noqa: E402
 from r147_transport_workflow import (  # noqa: E402
     R147_ROOT,
     TransportWorkflowError,
@@ -48,11 +48,12 @@ def configure(root: Path) -> None:
     git(root, "config", "user.name", "R147 Remediation")
 
 
-def write_request(root: Path, name: str, attempt: str) -> str:
+def write_request(root: Path, name: str, attempt: str, payload=None) -> str:
     relative = f"{R147_ROOT}/transport/requests/{name}.json"
     target = root / relative
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(json.dumps({"attempt_id": attempt}) + "\n", encoding="utf-8")
+    value = {"attempt_id": attempt} if payload is None else dict(payload)
+    target.write_text(json.dumps(value, sort_keys=True) + "\n", encoding="utf-8")
     return relative
 
 
@@ -263,6 +264,111 @@ class R147ReviewRemediationTests(unittest.TestCase):
             self.assertTrue(external_request.is_file(), "remote caller request must survive reconciliation")
             self.assertTrue(receipt.is_file(), "original job receipt must survive non-fast-forward retry")
             self.assertIn('"attempt_id": "race-one"', journal.read_text(encoding="utf-8"))
+
+    def test_compatible_batch_reuses_one_fresh_authority_material_under_one_call_budget(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base_dir = Path(directory)
+            remote = base_dir / "remote.git"
+            seed = base_dir / "seed"
+            worker = base_dir / "worker"
+            verifier = base_dir / "verifier"
+            runtime = base_dir / "runtime"
+            runtime.mkdir()
+
+            subprocess.run(["git", "init", "--bare", "-q", str(remote)], check=True)
+            git(base_dir, "init", "-q", str(seed))
+            configure(seed)
+            (seed / "README.md").write_text("base\
+", encoding="utf-8")
+            git(seed, "add", "README.md")
+            git(seed, "commit", "-q", "-m", "base")
+            git(seed, "branch", "-M", "main")
+            before = git(seed, "rev-parse", "HEAD")
+            git(seed, "remote", "add", "origin", str(remote))
+            git(seed, "push", "-q", "origin", "main")
+            git(seed, "checkout", "-q", "-b", "signal-tower/ingress")
+
+            attempts = []
+            for index in range(4):
+                attempt = f"budget-{index}"
+                attempts.append(attempt)
+                payload = request(
+                    attempt_id=attempt,
+                    capture_identity=f"budget-capture-{index}",
+                )
+                path = write_request(seed, attempt, attempt, payload)
+                git(seed, "add", path)
+                git(seed, "commit", "-q", "-m", f"request {index}")
+            after = git(seed, "rev-parse", "HEAD")
+            git(seed, "push", "-q", "origin", "signal-tower/ingress")
+
+            subprocess.run(["git", "clone", "-q", str(remote), str(worker)], check=True)
+            git(worker, "checkout", "-q", "signal-tower/ingress")
+
+            with AuthorityHarness() as authority:
+                calls = []
+
+                def one_call_budget(_request):
+                    calls.append(True)
+                    if len(calls) > 1:
+                        raise AssertionError("simulated live-observation budget exhausted")
+                    return authority.material
+
+                result = persist_push_batch(
+                    runtime_root=runtime,
+                    transport_root=worker,
+                    before=before,
+                    after=after,
+                    created=False,
+                    observation_pr=443,
+                    authority_materializer=FreshAuthorityMaterialCache(one_call_budget),
+                )
+
+            self.assertEqual("PERSISTED", result["status"])
+            self.assertEqual(1, len(calls), "compatible batch must spend one authority observation budget")
+            self.assertEqual(attempts, result["receipt_attempts"])
+
+            subprocess.run(["git", "clone", "-q", str(remote), str(verifier)], check=True)
+            git(verifier, "checkout", "-q", "signal-tower/ingress")
+            for attempt in attempts:
+                receipt_path = verifier / R147_ROOT / "transport" / "receipts" / f"{attempt}.json"
+                payload = json.loads(receipt_path.read_text(encoding="utf-8"))
+                self.assertTrue(payload["durable_success"], payload)
+                self.assertEqual("ADMITTED", payload["status"], payload)
+
+    def test_push_range_skips_structural_merge_node_and_keeps_parent_requests(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            git(root, "init", "-q")
+            configure(root)
+            (root / "README.md").write_text("base\
+", encoding="utf-8")
+            git(root, "add", "README.md")
+            git(root, "commit", "-q", "-m", "base")
+            before = git(root, "rev-parse", "HEAD")
+            main_branch = git(root, "branch", "--show-current")
+
+            git(root, "checkout", "-q", "-b", "request-side")
+            side_path = write_request(root, "merge-side", "merge-side")
+            git(root, "add", side_path)
+            git(root, "commit", "-q", "-m", "side request")
+
+            git(root, "checkout", "-q", main_branch)
+            main_path = write_request(root, "merge-main", "merge-main")
+            git(root, "add", main_path)
+            git(root, "commit", "-q", "-m", "main request")
+            git(root, "merge", "-q", "--no-ff", "request-side", "-m", "merge request histories")
+            after = git(root, "rev-parse", "HEAD")
+
+            changes = enumerate_push_request_changes(
+                root,
+                before=before,
+                after=after,
+                created=False,
+            )
+            paths = [item.path for item in changes]
+            self.assertCountEqual([main_path, side_path], paths)
+            self.assertEqual(2, len(paths), "structural merge commit must not create a phantom request")
 
 
 if __name__ == "__main__":

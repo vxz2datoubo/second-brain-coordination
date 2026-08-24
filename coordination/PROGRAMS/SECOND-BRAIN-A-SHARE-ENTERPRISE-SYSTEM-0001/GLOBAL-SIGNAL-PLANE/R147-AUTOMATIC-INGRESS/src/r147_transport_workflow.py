@@ -131,6 +131,33 @@ def enumerate_push_request_changes(
 
     changes: list[RequestChange] = []
     for commit in commits:
+        parent_row = _git(root, "rev-list", "--parents", "-n", "1", commit).split()
+        is_merge = len(parent_row) > 2
+        if is_merge:
+            # Combined diff reports only merge-result changes that differ from all
+            # parents. A rowless merge is structural only and its non-merge parent
+            # commits are already enumerated by rev-list. Merge-resolution changes
+            # are audited and replayed exactly at the merge commit.
+            merge_paths = [
+                line.strip()
+                for line in _git(
+                    root,
+                    "diff-tree",
+                    "--cc",
+                    "--no-commit-id",
+                    "--name-only",
+                    "--no-renames",
+                    "-r",
+                    commit,
+                ).splitlines()
+                if line.strip()
+            ]
+            for path in merge_paths:
+                if not _REQUEST_RE.fullmatch(path):
+                    raise TransportWorkflowError("R147_TRIGGER_SCOPE_FORBIDDEN", path)
+                changes.append(RequestChange(commit=commit, path=path))
+            continue
+
         rows = _git(
             root,
             "diff-tree",
@@ -248,6 +275,7 @@ def persist_push_batch(
     main_ref: str = "origin/main",
     max_push_attempts: int = 5,
     processor: Callable[..., Mapping[str, Any]] | None = None,
+    authority_materializer: Callable[[Mapping[str, Any]], Any] | None = None,
     before_push_hook: Callable[[int], None] | None = None,
 ) -> dict[str, Any]:
     """Process the exact push range and persist outputs without losing races.
@@ -268,7 +296,27 @@ def persist_push_batch(
         main_ref=main_ref,
     )
     if processor is None:
-        from r147_ingress import process_github_request as processor  # local import: canonical runtime seam
+        from r147_ingress import (
+            FreshAuthorityMaterialCache,
+            GithubR145AuthorityMaterializer,
+            process_github_request,
+        )
+        shared_materializer = authority_materializer
+        if shared_materializer is None:
+            shared_materializer = FreshAuthorityMaterialCache(
+                GithubR145AuthorityMaterializer(
+                    runtime_root=runtime_root,
+                    observation_pr=observation_pr,
+                )
+            )
+
+        def processor(**kwargs: Any) -> Mapping[str, Any]:
+            return process_github_request(
+                **kwargs,
+                authority_materializer=shared_materializer,
+            )
+    elif authority_materializer is not None:
+        raise TransportWorkflowError("R147_AUTHORITY_MATERIALIZER_WITH_CUSTOM_PROCESSOR_FORBIDDEN")
 
     last_push_error = ""
     for push_attempt in range(1, max_push_attempts + 1):
