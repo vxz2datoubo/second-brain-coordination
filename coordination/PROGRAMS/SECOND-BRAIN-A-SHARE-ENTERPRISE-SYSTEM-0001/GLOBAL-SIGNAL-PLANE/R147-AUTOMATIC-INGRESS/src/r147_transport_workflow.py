@@ -301,17 +301,14 @@ def persist_push_batch(
             GithubR145AuthorityMaterializer,
             process_github_request,
         )
-        base_materializer = authority_materializer
-        if base_materializer is None:
-            base_materializer = GithubR145AuthorityMaterializer(
-                runtime_root=runtime_root,
-                observation_pr=observation_pr,
+        shared_materializer = authority_materializer
+        if shared_materializer is None:
+            shared_materializer = FreshAuthorityMaterialCache(
+                GithubR145AuthorityMaterializer(
+                    runtime_root=runtime_root,
+                    observation_pr=observation_pr,
+                )
             )
-        shared_materializer = (
-            base_materializer
-            if isinstance(base_materializer, FreshAuthorityMaterialCache)
-            else FreshAuthorityMaterialCache(base_materializer)
-        )
 
         def processor(**kwargs: Any) -> Mapping[str, Any]:
             return process_github_request(
@@ -331,12 +328,34 @@ def persist_push_batch(
         receipt_attempts: list[str] = []
         for change in manifest:
             request_path = _materialize_request(transport_root, change)
-            receipt = processor(
-                runtime_root=runtime_root,
-                transport_root=transport_root,
-                request_path=request_path,
-                observation_pr=observation_pr,
-            )
+            try:
+                receipt = processor(
+                    runtime_root=runtime_root,
+                    transport_root=transport_root,
+                    request_path=request_path,
+                    observation_pr=observation_pr,
+                )
+            except Exception as exc:
+                from global_signal_gateway.gateway import GatewayError
+                request_failure_codes = {
+                    "R147_REQUEST_FILE_INVALID",
+                    "R147_REQUEST_FILENAME_ID_MISMATCH",
+                    "R147_REQUEST_PATH_OUTSIDE_TRANSPORT_ROOT",
+                    "R147_REQUEST_PATH_INVALID",
+                }
+                if not isinstance(exc, GatewayError) or getattr(exc, "code", None) not in request_failure_codes:
+                    raise
+                from r147_ingress import AutomaticSignalTowerIngress, _write_receipt
+                isolated_attempt = Path(change.path).stem
+                receipt = AutomaticSignalTowerIngress._failure_receipt(
+                    {"attempt_id": isolated_attempt},
+                    code=str(exc.code),
+                    path=str(exc.path),
+                )
+                _write_receipt(
+                    transport_root / STATE_PREFIX / "receipts" / f"{isolated_attempt}.json",
+                    receipt,
+                )
             attempt_id = receipt.get("attempt_id")
             if not isinstance(attempt_id, str) or not attempt_id:
                 raise TransportWorkflowError(
