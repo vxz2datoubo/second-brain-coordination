@@ -369,7 +369,33 @@ class LiveObservationProvider:
             page += 1
         raise GatewayError('GITHUB_PAGINATION_INCOMPLETE')
 
-    def _pr(self, repository: str, number: int) -> tuple[Mapping[str, Any], Mapping[str, Any]]:
+    def _merge_commit_from_main_ancestry(self, repository: str, main_sha: str, pr_head_sha: str) -> tuple[str, tuple[Mapping[str, Any], ...]]:
+        """Find the exact merge commit without trusting a nullable PR field.
+
+        The public PR representation sometimes omits ``merge_commit_sha`` even
+        after reporting ``merged: true``.  We retain the exact-merge invariant
+        by walking only the canonical main first-parent chain until a commit has
+        the reviewed PR head as a parent.  A squash/rebase or an unbounded walk
+        is not guessed; it fails closed.
+        """
+        current, metadata = main_sha, []
+        for _ in range(64):
+            _, value, item = self._get_json(f'/repos/{repository}/git/commits/{current}')
+            metadata.append(item)
+            commit = _mapping(value, 'GITHUB_COMMIT_RESPONSE_INVALID')
+            parents = commit.get('parents')
+            if not isinstance(parents, list) or not parents:
+                raise GatewayError('GITHUB_PR_MERGE_ANCESTRY_UNVERIFIED')
+            parent_shas = [
+                _require_sha(_mapping(parent, 'GITHUB_COMMIT_RESPONSE_INVALID').get('sha'), 'GITHUB_COMMIT_RESPONSE_INVALID')
+                for parent in parents
+            ]
+            if pr_head_sha in parent_shas:
+                return (current, tuple(metadata))
+            current = parent_shas[0]
+        raise GatewayError('GITHUB_PR_MERGE_ANCESTRY_UNVERIFIED')
+
+    def _pr(self, repository: str, number: int, canonical_main_sha: str) -> tuple[Mapping[str, Any], tuple[Mapping[str, Any], ...]]:
         _, value, metadata = self._get_json(f'/repos/{repository}/pulls/{number}')
         pr = _mapping(value, 'GITHUB_PR_RESPONSE_INVALID')
         head = _require_sha(_mapping(pr.get('head'), 'GITHUB_PR_RESPONSE_INVALID').get('sha'), 'GITHUB_PR_RESPONSE_INVALID')
@@ -380,9 +406,10 @@ class LiveObservationProvider:
         merge_sha = pr.get('merge_commit_sha')
         if merge_sha is not None and (not _SAFE_SHA.fullmatch(merge_sha)):
             raise GatewayError('GITHUB_PR_RESPONSE_INVALID')
+        extra_metadata: tuple[Mapping[str, Any], ...] = ()
         if pr['merged'] and merge_sha is None:
-            raise GatewayError('GITHUB_PR_RESPONSE_INVALID')
-        return ({'number': number, 'state': state, 'head_sha': head, 'base_sha': base, 'merged': pr['merged'], 'merge_commit_sha': merge_sha}, metadata)
+            merge_sha, extra_metadata = self._merge_commit_from_main_ancestry(repository, canonical_main_sha, head)
+        return ({'number': number, 'state': state, 'head_sha': head, 'base_sha': base, 'merged': pr['merged'], 'merge_commit_sha': merge_sha}, (metadata,) + extra_metadata)
 
     def _coordinator_yaml_object(self, *, path: str, commit: str, tree_sha: str, tree: Mapping[str, str], records: list[ExactObjectRecord], metadata: list[Mapping[str, Any]]) -> Mapping[str, Any]:
         if path not in tree:
@@ -439,8 +466,8 @@ class LiveObservationProvider:
         route_task_id, route_epoch = _route_binding(route)
         if route_task_id != active.get('task_id') or route_epoch != active.get('route_epoch') or route_task_id != request.expected_task_id or (route_epoch != request.expected_route_epoch):
             raise GatewayError('ACTIVE_ROUTE_BINDING_MISMATCH')
-        pr_first, item = self._pr(request.target_repository, request.pull_request_number)
-        metadata.append(item)
+        pr_first, pr_metadata = self._pr(request.target_repository, request.pull_request_number, initial_main)
+        metadata.extend(pr_metadata)
         reviews, review_metadata = self._reviews(request.target_repository, request.pull_request_number)
         metadata.extend(review_metadata)
         domain_refs: list[str] = []
@@ -490,8 +517,8 @@ class LiveObservationProvider:
                 raise GatewayError('DOMAIN_AUTHORITY_SOURCE_DRIFT_DETECTED')
         final_main, item = self._ref(request.target_repository, request.target_branch)
         metadata.append(item)
-        pr_final, item = self._pr(request.target_repository, request.pull_request_number)
-        metadata.append(item)
+        pr_final, pr_metadata = self._pr(request.target_repository, request.pull_request_number, final_main)
+        metadata.extend(pr_metadata)
         if final_main != initial_main or pr_final != pr_first:
             raise GatewayError('GITHUB_OBSERVATION_DRIFT_DETECTED')
         completed = _utc_now()

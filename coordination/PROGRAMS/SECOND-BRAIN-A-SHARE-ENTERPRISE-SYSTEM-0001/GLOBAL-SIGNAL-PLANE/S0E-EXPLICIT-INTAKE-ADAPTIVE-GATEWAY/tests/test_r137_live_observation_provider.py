@@ -80,7 +80,10 @@ class SyntheticPublicGitHub(LiveObservationProvider):
         if path == f"/repos/{DOMAIN_REPOSITORY}/git/ref/heads/main":
             return {}, {"object": {"sha": self.domain}}, metadata
         if path == f"/repos/{TARGET_REPOSITORY}/git/commits/{self.main}":
-            return {}, {"tree": {"sha": self.tree}}, metadata
+            parent = "0" * 40 if self.fault == "merged-null-no-ancestry" else "c" * 40
+            return {}, {"tree": {"sha": self.tree}, "parents": [{"sha": parent}]}, metadata
+        if path == f"/repos/{TARGET_REPOSITORY}/git/commits/{'0' * 40}":
+            return {}, {"tree": {"sha": self.tree}, "parents": []}, metadata
         if path == f"/repos/{TARGET_REPOSITORY}/git/trees/{self.tree}?recursive=1":
             entries = [{"path": item, "type": "blob", "sha": sha} for item, sha in self.paths.items()]
             if self.fault == "missing-path": entries.pop()
@@ -108,6 +111,8 @@ class SyntheticPublicGitHub(LiveObservationProvider):
             if self.fault == "pr-state-drift" and self.pr_reads > 1: state = "closed"
             if self.fault == "merge-drift" and self.pr_reads > 1: state, merged, merge = "closed", True, "7" * 40
             if self.fault == "merge-sha-drift" and self.pr_reads > 1: merge = "7" * 40
+            if self.fault in {"merged-null-then-valid", "merged-null-always", "merged-null-no-ancestry"}:
+                state, merged, merge = "closed", True, None
             return {}, {"state": state, "head": {"sha": head}, "base": {"sha": base}, "merged": merged, "merge_commit_sha": merge}, metadata
         review_prefix = f"/repos/{TARGET_REPOSITORY}/pulls/360/reviews?per_page=100&page="
         if path.startswith(review_prefix):
@@ -202,6 +207,11 @@ class R137LiveObservationTests(unittest.TestCase):
     def test_r137_r011_pr_base_drift_fails(self) -> None: self.assert_rejected("pr-base-drift")
     def test_r137_r012_merge_state_drift_fails(self) -> None: self.assert_rejected("merge-drift")
     def test_r137_r012b_pr_state_only_drift_fails(self) -> None: self.assert_rejected("pr-state-drift")
+    def test_r137_r012c_null_merged_pr_field_uses_exact_main_ancestry_or_fails_closed(self) -> None:
+        bundle, proof = self.observe("merged-null-then-valid")
+        self.assertTrue(validate_live_observation_proof(proof))
+        self.assertEqual("a" * 40, bundle.pr["merge_commit_sha"])
+        self.assert_rejected("merged-null-no-ancestry")
     def test_r137_r013_malformed_review_fails(self) -> None: self.assert_rejected("review-invalid")
     def test_r137_r014_incomplete_pagination_fails(self) -> None: self.assert_rejected("pagination")
 
