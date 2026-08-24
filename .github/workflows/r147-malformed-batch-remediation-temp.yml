@@ -1,0 +1,141 @@
+name: R147 malformed batch remediation temp
+
+on:
+  push:
+    branches:
+      - "gpt/r147-automatic-signal-tower-ingress"
+    paths:
+      - ".github/workflows/r147-malformed-batch-remediation-temp.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gpt/r147-automatic-signal-tower-ingress
+          fetch-depth: 0
+      - name: Patch malformed request isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          root = Path("coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/R147-AUTOMATIC-INGRESS")
+          ingress = root / "src/r147_ingress.py"
+          tests = root / "tests/test_r147_review_remediation.py"
+
+          text = ingress.read_text(encoding="utf-8")
+          old = '''    relative = resolved_request.relative_to(resolved_transport)\n    if "requests" not in relative.parts or request_path.suffix != ".json":\n        raise GatewayError("R147_REQUEST_PATH_INVALID", "/request")\n    raw = _load_json(request_path)\n    attempt = raw.get("attempt_id")\n    if not isinstance(attempt, str) or request_path.stem != attempt:\n        raise GatewayError("R147_REQUEST_FILENAME_ID_MISMATCH", "/attempt_id")\n\n    if authority_materializer is None:\n'''
+          new = '''    relative = resolved_request.relative_to(resolved_transport)\n    if "requests" not in relative.parts or request_path.suffix != ".json":\n        raise GatewayError("R147_REQUEST_PATH_INVALID", "/request")\n\n    # The transport filename is the durable attempt identity for request-level\n    # failure isolation. Malformed or mismatched request bodies must not abort a\n    # whole push batch, and their untrusted body content is never echoed back.\n    attempt = request_path.stem\n    try:\n        raw = _load_json(request_path)\n        declared_attempt = raw.get("attempt_id")\n        if not isinstance(declared_attempt, str) or declared_attempt != attempt:\n            raise GatewayError("R147_REQUEST_FILENAME_ID_MISMATCH", "/attempt_id")\n    except GatewayError as exc:\n        receipt = AutomaticSignalTowerIngress._failure_receipt(\n            {"attempt_id": attempt},\n            code=str(exc.code),\n            path=str(exc.path),\n        )\n        _write_receipt(state_root / "receipts" / f"{attempt}.json", receipt)\n        return receipt\n\n    if authority_materializer is None:\n'''
+          if old not in text:
+              raise SystemExit("R147_MALFORMED_REQUEST_PATTERN_NOT_FOUND")
+          ingress.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+          text = tests.read_text(encoding="utf-8")
+          marker = '''\n\nif __name__ == "__main__":\n    unittest.main()\n'''
+          if marker not in text:
+              raise SystemExit("R147_TEST_FOOTER_NOT_FOUND")
+          addition = r'''
+    def test_malformed_request_is_isolated_and_does_not_discard_valid_batch_receipts(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base_dir = Path(directory)
+            remote = base_dir / "remote.git"
+            seed = base_dir / "seed"
+            worker = base_dir / "worker"
+            verifier = base_dir / "verifier"
+            runtime = base_dir / "runtime"
+            runtime.mkdir()
+
+            subprocess.run(["git", "init", "--bare", "-q", str(remote)], check=True)
+            git(base_dir, "init", "-q", str(seed))
+            configure(seed)
+            (seed / "README.md").write_text("base\n", encoding="utf-8")
+            git(seed, "add", "README.md")
+            git(seed, "commit", "-q", "-m", "base")
+            git(seed, "branch", "-M", "main")
+            before = git(seed, "rev-parse", "HEAD")
+            git(seed, "remote", "add", "origin", str(remote))
+            git(seed, "push", "-q", "origin", "main")
+            git(seed, "checkout", "-q", "-b", "signal-tower/ingress")
+
+            good_a = request(attempt_id="malformed-good-a", capture_identity="malformed-good-a")
+            path_a = write_request(seed, "malformed-good-a", "malformed-good-a", good_a)
+            git(seed, "add", path_a)
+            git(seed, "commit", "-q", "-m", "valid request before malformed")
+
+            bad_relative = f"{R147_ROOT}/transport/requests/malformed-bad.json"
+            bad_path = seed / bad_relative
+            bad_path.parent.mkdir(parents=True, exist_ok=True)
+            bad_path.write_text('{"attempt_id": "malformed-bad",\n', encoding="utf-8")
+            git(seed, "add", bad_relative)
+            git(seed, "commit", "-q", "-m", "malformed request")
+
+            good_c = request(attempt_id="malformed-good-c", capture_identity="malformed-good-c")
+            path_c = write_request(seed, "malformed-good-c", "malformed-good-c", good_c)
+            git(seed, "add", path_c)
+            git(seed, "commit", "-q", "-m", "valid request after malformed")
+            after = git(seed, "rev-parse", "HEAD")
+            git(seed, "push", "-q", "origin", "signal-tower/ingress")
+
+            subprocess.run(["git", "clone", "-q", str(remote), str(worker)], check=True)
+            git(worker, "checkout", "-q", "signal-tower/ingress")
+
+            with AuthorityHarness() as authority:
+                result = persist_push_batch(
+                    runtime_root=runtime,
+                    transport_root=worker,
+                    before=before,
+                    after=after,
+                    created=False,
+                    observation_pr=443,
+                    authority_materializer=lambda _request: authority.material,
+                )
+
+            self.assertEqual("PERSISTED", result["status"])
+            self.assertEqual(
+                ["malformed-good-a", "malformed-bad", "malformed-good-c"],
+                result["receipt_attempts"],
+            )
+
+            subprocess.run(["git", "clone", "-q", str(remote), str(verifier)], check=True)
+            git(verifier, "checkout", "-q", "signal-tower/ingress")
+            receipt_root = verifier / R147_ROOT / "transport" / "receipts"
+            first = json.loads((receipt_root / "malformed-good-a.json").read_text(encoding="utf-8"))
+            bad = json.loads((receipt_root / "malformed-bad.json").read_text(encoding="utf-8"))
+            last = json.loads((receipt_root / "malformed-good-c.json").read_text(encoding="utf-8"))
+            self.assertEqual("ADMITTED", first["status"])
+            self.assertTrue(first["durable_success"])
+            self.assertEqual("NEEDS_REVALIDATION", bad["status"])
+            self.assertFalse(bad["durable_success"])
+            self.assertEqual("R147_REQUEST_FILE_INVALID", bad["code"])
+            self.assertEqual("malformed-bad", bad["attempt_id"])
+            self.assertEqual("ADMITTED", last["status"])
+            self.assertTrue(last["durable_success"])
+
+            journal = verifier / R147_ROOT / "transport" / "admitted_events.jsonl"
+            rows = [line for line in journal.read_text(encoding="utf-8").splitlines() if line.strip()]
+            self.assertEqual(2, len(rows), "malformed request must not enter S0C replay transport")
+'''
+          tests.write_text(text.replace(marker, "\n" + addition + marker, 1), encoding="utf-8")
+          PY
+
+          git diff --check
+          python -m pip install --disable-pip-version-check PyYAML==6.0.2
+          R147_ROOT="coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/R147-AUTOMATIC-INGRESS"
+          S0E_ROOT="coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY"
+          S0C_ROOT="coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC"
+          export PYTHONPATH="${R147_ROOT}/src:${S0E_ROOT}/src:${S0C_ROOT}/src:${S0E_ROOT}/tests"
+          python -m unittest discover -s "${R147_ROOT}/tests" -p "test_*.py" -v
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$R147_ROOT/src/r147_ingress.py" "$R147_ROOT/tests/test_r147_review_remediation.py"
+          git commit -m "R147: isolate malformed requests within batch"
+          git rm .github/workflows/r147-malformed-batch-remediation-temp.yml
+          git commit -m "R147: remove remediation runner"
+          git push origin HEAD:gpt/r147-automatic-signal-tower-ingress
