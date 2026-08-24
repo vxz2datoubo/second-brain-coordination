@@ -1,0 +1,174 @@
+name: R147 automatic Signal Tower ingress
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/global-signal-plane-r147-automatic-ingress.yml"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/R147-AUTOMATIC-INGRESS/**"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/durable_admission_bridge.py"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/domain_authority.py"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC/src/global_signal_plane/ledger.py"
+  push:
+    branches:
+      - "signal-tower/ingress"
+    paths:
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/R147-AUTOMATIC-INGRESS/transport/requests/*.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: r147-${{ github.event_name }}-${{ github.event_name == 'push' && 'durable-ingress' || github.ref }}
+  cancel-in-progress: false
+
+env:
+  R147_ROOT: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/R147-AUTOMATIC-INGRESS
+  S0E_ROOT: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY
+  S0C_ROOT: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC
+
+jobs:
+  exact-head-ci:
+    if: github.event_name == 'pull_request'
+    name: Python ${{ matrix.python-version }} R147 exact-head
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install pinned YAML parser
+        run: python -m pip install --disable-pip-version-check PyYAML==6.0.2
+      - name: Assert exact head
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+      - name: Run R147 tests
+        env:
+          PYTHONPATH: ${{ github.workspace }}/${{ env.R147_ROOT }}/src:${{ github.workspace }}/${{ env.S0E_ROOT }}/src:${{ github.workspace }}/${{ env.S0C_ROOT }}/src:${{ github.workspace }}/${{ env.S0E_ROOT }}/tests
+        run: python -m unittest discover -s "${R147_ROOT}/tests" -p "test_*.py" -v
+      - name: Re-run canonical R146 bridge regression
+        env:
+          PYTHONPATH: ${{ github.workspace }}/${{ env.S0E_ROOT }}/src:${{ github.workspace }}/${{ env.S0C_ROOT }}/src:${{ github.workspace }}/${{ env.S0E_ROOT }}/tests
+        run: python -m unittest discover -s "${S0E_ROOT}/tests" -p "test_r146_durable_admission_bridge.py" -v
+      - name: Check whitespace
+        run: git diff --check "origin/${{ github.base_ref }}...HEAD"
+
+  public-github-positive-path:
+    if: github.event_name == 'pull_request'
+    name: R147 production R137/R145/R146 public path
+    runs-on: ubuntu-latest
+    needs: exact-head-ci
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          path: candidate
+      - name: Checkout canonical main for authority runtime
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          path: canonical-main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install pinned YAML parser
+        run: python -m pip install --disable-pip-version-check PyYAML==6.0.2
+      - name: Execute real public GitHub authority + durable admission path
+        env:
+          PYTHONPATH: ${{ github.workspace }}/candidate/${{ env.R147_ROOT }}/src:${{ github.workspace }}/candidate/${{ env.S0E_ROOT }}/src:${{ github.workspace }}/candidate/${{ env.S0C_ROOT }}/src
+          R147_PR: ${{ github.event.pull_request.number }}
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import os
+          import tempfile
+          from r147_ingress import (
+              REQUEST_SCHEMA,
+              AutomaticSignalTowerIngress,
+              GithubR145AuthorityMaterializer,
+              GitReplayTransport,
+          )
+
+          request = {
+              "schema_version": REQUEST_SCHEMA,
+              "attempt_id": "r147-ci-real-public-path",
+              "capture_command": "把这个录入信号塔",
+              "source_project": "EUSTIA_AI_FILM",
+              "public_safe_summary": "R147 real public GitHub production-path verification.",
+              "desired_effect": "Verify the real R137/R145/R146/S0C composition used by R147.",
+              "problem_to_solve": "Synthetic proof alone is insufficient for the production ingress path.",
+              "success_condition": "Canonical R146 returns a verified S0C durable admission.",
+              "proposed_primary_domain": "AI_FILM_SYSTEM",
+          }
+          with tempfile.TemporaryDirectory() as temp:
+              ingress = AutomaticSignalTowerIngress(
+                  transport=GitReplayTransport(Path(temp) / "admitted_events.jsonl"),
+                  authority_materializer=GithubR145AuthorityMaterializer(
+                      runtime_root=Path("canonical-main"),
+                      observation_pr=int(os.environ["R147_PR"]),
+                  ),
+                  caller_authorization_ref="authorization://github-actions/r147-ci",
+              )
+              receipt = ingress.process(request)
+              assert receipt["status"] == "ADMITTED", receipt
+              assert receipt["durable_success"] is True, receipt
+              assert receipt["readback_verification_status"] == "VERIFIED_SAME_LEDGER", receipt
+              assert receipt["fresh_replay_verification_status"] == "VERIFIED_FRESH_S0C_REPLAY", receipt
+              assert receipt["task_created"] is False
+              assert receipt["route_created"] is False
+              assert receipt["work_claim_created"] is False
+              assert receipt["write_permission_created"] is False
+          PY
+
+  durable-ingress:
+    if: github.event_name == 'push'
+    name: Git-backed durable ChatGPT ingress
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout durable transport branch
+        uses: actions/checkout@v4
+        with:
+          ref: signal-tower/ingress
+          fetch-depth: 0
+          path: transport
+      - name: Checkout current canonical main runtime
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          path: runtime
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install pinned YAML parser
+        run: python -m pip install --disable-pip-version-check PyYAML==6.0.2
+      - name: Process complete push range with durable remote reconciliation
+        shell: bash
+        env:
+          PYTHONPATH: ${{ github.workspace }}/runtime/${{ env.R147_ROOT }}/src:${{ github.workspace }}/runtime/${{ env.S0E_ROOT }}/src:${{ github.workspace }}/runtime/${{ env.S0C_ROOT }}/src
+          R147_PUSH_BEFORE: ${{ github.event.before }}
+          R147_PUSH_AFTER: ${{ github.event.after }}
+          R147_PUSH_CREATED: ${{ github.event.created }}
+        run: |
+          set -euo pipefail
+          python "runtime/${R147_ROOT}/src/r147_transport_workflow.py" persist-batch \
+            --runtime-root runtime \
+            --transport-root transport \
+            --before "${R147_PUSH_BEFORE}" \
+            --after "${R147_PUSH_AFTER}" \
+            --created "${R147_PUSH_CREATED}" \
+            --observation-pr 443 \
+            --remote-branch signal-tower/ingress
