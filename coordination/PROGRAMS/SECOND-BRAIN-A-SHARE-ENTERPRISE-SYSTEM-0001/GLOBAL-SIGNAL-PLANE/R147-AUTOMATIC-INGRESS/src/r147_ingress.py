@@ -202,7 +202,7 @@ def derive_envelope(
     """Derive the full R136 envelope without exposing boilerplate to callers."""
     explicit_identity = request.get("capture_identity")
     identity_basis: Any = (
-        {"capture_identity": explicit_identity, "source_project": request["source_project"]}
+        {"capture_identity": explicit_identity}
         if explicit_identity
         else _semantic_identity_basis(request)
     )
@@ -216,7 +216,6 @@ def derive_envelope(
             raise GatewayError("R147_EXISTING_IDENTITY_MISMATCH", "/existing_event")
         first_seen = str(existing_event.get("occurred_at") or first_seen)
         source_ref = str(existing_event.get("source_ref") or source_ref)
-        source_project = str(existing_event.get("source_project") or source_project)
         prior_intent = existing_event.get("public_safe_metadata", {}).get("intent_envelope", {})
         if isinstance(prior_intent, Mapping):
             source_window = str(prior_intent.get("source_window_ref") or source_window)
