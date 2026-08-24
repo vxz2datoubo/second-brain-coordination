@@ -1,9 +1,12 @@
-schema_version: "1.0"
+schema_version: "1.1"
 skill_id: "GPT-SECOND-BRAIN-KNOWLEDGE-DIGESTION-ASSOCIATIVE-RECALL-SKILL-0001"
 name: "GPT 第二大脑知识消化、关联、召回与学以致用"
 status: "CANDIDATE_SKILL_PROPOSED"
-maturity: "DESIGN_COMPLETE_IMPLEMENTATION_DEPENDENT_ON_MEMORY_PALACE_R108_AND_LIVE_BRIDGE"
+maturity: "R109_FOUNDATION_ACCEPTED_PHASE_C_KNOWLEDGE_OBJECT_AND_RECONCILIATION_NEXT"
 created_at: "2026-08-13"
+last_updated_at: "2026-08-24"
+last_updated_by: "GPT"
+last_updated_reason: "R109 foundation accepted via PR #280 (merged 2026-08-14); PHASE_B closed; generic methodology integration blueprint proposed via PR #448"
 owner:
   direction_and_approval: "USER"
   architecture_reasoning_and_runtime_orchestration: "GPT"
@@ -30,8 +33,14 @@ canonical_dependencies:
   conversational_memory_program: "CLTM-0021"
   current_memory_palace_dependency:
     implementation_pr: 280
-    hardening_route_epoch: 108
-    required_before_live_reuse:
+    hardening_route_epoch: 109
+    status: "ACCEPTED_AND_MERGED_2026-08-14"
+    acceptance_evidence:
+      - "focused/adversarial Memory Palace: 27/27 PASS"
+      - "full Phase 3 synthetic regression: 246/246 PASS"
+      - "public safety: PASS, 72 files, 0 issues"
+      - "GitHub Actions exact-head run: Python 3.11 and 3.13 both PASS"
+    completed_required_behaviors:
       - "bitemporal claim-validity versus event-time separation"
       - "temporal retrieval confidence gate"
       - "general multi-atom capture"
@@ -39,6 +48,14 @@ canonical_dependencies:
       - "typed conflict discipline"
       - "content-bound provenance"
       - "domain-aware freshness policy"
+      - "pairwise schedule-conflict/non-overlap hardening"
+    successor_activation_pr: 286
+    successor_activation_status: "MERGED_2026-08-14"
+  generic_methodology_integration:
+    blueprint_pr: 448
+    blueprint_path: "coordination/BLUEPRINTS/SECOND-BRAIN-GENERIC-METHODOLOGY-ENTERPRISE-INTEGRATION-BLUEPRINT-v1.0.md"
+    status: "PROPOSED_DRAFT_AWAITING_REVIEW"
+    scope: "9 PKM methodology gaps mapped as annotation/derivation/rendering layers atop W3; no new canonical authority"
   system_of_record_rule: >-
     Reuse one canonical W3/CLTM memory and knowledge runtime. Search indexes, embeddings, graph projections, summaries and palace placements are
     rebuildable projections and must not become competing canonical truth stores.
@@ -173,6 +190,11 @@ atomic_knowledge_ontology:
     - invalidation_conditions
     - validation_method
     - cognitive_mapping_relevance
+  optional_generic_methodology_annotation_fields:
+    - organizational_layer.para_category
+    - zettelkasten_role.note_type
+    - distillation_layers.distillation_progress
+    - curated_moc_refs
 
 semantic_separation:
   epistemic_roles:
@@ -467,6 +489,21 @@ research_design_basis:
     contribution: "Interoperable provenance concepts such as Entity, Activity and Agent."
   - id: "W3C-OWL-TIME"
     contribution: "Explicit temporal entities, instants, intervals and ordering relations."
+  pkm_classics_supplement:
+    reference_blueprint: "coordination/BLUEPRINTS/SECOND-BRAIN-GENERIC-METHODOLOGY-ENTERPRISE-INTEGRATION-BLUEPRINT-v1.0.md#G8"
+    entries:
+      - id: "DRUCKER-1968"
+        contribution: "知识工作者概念，知识作为关键资源，PKM是组织KM基础"
+      - id: "BUSH-1945-MEMEX"
+        contribution: "associative indexing，个人信息存储构想，超文本和PKB思想源头"
+      - id: "DAVIES-PKB-2005"
+        contribution: "个人知识库(PKB)定义、分类法、设计选择分析"
+      - id: "PKM4E-2015"
+        contribution: "个人知识管理赋能框架，无知矩阵扩展"
+      - id: "JARRAHI-PKI-SHADOW-IT-2020"
+        contribution: "个人知识基础设施作为影子IT"
+      - id: "SHUJAHAT-PKM-JOB-DESIGN-2021"
+        contribution: "工作设计对PKM的正向/负向影响实证研究"
 
 stage_specific_evaluation:
   ingestion:
@@ -563,14 +600,29 @@ openai_surface_integration:
 
 implementation_phases:
   PHASE_A_SPEC_AND_COMPATIBILITY:
-    status: "THIS_FILE"
+    status: "COMPLETED"
     goal: "Freeze skill contract and reuse boundaries without touching active R108 implementation."
+    completion_evidence: "This file (v1.0) written 2026-08-13; v1.1 update 2026-08-24 reflects R109 acceptance."
   PHASE_B_MEMORY_PALACE_DEPENDENCY_CLOSEOUT:
-    status: "BLOCKED_BY_PR_280_R108"
+    status: "COMPLETED_R109_ACCEPTED_MERGED"
     goal: "Accept corrected multi-atom, provenance, temporal, conflict and freshness behavior."
+    completion_evidence:
+      - "PR #280 merged 2026-08-14, exact head ad5f0e4c925b7750ad28d8b7e13e322dea46f325"
+      - "PR #281 epoch 108 hardening merged"
+      - "PR #285 R109 final conflict hardening merged"
+      - "PR #286 cognitive loop activation merged"
+      - "27/27 focused + 246/246 full regression PASS"
   PHASE_C_KNOWLEDGE_OBJECT_AND_RECONCILIATION_LAYER:
-    status: "NOT_STARTED"
+    status: "READY_TO_START_AWAITING_GOVERNED_TASK_RELEASE"
     goal: "Add knowledge atom ontology, retrieval-before-write reconciliation and graph evolution atop W3."
+    prerequisites_met:
+      - "R109 foundation accepted"
+      - "Generic methodology integration blueprint proposed (PR #448) for P0 annotation fields"
+    first_vertical_slices:
+      - "KnowledgeEpisode/KnowledgeAtom compatible W3 schema with organizational_layer and distillation_layers annotation fields"
+      - "Human-readable Markdown rendering templates (G7 from integration blueprint)"
+      - "Reconciliation action engine (NEW/DUPLICATE/MERGE/REFINE/SUPPORT/WEAKEN/CONTRADICT/SUPERSEDE/REVOKE/REVALIDATE)"
+    blocked_by: "NEW_GOVERNED_TASK_RELEASE_REQUIRED"
   PHASE_D_GPT_LIVE_BRIDGE:
     status: "NOT_STARTED_REQUIRES_OWNER_APPROVED_ROUTE"
     goal: "Expose narrow capture/search/context/conflict/feedback tools to GPT without QQ dependency."
@@ -618,12 +670,14 @@ success_definition: >-
   counterevidence and privacy. Storage alone, retrieval alone or a YAML schema alone do not count as success.
 
 current_reality:
-  skill_contract: "PROPOSED_AND_WRITTEN_TO_GITHUB"
+  skill_contract: "PROPOSED_AND_WRITTEN_TO_GITHUB_V1_1_UPDATED"
   W3_private_candidate_ingestion_canary: "PREVIOUSLY_PROVEN_FOR_DAILY_MEMORY_CANDIDATE_PATH"
-  memory_palace_v1_implementation: "PR_280_OPEN_DRAFT"
-  memory_palace_hardening_route: "EPOCH_108_ACTIVE"
-  general_knowledge_atomization_live_path: "NOT_IMPLEMENTED"
-  retrieval_before_write_knowledge_reconciliation: "NOT_IMPLEMENTED"
+  memory_palace_v1_implementation: "PR_280_MERGED_R109_ACCEPTED"
+  memory_palace_hardening_route: "EPOCH_109_COMPLETED"
+  cognitive_loop_activation: "PR_286_MERGED"
+  generic_methodology_blueprint: "PR_448_DRAFT_PROPOSED"
+  general_knowledge_atomization_live_path: "NOT_IMPLEMENTED_PHASE_C_NEXT"
+  retrieval_before_write_knowledge_reconciliation: "NOT_IMPLEMENTED_PHASE_C_NEXT"
   gpt_live_private_w3_bridge: "NOT_IMPLEMENTED"
   proactive_cross_turn_second_brain_recall: "NOT_IMPLEMENTED_AS_RELIABLE_EXTERNAL_TOOL_CONTRACT"
   formal_skill_promotion: "LOCKED"
@@ -657,13 +711,16 @@ risk_register:
   - risk: "AUTHORITY_CONFUSION"
     consequence: "Candidate/model inference is mistaken for formal truth."
     control: "Explicit authority state, epistemic role and promotion gates."
+  - risk: "USER_BEHAVIOR_FAILURE_MODES"
+    consequence: "Collector/perfectionist/janitor/topic-filer/non-distiller/tool-fragmenter patterns reduce system utility."
+    control: "Behavioral risk observation from usage logs; user-confirmable patterns; mitigation suggestions in generic methodology blueprint G6."
 
 confidence_and_risk_status:
   architecture_confidence: "HIGH"
   rationale: >-
-    The architecture is strongly supported by the existing W3/CLTM design and multiple independent long-term-memory/retrieval research lines. The
-    exact implementation quality and ChatGPT live-bridge behavior remain unproven locally.
-  implementation_confidence: "LOW_TO_MEDIUM_UNTIL_R108_AND_LIVE_BRIDGE_TESTS"
+    The architecture is strongly supported by the existing W3/CLTM design, R109 accepted foundation (27/27 + 246/246 PASS), and multiple independent
+    long-term-memory/retrieval research lines plus PKM classics. The exact PHASE_C implementation quality and ChatGPT live-bridge behavior remain unproven.
+  implementation_confidence: "MEDIUM_R109_FOUNDATION_PROVEN_PHASE_C_UNIMPLEMENTED"
   worst_case_if_rushed: >-
     A superficially impressive memory system that retrieves stale or wrongly linked knowledge and silently biases important decisions while claiming
     durable learning it has not actually achieved.
