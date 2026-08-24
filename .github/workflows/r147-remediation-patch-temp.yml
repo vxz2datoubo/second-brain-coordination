@@ -1,0 +1,61 @@
+name: R147 remediation patch temp
+
+on:
+  push:
+    branches:
+      - "gpt/r147-automatic-signal-tower-ingress"
+    paths:
+      - ".github/workflows/r147-remediation-patch-temp.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch-source:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gpt/r147-automatic-signal-tower-ingress
+          fetch-depth: 0
+      - name: Patch stable capture identity semantics
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/R147-AUTOMATIC-INGRESS/src/r147_ingress.py")
+          text = path.read_text(encoding="utf-8")
+          old = '''    identity_basis: Any = (
+              {"capture_identity": explicit_identity, "source_project": request["source_project"]}
+              if explicit_identity
+              else _semantic_identity_basis(request)
+          )
+          '''
+          new = '''    identity_basis: Any = (
+              {"capture_identity": explicit_identity}
+              if explicit_identity
+              else _semantic_identity_basis(request)
+          )
+          '''
+          if old not in text:
+              raise SystemExit("R147_IDENTITY_PATCH_PATTERN_NOT_FOUND")
+          text = text.replace(old, new, 1)
+          old_source_restore = '        source_project = str(existing_event.get("source_project") or source_project)\n'
+          if old_source_restore not in text:
+              raise SystemExit("R147_SOURCE_PROJECT_PATCH_PATTERN_NOT_FOUND")
+          text = text.replace(old_source_restore, "", 1)
+          path.write_text(text, encoding="utf-8")
+          PY
+          git diff --check
+      - name: Commit remediation source patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/R147-AUTOMATIC-INGRESS/src/r147_ingress.py
+          git commit -m "R147: bind explicit capture identity stably"
+          git push origin HEAD:gpt/r147-automatic-signal-tower-ingress
