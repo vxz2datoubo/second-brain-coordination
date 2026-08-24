@@ -76,6 +76,7 @@ class R147RuntimeMainAlignmentTests(unittest.TestCase):
             git(runtime_seed, "remote", "add", "origin", str(runtime_remote))
             git(runtime_seed, "push", "-q", "origin", "main")
             subprocess.run(["git", "clone", "-q", str(runtime_remote), str(runtime_worker)], check=True)
+            git(runtime_worker, "checkout", "-q", "main")
             self.assertEqual(old_main, git(runtime_worker, "rev-parse", "HEAD"))
 
             # Adversarial timing: canonical main advances only after the runtime
