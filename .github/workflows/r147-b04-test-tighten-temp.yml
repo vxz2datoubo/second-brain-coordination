@@ -1,0 +1,57 @@
+name: R147 B04 test tighten temp
+
+on:
+  push:
+    branches:
+      - "gpt/r147-automatic-signal-tower-ingress"
+    paths:
+      - ".github/workflows/r147-b04-test-tighten-temp.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gpt/r147-automatic-signal-tower-ingress
+          fetch-depth: 0
+      - name: Tighten production cache regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          root = Path("coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/R147-AUTOMATIC-INGRESS")
+          transport = root / "src/r147_transport_workflow.py"
+          tests = root / "tests/test_r147_review_remediation.py"
+
+          text = transport.read_text(encoding="utf-8")
+          old = '''        shared_materializer = authority_materializer\n        if shared_materializer is None:\n            shared_materializer = FreshAuthorityMaterialCache(\n                GithubR145AuthorityMaterializer(\n                    runtime_root=runtime_root,\n                    observation_pr=observation_pr,\n                )\n            )\n\n        def processor(**kwargs: Any) -> Mapping[str, Any]:\n'''
+          new = '''        base_materializer = authority_materializer\n        if base_materializer is None:\n            base_materializer = GithubR145AuthorityMaterializer(\n                runtime_root=runtime_root,\n                observation_pr=observation_pr,\n            )\n        shared_materializer = (\n            base_materializer\n            if isinstance(base_materializer, FreshAuthorityMaterialCache)\n            else FreshAuthorityMaterialCache(base_materializer)\n        )\n\n        def processor(**kwargs: Any) -> Mapping[str, Any]:\n'''
+          if old not in text:
+              raise SystemExit("R147_B04_TIGHTEN_PRODUCTION_PATTERN_NOT_FOUND")
+          transport.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+          text = tests.read_text(encoding="utf-8")
+          old = '                    authority_materializer=FreshAuthorityMaterialCache(one_call_budget),\n'
+          new = '                    authority_materializer=one_call_budget,\n'
+          if old not in text:
+              raise SystemExit("R147_B04_TIGHTEN_TEST_PATTERN_NOT_FOUND")
+          tests.write_text(text.replace(old, new, 1), encoding="utf-8")
+          PY
+          git diff --check
+      - name: Commit and self-delete
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/r147-b04-test-tighten-temp.yml
+          git add coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/R147-AUTOMATIC-INGRESS/src/r147_transport_workflow.py
+          git add coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/R147-AUTOMATIC-INGRESS/tests/test_r147_review_remediation.py
+          git commit -m "R147: prove production batch authority reuse"
+          git push origin HEAD:gpt/r147-automatic-signal-tower-ingress
