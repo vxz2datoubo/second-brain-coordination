@@ -301,14 +301,17 @@ def persist_push_batch(
             GithubR145AuthorityMaterializer,
             process_github_request,
         )
-        shared_materializer = authority_materializer
-        if shared_materializer is None:
-            shared_materializer = FreshAuthorityMaterialCache(
-                GithubR145AuthorityMaterializer(
-                    runtime_root=runtime_root,
-                    observation_pr=observation_pr,
-                )
+        base_materializer = authority_materializer
+        if base_materializer is None:
+            base_materializer = GithubR145AuthorityMaterializer(
+                runtime_root=runtime_root,
+                observation_pr=observation_pr,
             )
+        shared_materializer = (
+            base_materializer
+            if isinstance(base_materializer, FreshAuthorityMaterialCache)
+            else FreshAuthorityMaterialCache(base_materializer)
+        )
 
         def processor(**kwargs: Any) -> Mapping[str, Any]:
             return process_github_request(

@@ -321,7 +321,7 @@ class R147ReviewRemediationTests(unittest.TestCase):
                     after=after,
                     created=False,
                     observation_pr=443,
-                    authority_materializer=FreshAuthorityMaterialCache(one_call_budget),
+                    authority_materializer=one_call_budget,
                 )
 
             self.assertEqual("PERSISTED", result["status"])
