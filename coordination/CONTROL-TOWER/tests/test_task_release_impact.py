@@ -79,6 +79,21 @@ def base_candidate() -> dict:
     }
 
 
+def complete_work_item(**overrides) -> dict:
+    item = {
+        "task_id": "ACTIVE-OTHER",
+        "owns_coherent_change_surface": False,
+        "write_paths": ["unrelated/path.py"],
+        "read_paths": [],
+        "interfaces": [],
+        "read_domains": [],
+        "write_domains": [],
+        "authority_claims": [],
+    }
+    item.update(overrides)
+    return item
+
+
 class TaskReleaseImpactAcceptanceTests(unittest.TestCase):
     def test_01_existing_capability_already_satisfies_no_new_task(self) -> None:
         candidate = base_candidate()
@@ -121,30 +136,26 @@ class TaskReleaseImpactAcceptanceTests(unittest.TestCase):
             {
                 "relation": "MUST_CHANGE_WITH",
                 "source": "SharedSchema",
-                "target": "ConsumerA",
-                "evidence_refs": ["code://a"],
-            },
-            {
-                "relation": "MUST_CHANGE_WITH",
-                "source": "SharedSchema",
-                "target": "ConsumerB",
-                "evidence_refs": ["code://b"],
-            },
-            {
-                "relation": "MUST_CHANGE_WITH",
-                "source": "SharedSchema",
-                "target": "ConsumerC",
-                "evidence_refs": ["code://c"],
-            },
+                "target": name,
+                "evidence_refs": [f"code://{name}"],
+            }
+            for name in ("ConsumerA", "ConsumerB", "ConsumerC")
         ]
         candidate["synchronized_change_set"] += ["ConsumerA", "ConsumerB", "ConsumerC"]
         candidate["reverse_consumers"] = [
-            {"consumer_id": name, "impact": "SYNCHRONIZED_CHANGE_REQUIRED", "evidence_refs": [f"code://{name}"]}
+            {
+                "consumer_id": name,
+                "impact": "SYNCHRONIZED_CHANGE_REQUIRED",
+                "evidence_refs": [f"code://{name}"],
+            }
             for name in ("ConsumerA", "ConsumerB", "ConsumerC")
         ]
         receipt = evaluate_release_candidate(candidate)
         self.assertEqual(receipt["final_disposition"], "RELEASE_AS_EXTENSION")
-        self.assertEqual({row["consumer_id"] for row in receipt["reverse_consumer_analysis"]}, {"ConsumerA", "ConsumerB", "ConsumerC"})
+        self.assertEqual(
+            {row["consumer_id"] for row in receipt["reverse_consumer_analysis"]},
+            {"ConsumerA", "ConsumerB", "ConsumerC"},
+        )
 
     def test_04_optional_provider_routes_to_removable_adapter(self) -> None:
         candidate = base_candidate()
@@ -184,8 +195,7 @@ class TaskReleaseImpactAcceptanceTests(unittest.TestCase):
     def test_06_second_canonical_writer_fails_closed(self) -> None:
         candidate = base_candidate()
         candidate["authority_binding"]["would_create_second_writer"] = True
-        receipt = evaluate_release_candidate(candidate)
-        self.assertEqual(receipt["final_disposition"], "ARCHITECTURE_CONFLICT")
+        self.assertEqual(evaluate_release_candidate(candidate)["final_disposition"], "ARCHITECTURE_CONFLICT")
 
     def test_07_cross_domain_authority_mismatch_fails_closed(self) -> None:
         candidate = base_candidate()
@@ -197,24 +207,16 @@ class TaskReleaseImpactAcceptanceTests(unittest.TestCase):
             "would_create_second_writer": False,
             "would_create_second_truth": False,
         }
-        receipt = evaluate_release_candidate(candidate)
-        self.assertEqual(receipt["final_disposition"], "ARCHITECTURE_CONFLICT")
+        self.assertEqual(evaluate_release_candidate(candidate)["final_disposition"], "ARCHITECTURE_CONFLICT")
 
     def test_08_interface_overlap_detected_even_without_path_overlap(self) -> None:
         candidate = base_candidate()
         candidate["existing_work_items"] = [
-            {
-                "task_id": "ACTIVE-OTHER",
-                "owns_coherent_change_surface": False,
-                "write_paths": ["unrelated/path.py"],
-                "read_paths": [],
-                "interfaces": [
+            complete_work_item(
+                interfaces=[
                     {"name": "ProgramControlTowerReleaseEvidence", "mode": "write", "frozen": False}
-                ],
-                "read_domains": [],
-                "write_domains": [],
-                "authority_claims": [],
-            }
+                ]
+            )
         ]
         receipt = evaluate_release_candidate(candidate)
         self.assertEqual(receipt["collision_analysis"][0]["reason"], "MUTABLE_INTERFACE")
@@ -223,25 +225,19 @@ class TaskReleaseImpactAcceptanceTests(unittest.TestCase):
     def test_09_incomplete_material_consumer_inventory_blocks_release(self) -> None:
         candidate = base_candidate()
         candidate["consumer_inventory_complete"] = False
-        receipt = evaluate_release_candidate(candidate)
-        self.assertEqual(receipt["final_disposition"], "NEEDS_REVALIDATION")
+        self.assertEqual(evaluate_release_candidate(candidate)["final_disposition"], "NEEDS_REVALIDATION")
 
     def test_10_existing_active_task_owning_change_surface_merges(self) -> None:
         candidate = base_candidate()
         candidate["existing_work_items"] = [
-            {
-                "task_id": "ACTIVE-RUNTIME-GATE",
-                "owns_coherent_change_surface": True,
-                "write_paths": ["coordination/CONTROL-TOWER"],
-                "read_paths": [],
-                "interfaces": [],
-                "read_domains": [],
-                "write_domains": ["SECOND_BRAIN_SYSTEM"],
-                "authority_claims": [],
-            }
+            complete_work_item(
+                task_id="ACTIVE-RUNTIME-GATE",
+                owns_coherent_change_surface=True,
+                write_paths=["coordination/CONTROL-TOWER"],
+                write_domains=["SECOND_BRAIN_SYSTEM"],
+            )
         ]
-        receipt = evaluate_release_candidate(candidate)
-        self.assertEqual(receipt["final_disposition"], "MERGE_WITH_EXISTING_TASK")
+        self.assertEqual(evaluate_release_candidate(candidate)["final_disposition"], "MERGE_WITH_EXISTING_TASK")
 
     def test_11_wrapper_facade_solves_requirement_without_core_fork(self) -> None:
         candidate = base_candidate()
@@ -261,8 +257,7 @@ class TaskReleaseImpactAcceptanceTests(unittest.TestCase):
             "removal_preserves_unrelated_core": True,
             "justification": "A facade preserves the stable core contract and removes vendor branching.",
         }
-        receipt = evaluate_release_candidate(candidate)
-        self.assertEqual(receipt["final_disposition"], "RELEASE_AS_ADAPTER_OR_PLUGIN")
+        self.assertEqual(evaluate_release_candidate(candidate)["final_disposition"], "RELEASE_AS_ADAPTER_OR_PLUGIN")
 
     def test_12_must_change_with_cannot_be_artificially_omitted(self) -> None:
         candidate = base_candidate()
@@ -274,11 +269,9 @@ class TaskReleaseImpactAcceptanceTests(unittest.TestCase):
                 "evidence_refs": ["code://consumer-b"],
             }
         ]
-        receipt = evaluate_release_candidate(candidate)
-        self.assertEqual(receipt["final_disposition"], "ARCHITECTURE_CONFLICT")
+        self.assertEqual(evaluate_release_candidate(candidate)["final_disposition"], "ARCHITECTURE_CONFLICT")
         candidate["synchronized_change_set"].append("ConsumerB")
-        receipt = evaluate_release_candidate(candidate)
-        self.assertEqual(receipt["final_disposition"], "RELEASE_AS_EXTENSION")
+        self.assertEqual(evaluate_release_candidate(candidate)["final_disposition"], "RELEASE_AS_EXTENSION")
 
     def test_13_optional_component_removal_must_leave_unrelated_core_valid(self) -> None:
         candidate = base_candidate()
@@ -298,19 +291,16 @@ class TaskReleaseImpactAcceptanceTests(unittest.TestCase):
             "removal_preserves_unrelated_core": False,
             "justification": "Candidate plugin.",
         }
-        receipt = evaluate_release_candidate(candidate)
-        self.assertEqual(receipt["final_disposition"], "ARCHITECTURE_CONFLICT")
+        self.assertEqual(evaluate_release_candidate(candidate)["final_disposition"], "ARCHITECTURE_CONFLICT")
 
     def test_14_receipt_never_grants_execution_authority(self) -> None:
-        receipt = evaluate_release_candidate(base_candidate())
-        boundary = receipt["authority_boundary"]
+        boundary = evaluate_release_candidate(base_candidate())["authority_boundary"]
         self.assertTrue(boundary["evidence_only"])
-        self.assertFalse(boundary["creates_task"])
-        self.assertFalse(boundary["creates_route"])
-        self.assertFalse(boundary["creates_work_claim"])
-        self.assertFalse(boundary["grants_execution_authority"])
-        self.assertFalse(boundary["grants_domain_write"])
-        self.assertFalse(boundary["grants_merge_authority"])
+        for field in (
+            "creates_task", "creates_route", "creates_work_claim",
+            "grants_execution_authority", "grants_domain_write", "grants_merge_authority",
+        ):
+            self.assertFalse(boundary[field])
 
     def test_unknown_component_decisions_abstain(self) -> None:
         candidate = base_candidate()
@@ -323,8 +313,7 @@ class TaskReleaseImpactAcceptanceTests(unittest.TestCase):
                 "evidence_refs": ["inventory://unknown"],
             }
         ]
-        receipt = evaluate_release_candidate(candidate)
-        self.assertEqual(receipt["final_disposition"], "ABSTAIN")
+        self.assertEqual(evaluate_release_candidate(candidate)["final_disposition"], "ABSTAIN")
 
     def test_new_module_requires_positive_insufficiency_proof(self) -> None:
         candidate = base_candidate()
@@ -350,17 +339,16 @@ class TaskReleaseImpactAcceptanceTests(unittest.TestCase):
 
     def test_integer_truthy_values_cannot_impersonate_booleans(self) -> None:
         attacks = [
-            ("authority", lambda c: c["authority_binding"].__setitem__("compatible", 1), "INVALID_AUTHORITY_COMPATIBILITY"),
-            ("removal", lambda c: c["composition"].__setitem__("removal_preserves_unrelated_core", 1), "INVALID_REMOVAL_PROOF"),
-            ("satisfies", lambda c: c["capability_inventory"][0].__setitem__("satisfies_requirement", 1), "INVALID_BOOLEAN"),
+            (lambda c: c["authority_binding"].__setitem__("compatible", 1), "INVALID_AUTHORITY_COMPATIBILITY"),
+            (lambda c: c["composition"].__setitem__("removal_preserves_unrelated_core", 1), "INVALID_REMOVAL_PROOF"),
+            (lambda c: c["capability_inventory"][0].__setitem__("satisfies_requirement", 1), "INVALID_BOOLEAN"),
         ]
-        for name, mutate, code in attacks:
-            with self.subTest(name=name):
-                candidate = base_candidate()
-                mutate(candidate)
-                with self.assertRaises(ImpactGateError) as caught:
-                    evaluate_release_candidate(candidate)
-                self.assertEqual(caught.exception.code, code)
+        for mutate, code in attacks:
+            candidate = base_candidate()
+            mutate(candidate)
+            with self.assertRaises(ImpactGateError) as caught:
+                evaluate_release_candidate(candidate)
+            self.assertEqual(caught.exception.code, code)
 
     def test_receipt_is_deterministic_and_input_bound(self) -> None:
         candidate = base_candidate()
@@ -372,6 +360,54 @@ class TaskReleaseImpactAcceptanceTests(unittest.TestCase):
         third = evaluate_release_candidate(changed)
         self.assertNotEqual(first["input_digest"], third["input_digest"])
         self.assertNotEqual(first["receipt_digest"], third["receipt_digest"])
+
+    def test_review_p1_incomplete_active_work_collision_evidence_never_degrades_to_o0(self) -> None:
+        for missing_field in (
+            "write_paths", "read_paths", "interfaces", "read_domains", "write_domains", "authority_claims"
+        ):
+            with self.subTest(missing_field=missing_field):
+                candidate = base_candidate()
+                item = complete_work_item()
+                del item[missing_field]
+                candidate["existing_work_items"] = [item]
+                with self.assertRaises(ImpactGateError) as caught:
+                    evaluate_release_candidate(candidate)
+                self.assertEqual(caught.exception.code, "EXISTING_WORK_COLLISION_EVIDENCE_INCOMPLETE")
+
+    def test_review_p1_synchronized_consumer_must_be_in_synchronized_change_set(self) -> None:
+        candidate = base_candidate()
+        candidate["reverse_consumers"] = [
+            {"consumer_id": "ConsumerSync", "impact": "SYNCHRONIZED_CHANGE_REQUIRED", "evidence_refs": ["code://sync"]}
+        ]
+        receipt = evaluate_release_candidate(candidate)
+        self.assertEqual(receipt["final_disposition"], "ARCHITECTURE_CONFLICT")
+        self.assertIn("REVERSE_CONSUMER_SYNC_SET_INCOMPLETE:ConsumerSync", receipt["reasons"])
+        candidate["synchronized_change_set"].append("ConsumerSync")
+        self.assertEqual(evaluate_release_candidate(candidate)["final_disposition"], "RELEASE_AS_EXTENSION")
+
+    def test_review_p1_revalidation_only_consumer_must_be_in_revalidation_set(self) -> None:
+        candidate = base_candidate()
+        candidate["reverse_consumers"] = [
+            {"consumer_id": "ConsumerCheck", "impact": "CONSUMER_REVALIDATION_ONLY", "evidence_refs": ["code://check"]}
+        ]
+        receipt = evaluate_release_candidate(candidate)
+        self.assertEqual(receipt["final_disposition"], "ARCHITECTURE_CONFLICT")
+        self.assertIn("REVERSE_CONSUMER_REVALIDATION_SET_INCOMPLETE:ConsumerCheck", receipt["reasons"])
+        candidate["regression_revalidation_set"].append("ConsumerCheck")
+        self.assertEqual(evaluate_release_candidate(candidate)["final_disposition"], "RELEASE_AS_EXTENSION")
+
+    def test_review_p1_migration_consumer_requires_change_and_revalidation_sets(self) -> None:
+        candidate = base_candidate()
+        candidate["reverse_consumers"] = [
+            {"consumer_id": "ConsumerMigration", "impact": "MIGRATION_REQUIRED", "evidence_refs": ["code://migration"]}
+        ]
+        receipt = evaluate_release_candidate(candidate)
+        self.assertEqual(receipt["final_disposition"], "ARCHITECTURE_CONFLICT")
+        self.assertTrue(any(reason.startswith("REVERSE_CONSUMER_MIGRATION_SET_INCOMPLETE:") for reason in receipt["reasons"]))
+        candidate["synchronized_change_set"].append("ConsumerMigration")
+        self.assertEqual(evaluate_release_candidate(candidate)["final_disposition"], "ARCHITECTURE_CONFLICT")
+        candidate["regression_revalidation_set"].append("ConsumerMigration")
+        self.assertEqual(evaluate_release_candidate(candidate)["final_disposition"], "RELEASE_AS_EXTENSION")
 
 
 if __name__ == "__main__":
