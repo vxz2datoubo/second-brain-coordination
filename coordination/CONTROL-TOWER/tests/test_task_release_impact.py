@@ -348,6 +348,20 @@ class TaskReleaseImpactAcceptanceTests(unittest.TestCase):
             evaluate_release_candidate(candidate)
         self.assertEqual(caught.exception.code, "UNRECOGNIZED_FIELD")
 
+    def test_integer_truthy_values_cannot_impersonate_booleans(self) -> None:
+        attacks = [
+            ("authority", lambda c: c["authority_binding"].__setitem__("compatible", 1), "INVALID_AUTHORITY_COMPATIBILITY"),
+            ("removal", lambda c: c["composition"].__setitem__("removal_preserves_unrelated_core", 1), "INVALID_REMOVAL_PROOF"),
+            ("satisfies", lambda c: c["capability_inventory"][0].__setitem__("satisfies_requirement", 1), "INVALID_BOOLEAN"),
+        ]
+        for name, mutate, code in attacks:
+            with self.subTest(name=name):
+                candidate = base_candidate()
+                mutate(candidate)
+                with self.assertRaises(ImpactGateError) as caught:
+                    evaluate_release_candidate(candidate)
+                self.assertEqual(caught.exception.code, code)
+
     def test_receipt_is_deterministic_and_input_bound(self) -> None:
         candidate = base_candidate()
         first = evaluate_release_candidate(candidate)
