@@ -12,6 +12,7 @@ from trusted_task_release import (
     TrustedReleaseError,
     _load_r145_api,
     _materialize_active_work_items,
+    _worktree_clean,
     evaluate_trusted_release_proposal,
 )
 
@@ -278,6 +279,21 @@ class TrustedTaskReleaseTests(unittest.TestCase):
         self.assertTrue(callable(resolver))
         self.assertTrue(callable(guard))
         self.assertEqual(sys.path, before)
+
+    def test_15_worktree_check_ignores_only_untracked_python_bytecode(self) -> None:
+        status = "?? coordination/CONTROL-TOWER/__pycache__/x.cpython-313.pyc\n?? nested/__pycache__/y.pyo"
+        with patch("trusted_task_release._git", return_value=status):
+            self.assertTrue(_worktree_clean(REPO_ROOT))
+
+    def test_16_worktree_check_rejects_real_untracked_or_tracked_changes(self) -> None:
+        for status in (
+            "?? coordination/CONTROL-TOWER/new_source.py",
+            " M coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml",
+            "A  coordination/CONTROL-TOWER/new_policy.yaml",
+        ):
+            with self.subTest(status=status):
+                with patch("trusted_task_release._git", return_value=status):
+                    self.assertFalse(_worktree_clean(REPO_ROOT))
 
 
 if __name__ == "__main__":
