@@ -343,12 +343,25 @@ def _trusted_observations(
     return observations, refs
 
 
+def _materialize_r145_authority_snapshot(root: Path, head: str) -> dict[str, Any]:
+    """Build the legacy shared-domain snapshot only from the exact current checkout."""
+    evidence_ref = _exact_path_ref(root, head, PROGRAM_CONTROL_TOWER)
+    return {
+        "canonical_main": head,
+        "scan_coverage": {
+            "domain_canonical": {
+                "status": "SCANNED",
+                "evidence_refs": [evidence_ref],
+            }
+        },
+    }
+
+
 def evaluate_trusted_release_proposal(
     repo_root: str | Path,
     proposal_value: Mapping[str, Any],
     *,
     expected_coordinator_main: str,
-    authority_snapshot: Mapping[str, Any],
     authority_exact_read_proofs: Sequence[Any] = (),
     authority_live_observation_proof: Any = None,
 ) -> dict[str, Any]:
@@ -364,6 +377,7 @@ def evaluate_trusted_release_proposal(
     if not _worktree_clean(root):
         raise TrustedReleaseError("TRUSTED_REPOSITORY_WORKTREE_DIRTY")
 
+    authority_snapshot = _materialize_r145_authority_snapshot(root, before)
     binding = _bind_r145_domain_authority(
         root,
         domain_id=proposal["signal_primary_domain"],
