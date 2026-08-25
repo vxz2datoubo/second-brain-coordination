@@ -10,89 +10,45 @@ from control_tower import classify_collision
 CANDIDATE_SCHEMA = "TaskReleaseCandidate/v1"
 RECEIPT_SCHEMA = "TaskReleaseImpactReceipt/v1"
 
-REUSE_DECISIONS = frozenset(
-    {
-        "REUSE_AS_IS",
-        "EXTEND",
-        "WRAP_ADAPT",
-        "MODIFY",
-        "REPLACE",
-        "MERGE",
-        "DEPRECATE",
-        "NEW_MODULE_JUSTIFIED",
-        "REFERENCE_ONLY",
-        "UNKNOWN",
-    }
-)
-RELATION_TYPES = frozenset(
-    {
-        "REQUIRES",
-        "REQUIRED_BY",
-        "CONFLICTS_WITH",
-        "OVERLAPS",
-        "REUSES",
-        "EXTENDS",
-        "SUPERSEDES",
-        "MUST_CHANGE_WITH",
-        "PROVIDES_CAPABILITY",
-        "CONSUMES_CAPABILITY",
-        "AUTHORITY_OWNER",
-        "WRITEBACK_OWNER",
-        "CONTRACT_COMPATIBILITY",
-        "MIGRATION_DEPENDENCY",
-    }
-)
-CONSUMER_IMPACTS = frozenset(
-    {
-        "NO_CONSUMER_CHANGE",
-        "CONSUMER_REVALIDATION_ONLY",
-        "SYNCHRONIZED_CHANGE_REQUIRED",
-        "MIGRATION_REQUIRED",
-        "UNKNOWN_CONSUMERS_BLOCK_RELEASE",
-    }
-)
-FINAL_DISPOSITIONS = frozenset(
-    {
-        "RELEASE_BOUNDED_TASK",
-        "RELEASE_AS_EXTENSION",
-        "RELEASE_AS_ADAPTER_OR_PLUGIN",
-        "MERGE_WITH_EXISTING_TASK",
-        "MODIFY_EXISTING_TASK",
-        "DEFER_DEPENDENCY",
-        "NEEDS_REVALIDATION",
-        "ARCHITECTURE_CONFLICT",
-        "NO_TASK_ALREADY_SATISFIED",
-        "ABSTAIN",
-    }
-)
+REUSE_DECISIONS = frozenset({
+    "REUSE_AS_IS", "EXTEND", "WRAP_ADAPT", "MODIFY", "REPLACE", "MERGE",
+    "DEPRECATE", "NEW_MODULE_JUSTIFIED", "REFERENCE_ONLY", "UNKNOWN",
+})
+RELATION_TYPES = frozenset({
+    "REQUIRES", "REQUIRED_BY", "CONFLICTS_WITH", "OVERLAPS", "REUSES",
+    "EXTENDS", "SUPERSEDES", "MUST_CHANGE_WITH", "PROVIDES_CAPABILITY",
+    "CONSUMES_CAPABILITY", "AUTHORITY_OWNER", "WRITEBACK_OWNER",
+    "CONTRACT_COMPATIBILITY", "MIGRATION_DEPENDENCY",
+})
+CONSUMER_IMPACTS = frozenset({
+    "NO_CONSUMER_CHANGE", "CONSUMER_REVALIDATION_ONLY",
+    "SYNCHRONIZED_CHANGE_REQUIRED", "MIGRATION_REQUIRED",
+    "UNKNOWN_CONSUMERS_BLOCK_RELEASE",
+})
+FINAL_DISPOSITIONS = frozenset({
+    "RELEASE_BOUNDED_TASK", "RELEASE_AS_EXTENSION", "RELEASE_AS_ADAPTER_OR_PLUGIN",
+    "MERGE_WITH_EXISTING_TASK", "MODIFY_EXISTING_TASK", "DEFER_DEPENDENCY",
+    "NEEDS_REVALIDATION", "ARCHITECTURE_CONFLICT", "NO_TASK_ALREADY_SATISFIED",
+    "ABSTAIN",
+})
 MATERIAL_LEVELS = frozenset({"TRIVIAL", "NORMAL", "MATERIAL", "HIGH"})
 MATERIAL_SHARED_LEVELS = frozenset({"MATERIAL", "HIGH"})
 MISSING_CAPABILITY_BEHAVIORS = frozenset({"UNSUPPORTED", "ABSTAIN", "NOT_APPLICABLE"})
 
-_REQUIRED_FIELDS = frozenset(
-    {
-        "schema_version",
-        "release_candidate_id",
-        "source_signal_refs",
-        "desired_effect",
-        "observations",
-        "proposed_target_domain",
-        "proposed_write_surface",
-        "materiality",
-        "risk",
-        "out_of_scope",
-        "capability_inventory",
-        "relations",
-        "reverse_consumers",
-        "consumer_inventory_complete",
-        "authority_binding",
-        "composition",
-        "synchronized_change_set",
-        "regression_revalidation_set",
-        "unaffected_set",
-        "unresolved_unknowns",
-        "existing_work_items",
-    }
+_REQUIRED_FIELDS = frozenset({
+    "schema_version", "release_candidate_id", "source_signal_refs", "desired_effect",
+    "observations", "proposed_target_domain", "proposed_write_surface", "materiality",
+    "risk", "out_of_scope", "capability_inventory", "relations", "reverse_consumers",
+    "consumer_inventory_complete", "authority_binding", "composition",
+    "synchronized_change_set", "regression_revalidation_set", "unaffected_set",
+    "unresolved_unknowns", "existing_work_items",
+})
+_COLLISION_FIELDS = (
+    "write_paths", "read_paths", "interfaces", "read_domains", "write_domains",
+    "authority_claims",
+)
+_COLLISION_STRING_FIELDS = (
+    "write_paths", "read_paths", "read_domains", "write_domains", "authority_claims",
 )
 
 
@@ -113,20 +69,8 @@ def _digest(value: Any) -> str:
     return hashlib.sha256(_canonical(value).encode("utf-8")).hexdigest()
 
 
-def _deep_copy(value: Any) -> Any:
+def _copy(value: Any) -> Any:
     return json.loads(_canonical(value))
-
-
-def _nonempty_string(value: Any, path: str) -> str:
-    if not isinstance(value, str) or not value.strip():
-        raise ImpactGateError("INVALID_STRING", path)
-    return value
-
-
-def _list(value: Any, path: str) -> list[Any]:
-    if not isinstance(value, list):
-        raise ImpactGateError("INVALID_LIST", path)
-    return value
 
 
 def _mapping(value: Any, path: str) -> dict[str, Any]:
@@ -135,13 +79,39 @@ def _mapping(value: Any, path: str) -> dict[str, Any]:
     return dict(value)
 
 
-def _string_list(value: Any, path: str, *, nonempty: bool = False) -> list[str]:
+def _list(value: Any, path: str) -> list[Any]:
+    if not isinstance(value, list):
+        raise ImpactGateError("INVALID_LIST", path)
+    return value
+
+
+def _string(value: Any, path: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise ImpactGateError("INVALID_STRING", path)
+    return value
+
+
+def _strings(value: Any, path: str, *, nonempty: bool = False) -> list[str]:
     items = _list(value, path)
     if nonempty and not items:
         raise ImpactGateError("EMPTY_LIST_FORBIDDEN", path)
     for index, item in enumerate(items):
-        _nonempty_string(item, f"{path}/{index}")
+        _string(item, f"{path}/{index}")
     return list(items)
+
+
+def _interfaces(value: Any, path: str) -> None:
+    for index, raw in enumerate(_list(value, path)):
+        item_path = f"{path}/{index}"
+        if isinstance(raw, str):
+            _string(raw, item_path)
+            continue
+        item = _mapping(raw, item_path)
+        _string(item.get("name"), f"{item_path}/name")
+        if "mode" in item and _string(item["mode"], f"{item_path}/mode").lower() not in {"read", "write"}:
+            raise ImpactGateError("INVALID_INTERFACE_MODE", f"{item_path}/mode")
+        if "frozen" in item and not isinstance(item["frozen"], bool):
+            raise ImpactGateError("INVALID_BOOLEAN", f"{item_path}/frozen")
 
 
 def validate_release_candidate(value: Mapping[str, Any]) -> dict[str, Any]:
@@ -155,17 +125,14 @@ def validate_release_candidate(value: Mapping[str, Any]) -> dict[str, Any]:
     if candidate["schema_version"] != CANDIDATE_SCHEMA:
         raise ImpactGateError("INVALID_SCHEMA_VERSION", "/schema_version")
 
-    _nonempty_string(candidate["release_candidate_id"], "/release_candidate_id")
-    _string_list(candidate["source_signal_refs"], "/source_signal_refs", nonempty=True)
-    _nonempty_string(candidate["desired_effect"], "/desired_effect")
-    _nonempty_string(candidate["proposed_target_domain"], "/proposed_target_domain")
-    _string_list(candidate["risk"], "/risk")
-    _string_list(candidate["out_of_scope"], "/out_of_scope")
-    _string_list(candidate["synchronized_change_set"], "/synchronized_change_set")
-    _string_list(candidate["regression_revalidation_set"], "/regression_revalidation_set")
-    _string_list(candidate["unresolved_unknowns"], "/unresolved_unknowns")
+    _string(candidate["release_candidate_id"], "/release_candidate_id")
+    _strings(candidate["source_signal_refs"], "/source_signal_refs", nonempty=True)
+    _string(candidate["desired_effect"], "/desired_effect")
+    _string(candidate["proposed_target_domain"], "/proposed_target_domain")
+    for name in ("risk", "out_of_scope", "synchronized_change_set", "regression_revalidation_set", "unresolved_unknowns"):
+        _strings(candidate[name], f"/{name}")
 
-    materiality = _nonempty_string(candidate["materiality"], "/materiality").upper()
+    materiality = _string(candidate["materiality"], "/materiality").upper()
     if materiality not in MATERIAL_LEVELS:
         raise ImpactGateError("INVALID_MATERIALITY", "/materiality")
     candidate["materiality"] = materiality
@@ -174,84 +141,63 @@ def validate_release_candidate(value: Mapping[str, Any]) -> dict[str, Any]:
     if not observations:
         raise ImpactGateError("CURRENT_OBSERVATION_REQUIRED", "/observations")
     for index, raw in enumerate(observations):
-        observation = _mapping(raw, f"/observations/{index}")
+        item = _mapping(raw, f"/observations/{index}")
         for field in ("scope", "revision", "evidence_ref"):
-            if field not in observation:
+            if field not in item:
                 raise ImpactGateError("OBSERVATION_FIELD_MISSING", f"/observations/{index}/{field}")
-            _nonempty_string(observation[field], f"/observations/{index}/{field}")
-        status = str(observation.get("status", "CURRENT")).upper()
-        if status not in {"CURRENT", "UNKNOWN", "STALE"}:
+            _string(item[field], f"/observations/{index}/{field}")
+        if str(item.get("status", "CURRENT")).upper() not in {"CURRENT", "UNKNOWN", "STALE"}:
             raise ImpactGateError("INVALID_OBSERVATION_STATUS", f"/observations/{index}/status")
 
     surface = _mapping(candidate["proposed_write_surface"], "/proposed_write_surface")
-    allowed_surface = {
-        "write_paths",
-        "read_paths",
-        "interfaces",
-        "read_domains",
-        "write_domains",
-        "authority_claims",
-    }
-    unexpected_surface = sorted(set(surface) - allowed_surface)
-    if unexpected_surface:
-        raise ImpactGateError("UNRECOGNIZED_WRITE_SURFACE_FIELD", f"/proposed_write_surface/{unexpected_surface[0]}")
-    for key in ("write_paths", "read_paths", "read_domains", "write_domains", "authority_claims"):
-        _string_list(surface.get(key, []), f"/proposed_write_surface/{key}")
-    if not isinstance(surface.get("interfaces", []), list):
-        raise ImpactGateError("INVALID_LIST", "/proposed_write_surface/interfaces")
+    extra = sorted(set(surface) - set(_COLLISION_FIELDS))
+    if extra:
+        raise ImpactGateError("UNRECOGNIZED_WRITE_SURFACE_FIELD", f"/proposed_write_surface/{extra[0]}")
+    for field in _COLLISION_STRING_FIELDS:
+        _strings(surface.get(field, []), f"/proposed_write_surface/{field}")
+    _interfaces(surface.get("interfaces", []), "/proposed_write_surface/interfaces")
 
-    capabilities = _list(candidate["capability_inventory"], "/capability_inventory")
-    for index, raw in enumerate(capabilities):
-        capability = _mapping(raw, f"/capability_inventory/{index}")
+    for index, raw in enumerate(_list(candidate["capability_inventory"], "/capability_inventory")):
+        item = _mapping(raw, f"/capability_inventory/{index}")
         for field in ("component_id", "decision", "evidence_refs"):
-            if field not in capability:
+            if field not in item:
                 raise ImpactGateError("CAPABILITY_FIELD_MISSING", f"/capability_inventory/{index}/{field}")
-        _nonempty_string(capability["component_id"], f"/capability_inventory/{index}/component_id")
-        decision = _nonempty_string(capability["decision"], f"/capability_inventory/{index}/decision").upper()
+        _string(item["component_id"], f"/capability_inventory/{index}/component_id")
+        decision = _string(item["decision"], f"/capability_inventory/{index}/decision").upper()
         if decision not in REUSE_DECISIONS:
             raise ImpactGateError("INVALID_REUSE_DECISION", f"/capability_inventory/{index}/decision")
-        _string_list(capability["evidence_refs"], f"/capability_inventory/{index}/evidence_refs", nonempty=True)
-        if "satisfies_requirement" in capability and not isinstance(capability["satisfies_requirement"], bool):
+        _strings(item["evidence_refs"], f"/capability_inventory/{index}/evidence_refs", nonempty=True)
+        if "satisfies_requirement" in item and not isinstance(item["satisfies_requirement"], bool):
             raise ImpactGateError("INVALID_BOOLEAN", f"/capability_inventory/{index}/satisfies_requirement")
-        if "task_ref" in capability:
-            _nonempty_string(capability["task_ref"], f"/capability_inventory/{index}/task_ref")
+        if "task_ref" in item:
+            _string(item["task_ref"], f"/capability_inventory/{index}/task_ref")
         if decision == "NEW_MODULE_JUSTIFIED":
-            justification = capability.get("new_module_justification")
-            if not isinstance(justification, str) or not justification.strip():
-                raise ImpactGateError(
-                    "NEW_MODULE_JUSTIFICATION_REQUIRED",
-                    f"/capability_inventory/{index}/new_module_justification",
-                )
-            if capability.get("existing_capabilities_insufficient") is not True:
-                raise ImpactGateError(
-                    "EXISTING_CAPABILITY_INSUFFICIENCY_NOT_PROVEN",
-                    f"/capability_inventory/{index}/existing_capabilities_insufficient",
-                )
+            if not isinstance(item.get("new_module_justification"), str) or not item["new_module_justification"].strip():
+                raise ImpactGateError("NEW_MODULE_JUSTIFICATION_REQUIRED", f"/capability_inventory/{index}/new_module_justification")
+            if item.get("existing_capabilities_insufficient") is not True:
+                raise ImpactGateError("EXISTING_CAPABILITY_INSUFFICIENCY_NOT_PROVEN", f"/capability_inventory/{index}/existing_capabilities_insufficient")
 
-    relations = _list(candidate["relations"], "/relations")
-    for index, raw in enumerate(relations):
-        relation = _mapping(raw, f"/relations/{index}")
+    for index, raw in enumerate(_list(candidate["relations"], "/relations")):
+        item = _mapping(raw, f"/relations/{index}")
         for field in ("relation", "source", "target", "evidence_refs"):
-            if field not in relation:
+            if field not in item:
                 raise ImpactGateError("RELATION_FIELD_MISSING", f"/relations/{index}/{field}")
-        relation_type = _nonempty_string(relation["relation"], f"/relations/{index}/relation").upper()
-        if relation_type not in RELATION_TYPES:
+        relation = _string(item["relation"], f"/relations/{index}/relation").upper()
+        if relation not in RELATION_TYPES:
             raise ImpactGateError("INVALID_RELATION_TYPE", f"/relations/{index}/relation")
-        _nonempty_string(relation["source"], f"/relations/{index}/source")
-        _nonempty_string(relation["target"], f"/relations/{index}/target")
-        _string_list(relation["evidence_refs"], f"/relations/{index}/evidence_refs", nonempty=True)
+        _string(item["source"], f"/relations/{index}/source")
+        _string(item["target"], f"/relations/{index}/target")
+        _strings(item["evidence_refs"], f"/relations/{index}/evidence_refs", nonempty=True)
 
-    consumers = _list(candidate["reverse_consumers"], "/reverse_consumers")
-    for index, raw in enumerate(consumers):
-        consumer = _mapping(raw, f"/reverse_consumers/{index}")
+    for index, raw in enumerate(_list(candidate["reverse_consumers"], "/reverse_consumers")):
+        item = _mapping(raw, f"/reverse_consumers/{index}")
         for field in ("consumer_id", "impact", "evidence_refs"):
-            if field not in consumer:
+            if field not in item:
                 raise ImpactGateError("CONSUMER_FIELD_MISSING", f"/reverse_consumers/{index}/{field}")
-        _nonempty_string(consumer["consumer_id"], f"/reverse_consumers/{index}/consumer_id")
-        impact = _nonempty_string(consumer["impact"], f"/reverse_consumers/{index}/impact").upper()
-        if impact not in CONSUMER_IMPACTS:
+        _string(item["consumer_id"], f"/reverse_consumers/{index}/consumer_id")
+        if _string(item["impact"], f"/reverse_consumers/{index}/impact").upper() not in CONSUMER_IMPACTS:
             raise ImpactGateError("INVALID_CONSUMER_IMPACT", f"/reverse_consumers/{index}/impact")
-        _string_list(consumer["evidence_refs"], f"/reverse_consumers/{index}/evidence_refs", nonempty=True)
+        _strings(item["evidence_refs"], f"/reverse_consumers/{index}/evidence_refs", nonempty=True)
     if not isinstance(candidate["consumer_inventory_complete"], bool):
         raise ImpactGateError("INVALID_BOOLEAN", "/consumer_inventory_complete")
 
@@ -259,8 +205,8 @@ def validate_release_candidate(value: Mapping[str, Any]) -> dict[str, Any]:
     for field in ("owner_domain", "writeback_owner", "compatible"):
         if field not in authority:
             raise ImpactGateError("AUTHORITY_FIELD_MISSING", f"/authority_binding/{field}")
-    _nonempty_string(authority["owner_domain"], "/authority_binding/owner_domain")
-    _nonempty_string(authority["writeback_owner"], "/authority_binding/writeback_owner")
+    _string(authority["owner_domain"], "/authority_binding/owner_domain")
+    _string(authority["writeback_owner"], "/authority_binding/writeback_owner")
     compatible = authority["compatible"]
     if not (isinstance(compatible, bool) or compatible == "UNKNOWN"):
         raise ImpactGateError("INVALID_AUTHORITY_COMPATIBILITY", "/authority_binding/compatible")
@@ -275,213 +221,171 @@ def validate_release_candidate(value: Mapping[str, Any]) -> dict[str, Any]:
     for field in ("optional", "can_compose", "core_invariant"):
         if not isinstance(composition[field], bool):
             raise ImpactGateError("INVALID_BOOLEAN", f"/composition/{field}")
-    behavior = _nonempty_string(composition["missing_capability_behavior"], "/composition/missing_capability_behavior").upper()
-    if behavior not in MISSING_CAPABILITY_BEHAVIORS:
+    if _string(composition["missing_capability_behavior"], "/composition/missing_capability_behavior").upper() not in MISSING_CAPABILITY_BEHAVIORS:
         raise ImpactGateError("INVALID_MISSING_CAPABILITY_BEHAVIOR", "/composition/missing_capability_behavior")
-    _nonempty_string(composition["justification"], "/composition/justification")
+    _string(composition["justification"], "/composition/justification")
     removal = composition.get("removal_preserves_unrelated_core")
     if not (removal is None or isinstance(removal, bool) or removal == "UNKNOWN"):
         raise ImpactGateError("INVALID_REMOVAL_PROOF", "/composition/removal_preserves_unrelated_core")
 
-    unaffected = _list(candidate["unaffected_set"], "/unaffected_set")
-    for index, raw in enumerate(unaffected):
+    for index, raw in enumerate(_list(candidate["unaffected_set"], "/unaffected_set")):
         item = _mapping(raw, f"/unaffected_set/{index}")
-        _nonempty_string(item.get("component_id"), f"/unaffected_set/{index}/component_id")
-        _string_list(item.get("evidence_refs"), f"/unaffected_set/{index}/evidence_refs", nonempty=True)
+        _string(item.get("component_id"), f"/unaffected_set/{index}/component_id")
+        _strings(item.get("evidence_refs"), f"/unaffected_set/{index}/evidence_refs", nonempty=True)
 
-    existing = _list(candidate["existing_work_items"], "/existing_work_items")
-    for index, raw in enumerate(existing):
-        item = _mapping(raw, f"/existing_work_items/{index}")
-        _nonempty_string(item.get("task_id"), f"/existing_work_items/{index}/task_id")
+    for index, raw in enumerate(_list(candidate["existing_work_items"], "/existing_work_items")):
+        path = f"/existing_work_items/{index}"
+        item = _mapping(raw, path)
+        _string(item.get("task_id"), f"{path}/task_id")
         if not isinstance(item.get("owns_coherent_change_surface"), bool):
-            raise ImpactGateError(
-                "INVALID_BOOLEAN", f"/existing_work_items/{index}/owns_coherent_change_surface"
-            )
+            raise ImpactGateError("INVALID_BOOLEAN", f"{path}/owns_coherent_change_surface")
+        missing_collision = [field for field in _COLLISION_FIELDS if field not in item]
+        if missing_collision:
+            raise ImpactGateError("EXISTING_WORK_COLLISION_EVIDENCE_INCOMPLETE", f"{path}/{missing_collision[0]}")
+        for field in _COLLISION_STRING_FIELDS:
+            _strings(item[field], f"{path}/{field}")
+        _interfaces(item["interfaces"], f"{path}/interfaces")
 
-    return _deep_copy(candidate)
-
-
-def _normalized_decisions(candidate: Mapping[str, Any]) -> list[dict[str, Any]]:
-    return [
-        {
-            "component_id": str(item["component_id"]),
-            "decision": str(item["decision"]).upper(),
-            "satisfies_requirement": bool(item.get("satisfies_requirement", False)),
-            "evidence_refs": list(item["evidence_refs"]),
-            **(
-                {"task_ref": item["task_ref"]}
-                if isinstance(item.get("task_ref"), str) and item.get("task_ref")
-                else {}
-            ),
-        }
-        for item in candidate["capability_inventory"]
-    ]
+    return _copy(candidate)
 
 
-def _normalized_relations(candidate: Mapping[str, Any]) -> list[dict[str, Any]]:
-    return [
-        {
-            "relation": str(item["relation"]).upper(),
-            "source": item["source"],
-            "target": item["target"],
-            "evidence_refs": list(item["evidence_refs"]),
-        }
-        for item in candidate["relations"]
-    ]
+def _decisions(candidate: Mapping[str, Any]) -> list[dict[str, Any]]:
+    return [{
+        "component_id": str(item["component_id"]),
+        "decision": str(item["decision"]).upper(),
+        "satisfies_requirement": bool(item.get("satisfies_requirement", False)),
+        "evidence_refs": list(item["evidence_refs"]),
+        **({"task_ref": item["task_ref"]} if isinstance(item.get("task_ref"), str) and item.get("task_ref") else {}),
+    } for item in candidate["capability_inventory"]]
 
 
-def _normalized_consumers(candidate: Mapping[str, Any]) -> list[dict[str, Any]]:
-    return [
-        {
-            "consumer_id": item["consumer_id"],
-            "impact": str(item["impact"]).upper(),
-            "evidence_refs": list(item["evidence_refs"]),
-        }
-        for item in candidate["reverse_consumers"]
-    ]
+def _relations(candidate: Mapping[str, Any]) -> list[dict[str, Any]]:
+    return [{
+        "relation": str(item["relation"]).upper(), "source": item["source"],
+        "target": item["target"], "evidence_refs": list(item["evidence_refs"]),
+    } for item in candidate["relations"]]
 
 
-def _collision_analysis(candidate: Mapping[str, Any]) -> list[dict[str, Any]]:
+def _consumers(candidate: Mapping[str, Any]) -> list[dict[str, Any]]:
+    return [{
+        "consumer_id": item["consumer_id"], "impact": str(item["impact"]).upper(),
+        "evidence_refs": list(item["evidence_refs"]),
+    } for item in candidate["reverse_consumers"]]
+
+
+def _collisions(candidate: Mapping[str, Any]) -> list[dict[str, Any]]:
     proposal = dict(candidate["proposed_write_surface"])
-    results: list[dict[str, Any]] = []
+    result = []
     for item in candidate["existing_work_items"]:
-        collision = classify_collision(proposal, dict(item))
-        results.append(
-            {
-                "task_id": item["task_id"],
-                "owns_coherent_change_surface": bool(item["owns_coherent_change_surface"]),
-                **collision,
-            }
-        )
-    return results
+        result.append({
+            "task_id": item["task_id"],
+            "owns_coherent_change_surface": bool(item["owns_coherent_change_surface"]),
+            **classify_collision(proposal, dict(item)),
+        })
+    return result
 
 
-def _determine_disposition(
-    candidate: Mapping[str, Any],
-    decisions: list[dict[str, Any]],
-    relations: list[dict[str, Any]],
-    consumers: list[dict[str, Any]],
-    collisions: list[dict[str, Any]],
-) -> tuple[str, list[str]]:
-    reasons: list[str] = []
+def _consumer_set_conflicts(candidate: Mapping[str, Any], consumers: list[dict[str, Any]]) -> list[str]:
+    synchronized = set(candidate["synchronized_change_set"])
+    revalidation = set(candidate["regression_revalidation_set"])
+    reasons = []
+    missing_sync = sorted(item["consumer_id"] for item in consumers if item["impact"] == "SYNCHRONIZED_CHANGE_REQUIRED" and item["consumer_id"] not in synchronized)
+    if missing_sync:
+        reasons.append("REVERSE_CONSUMER_SYNC_SET_INCOMPLETE:" + ",".join(missing_sync))
+    missing_revalidation = sorted(item["consumer_id"] for item in consumers if item["impact"] == "CONSUMER_REVALIDATION_ONLY" and item["consumer_id"] not in revalidation)
+    if missing_revalidation:
+        reasons.append("REVERSE_CONSUMER_REVALIDATION_SET_INCOMPLETE:" + ",".join(missing_revalidation))
+    missing_migration_sync = sorted(item["consumer_id"] for item in consumers if item["impact"] == "MIGRATION_REQUIRED" and item["consumer_id"] not in synchronized)
+    missing_migration_revalidation = sorted(item["consumer_id"] for item in consumers if item["impact"] == "MIGRATION_REQUIRED" and item["consumer_id"] not in revalidation)
+    if missing_migration_sync or missing_migration_revalidation:
+        parts = []
+        if missing_migration_sync:
+            parts.append("sync=" + ",".join(missing_migration_sync))
+        if missing_migration_revalidation:
+            parts.append("revalidate=" + ",".join(missing_migration_revalidation))
+        reasons.append("REVERSE_CONSUMER_MIGRATION_SET_INCOMPLETE:" + ";".join(parts))
+    return reasons
+
+
+def _disposition(candidate, decisions, relations, consumers, collisions):
     authority = candidate["authority_binding"]
     composition = candidate["composition"]
-
     if authority.get("would_create_second_writer") is True or authority.get("would_create_second_truth") is True:
-        reasons.append("SECOND_WRITER_OR_TRUTH_FORBIDDEN")
-        return "ARCHITECTURE_CONFLICT", reasons
+        return "ARCHITECTURE_CONFLICT", ["SECOND_WRITER_OR_TRUTH_FORBIDDEN"]
     if authority["compatible"] is False:
-        reasons.append("OWNER_DOMAIN_OR_WRITEBACK_INCOMPATIBLE")
-        return "ARCHITECTURE_CONFLICT", reasons
+        return "ARCHITECTURE_CONFLICT", ["OWNER_DOMAIN_OR_WRITEBACK_INCOMPATIBLE"]
 
     synchronized = set(candidate["synchronized_change_set"])
-    missing_required = sorted(
-        {
-            relation["target"]
-            for relation in relations
-            if relation["relation"] == "MUST_CHANGE_WITH" and relation["target"] not in synchronized
-        }
-    )
+    missing_required = sorted({item["target"] for item in relations if item["relation"] == "MUST_CHANGE_WITH" and item["target"] not in synchronized})
     if missing_required:
-        reasons.append("MUST_CHANGE_WITH_OUTSIDE_SYNCHRONIZED_SET:" + ",".join(missing_required))
-        return "ARCHITECTURE_CONFLICT", reasons
+        return "ARCHITECTURE_CONFLICT", ["MUST_CHANGE_WITH_OUTSIDE_SYNCHRONIZED_SET:" + ",".join(missing_required)]
+    consumer_conflicts = _consumer_set_conflicts(candidate, consumers)
+    if consumer_conflicts:
+        return "ARCHITECTURE_CONFLICT", consumer_conflicts
 
     if composition["optional"] and composition["can_compose"]:
         if composition.get("removal_preserves_unrelated_core") is not True:
-            reasons.append("OPTIONAL_COMPONENT_REMOVABILITY_NOT_PROVEN")
-            return "ARCHITECTURE_CONFLICT", reasons
+            return "ARCHITECTURE_CONFLICT", ["OPTIONAL_COMPONENT_REMOVABILITY_NOT_PROVEN"]
         if str(composition["missing_capability_behavior"]).upper() not in {"UNSUPPORTED", "ABSTAIN"}:
-            reasons.append("OPTIONAL_COMPONENT_MISSING_BEHAVIOR_MUST_FAIL_CLOSED")
-            return "ARCHITECTURE_CONFLICT", reasons
+            return "ARCHITECTURE_CONFLICT", ["OPTIONAL_COMPONENT_MISSING_BEHAVIOR_MUST_FAIL_CLOSED"]
 
-    coherent_owners = [item for item in collisions if item["owns_coherent_change_surface"]]
-    if coherent_owners:
-        reasons.append("EXISTING_ACTIVE_TASK_OWNS_COHERENT_CHANGE_SURFACE")
-        return "MERGE_WITH_EXISTING_TASK", reasons
-
+    if any(item["owns_coherent_change_surface"] for item in collisions):
+        return "MERGE_WITH_EXISTING_TASK", ["EXISTING_ACTIVE_TASK_OWNS_COHERENT_CHANGE_SURFACE"]
     if any(item["level"] == "O4" for item in collisions):
-        reasons.append("AUTHORITY_COLLISION_WITH_EXISTING_WORK")
-        return "ARCHITECTURE_CONFLICT", reasons
+        return "ARCHITECTURE_CONFLICT", ["AUTHORITY_COLLISION_WITH_EXISTING_WORK"]
     if any(item["level"] == "O3" for item in collisions):
-        reasons.append("MUTABLE_SURFACE_COLLISION_REQUIRES_SEQUENCE_OR_MERGE")
-        return "DEFER_DEPENDENCY", reasons
+        return "DEFER_DEPENDENCY", ["MUTABLE_SURFACE_COLLISION_REQUIRES_SEQUENCE_OR_MERGE"]
 
-    observation_statuses = {str(item.get("status", "CURRENT")).upper() for item in candidate["observations"]}
+    statuses = {str(item.get("status", "CURRENT")).upper() for item in candidate["observations"]}
     unknown_consumer = any(item["impact"] == "UNKNOWN_CONSUMERS_BLOCK_RELEASE" for item in consumers)
-    if (
-        "UNKNOWN" in observation_statuses
-        or "STALE" in observation_statuses
-        or authority["compatible"] == "UNKNOWN"
-        or unknown_consumer
-        or (candidate["materiality"] in MATERIAL_SHARED_LEVELS and not candidate["consumer_inventory_complete"])
-    ):
-        reasons.append("CURRENT_SYSTEM_OR_CONSUMER_EVIDENCE_INCOMPLETE")
-        return "NEEDS_REVALIDATION", reasons
-
+    if "UNKNOWN" in statuses or "STALE" in statuses or authority["compatible"] == "UNKNOWN" or unknown_consumer or (candidate["materiality"] in MATERIAL_SHARED_LEVELS and not candidate["consumer_inventory_complete"]):
+        return "NEEDS_REVALIDATION", ["CURRENT_SYSTEM_OR_CONSUMER_EVIDENCE_INCOMPLETE"]
     if candidate["unresolved_unknowns"] and candidate["materiality"] in MATERIAL_SHARED_LEVELS:
-        reasons.append("MATERIAL_UNKNOWNS_PRESERVED")
-        return "NEEDS_REVALIDATION", reasons
-
+        return "NEEDS_REVALIDATION", ["MATERIAL_UNKNOWNS_PRESERVED"]
     if not decisions or all(item["decision"] in {"UNKNOWN", "REFERENCE_ONLY"} for item in decisions):
-        reasons.append("NO_ACTIONABLE_REUSE_OR_CHANGE_DECISION")
-        return "ABSTAIN", reasons
+        return "ABSTAIN", ["NO_ACTIONABLE_REUSE_OR_CHANGE_DECISION"]
 
     satisfied = [item for item in decisions if item["decision"] == "REUSE_AS_IS" and item["satisfies_requirement"]]
-    if satisfied and not any(
-        item["decision"] in {"EXTEND", "WRAP_ADAPT", "MODIFY", "REPLACE", "MERGE", "NEW_MODULE_JUSTIFIED"}
-        for item in decisions
-    ):
-        reasons.append("EXISTING_CAPABILITY_ALREADY_SATISFIES_DESIRED_EFFECT")
-        return "NO_TASK_ALREADY_SATISFIED", reasons
-
+    if satisfied and not any(item["decision"] in {"EXTEND", "WRAP_ADAPT", "MODIFY", "REPLACE", "MERGE", "NEW_MODULE_JUSTIFIED"} for item in decisions):
+        return "NO_TASK_ALREADY_SATISFIED", ["EXISTING_CAPABILITY_ALREADY_SATISFIES_DESIRED_EFFECT"]
     if any(item["decision"] == "WRAP_ADAPT" for item in decisions) and composition["optional"] and composition["can_compose"]:
-        reasons.append("OPTIONAL_CAPABILITY_COMPOSED_THROUGH_STABLE_CONTRACT")
-        return "RELEASE_AS_ADAPTER_OR_PLUGIN", reasons
-
+        return "RELEASE_AS_ADAPTER_OR_PLUGIN", ["OPTIONAL_CAPABILITY_COMPOSED_THROUGH_STABLE_CONTRACT"]
     if any(item["decision"] == "EXTEND" for item in decisions):
-        reasons.append("EXISTING_CAPABILITY_SHOULD_BE_EXTENDED")
-        return "RELEASE_AS_EXTENSION", reasons
-
+        return "RELEASE_AS_EXTENSION", ["EXISTING_CAPABILITY_SHOULD_BE_EXTENDED"]
     if any(item["decision"] == "MODIFY" and item.get("task_ref") for item in decisions):
-        reasons.append("EXISTING_TASK_SHOULD_BE_MODIFIED")
-        return "MODIFY_EXISTING_TASK", reasons
-
-    reasons.append("BOUNDED_COHERENT_CHANGE_SET_READY_FOR_EXISTING_CONTROL_TOWER")
-    return "RELEASE_BOUNDED_TASK", reasons
+        return "MODIFY_EXISTING_TASK", ["EXISTING_TASK_SHOULD_BE_MODIFIED"]
+    return "RELEASE_BOUNDED_TASK", ["BOUNDED_COHERENT_CHANGE_SET_READY_FOR_EXISTING_CONTROL_TOWER"]
 
 
 def evaluate_release_candidate(value: Mapping[str, Any]) -> dict[str, Any]:
     """Return deterministic evidence for the existing Control Tower release decision.
 
-    This function never creates a Task, Route, Claim, lease, write permission, domain authority,
-    Signal, W3 object, or merge authorization. It only evaluates the candidate's declared,
-    evidence-bound architecture surface and emits a receipt for downstream governance.
+    This remains evidence-only. It never creates a Task, Route, Work Claim, execution
+    authority, domain write permission, Signal, W3 object, or merge authorization.
     """
-
     candidate = validate_release_candidate(value)
-    decisions = _normalized_decisions(candidate)
-    relations = _normalized_relations(candidate)
-    consumers = _normalized_consumers(candidate)
-    collisions = _collision_analysis(candidate)
-    disposition, reasons = _determine_disposition(candidate, decisions, relations, consumers, collisions)
+    decisions = _decisions(candidate)
+    relations = _relations(candidate)
+    consumers = _consumers(candidate)
+    collisions = _collisions(candidate)
+    disposition, reasons = _disposition(candidate, decisions, relations, consumers, collisions)
     if disposition not in FINAL_DISPOSITIONS:
         raise AssertionError(f"unsupported final disposition: {disposition}")
-
     receipt = {
         "schema_version": RECEIPT_SCHEMA,
         "release_candidate_id": candidate["release_candidate_id"],
         "source_signal_refs": list(candidate["source_signal_refs"]),
         "input_digest": _digest(candidate),
-        "exact_observations": _deep_copy(candidate["observations"]),
+        "exact_observations": _copy(candidate["observations"]),
         "capability_reuse_decisions": decisions,
         "relation_impact_edges": relations,
         "reverse_consumer_analysis": consumers,
         "consumer_inventory_complete": bool(candidate["consumer_inventory_complete"]),
-        "authority_writeback_binding": _deep_copy(candidate["authority_binding"]),
-        "composition_removability_decision": _deep_copy(candidate["composition"]),
+        "authority_writeback_binding": _copy(candidate["authority_binding"]),
+        "composition_removability_decision": _copy(candidate["composition"]),
         "synchronized_change_set": list(candidate["synchronized_change_set"]),
         "regression_revalidation_set": list(candidate["regression_revalidation_set"]),
-        "unaffected_set": _deep_copy(candidate["unaffected_set"]),
+        "unaffected_set": _copy(candidate["unaffected_set"]),
         "unresolved_unknowns": list(candidate["unresolved_unknowns"]),
         "collision_analysis": collisions,
         "final_disposition": disposition,
