@@ -5,9 +5,6 @@ on:
     paths:
       - ".github/workflows/global-signal-plane-r148-project-retrospective-sweep.yml"
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/R148-PROJECT-RETROSPECTIVE-SWEEP/**"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/R147-AUTOMATIC-INGRESS/**"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/retrospective_intake.py"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/domain_authority.py"
   workflow_dispatch:
 
 permissions:
@@ -61,19 +58,16 @@ jobs:
           PYTHONPATH: ${{ github.workspace }}/${{ env.R147_ROOT }}/src:${{ github.workspace }}/${{ env.S0E_ROOT }}/src:${{ github.workspace }}/${{ env.S0C_ROOT }}/src:${{ github.workspace }}/${{ env.S0E_ROOT }}/tests
         run: python -m unittest discover -s "${R147_ROOT}/tests" -p "test_*.py" -v
       - name: Scope and whitespace check
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        shell: bash
         run: |
-          git diff --check "origin/${{ github.base_ref }}...HEAD"
-          python - <<'PY'
-          import subprocess
-          allowed = (
-              ".github/workflows/global-signal-plane-r148-project-retrospective-sweep.yml",
-              "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/R148-PROJECT-RETROSPECTIVE-SWEEP/",
-          )
-          files = subprocess.check_output(
-              ["git", "diff", "--name-only", f"origin/${{ github.base_ref }}...HEAD"], text=True
-          ).splitlines()
-          bad = [path for path in files if not any(path == prefix or path.startswith(prefix) for prefix in allowed)]
-          if bad:
-              raise SystemExit(f"R148_SCOPE_DRIFT:{bad}")
-          print("R148_SCOPE_WITHIN_ALLOWLIST", files)
-          PY
+          set -euo pipefail
+          git diff --check "origin/${BASE_REF}...HEAD"
+          while IFS= read -r path; do
+            case "${path}" in
+              .github/workflows/global-signal-plane-r148-project-retrospective-sweep.yml) ;;
+              coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/R148-PROJECT-RETROSPECTIVE-SWEEP/*) ;;
+              *) echo "R148_SCOPE_DRIFT:${path}"; exit 1 ;;
+            esac
+          done < <(git diff --name-only "origin/${BASE_REF}...HEAD")
