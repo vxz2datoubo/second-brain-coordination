@@ -2,10 +2,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 import hashlib
+import importlib
 import json
 from pathlib import Path
 import re
 import subprocess
+import sys
 from typing import Any, Mapping, Sequence
 
 from control_tower import load_yaml, scan_repository
@@ -16,10 +18,6 @@ from lane_claims import (
     validate_claims,
 )
 from task_release_impact import ImpactGateError, evaluate_release_candidate
-from global_signal_gateway.domain_authority import (
-    evaluate_signal_task_route_domain_guard,
-    resolve_candidate_domain_authority,
-)
 
 
 PROPOSAL_SCHEMA = "TaskReleaseProposal/v1"
@@ -27,6 +25,10 @@ TRUSTED_RECEIPT_SCHEMA = "TrustedTaskReleaseImpactReceipt/v1"
 COORDINATOR_REPOSITORY = "vxz2datoubo/second-brain-coordination"
 GPT_WORKERS_REGISTRY = "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
 PROGRAM_CONTROL_TOWER = "coordination/PROGRAM-CONTROL-TOWER.md"
+R145_S0E_SRC = (
+    "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/"
+    "GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src"
+)
 _SHA40 = re.compile(r"^[0-9a-f]{40}$")
 _ACTIVE_WORK_STATES = frozenset({ACTIVE_IMPLEMENTATION, RESERVED_IMPLEMENTATION_NON_EXECUTABLE})
 _COLLISION_FIELDS = (
@@ -127,6 +129,26 @@ def _exact_path_ref(root: Path, head: str, path: str) -> str:
     return f"git://{COORDINATOR_REPOSITORY}@{head}/{path}#blob={blob}"
 
 
+def _load_r145_api(root: Path) -> tuple[Any, Any]:
+    """Load the canonical R145 package without requiring ambient PYTHONPATH state."""
+    src = (root / R145_S0E_SRC).resolve()
+    if not src.is_dir():
+        raise TrustedReleaseError("R145_CANONICAL_API_SOURCE_MISSING")
+    original_path = list(sys.path)
+    try:
+        sys.path.insert(0, str(src))
+        module = importlib.import_module("global_signal_gateway.domain_authority")
+    except (ImportError, OSError) as exc:
+        raise TrustedReleaseError("R145_CANONICAL_API_LOAD_FAILED") from exc
+    finally:
+        sys.path[:] = original_path
+    resolver = getattr(module, "resolve_candidate_domain_authority", None)
+    guard = getattr(module, "evaluate_signal_task_route_domain_guard", None)
+    if not callable(resolver) or not callable(guard):
+        raise TrustedReleaseError("R145_CANONICAL_API_INCOMPLETE")
+    return resolver, guard
+
+
 def _validate_proposal(value: Mapping[str, Any]) -> dict[str, Any]:
     if not isinstance(value, Mapping):
         raise TrustedReleaseError("PROPOSAL_NOT_OBJECT")
@@ -165,6 +187,7 @@ class _VerifiedR145DomainBinding:
 
 
 def _bind_r145_domain_authority(
+    root: Path,
     *,
     domain_id: str,
     snapshot: Mapping[str, Any],
@@ -176,6 +199,7 @@ def _bind_r145_domain_authority(
     """Mint one invocation-local capability only from the existing R145 resolver."""
     if not isinstance(domain_id, str) or not domain_id.strip():
         raise TrustedReleaseError("DOMAIN_ID_INVALID")
+    resolve_candidate_domain_authority, _ = _load_r145_api(root)
     resolved = resolve_candidate_domain_authority(
         {"proposed_primary_domain": domain_id},
         snapshot,
@@ -325,6 +349,7 @@ def evaluate_trusted_release_proposal(
         raise TrustedReleaseError("TRUSTED_REPOSITORY_WORKTREE_DIRTY")
 
     binding = _bind_r145_domain_authority(
+        root,
         domain_id=proposal["signal_primary_domain"],
         snapshot=authority_snapshot,
         expected_canonical_main=expected_coordinator_main,
@@ -346,6 +371,7 @@ def evaluate_trusted_release_proposal(
     active_work = _materialize_active_work_items(claims_doc)
     observations, exact_refs = _trusted_observations(root, before)
 
+    _, evaluate_signal_task_route_domain_guard = _load_r145_api(root)
     domain_guard = evaluate_signal_task_route_domain_guard(
         signal_primary_domain=proposal["signal_primary_domain"],
         task_target_domain=proposal["proposed_target_domain"],
