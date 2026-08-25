@@ -61,7 +61,7 @@ jobs:
         run: test "$(git rev-parse HEAD)" = "${EXACT_HEAD_SHA}"
       - name: Run R148 regressions
         env:
-          PYTHONPATH: ${{ github.workspace }}/${{ env.R148_ROOT }}/src:${{ github.workspace }}/${{ env.R147_ROOT }}/src:${{ github.workspace }}/${{ env.S0E_ROOT }}/src:${{ github.workspace }}/${{ env.S0C_ROOT }}/src
+          PYTHONPATH: ${{ github.workspace }}/${{ env.R148_ROOT }}/src:${{ github.workspace }}/${{ env.R147_ROOT }}/src:${{ github.workspace }}/${{ env.S0E_ROOT }}/src:${{ github.workspace }}/${{ env.S0E_ROOT }}/tests:${{ github.workspace }}/${{ env.S0C_ROOT }}/src
         run: python -m unittest discover -s "${R148_ROOT}/tests" -p "test_*.py" -v
       - name: Re-run R142 retrospective regressions
         env:
