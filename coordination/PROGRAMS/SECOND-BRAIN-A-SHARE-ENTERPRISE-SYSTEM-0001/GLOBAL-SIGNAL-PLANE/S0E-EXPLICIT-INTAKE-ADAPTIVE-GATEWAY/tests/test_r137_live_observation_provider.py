@@ -31,6 +31,7 @@ from global_signal_gateway.live_observation_provider import (  # noqa: E402
     DomainFreshnessTarget,
     LiveObservationProvider,
     LiveObservationRequest,
+    _ANCESTRY_COMPARE_QUERY,
     _BUNDLES,
     _CANONICAL_MERGE_ANCHORS,
     _git_blob_sha,
@@ -94,12 +95,17 @@ class SyntheticPublicGitHub(LiveObservationProvider):
             return {}, {"tree": {"sha": self.tree}, "parents": parents}, metadata
         if path == f"/repos/{TARGET_REPOSITORY}/git/commits/{self.main}":
             return {}, {"tree": {"sha": self.tree}}, metadata
-        compare_path = f"/repos/{TARGET_REPOSITORY}/compare/{ANCHOR_MERGE}...{self.main}"
+        compare_path = f"/repos/{TARGET_REPOSITORY}/compare/{ANCHOR_MERGE}...{self.main}{_ANCESTRY_COMPARE_QUERY}"
         if path == compare_path:
             if self.fault == "merged-null-no-ancestry":
-                return {}, {"status": "diverged", "ahead_by": 1, "behind_by": 1, "base_commit": {"sha": ANCHOR_MERGE}, "merge_base_commit": {"sha": "f" * 40}}, metadata
-            ahead_by = 100 if self.fault == "merged-null-more-than-64-later" else 1
-            return {}, {"status": "ahead", "ahead_by": ahead_by, "behind_by": 0, "base_commit": {"sha": ANCHOR_MERGE}, "merge_base_commit": {"sha": ANCHOR_MERGE}}, metadata
+                return {}, {"status": "diverged", "ahead_by": 1, "behind_by": 1, "base_commit": {"sha": ANCHOR_MERGE}, "merge_base_commit": {"sha": "f" * 40}, "commits": []}, metadata
+            if self.fault == "merged-null-malformed-ancestry":
+                return {}, {"status": "ahead", "ahead_by": 2, "behind_by": 0, "base_commit": {"sha": ANCHOR_MERGE}, "merge_base_commit": {"sha": ANCHOR_MERGE}, "commits": "not-a-list"}, metadata
+            if self.fault == "merged-null-history-payload":
+                return {}, {"status": "ahead", "ahead_by": 2, "behind_by": 0, "base_commit": {"sha": ANCHOR_MERGE}, "merge_base_commit": {"sha": ANCHOR_MERGE}, "commits": [{"sha": "1" * 40}], "files": [{"filename": "must-not-be-returned-on-page-two"}]}, metadata
+            ahead_by = 10**12 if self.fault == "merged-null-more-than-64-later" else 1
+            commits = [{"sha": "1" * 40}] if self.fault == "merged-null-more-than-64-later" else []
+            return {}, {"status": "ahead", "ahead_by": ahead_by, "behind_by": 0, "base_commit": {"sha": ANCHOR_MERGE}, "merge_base_commit": {"sha": ANCHOR_MERGE}, "commits": commits}, metadata
         if path == f"/repos/{TARGET_REPOSITORY}/git/trees/{self.tree}?recursive=1":
             entries = [{"path": item, "type": "blob", "sha": sha} for item, sha in self.paths.items()]
             if self.fault == "missing-path": entries.pop()
@@ -139,6 +145,8 @@ class SyntheticPublicGitHub(LiveObservationProvider):
                 "merged-null-malformed-parents",
                 "merged-null-more-than-64-later",
                 "merged-null-unanchored",
+                "merged-null-malformed-ancestry",
+                "merged-null-history-payload",
             }:
                 state, merged, merge = "closed", True, None
             return {}, {"state": state, "head": {"sha": head}, "base": {"sha": base}, "merged": merged, "merge_commit_sha": merge}, metadata
@@ -260,19 +268,38 @@ class R137LiveObservationTests(unittest.TestCase):
         self.assert_merge_proof_rejected("merged-null-unrelated-descendant")
         self.assert_merge_proof_rejected("merged-null-malformed-parents")
 
-    def test_r137_r012g_fixed_historical_merge_survives_more_than_64_later_main_commits(self) -> None:
+    def test_r137_r012g_fixed_historical_merge_survives_arbitrarily_advanced_main(self) -> None:
         provider = SyntheticPublicGitHub("merged-null-more-than-64-later")
         bundle, proof = provider.observe(request(pull_request_number=ANCHOR_PR))
         self.assertTrue(validate_live_observation_proof(proof))
         self.assertEqual(ANCHOR_MERGE, bundle.pr["merge_commit_sha"])
         anchor_reads = [call for call in provider.calls if call == f"/repos/{TARGET_REPOSITORY}/git/commits/{ANCHOR_MERGE}"]
-        compare_reads = [call for call in provider.calls if call == f"/repos/{TARGET_REPOSITORY}/compare/{ANCHOR_MERGE}...{provider.main}"]
+        bounded_compare = f"/repos/{TARGET_REPOSITORY}/compare/{ANCHOR_MERGE}...{provider.main}{_ANCESTRY_COMPARE_QUERY}"
+        compare_reads = [call for call in provider.calls if call == bounded_compare]
         self.assertEqual((len(anchor_reads), len(compare_reads)), (2, 2))
+        self.assertNotIn(f"/repos/{TARGET_REPOSITORY}/compare/{ANCHOR_MERGE}...{provider.main}", provider.calls)
         commit_reads = [call for call in provider.calls if f"/repos/{TARGET_REPOSITORY}/git/commits/" in call]
         self.assertEqual(len(commit_reads), 3)
 
     def test_r137_r012h_nullable_merge_without_immutable_anchor_fails_closed(self) -> None:
         self.assert_merge_proof_rejected("merged-null-unanchored", pull_request_number=360)
+
+    def test_r137_r012i_bounded_ancestry_response_shape_is_history_independent(self) -> None:
+        provider = SyntheticPublicGitHub("merged-null-more-than-64-later")
+        path = f"/repos/{TARGET_REPOSITORY}/compare/{ANCHOR_MERGE}...{provider.main}{_ANCESTRY_COMPARE_QUERY}"
+        _, payload, _ = provider._get_json(path)
+        self.assertEqual(payload["ahead_by"], 10**12)
+        self.assertNotIn("files", payload)
+        self.assertIsInstance(payload["commits"], list)
+        self.assertLessEqual(len(payload["commits"]), 1)
+        self.assertEqual(_ANCESTRY_COMPARE_QUERY, "?per_page=1&page=2")
+        with self.assertRaises(GatewayError) as caught:
+            LiveObservationProvider()._get_json(f"/repos/{TARGET_REPOSITORY}/compare/{ANCHOR_MERGE}...{provider.main}")
+        self.assertEqual(caught.exception.code, "GITHUB_ENDPOINT_FORBIDDEN")
+
+    def test_r137_r012j_malformed_or_history_bearing_ancestry_response_fails_closed(self) -> None:
+        self.assert_merge_proof_rejected("merged-null-malformed-ancestry")
+        self.assert_merge_proof_rejected("merged-null-history-payload")
 
     def test_r137_r013_malformed_review_fails(self) -> None: self.assert_rejected("review-invalid")
     def test_r137_r014_incomplete_pagination_fails(self) -> None: self.assert_rejected("pagination")
