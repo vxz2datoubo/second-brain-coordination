@@ -39,7 +39,17 @@ CONTROL_PATHS = (ACTIVE_TASK_PATH, 'coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.
 _SAFE_SHA = re.compile('^[0-9a-f]{40,64}$')
 _SAFE_PATH = re.compile('^[A-Za-z0-9_./-]+$')
 _SAFE_REPOSITORY = re.compile('^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$')
-_ALLOWED_ENDPOINTS = (re.compile('^/repos/vxz2datoubo/(?:second-brain-coordination|eustia-ai-film)/git/ref/heads/main$'), re.compile('^/repos/vxz2datoubo/second-brain-coordination/git/commits/[0-9a-f]{40,64}$'), re.compile('^/repos/vxz2datoubo/second-brain-coordination/git/trees/[0-9a-f]{40,64}\\?recursive=1$'), re.compile('^/repos/vxz2datoubo/second-brain-coordination/git/blobs/[0-9a-f]{40,64}$'), re.compile('^/repos/vxz2datoubo/second-brain-coordination/pulls/[1-9][0-9]*$'), re.compile('^/repos/vxz2datoubo/second-brain-coordination/pulls/[1-9][0-9]*/reviews\\?per_page=100&page=[1-9][0-9]*$'))
+_ANCESTRY_COMPARE_QUERY = '?per_page=1&page=2'
+_ALLOWED_ENDPOINTS = (re.compile('^/repos/vxz2datoubo/(?:second-brain-coordination|eustia-ai-film)/git/ref/heads/main$'), re.compile('^/repos/vxz2datoubo/second-brain-coordination/git/commits/[0-9a-f]{40,64}$'), re.compile('^/repos/vxz2datoubo/second-brain-coordination/git/trees/[0-9a-f]{40,64}\\?recursive=1$'), re.compile('^/repos/vxz2datoubo/second-brain-coordination/git/blobs/[0-9a-f]{40,64}$'), re.compile('^/repos/vxz2datoubo/second-brain-coordination/pulls/[1-9][0-9]*$'), re.compile('^/repos/vxz2datoubo/second-brain-coordination/pulls/[1-9][0-9]*/reviews\\?per_page=100&page=[1-9][0-9]*$'), re.compile('^/repos/vxz2datoubo/second-brain-coordination/compare/[0-9a-f]{40,64}[.]{3}[0-9a-f]{40,64}\\?per_page=1&page=2$'))
+_CANONICAL_MERGE_ANCHORS = (
+    (
+        TARGET_REPOSITORY,
+        443,
+        '6dc2e3568943e0692e1dba8b08a8610d69bf5148',
+        '4c25c6b9361190da578b579c6f2e2fcdb39af389',
+        '696504016080c6db2a4b1af9cc90a5072f7f0d3f',
+    ),
+)
 _REQUIRED_AUTHORITY_BINDING_FIELDS = frozenset({'domain_id', 'project_id', 'repository', 'canonical_commit', 'authority_path_or_contract_ref', 'provenance_or_exact_read_proof'})
 _BUNDLES: dict[str, 'LiveObservationEvidenceBundle'] = {}
 
@@ -369,7 +379,77 @@ class LiveObservationProvider:
             page += 1
         raise GatewayError('GITHUB_PAGINATION_INCOMPLETE')
 
-    def _pr(self, repository: str, number: int) -> tuple[Mapping[str, Any], Mapping[str, Any]]:
+    def _merge_commit_from_canonical_anchor(self, repository: str, number: int, main_sha: str, pr_head_sha: str, pr_base_sha: str) -> tuple[str, tuple[Mapping[str, Any], ...]]:
+        """Verify one immutable canonical merge anchor without walking main history.
+
+        R147 observes the fixed historical R146 PR.  If GitHub transiently omits
+        ``merge_commit_sha``, the provider may recover only from the immutable
+        mechanically-established PR/head/base/merge tuple below.  The merge
+        object itself and its continued ancestry in the currently observed main
+        are re-read from GitHub each time.  The ancestry compare is pinned to a
+        non-first page with one commit per page, so GitHub does not return the
+        cumulative changed-file list and history-derived arrays stay bounded.
+        Nothing caller-authored can mint or replace this proof.
+        """
+        anchor = next(
+            (
+                item
+                for item in _CANONICAL_MERGE_ANCHORS
+                if item[0] == repository and item[1] == number
+            ),
+            None,
+        )
+        if anchor is None:
+            raise GatewayError('GITHUB_PR_MERGE_ANCESTRY_UNVERIFIED')
+        _, _, merge_sha, first_parent_sha, anchored_head_sha = anchor
+        if pr_head_sha != anchored_head_sha or pr_base_sha != first_parent_sha:
+            raise GatewayError('GITHUB_PR_MERGE_ANCESTRY_UNVERIFIED')
+
+        metadata: list[Mapping[str, Any]] = []
+        _, value, item = self._get_json(f'/repos/{repository}/git/commits/{merge_sha}')
+        metadata.append(item)
+        commit = _mapping(value, 'GITHUB_PR_MERGE_ANCESTRY_UNVERIFIED')
+        parents = commit.get('parents')
+        if not isinstance(parents, list) or len(parents) != 2:
+            raise GatewayError('GITHUB_PR_MERGE_ANCESTRY_UNVERIFIED')
+        parent_shas: list[str] = []
+        for parent in parents:
+            if not isinstance(parent, Mapping):
+                raise GatewayError('GITHUB_PR_MERGE_ANCESTRY_UNVERIFIED')
+            sha = parent.get('sha')
+            if not isinstance(sha, str) or not _SAFE_SHA.fullmatch(sha):
+                raise GatewayError('GITHUB_PR_MERGE_ANCESTRY_UNVERIFIED')
+            parent_shas.append(sha)
+        if parent_shas != [first_parent_sha, pr_head_sha]:
+            raise GatewayError('GITHUB_PR_MERGE_ANCESTRY_UNVERIFIED')
+
+        compare_path = f'/repos/{repository}/compare/{merge_sha}...{main_sha}{_ANCESTRY_COMPARE_QUERY}'
+        _, value, item = self._get_json(compare_path)
+        metadata.append(item)
+        comparison = _mapping(value, 'GITHUB_PR_MERGE_ANCESTRY_UNVERIFIED')
+        commits = comparison.get('commits')
+        if 'files' in comparison or not isinstance(commits, list) or len(commits) > 1:
+            raise GatewayError('GITHUB_PR_MERGE_ANCESTRY_UNVERIFIED')
+        for paged_commit in commits:
+            if not isinstance(paged_commit, Mapping) or not isinstance(paged_commit.get('sha'), str) or not _SAFE_SHA.fullmatch(paged_commit['sha']):
+                raise GatewayError('GITHUB_PR_MERGE_ANCESTRY_UNVERIFIED')
+        base_commit = comparison.get('base_commit')
+        merge_base_commit = comparison.get('merge_base_commit')
+        if not isinstance(base_commit, Mapping) or not isinstance(merge_base_commit, Mapping):
+            raise GatewayError('GITHUB_PR_MERGE_ANCESTRY_UNVERIFIED')
+        if base_commit.get('sha') != merge_sha or merge_base_commit.get('sha') != merge_sha:
+            raise GatewayError('GITHUB_PR_MERGE_ANCESTRY_UNVERIFIED')
+        ahead_by, behind_by, status = comparison.get('ahead_by'), comparison.get('behind_by'), comparison.get('status')
+        if type(ahead_by) is not int or type(behind_by) is not int or ahead_by < 0 or behind_by != 0:
+            raise GatewayError('GITHUB_PR_MERGE_ANCESTRY_UNVERIFIED')
+        if main_sha == merge_sha:
+            if status != 'identical' or ahead_by != 0:
+                raise GatewayError('GITHUB_PR_MERGE_ANCESTRY_UNVERIFIED')
+        elif status != 'ahead' or ahead_by < 1:
+            raise GatewayError('GITHUB_PR_MERGE_ANCESTRY_UNVERIFIED')
+        return (merge_sha, tuple(metadata))
+
+    def _pr(self, repository: str, number: int, canonical_main_sha: str) -> tuple[Mapping[str, Any], tuple[Mapping[str, Any], ...]]:
         _, value, metadata = self._get_json(f'/repos/{repository}/pulls/{number}')
         pr = _mapping(value, 'GITHUB_PR_RESPONSE_INVALID')
         head = _require_sha(_mapping(pr.get('head'), 'GITHUB_PR_RESPONSE_INVALID').get('sha'), 'GITHUB_PR_RESPONSE_INVALID')
@@ -380,9 +460,10 @@ class LiveObservationProvider:
         merge_sha = pr.get('merge_commit_sha')
         if merge_sha is not None and (not _SAFE_SHA.fullmatch(merge_sha)):
             raise GatewayError('GITHUB_PR_RESPONSE_INVALID')
+        extra_metadata: tuple[Mapping[str, Any], ...] = ()
         if pr['merged'] and merge_sha is None:
-            raise GatewayError('GITHUB_PR_RESPONSE_INVALID')
-        return ({'number': number, 'state': state, 'head_sha': head, 'base_sha': base, 'merged': pr['merged'], 'merge_commit_sha': merge_sha}, metadata)
+            merge_sha, extra_metadata = self._merge_commit_from_canonical_anchor(repository, number, canonical_main_sha, head, base)
+        return ({'number': number, 'state': state, 'head_sha': head, 'base_sha': base, 'merged': pr['merged'], 'merge_commit_sha': merge_sha}, (metadata,) + extra_metadata)
 
     def _coordinator_yaml_object(self, *, path: str, commit: str, tree_sha: str, tree: Mapping[str, str], records: list[ExactObjectRecord], metadata: list[Mapping[str, Any]]) -> Mapping[str, Any]:
         if path not in tree:
@@ -439,8 +520,8 @@ class LiveObservationProvider:
         route_task_id, route_epoch = _route_binding(route)
         if route_task_id != active.get('task_id') or route_epoch != active.get('route_epoch') or route_task_id != request.expected_task_id or (route_epoch != request.expected_route_epoch):
             raise GatewayError('ACTIVE_ROUTE_BINDING_MISMATCH')
-        pr_first, item = self._pr(request.target_repository, request.pull_request_number)
-        metadata.append(item)
+        pr_first, pr_metadata = self._pr(request.target_repository, request.pull_request_number, initial_main)
+        metadata.extend(pr_metadata)
         reviews, review_metadata = self._reviews(request.target_repository, request.pull_request_number)
         metadata.extend(review_metadata)
         domain_refs: list[str] = []
@@ -490,8 +571,8 @@ class LiveObservationProvider:
                 raise GatewayError('DOMAIN_AUTHORITY_SOURCE_DRIFT_DETECTED')
         final_main, item = self._ref(request.target_repository, request.target_branch)
         metadata.append(item)
-        pr_final, item = self._pr(request.target_repository, request.pull_request_number)
-        metadata.append(item)
+        pr_final, pr_metadata = self._pr(request.target_repository, request.pull_request_number, final_main)
+        metadata.extend(pr_metadata)
         if final_main != initial_main or pr_final != pr_first:
             raise GatewayError('GITHUB_OBSERVATION_DRIFT_DETECTED')
         completed = _utc_now()
