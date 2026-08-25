@@ -91,26 +91,12 @@ def base_proposal() -> dict:
     }
 
 
-def local_snapshot(revision: str | None = None) -> dict:
-    head = revision or git_head()
-    return {
-        "canonical_main": head,
-        "scan_coverage": {
-            "domain_canonical": {
-                "status": "SCANNED",
-                "evidence_refs": [f"git://second-brain@{head}"],
-            }
-        },
-    }
-
-
-def evaluate(proposal: dict | None = None, *, expected: str | None = None, snapshot: dict | None = None):
+def evaluate(proposal: dict | None = None, *, expected: str | None = None):
     head = expected or git_head()
     return evaluate_trusted_release_proposal(
         REPO_ROOT,
         proposal or base_proposal(),
         expected_coordinator_main=head,
-        authority_snapshot=snapshot or local_snapshot(head),
     )
 
 
@@ -158,12 +144,24 @@ class TrustedTaskReleaseTests(unittest.TestCase):
                     caught.exception.code, "CALLER_TRUSTED_STATE_INJECTION_FORBIDDEN"
                 )
 
-    def test_03_stale_r145_snapshot_cannot_be_reused_on_new_coordinator_main(self) -> None:
+    def test_03_synthetic_current_authority_snapshot_cannot_enter_public_api(self) -> None:
         head = git_head()
-        stale = local_snapshot("0" * 40)
-        with self.assertRaises(TrustedReleaseError) as caught:
-            evaluate(expected=head, snapshot=stale)
-        self.assertEqual(caught.exception.code, "DOMAIN_CANONICAL_DRIFT")
+        synthetic_current = {
+            "canonical_main": head,
+            "scan_coverage": {
+                "domain_canonical": {
+                    "status": "SCANNED",
+                    "evidence_refs": [f"git://forged-caller@{head}"],
+                }
+            },
+        }
+        with self.assertRaises(TypeError):
+            evaluate_trusted_release_proposal(
+                REPO_ROOT,
+                base_proposal(),
+                expected_coordinator_main=head,
+                authority_snapshot=synthetic_current,
+            )
 
     def test_04_cross_domain_mismatch_fails_closed(self) -> None:
         proposal = base_proposal()
@@ -180,7 +178,6 @@ class TrustedTaskReleaseTests(unittest.TestCase):
                 REPO_ROOT,
                 base_proposal(),
                 expected_coordinator_main="0" * 40,
-                authority_snapshot=local_snapshot(),
             )
         self.assertEqual(caught.exception.code, "CANONICAL_MAIN_DRIFT")
 
