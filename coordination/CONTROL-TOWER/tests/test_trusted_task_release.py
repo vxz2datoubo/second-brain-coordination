@@ -9,9 +9,7 @@ from unittest.mock import patch
 from trusted_task_release import (
     PROPOSAL_SCHEMA,
     TrustedReleaseError,
-    VerifiedR145DomainBinding,
     _materialize_active_work_items,
-    bind_r145_domain_authority,
     evaluate_trusted_release_proposal,
 )
 
@@ -90,21 +88,26 @@ def base_proposal() -> dict:
     }
 
 
-def local_binding(head: str | None = None):
-    revision = head or git_head()
-    snapshot = {
-        "canonical_main": revision,
+def local_snapshot(revision: str | None = None) -> dict:
+    head = revision or git_head()
+    return {
+        "canonical_main": head,
         "scan_coverage": {
             "domain_canonical": {
                 "status": "SCANNED",
-                "evidence_refs": [f"git://second-brain@{revision}"],
+                "evidence_refs": [f"git://second-brain@{head}"],
             }
         },
     }
-    return bind_r145_domain_authority(
-        domain_id="SHARED_COGNITIVE_OS",
-        snapshot=snapshot,
-        expected_canonical_main=revision,
+
+
+def evaluate(proposal: dict | None = None, *, expected: str | None = None, snapshot: dict | None = None):
+    head = expected or git_head()
+    return evaluate_trusted_release_proposal(
+        REPO_ROOT,
+        proposal or base_proposal(),
+        expected_coordinator_main=head,
+        authority_snapshot=snapshot or local_snapshot(head),
     )
 
 
@@ -126,12 +129,7 @@ def active_claim(*, authority: bool = False) -> dict:
 class TrustedTaskReleaseTests(unittest.TestCase):
     def test_01_same_domain_current_repository_materializes_positive_extension(self) -> None:
         head = git_head()
-        receipt = evaluate_trusted_release_proposal(
-            REPO_ROOT,
-            base_proposal(),
-            expected_coordinator_main=head,
-            domain_binding=local_binding(head),
-        )
+        receipt = evaluate(expected=head)
         self.assertEqual(receipt["schema_version"], "TrustedTaskReleaseImpactReceipt/v1")
         self.assertEqual(receipt["trusted_context"]["canonical_main"], head)
         self.assertEqual(receipt["impact_receipt"]["final_disposition"], "RELEASE_AS_EXTENSION")
@@ -143,6 +141,7 @@ class TrustedTaskReleaseTests(unittest.TestCase):
             ("observations", []),
             ("existing_work_items", []),
             ("authority_binding", {"compatible": True}),
+            ("domain_binding", {"domain_id": "SHARED_COGNITIVE_OS"}),
             ("collision_analysis", []),
             ("final_disposition", "RELEASE_BOUNDED_TASK"),
             ("trusted_context", {}),
@@ -151,46 +150,22 @@ class TrustedTaskReleaseTests(unittest.TestCase):
                 proposal = base_proposal()
                 proposal[field] = value
                 with self.assertRaises(TrustedReleaseError) as caught:
-                    evaluate_trusted_release_proposal(
-                        REPO_ROOT,
-                        proposal,
-                        expected_coordinator_main=git_head(),
-                        domain_binding=local_binding(),
-                    )
+                    evaluate(proposal)
                 self.assertEqual(
                     caught.exception.code, "CALLER_TRUSTED_STATE_INJECTION_FORBIDDEN"
                 )
 
-    def test_03_forged_r145_binding_is_rejected(self) -> None:
-        forged = VerifiedR145DomainBinding(
-            domain_id="SHARED_COGNITIVE_OS",
-            project_id="SECOND_BRAIN_PROJECT",
-            repository="vxz2datoubo/second-brain-coordination",
-            canonical_commit=git_head(),
-            writeback_owner="SECOND_BRAIN_SYSTEM",
-            binding_digest="0" * 64,
-            authority_refs=("forged://authority",),
-            legacy_compatibility=True,
-            _seal=object(),
-        )
+    def test_03_stale_r145_snapshot_cannot_be_reused_on_new_coordinator_main(self) -> None:
+        head = git_head()
+        stale = local_snapshot("0" * 40)
         with self.assertRaises(TrustedReleaseError) as caught:
-            evaluate_trusted_release_proposal(
-                REPO_ROOT,
-                base_proposal(),
-                expected_coordinator_main=git_head(),
-                domain_binding=forged,
-            )
-        self.assertEqual(caught.exception.code, "R145_VERIFIED_DOMAIN_BINDING_REQUIRED")
+            evaluate(expected=head, snapshot=stale)
+        self.assertEqual(caught.exception.code, "DOMAIN_CANONICAL_DRIFT")
 
     def test_04_cross_domain_mismatch_fails_closed(self) -> None:
         proposal = base_proposal()
         proposal["proposed_target_domain"] = "AI_FILM_SYSTEM"
-        receipt = evaluate_trusted_release_proposal(
-            REPO_ROOT,
-            proposal,
-            expected_coordinator_main=git_head(),
-            domain_binding=local_binding(),
-        )
+        receipt = evaluate(proposal)
         self.assertEqual(receipt["impact_receipt"]["final_disposition"], "ARCHITECTURE_CONFLICT")
         self.assertFalse(
             receipt["trusted_context"]["domain_guard"]["eligible_for_normal_release_gates"]
@@ -202,19 +177,14 @@ class TrustedTaskReleaseTests(unittest.TestCase):
                 REPO_ROOT,
                 base_proposal(),
                 expected_coordinator_main="0" * 40,
-                domain_binding=local_binding(),
+                authority_snapshot=local_snapshot(),
             )
         self.assertEqual(caught.exception.code, "CANONICAL_MAIN_DRIFT")
 
     def test_06_control_tower_scan_error_blocks_release(self) -> None:
         with patch("trusted_task_release.scan_repository", return_value={"errors": [{"code": "X"}]}):
             with self.assertRaises(TrustedReleaseError) as caught:
-                evaluate_trusted_release_proposal(
-                    REPO_ROOT,
-                    base_proposal(),
-                    expected_coordinator_main=git_head(),
-                    domain_binding=local_binding(),
-                )
+                evaluate()
         self.assertEqual(caught.exception.code, "CONTROL_TOWER_SCAN_FAILED")
 
     def test_07_claim_validation_error_blocks_release(self) -> None:
@@ -223,16 +193,10 @@ class TrustedTaskReleaseTests(unittest.TestCase):
             return_value={"errors": [{"code": "BROKEN"}], "claim_structural_check": "FAIL"},
         ):
             with self.assertRaises(TrustedReleaseError) as caught:
-                evaluate_trusted_release_proposal(
-                    REPO_ROOT,
-                    base_proposal(),
-                    expected_coordinator_main=git_head(),
-                    domain_binding=local_binding(),
-                )
+                evaluate()
         self.assertEqual(caught.exception.code, "WORK_CLAIM_VALIDATION_FAILED")
 
     def test_08_canonical_active_path_collision_wins_over_caller_omission(self) -> None:
-        proposal = base_proposal()
         synthetic_claims = {"claims": [active_claim()]}
         with (
             patch("trusted_task_release.scan_repository", return_value={"errors": []}),
@@ -242,12 +206,7 @@ class TrustedTaskReleaseTests(unittest.TestCase):
             ),
             patch("trusted_task_release.load_yaml", return_value=synthetic_claims),
         ):
-            receipt = evaluate_trusted_release_proposal(
-                REPO_ROOT,
-                proposal,
-                expected_coordinator_main=git_head(),
-                domain_binding=local_binding(),
-            )
+            receipt = evaluate()
         collision = receipt["impact_receipt"]["collision_analysis"][0]
         self.assertEqual(collision["task_id"], "ACTIVE-CANONICAL-WORK")
         self.assertEqual(collision["level"], "O3")
@@ -267,12 +226,7 @@ class TrustedTaskReleaseTests(unittest.TestCase):
             ),
             patch("trusted_task_release.load_yaml", return_value=synthetic_claims),
         ):
-            receipt = evaluate_trusted_release_proposal(
-                REPO_ROOT,
-                proposal,
-                expected_coordinator_main=git_head(),
-                domain_binding=local_binding(),
-            )
+            receipt = evaluate(proposal)
         self.assertEqual(receipt["impact_receipt"]["collision_analysis"][0]["level"], "O4")
         self.assertEqual(receipt["impact_receipt"]["final_disposition"], "ARCHITECTURE_CONFLICT")
 
@@ -287,21 +241,11 @@ class TrustedTaskReleaseTests(unittest.TestCase):
         head = git_head()
         with patch("trusted_task_release._head", side_effect=[head, "1" * 40]):
             with self.assertRaises(TrustedReleaseError) as caught:
-                evaluate_trusted_release_proposal(
-                    REPO_ROOT,
-                    base_proposal(),
-                    expected_coordinator_main=head,
-                    domain_binding=local_binding(head),
-                )
+                evaluate(expected=head)
         self.assertEqual(caught.exception.code, "TRUSTED_REPOSITORY_STATE_DRIFT")
 
     def test_12_receipt_remains_evidence_only(self) -> None:
-        receipt = evaluate_trusted_release_proposal(
-            REPO_ROOT,
-            base_proposal(),
-            expected_coordinator_main=git_head(),
-            domain_binding=local_binding(),
-        )
+        receipt = evaluate()
         boundary = receipt["authority_boundary"]
         self.assertTrue(boundary["evidence_only"])
         for field in (
@@ -318,29 +262,12 @@ class TrustedTaskReleaseTests(unittest.TestCase):
             self.assertFalse(boundary[field])
 
     def test_13_same_state_is_deterministic_and_proposal_change_is_bound(self) -> None:
-        head = git_head()
-        binding = local_binding(head)
-        first = evaluate_trusted_release_proposal(
-            REPO_ROOT,
-            base_proposal(),
-            expected_coordinator_main=head,
-            domain_binding=binding,
-        )
-        second = evaluate_trusted_release_proposal(
-            REPO_ROOT,
-            copy.deepcopy(base_proposal()),
-            expected_coordinator_main=head,
-            domain_binding=binding,
-        )
+        first = evaluate()
+        second = evaluate(copy.deepcopy(base_proposal()))
         self.assertEqual(first, second)
         changed = base_proposal()
         changed["desired_effect"] += " Changed intent."
-        third = evaluate_trusted_release_proposal(
-            REPO_ROOT,
-            changed,
-            expected_coordinator_main=head,
-            domain_binding=binding,
-        )
+        third = evaluate(changed)
         self.assertNotEqual(first["receipt_digest"], third["receipt_digest"])
 
 
