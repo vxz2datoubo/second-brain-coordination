@@ -1,8 +1,8 @@
 # R149 Task Release Impact & Composition Gate — Slice 1 Plan
 
-Issue: #451  
-Base main: `71c70f6bc3683eff4c19020a7d4cc998517c6ba1`  
-Branch: `gpt/r149-task-release-impact-composition-gate`  
+Issue: #451
+Base main: `71c70f6bc3683eff4c19020a7d4cc998517c6ba1`
+Branch: `gpt/r149-task-release-impact-composition-gate`
 Mode: `ARCHITECTURE_CONTRACTS_EVALS_ONLY`
 
 ## 1. Reuse decision
@@ -181,6 +181,8 @@ authority_boundary:
 
 This receipt cannot substitute for current Control Tower route/claim/release/witness authorization.
 
+Slice 1 validates caller-supplied candidate evidence as a contract fixture; it does not authenticate caller declarations as canonical observations. Any later production integration must source current active-work, owner-domain/writeback, and canonical-head observations from the existing trusted Control Tower/R145 surfaces before a receipt can participate in release. This slice intentionally stops before that integration seam.
+
 ## 10. Slice 1 acceptance
 
 The regression suite covers all 14 Issue #451 stories plus:
@@ -188,6 +190,7 @@ The regression suite covers all 14 Issue #451 stories plus:
 - caller cannot inject final disposition;
 - `NEW_MODULE_JUSTIFIED` requires positive insufficiency proof;
 - UNKNOWN-only capability inventory abstains;
+- integer truthy values cannot impersonate booleans in authority/composition/capability fields;
 - receipt generation is deterministic and input-digest bound.
 
 No production auto-release integration is included in Slice 1.
