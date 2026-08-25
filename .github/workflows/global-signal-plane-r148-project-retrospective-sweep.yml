@@ -1,0 +1,79 @@
+name: Global Signal Plane R148 Project Retrospective Sweep
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/global-signal-plane-r148-project-retrospective-sweep.yml"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/R148-PROJECT-RETROSPECTIVE-SWEEP/**"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/R147-AUTOMATIC-INGRESS/**"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/retrospective_intake.py"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/domain_authority.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: r148-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  R148_ROOT: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/R148-PROJECT-RETROSPECTIVE-SWEEP
+  R147_ROOT: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/R147-AUTOMATIC-INGRESS
+  S0E_ROOT: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY
+  S0C_ROOT: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC
+
+jobs:
+  exact-head:
+    name: Python ${{ matrix.python-version }} R148 exact-head
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install pinned YAML parser
+        run: python -m pip install --disable-pip-version-check PyYAML==6.0.2
+      - name: Assert exact head
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+      - name: Run R148 regressions
+        env:
+          PYTHONPATH: ${{ github.workspace }}/${{ env.R148_ROOT }}/src:${{ github.workspace }}/${{ env.R147_ROOT }}/src:${{ github.workspace }}/${{ env.S0E_ROOT }}/src:${{ github.workspace }}/${{ env.S0C_ROOT }}/src
+        run: python -m unittest discover -s "${R148_ROOT}/tests" -p "test_*.py" -v
+      - name: Re-run R142 retrospective regressions
+        env:
+          PYTHONPATH: ${{ github.workspace }}/${{ env.S0E_ROOT }}/src:${{ github.workspace }}/${{ env.S0C_ROOT }}/src:${{ github.workspace }}/${{ env.S0E_ROOT }}/tests
+        run: python -m unittest discover -s "${S0E_ROOT}/tests" -p "test_r142_retrospective_intake.py" -v
+      - name: Re-run R142/R145 semantic boundary regressions
+        env:
+          PYTHONPATH: ${{ github.workspace }}/${{ env.S0E_ROOT }}/src:${{ github.workspace }}/${{ env.S0C_ROOT }}/src:${{ github.workspace }}/${{ env.S0E_ROOT }}/tests
+        run: python -m unittest discover -s "${S0E_ROOT}/tests" -p "test_r142_r145_semantic_regressions.py" -v
+      - name: Re-run R147 durable ingress regressions
+        env:
+          PYTHONPATH: ${{ github.workspace }}/${{ env.R147_ROOT }}/src:${{ github.workspace }}/${{ env.S0E_ROOT }}/src:${{ github.workspace }}/${{ env.S0C_ROOT }}/src:${{ github.workspace }}/${{ env.S0E_ROOT }}/tests
+        run: python -m unittest discover -s "${R147_ROOT}/tests" -p "test_*.py" -v
+      - name: Scope and whitespace check
+        run: |
+          git diff --check "origin/${{ github.base_ref }}...HEAD"
+          python - <<'PY'
+          import subprocess
+          allowed = (
+              ".github/workflows/global-signal-plane-r148-project-retrospective-sweep.yml",
+              "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/R148-PROJECT-RETROSPECTIVE-SWEEP/",
+          )
+          files = subprocess.check_output(
+              ["git", "diff", "--name-only", f"origin/${{ github.base_ref }}...HEAD"], text=True
+          ).splitlines()
+          bad = [path for path in files if not any(path == prefix or path.startswith(prefix) for prefix in allowed)]
+          if bad:
+              raise SystemExit(f"R148_SCOPE_DRIFT:{bad}")
+          print("R148_SCOPE_WITHIN_ALLOWLIST", files)
+          PY
