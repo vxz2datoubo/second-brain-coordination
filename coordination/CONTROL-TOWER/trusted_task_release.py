@@ -118,8 +118,21 @@ def _head(root: Path) -> str:
     return value
 
 
+def _is_untracked_python_bytecode(status_line: str) -> bool:
+    if not status_line.startswith("?? "):
+        return False
+    path = status_line[3:].replace("\\", "/")
+    return "/__pycache__/" in f"/{path}" and path.endswith((".pyc", ".pyo"))
+
+
 def _worktree_clean(root: Path) -> bool:
-    return not _git(root, "status", "--porcelain")
+    output = _git(root, "status", "--porcelain=v1", "--untracked-files=all")
+    if not output:
+        return True
+    for line in output.splitlines():
+        if not _is_untracked_python_bytecode(line):
+            return False
+    return True
 
 
 def _exact_path_ref(root: Path, head: str, path: str) -> str:
@@ -135,13 +148,16 @@ def _load_r145_api(root: Path) -> tuple[Any, Any]:
     if not src.is_dir():
         raise TrustedReleaseError("R145_CANONICAL_API_SOURCE_MISSING")
     original_path = list(sys.path)
+    original_dont_write = sys.dont_write_bytecode
     try:
+        sys.dont_write_bytecode = True
         sys.path.insert(0, str(src))
         module = importlib.import_module("global_signal_gateway.domain_authority")
     except (ImportError, OSError) as exc:
         raise TrustedReleaseError("R145_CANONICAL_API_LOAD_FAILED") from exc
     finally:
         sys.path[:] = original_path
+        sys.dont_write_bytecode = original_dont_write
     resolver = getattr(module, "resolve_candidate_domain_authority", None)
     guard = getattr(module, "evaluate_signal_task_route_domain_guard", None)
     if not callable(resolver) or not callable(guard):
