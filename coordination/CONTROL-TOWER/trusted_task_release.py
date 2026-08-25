@@ -42,6 +42,7 @@ _TRUSTED_CALLER_FIELDS = frozenset(
         "observations",
         "authority_binding",
         "existing_work_items",
+        "domain_binding",
         "collision_analysis",
         "final_disposition",
         "trusted_context",
@@ -151,7 +152,7 @@ def _validate_proposal(value: Mapping[str, Any]) -> dict[str, Any]:
 
 
 @dataclass(frozen=True)
-class VerifiedR145DomainBinding:
+class _VerifiedR145DomainBinding:
     domain_id: str
     project_id: str
     repository: str
@@ -163,7 +164,7 @@ class VerifiedR145DomainBinding:
     _seal: object = field(repr=False, compare=False)
 
 
-def bind_r145_domain_authority(
+def _bind_r145_domain_authority(
     *,
     domain_id: str,
     snapshot: Mapping[str, Any],
@@ -171,8 +172,8 @@ def bind_r145_domain_authority(
     coordinator_repository: str = COORDINATOR_REPOSITORY,
     exact_read_proofs: Sequence[Any] = (),
     live_observation_proof: Any = None,
-) -> VerifiedR145DomainBinding:
-    """Mint a process-local capability only from the existing R145 resolver result."""
+) -> _VerifiedR145DomainBinding:
+    """Mint one invocation-local capability only from the existing R145 resolver."""
     if not isinstance(domain_id, str) or not domain_id.strip():
         raise TrustedReleaseError("DOMAIN_ID_INVALID")
     resolved = resolve_candidate_domain_authority(
@@ -200,12 +201,14 @@ def bind_r145_domain_authority(
         for name in required
     ):
         raise TrustedReleaseError("R145_DOMAIN_AUTHORITY_RESULT_INCOMPLETE")
+    if not _SHA40.fullmatch(resolved["canonical_commit"]):
+        raise TrustedReleaseError("R145_DOMAIN_CANONICAL_COMMIT_INVALID")
     refs = resolved.get("authority_refs")
     if not isinstance(refs, list) or not refs or not all(
         isinstance(item, str) and item for item in refs
     ):
         raise TrustedReleaseError("R145_DOMAIN_AUTHORITY_REFS_INCOMPLETE")
-    return VerifiedR145DomainBinding(
+    return _VerifiedR145DomainBinding(
         domain_id=resolved["domain_id"],
         project_id=resolved["project_id"],
         repository=resolved["repository"],
@@ -218,8 +221,8 @@ def bind_r145_domain_authority(
     )
 
 
-def _require_verified_binding(value: Any) -> VerifiedR145DomainBinding:
-    if not isinstance(value, VerifiedR145DomainBinding) or value._seal is not _DOMAIN_BINDING_SEAL:
+def _require_verified_binding(value: Any) -> _VerifiedR145DomainBinding:
+    if not isinstance(value, _VerifiedR145DomainBinding) or value._seal is not _DOMAIN_BINDING_SEAL:
         raise TrustedReleaseError("R145_VERIFIED_DOMAIN_BINDING_REQUIRED")
     return value
 
@@ -305,12 +308,13 @@ def evaluate_trusted_release_proposal(
     proposal_value: Mapping[str, Any],
     *,
     expected_coordinator_main: str,
-    domain_binding: VerifiedR145DomainBinding,
+    authority_snapshot: Mapping[str, Any],
+    authority_exact_read_proofs: Sequence[Any] = (),
+    authority_live_observation_proof: Any = None,
 ) -> dict[str, Any]:
-    """Bind an untrusted proposal to current Control Tower state and R145 authority."""
+    """Bind one untrusted proposal to current Control Tower state and fresh R145 authority."""
     root = Path(repo_root).resolve()
     proposal = _validate_proposal(proposal_value)
-    binding = _require_verified_binding(domain_binding)
 
     if not _SHA40.fullmatch(str(expected_coordinator_main)):
         raise TrustedReleaseError("EXPECTED_CANONICAL_MAIN_INVALID")
@@ -319,6 +323,17 @@ def evaluate_trusted_release_proposal(
         raise TrustedReleaseError("CANONICAL_MAIN_DRIFT")
     if not _worktree_clean(root):
         raise TrustedReleaseError("TRUSTED_REPOSITORY_WORKTREE_DIRTY")
+
+    binding = _bind_r145_domain_authority(
+        domain_id=proposal["signal_primary_domain"],
+        snapshot=authority_snapshot,
+        expected_canonical_main=expected_coordinator_main,
+        exact_read_proofs=authority_exact_read_proofs,
+        live_observation_proof=authority_live_observation_proof,
+    )
+    binding = _require_verified_binding(binding)
+    if binding.repository == COORDINATOR_REPOSITORY and binding.canonical_commit != before:
+        raise TrustedReleaseError("R145_DOMAIN_BINDING_STALE_FOR_COORDINATOR")
 
     control_report = scan_repository(root)
     if control_report.get("errors"):
