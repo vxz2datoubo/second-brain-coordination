@@ -3,12 +3,14 @@ from __future__ import annotations
 import copy
 from pathlib import Path
 import subprocess
+import sys
 import unittest
 from unittest.mock import patch
 
 from trusted_task_release import (
     PROPOSAL_SCHEMA,
     TrustedReleaseError,
+    _load_r145_api,
     _materialize_active_work_items,
     evaluate_trusted_release_proposal,
 )
@@ -269,6 +271,13 @@ class TrustedTaskReleaseTests(unittest.TestCase):
         changed["desired_effect"] += " Changed intent."
         third = evaluate(changed)
         self.assertNotEqual(first["receipt_digest"], third["receipt_digest"])
+
+    def test_14_repository_bound_r145_loader_restores_sys_path(self) -> None:
+        before = list(sys.path)
+        resolver, guard = _load_r145_api(REPO_ROOT)
+        self.assertTrue(callable(resolver))
+        self.assertTrue(callable(guard))
+        self.assertEqual(sys.path, before)
 
 
 if __name__ == "__main__":
