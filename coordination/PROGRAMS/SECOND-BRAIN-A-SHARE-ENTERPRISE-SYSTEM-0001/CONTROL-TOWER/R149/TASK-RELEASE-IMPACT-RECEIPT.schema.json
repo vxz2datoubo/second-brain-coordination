@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "TaskReleaseImpactReceipt/v1",
+  "title": "TaskReleaseImpactReceipt/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "release_candidate_id",
+    "source_signal_refs",
+    "input_digest",
+    "exact_observations",
+    "capability_reuse_decisions",
+    "relation_impact_edges",
+    "reverse_consumer_analysis",
+    "consumer_inventory_complete",
+    "authority_writeback_binding",
+    "composition_removability_decision",
+    "synchronized_change_set",
+    "regression_revalidation_set",
+    "unaffected_set",
+    "unresolved_unknowns",
+    "collision_analysis",
+    "final_disposition",
+    "reasons",
+    "authority_boundary",
+    "receipt_digest"
+  ],
+  "properties": {
+    "schema_version": {"const": "TaskReleaseImpactReceipt/v1"},
+    "release_candidate_id": {"type": "string", "minLength": 1},
+    "source_signal_refs": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "input_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "exact_observations": {"type": "array", "minItems": 1, "items": {"type": "object"}},
+    "capability_reuse_decisions": {"type": "array", "items": {"type": "object"}},
+    "relation_impact_edges": {"type": "array", "items": {"type": "object"}},
+    "reverse_consumer_analysis": {"type": "array", "items": {"type": "object"}},
+    "consumer_inventory_complete": {"type": "boolean"},
+    "authority_writeback_binding": {"type": "object"},
+    "composition_removability_decision": {"type": "object"},
+    "synchronized_change_set": {"type": "array", "items": {"type": "string"}},
+    "regression_revalidation_set": {"type": "array", "items": {"type": "string"}},
+    "unaffected_set": {"type": "array", "items": {"type": "object"}},
+    "unresolved_unknowns": {"type": "array", "items": {"type": "string"}},
+    "collision_analysis": {"type": "array", "items": {"type": "object"}},
+    "final_disposition": {
+      "enum": [
+        "RELEASE_BOUNDED_TASK",
+        "RELEASE_AS_EXTENSION",
+        "RELEASE_AS_ADAPTER_OR_PLUGIN",
+        "MERGE_WITH_EXISTING_TASK",
+        "MODIFY_EXISTING_TASK",
+        "DEFER_DEPENDENCY",
+        "NEEDS_REVALIDATION",
+        "ARCHITECTURE_CONFLICT",
+        "NO_TASK_ALREADY_SATISFIED",
+        "ABSTAIN"
+      ]
+    },
+    "reasons": {"type": "array", "items": {"type": "string"}},
+    "authority_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_only",
+        "creates_task",
+        "creates_route",
+        "creates_work_claim",
+        "grants_execution_authority",
+        "grants_domain_write",
+        "grants_merge_authority"
+      ],
+      "properties": {
+        "evidence_only": {"const": true},
+        "creates_task": {"const": false},
+        "creates_route": {"const": false},
+        "creates_work_claim": {"const": false},
+        "grants_execution_authority": {"const": false},
+        "grants_domain_write": {"const": false},
+        "grants_merge_authority": {"const": false}
+      }
+    },
+    "receipt_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}
