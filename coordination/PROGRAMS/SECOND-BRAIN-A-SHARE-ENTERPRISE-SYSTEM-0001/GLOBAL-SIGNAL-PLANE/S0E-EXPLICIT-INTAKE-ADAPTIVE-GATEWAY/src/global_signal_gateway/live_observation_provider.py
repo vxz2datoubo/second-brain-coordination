@@ -39,7 +39,8 @@ CONTROL_PATHS = (ACTIVE_TASK_PATH, 'coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.
 _SAFE_SHA = re.compile('^[0-9a-f]{40,64}$')
 _SAFE_PATH = re.compile('^[A-Za-z0-9_./-]+$')
 _SAFE_REPOSITORY = re.compile('^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$')
-_ALLOWED_ENDPOINTS = (re.compile('^/repos/vxz2datoubo/(?:second-brain-coordination|eustia-ai-film)/git/ref/heads/main$'), re.compile('^/repos/vxz2datoubo/second-brain-coordination/git/commits/[0-9a-f]{40,64}$'), re.compile('^/repos/vxz2datoubo/second-brain-coordination/git/trees/[0-9a-f]{40,64}\\?recursive=1$'), re.compile('^/repos/vxz2datoubo/second-brain-coordination/git/blobs/[0-9a-f]{40,64}$'), re.compile('^/repos/vxz2datoubo/second-brain-coordination/pulls/[1-9][0-9]*$'), re.compile('^/repos/vxz2datoubo/second-brain-coordination/pulls/[1-9][0-9]*/reviews\\?per_page=100&page=[1-9][0-9]*$'), re.compile('^/repos/vxz2datoubo/second-brain-coordination/compare/[0-9a-f]{40,64}[.]{3}[0-9a-f]{40,64}$'))
+_ANCESTRY_COMPARE_QUERY = '?per_page=1&page=2'
+_ALLOWED_ENDPOINTS = (re.compile('^/repos/vxz2datoubo/(?:second-brain-coordination|eustia-ai-film)/git/ref/heads/main$'), re.compile('^/repos/vxz2datoubo/second-brain-coordination/git/commits/[0-9a-f]{40,64}$'), re.compile('^/repos/vxz2datoubo/second-brain-coordination/git/trees/[0-9a-f]{40,64}\\?recursive=1$'), re.compile('^/repos/vxz2datoubo/second-brain-coordination/git/blobs/[0-9a-f]{40,64}$'), re.compile('^/repos/vxz2datoubo/second-brain-coordination/pulls/[1-9][0-9]*$'), re.compile('^/repos/vxz2datoubo/second-brain-coordination/pulls/[1-9][0-9]*/reviews\\?per_page=100&page=[1-9][0-9]*$'), re.compile('^/repos/vxz2datoubo/second-brain-coordination/compare/[0-9a-f]{40,64}[.]{3}[0-9a-f]{40,64}\\?per_page=1&page=2$'))
 _CANONICAL_MERGE_ANCHORS = (
     (
         TARGET_REPOSITORY,
@@ -385,8 +386,10 @@ class LiveObservationProvider:
         ``merge_commit_sha``, the provider may recover only from the immutable
         mechanically-established PR/head/base/merge tuple below.  The merge
         object itself and its continued ancestry in the currently observed main
-        are re-read from GitHub each time.  Nothing caller-authored can mint or
-        replace this proof.
+        are re-read from GitHub each time.  The ancestry compare is pinned to a
+        non-first page with one commit per page, so GitHub does not return the
+        cumulative changed-file list and history-derived arrays stay bounded.
+        Nothing caller-authored can mint or replace this proof.
         """
         anchor = next(
             (
@@ -420,9 +423,16 @@ class LiveObservationProvider:
         if parent_shas != [first_parent_sha, pr_head_sha]:
             raise GatewayError('GITHUB_PR_MERGE_ANCESTRY_UNVERIFIED')
 
-        _, value, item = self._get_json(f'/repos/{repository}/compare/{merge_sha}...{main_sha}')
+        compare_path = f'/repos/{repository}/compare/{merge_sha}...{main_sha}{_ANCESTRY_COMPARE_QUERY}'
+        _, value, item = self._get_json(compare_path)
         metadata.append(item)
         comparison = _mapping(value, 'GITHUB_PR_MERGE_ANCESTRY_UNVERIFIED')
+        commits = comparison.get('commits')
+        if 'files' in comparison or not isinstance(commits, list) or len(commits) > 1:
+            raise GatewayError('GITHUB_PR_MERGE_ANCESTRY_UNVERIFIED')
+        for paged_commit in commits:
+            if not isinstance(paged_commit, Mapping) or not isinstance(paged_commit.get('sha'), str) or not _SAFE_SHA.fullmatch(paged_commit['sha']):
+                raise GatewayError('GITHUB_PR_MERGE_ANCESTRY_UNVERIFIED')
         base_commit = comparison.get('base_commit')
         merge_base_commit = comparison.get('merge_base_commit')
         if not isinstance(base_commit, Mapping) or not isinstance(merge_base_commit, Mapping):
