@@ -32,6 +32,7 @@ from global_signal_gateway.live_observation_provider import (  # noqa: E402
     LiveObservationProvider,
     LiveObservationRequest,
     _BUNDLES,
+    _CANONICAL_MERGE_ANCHORS,
     _git_blob_sha,
 )
 from global_signal_gateway import live_observation_provider as provider_module  # noqa: E402
@@ -40,6 +41,7 @@ from global_signal_plane.ledger import DurableSignalLedger  # noqa: E402
 
 
 TASK = "CODEX-GLOBAL-SIGNAL-TOWER-R137-AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER"
+ANCHOR_REPOSITORY, ANCHOR_PR, ANCHOR_MERGE, ANCHOR_BASE, ANCHOR_HEAD = _CANONICAL_MERGE_ANCHORS[0]
 
 
 class SyntheticPublicGitHub(LiveObservationProvider):
@@ -79,11 +81,25 @@ class SyntheticPublicGitHub(LiveObservationProvider):
             return {}, {"object": {"sha": sha}}, metadata
         if path == f"/repos/{DOMAIN_REPOSITORY}/git/ref/heads/main":
             return {}, {"object": {"sha": self.domain}}, metadata
+        if path == f"/repos/{TARGET_REPOSITORY}/git/commits/{ANCHOR_MERGE}":
+            parents = [{"sha": ANCHOR_BASE}, {"sha": ANCHOR_HEAD}]
+            if self.fault == "merged-null-head-first":
+                parents = [{"sha": ANCHOR_HEAD}, {"sha": ANCHOR_BASE}]
+            elif self.fault == "merged-null-head-sole":
+                parents = [{"sha": ANCHOR_HEAD}]
+            elif self.fault == "merged-null-unrelated-descendant":
+                parents = [{"sha": ANCHOR_BASE}, {"sha": "f" * 40}]
+            elif self.fault == "merged-null-malformed-parents":
+                parents = [{"sha": ANCHOR_BASE}, {"not_sha": ANCHOR_HEAD}]
+            return {}, {"tree": {"sha": self.tree}, "parents": parents}, metadata
         if path == f"/repos/{TARGET_REPOSITORY}/git/commits/{self.main}":
-            parent = "0" * 40 if self.fault == "merged-null-no-ancestry" else "c" * 40
-            return {}, {"tree": {"sha": self.tree}, "parents": [{"sha": parent}]}, metadata
-        if path == f"/repos/{TARGET_REPOSITORY}/git/commits/{'0' * 40}":
-            return {}, {"tree": {"sha": self.tree}, "parents": []}, metadata
+            return {}, {"tree": {"sha": self.tree}}, metadata
+        compare_path = f"/repos/{TARGET_REPOSITORY}/compare/{ANCHOR_MERGE}...{self.main}"
+        if path == compare_path:
+            if self.fault == "merged-null-no-ancestry":
+                return {}, {"status": "diverged", "ahead_by": 1, "behind_by": 1, "base_commit": {"sha": ANCHOR_MERGE}, "merge_base_commit": {"sha": "f" * 40}}, metadata
+            ahead_by = 100 if self.fault == "merged-null-more-than-64-later" else 1
+            return {}, {"status": "ahead", "ahead_by": ahead_by, "behind_by": 0, "base_commit": {"sha": ANCHOR_MERGE}, "merge_base_commit": {"sha": ANCHOR_MERGE}}, metadata
         if path == f"/repos/{TARGET_REPOSITORY}/git/trees/{self.tree}?recursive=1":
             entries = [{"path": item, "type": "blob", "sha": sha} for item, sha in self.paths.items()]
             if self.fault == "missing-path": entries.pop()
@@ -99,27 +115,40 @@ class SyntheticPublicGitHub(LiveObservationProvider):
             payload = self.blobs.get(sha, b"not-the-claimed-blob")
             if self.fault == "blob-mismatch": payload += b"!"
             return {}, {"encoding": "base64", "content": b64encode(payload).decode()}, metadata
-        pr_path = f"/repos/{TARGET_REPOSITORY}/pulls/360"
-        if path == pr_path:
+        pr_number = next((number for number in (360, ANCHOR_PR) if path == f"/repos/{TARGET_REPOSITORY}/pulls/{number}"), None)
+        if pr_number is not None:
             self.pr_reads += 1
-            head = "c" * 40
+            if pr_number == ANCHOR_PR:
+                head, base = ANCHOR_HEAD, ANCHOR_BASE
+            else:
+                head, base = "c" * 40, "b" * 40
             if self.fault == "pr-drift" and self.pr_reads > 1: head = "9" * 40
             if self.fault == "pr-base-drift" and self.pr_reads > 1: base = "8" * 40
-            else: base = "b" * 40
             state, merged, merge = "open", False, None
             if self.fault in {"open-merge-sha", "merge-sha-drift"}: merge = "6" * 40
             if self.fault == "pr-state-drift" and self.pr_reads > 1: state = "closed"
             if self.fault == "merge-drift" and self.pr_reads > 1: state, merged, merge = "closed", True, "7" * 40
             if self.fault == "merge-sha-drift" and self.pr_reads > 1: merge = "7" * 40
-            if self.fault in {"merged-null-then-valid", "merged-null-always", "merged-null-no-ancestry"}:
+            if self.fault in {
+                "merged-null-then-valid",
+                "merged-null-always",
+                "merged-null-no-ancestry",
+                "merged-null-head-first",
+                "merged-null-head-sole",
+                "merged-null-unrelated-descendant",
+                "merged-null-malformed-parents",
+                "merged-null-more-than-64-later",
+                "merged-null-unanchored",
+            }:
                 state, merged, merge = "closed", True, None
             return {}, {"state": state, "head": {"sha": head}, "base": {"sha": base}, "merged": merged, "merge_commit_sha": merge}, metadata
-        review_prefix = f"/repos/{TARGET_REPOSITORY}/pulls/360/reviews?per_page=100&page="
-        if path.startswith(review_prefix):
+        review_number = next((number for number in (360, ANCHOR_PR) if path.startswith(f"/repos/{TARGET_REPOSITORY}/pulls/{number}/reviews?per_page=100&page=")), None)
+        if review_number is not None:
             page = int(path.rsplit("=", 1)[1])
             headers = {"link": f'<https://api.github.com/next?page={page + 1}>; rel="next"'} if self.fault == "pagination" else {}
             if self.fault == "review-invalid": return headers, [{"id": 1}], metadata
-            commit = "c" * 40 if not self.fault == "review-drift" else "0" * 40
+            commit = ANCHOR_HEAD if review_number == ANCHOR_PR else "c" * 40
+            if self.fault == "review-drift": commit = "0" * 40
             return headers, [{"id": page, "state": "APPROVED", "commit_id": commit, "submitted_at": "2026-08-16T00:00:00+00:00", "user": {"id": 1}}], metadata
         raise AssertionError(f"unexpected synthetic API path: {path}")
 
@@ -144,6 +173,11 @@ class R137LiveObservationTests(unittest.TestCase):
     def assert_rejected(self, fault: str) -> None:
         with self.assertRaises(GatewayError):
             self.observe(fault)
+
+    def assert_merge_proof_rejected(self, fault: str, *, pull_request_number: int = ANCHOR_PR) -> None:
+        with self.assertRaises(GatewayError) as caught:
+            self.observe(fault, pull_request_number=pull_request_number)
+        self.assertEqual(caught.exception.code, "GITHUB_PR_MERGE_ANCESTRY_UNVERIFIED")
 
     def test_r137_r001_valid_public_observation_has_complete_evidence_and_proof(self) -> None:
         bundle, proof = self.observe()
@@ -208,10 +242,38 @@ class R137LiveObservationTests(unittest.TestCase):
     def test_r137_r012_merge_state_drift_fails(self) -> None: self.assert_rejected("merge-drift")
     def test_r137_r012b_pr_state_only_drift_fails(self) -> None: self.assert_rejected("pr-state-drift")
     def test_r137_r012c_null_merged_pr_field_uses_exact_main_ancestry_or_fails_closed(self) -> None:
-        bundle, proof = self.observe("merged-null-then-valid")
+        bundle, proof = self.observe("merged-null-then-valid", pull_request_number=ANCHOR_PR)
         self.assertTrue(validate_live_observation_proof(proof))
-        self.assertEqual("a" * 40, bundle.pr["merge_commit_sha"])
-        self.assert_rejected("merged-null-no-ancestry")
+        self.assertEqual(ANCHOR_MERGE, bundle.pr["merge_commit_sha"])
+        self.assert_merge_proof_rejected("merged-null-no-ancestry")
+
+    def test_r137_r012d_valid_two_parent_anchor_requires_main_first_parent_and_reviewed_head_second(self) -> None:
+        bundle, proof = self.observe("merged-null-always", pull_request_number=ANCHOR_PR)
+        self.assertTrue(validate_live_observation_proof(proof))
+        self.assertEqual((ANCHOR_PR, ANCHOR_MERGE, ANCHOR_HEAD, ANCHOR_BASE), (bundle.pr["number"], bundle.pr["merge_commit_sha"], bundle.pr["head_sha"], bundle.pr["base_sha"]))
+
+    def test_r137_r012e_reviewed_head_as_first_or_sole_parent_fails_closed(self) -> None:
+        self.assert_merge_proof_rejected("merged-null-head-first")
+        self.assert_merge_proof_rejected("merged-null-head-sole")
+
+    def test_r137_r012f_unrelated_descendant_and_malformed_parent_data_fail_closed(self) -> None:
+        self.assert_merge_proof_rejected("merged-null-unrelated-descendant")
+        self.assert_merge_proof_rejected("merged-null-malformed-parents")
+
+    def test_r137_r012g_fixed_historical_merge_survives_more_than_64_later_main_commits(self) -> None:
+        provider = SyntheticPublicGitHub("merged-null-more-than-64-later")
+        bundle, proof = provider.observe(request(pull_request_number=ANCHOR_PR))
+        self.assertTrue(validate_live_observation_proof(proof))
+        self.assertEqual(ANCHOR_MERGE, bundle.pr["merge_commit_sha"])
+        anchor_reads = [call for call in provider.calls if call == f"/repos/{TARGET_REPOSITORY}/git/commits/{ANCHOR_MERGE}"]
+        compare_reads = [call for call in provider.calls if call == f"/repos/{TARGET_REPOSITORY}/compare/{ANCHOR_MERGE}...{provider.main}"]
+        self.assertEqual((len(anchor_reads), len(compare_reads)), (2, 2))
+        commit_reads = [call for call in provider.calls if f"/repos/{TARGET_REPOSITORY}/git/commits/" in call]
+        self.assertEqual(len(commit_reads), 3)
+
+    def test_r137_r012h_nullable_merge_without_immutable_anchor_fails_closed(self) -> None:
+        self.assert_merge_proof_rejected("merged-null-unanchored", pull_request_number=360)
+
     def test_r137_r013_malformed_review_fails(self) -> None: self.assert_rejected("review-invalid")
     def test_r137_r014_incomplete_pagination_fails(self) -> None: self.assert_rejected("pagination")
 
