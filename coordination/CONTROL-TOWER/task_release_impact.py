@@ -211,6 +211,10 @@ def validate_release_candidate(value: Mapping[str, Any]) -> dict[str, Any]:
         if decision not in REUSE_DECISIONS:
             raise ImpactGateError("INVALID_REUSE_DECISION", f"/capability_inventory/{index}/decision")
         _string_list(capability["evidence_refs"], f"/capability_inventory/{index}/evidence_refs", nonempty=True)
+        if "satisfies_requirement" in capability and not isinstance(capability["satisfies_requirement"], bool):
+            raise ImpactGateError("INVALID_BOOLEAN", f"/capability_inventory/{index}/satisfies_requirement")
+        if "task_ref" in capability:
+            _nonempty_string(capability["task_ref"], f"/capability_inventory/{index}/task_ref")
         if decision == "NEW_MODULE_JUSTIFIED":
             justification = capability.get("new_module_justification")
             if not isinstance(justification, str) or not justification.strip():
@@ -257,7 +261,8 @@ def validate_release_candidate(value: Mapping[str, Any]) -> dict[str, Any]:
             raise ImpactGateError("AUTHORITY_FIELD_MISSING", f"/authority_binding/{field}")
     _nonempty_string(authority["owner_domain"], "/authority_binding/owner_domain")
     _nonempty_string(authority["writeback_owner"], "/authority_binding/writeback_owner")
-    if authority["compatible"] not in {True, False, "UNKNOWN"}:
+    compatible = authority["compatible"]
+    if not (isinstance(compatible, bool) or compatible == "UNKNOWN"):
         raise ImpactGateError("INVALID_AUTHORITY_COMPATIBILITY", "/authority_binding/compatible")
     for field in ("would_create_second_writer", "would_create_second_truth"):
         if field in authority and not isinstance(authority[field], bool):
@@ -274,7 +279,8 @@ def validate_release_candidate(value: Mapping[str, Any]) -> dict[str, Any]:
     if behavior not in MISSING_CAPABILITY_BEHAVIORS:
         raise ImpactGateError("INVALID_MISSING_CAPABILITY_BEHAVIOR", "/composition/missing_capability_behavior")
     _nonempty_string(composition["justification"], "/composition/justification")
-    if composition.get("removal_preserves_unrelated_core") not in {True, False, "UNKNOWN", None}:
+    removal = composition.get("removal_preserves_unrelated_core")
+    if not (removal is None or isinstance(removal, bool) or removal == "UNKNOWN"):
         raise ImpactGateError("INVALID_REMOVAL_PROOF", "/composition/removal_preserves_unrelated_core")
 
     unaffected = _list(candidate["unaffected_set"], "/unaffected_set")
@@ -287,7 +293,7 @@ def validate_release_candidate(value: Mapping[str, Any]) -> dict[str, Any]:
     for index, raw in enumerate(existing):
         item = _mapping(raw, f"/existing_work_items/{index}")
         _nonempty_string(item.get("task_id"), f"/existing_work_items/{index}/task_id")
-        if item.get("owns_coherent_change_surface") not in {True, False}:
+        if not isinstance(item.get("owns_coherent_change_surface"), bool):
             raise ImpactGateError(
                 "INVALID_BOOLEAN", f"/existing_work_items/{index}/owns_coherent_change_surface"
             )
