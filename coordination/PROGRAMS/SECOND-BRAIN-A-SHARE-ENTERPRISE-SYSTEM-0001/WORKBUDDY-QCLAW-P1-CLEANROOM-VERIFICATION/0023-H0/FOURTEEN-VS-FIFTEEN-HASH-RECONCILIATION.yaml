@@ -1,0 +1,27 @@
+# QCLAW P1 Audit - 14 vs 15 Hash Reconciliation
+# WorkBuddy Independent Verification
+timestamp: "2026-07-24T12:50:00+08:00"
+
+claim_in_receipt: "14 P1 files hashed by P1-VALIDATE-AUDIT.py"
+manifest_claim: "All 15 mandatory files created"
+
+reconciliation:
+  files_declared_mandatory: 15
+  files_actually_hashed: 14
+  excluded_file: "P1-VALIDATE-AUDIT.py"
+  
+  explanation: >
+    The validator script P1-VALIDATE-AUDIT.py is itself one of the 15 mandatory files,
+    but it cannot include itself in the combined hash computation. The receipt says
+    'All 15 mandatory files created' (existence check, PASS) AND '14 P1 files hashed'
+    (hash computation). This is a documentation consistency issue — the receipt should
+    clarify: '15 files mandated, 14 hashed (validator script excluded from self-hash).'
+  
+  is_data_integrity_error: false
+  is_documentation_gap: true
+
+independent_verification:
+  validator_sha256_verified: "45cd0e3ee6f9d54c5ad19799c165b1238b64dfa391d385e366c728863afc6b2a"
+  combined_15_file_sha256: "c8ef1aac51fbebb67cc0958bbe0df6a5e59d96a2fa9fd13cd686506e8be08fb5"
+  combined_14_file_sha256: "dc815fc10d3d6eb5164587b4bcc9f3247bb8d30b5e9533f873f5ba14982488f5"
+  matches_validator_output: true
