@@ -505,11 +505,14 @@ def _trusted_review_queue_blockers(
         raise IdleSignalSchedulerError("TRUSTED_REVIEW_QUEUE_PAGINATION_INCOMPLETE")
 
     latest_by_ticket: dict[tuple[int, str], dict[str, Any]] = {}
+    current_request_by_pr: dict[int, dict[str, Any]] = {}
     for event in sorted(normalized_events, key=lambda item: int(item["comment_id"])):
-        ticket = (int(event["pr"]), str(event["head"]))
-        latest_by_ticket[ticket] = event
+        pr = int(event["pr"])
+        head = str(event["head"])
+        latest_by_ticket[(pr, head)] = event
+        if event["schema"] == "REVIEW_REQUEST/v1":
+            current_request_by_pr[pr] = event
 
-    blockers: list[dict[str, Any]] = []
     latest_ticket_states: list[dict[str, Any]] = []
     for (pr, head), event in sorted(latest_by_ticket.items()):
         latest_ticket_states.append(
@@ -517,6 +520,20 @@ def _trusted_review_queue_blockers(
                 "pr": pr,
                 "head": head,
                 "event": event,
+            }
+        )
+
+    blockers: list[dict[str, Any]] = []
+    current_lineage_states: list[dict[str, Any]] = []
+    for pr, request in sorted(current_request_by_pr.items()):
+        head = str(request["head"])
+        event = latest_by_ticket[(pr, head)]
+        current_lineage_states.append(
+            {
+                "pr": pr,
+                "head": head,
+                "request_comment_id": request["comment_id"],
+                "current_event": event,
             }
         )
         if event["schema"] == "REVIEW_REQUEST/v1":
@@ -545,6 +562,7 @@ def _trusted_review_queue_blockers(
         "issue": REVIEW_QUEUE_ISSUE,
         "event_count": len(normalized_events),
         "latest_ticket_states": latest_ticket_states,
+        "current_lineage_states": current_lineage_states,
         "pagination_complete": True,
     }
     return blockers, sorted(set(evidence_refs)), _digest(observation)
