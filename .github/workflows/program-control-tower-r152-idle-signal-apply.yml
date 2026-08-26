@@ -64,6 +64,86 @@ jobs:
         working-directory: coordination/CONTROL-TOWER
         run: python run_all_tests.py
 
+      - name: Prove generated R152 state is accepted by canonical R144 validators
+        working-directory: coordination/CONTROL-TOWER
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import copy
+          from pathlib import Path
+          import shutil
+          import tempfile
+
+          import yaml
+
+          from lane_claims import validate_claims
+          from worker_slots import validate_worker_slots
+          from tests.test_idle_signal_apply import IdleSignalApplyTests
+
+          repo_root = Path('../..').resolve()
+          manifest = IdleSignalApplyTests().activation()
+          lane_id = manifest['work_claim_replacement']['lane_id']
+          slot_id = manifest['worker_slot_append']['worker_slot_id']
+
+          def write_yaml(root: Path, relpath: str, value: dict) -> None:
+              target = root / relpath
+              target.parent.mkdir(parents=True, exist_ok=True)
+              target.write_text(
+                  yaml.safe_dump(value, sort_keys=False, allow_unicode=True),
+                  encoding='utf-8',
+              )
+
+          with tempfile.TemporaryDirectory() as temp:
+              temp_root = Path(temp) / 'repo'
+              shutil.copytree(
+                  repo_root,
+                  temp_root,
+                  ignore=shutil.ignore_patterns('.git', '__pycache__', '.pytest_cache'),
+              )
+
+              claims_contract = manifest['control_plane_documents']['claims']
+              workers_contract = manifest['control_plane_documents']['workers']
+              write_yaml(temp_root, claims_contract['path'], claims_contract['expected_document'])
+              write_yaml(temp_root, workers_contract['path'], workers_contract['expected_document'])
+              write_yaml(
+                  temp_root,
+                  manifest['route_artifact']['path'],
+                  manifest['route_artifact']['payload'],
+              )
+
+              claims_result = validate_claims(temp_root)
+              workers_result = validate_worker_slots(temp_root)
+              if claims_result['claim_structural_check'] != 'PASS':
+                  raise SystemExit(f"R152 generated claim rejected by canonical validator: {claims_result['errors']}")
+              if workers_result['worker_slot_structural_check'] != 'PASS':
+                  raise SystemExit(f"R152 generated worker slot rejected by canonical R144 validator: {workers_result['errors']}")
+              if slot_id not in workers_result['active_executable_slots']:
+                  raise SystemExit('R152 generated ACTIVE worker slot is not executable under canonical R144')
+
+              empty_claims = copy.deepcopy(claims_contract['expected_document'])
+              empty_workers = copy.deepcopy(workers_contract['expected_document'])
+              for claim in empty_claims['claims']:
+                  if claim.get('lane_id') == lane_id:
+                      claim['write_paths'] = []
+              for slot in empty_workers['worker_slots']:
+                  if slot.get('worker_slot_id') == slot_id:
+                      slot['write_paths'] = []
+              write_yaml(temp_root, claims_contract['path'], empty_claims)
+              write_yaml(temp_root, workers_contract['path'], empty_workers)
+
+              rejected_claims = validate_claims(temp_root)
+              rejected_workers = validate_worker_slots(temp_root)
+              claim_codes = {item['code'] for item in rejected_claims['errors']}
+              worker_codes = {item['code'] for item in rejected_workers['errors']}
+              if 'ACTIVE_CLAIM_WRITE_SURFACE_MISSING' not in claim_codes:
+                  raise SystemExit(f'canonical claim validator failed to reject empty R152 write surface: {claim_codes}')
+              if 'WORKER_SLOT_WRITE_SURFACE_MISSING' not in worker_codes:
+                  raise SystemExit(f'canonical R144 validator failed to reject empty R152 write surface: {worker_codes}')
+
+          print('R152_R144_COMPATIBILITY_PASS')
+          PY
+
       - name: Verify bounded changed-path allowlist
         shell: bash
         run: |
