@@ -397,7 +397,7 @@ class IdleSignalSchedulerTests(unittest.TestCase):
         self.assertEqual(result["reason"], "HIGHER_PRIORITY_OR_ACTIVE_WORK_PRESENT")
         self.assertEqual(result["blockers"][0]["priority"], P1)
 
-    def test_18_review_queue_parser_uses_latest_event_per_pr(self) -> None:
+    def test_18_review_queue_parser_settles_matching_exact_head_ticket(self) -> None:
         head_a = "a" * 40
         head_b = "b" * 40
         payload = [
@@ -453,7 +453,56 @@ class IdleSignalSchedulerTests(unittest.TestCase):
         self.assertEqual(len(refs), 4)
         self.assertEqual(len(digest), 64)
 
-    def test_19_trusted_priority_provider_failure_is_fail_closed(self) -> None:
+    def test_19_late_old_head_result_cannot_suppress_new_head_request(self) -> None:
+        head_a = "a" * 40
+        head_b = "b" * 40
+        payload = [
+            {
+                "id": 11,
+                "html_url": "https://github.com/q/11",
+                "body": (
+                    "schema: REVIEW_REQUEST/v1\nproject: SECOND_BRAIN\npr: 93\n"
+                    f"exact_head: {head_a}\nstatus: WAITING_REVIEW\n"
+                ),
+            },
+            {
+                "id": 12,
+                "html_url": "https://github.com/q/12",
+                "body": (
+                    "schema: REVIEW_REQUEST/v1\nproject: SECOND_BRAIN\npr: 93\n"
+                    f"exact_head: {head_b}\nstatus: WAITING_REVIEW\n"
+                ),
+            },
+            {
+                "id": 13,
+                "html_url": "https://github.com/q/13",
+                "body": (
+                    "schema: REVIEW_RESULT/v1\nproject: SECOND_BRAIN\npr: 93\n"
+                    f"reviewed_head: {head_a}\nverdict: ACCEPT\n"
+                ),
+            },
+        ]
+
+        class FakeGatewayError(Exception):
+            code = "FAKE"
+
+        class FakeObserver:
+            def _get_json(self, path):
+                return ({"content-type": "application/json"}, payload, {"path": path})
+
+        with patch(
+            "idle_signal_scheduler._make_review_queue_observer",
+            return_value=(FakeObserver(), FakeGatewayError),
+        ):
+            blockers, refs, digest = _trusted_review_queue_blockers(REPO_ROOT)
+        self.assertEqual(len(blockers), 1)
+        self.assertEqual(blockers[0]["priority"], P1)
+        self.assertEqual(blockers[0]["work_ref"], f"pr://93@{head_b}")
+        self.assertEqual(blockers[0]["reason"], "TRUSTED_REVIEW_QUEUE_WAITING_REVIEW")
+        self.assertEqual(len(refs), 3)
+        self.assertEqual(len(digest), 64)
+
+    def test_20_trusted_priority_provider_failure_is_fail_closed(self) -> None:
         with (
             patch("idle_signal_scheduler._canonical_idle_blockers", return_value=[]),
             patch(
