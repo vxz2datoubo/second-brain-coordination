@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://second-brain.local/schemas/r151-idle-signal-auto-release-authorization.json",
+  "title": "IdleSignalAutoReleaseAuthorization/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "signal_ref",
+    "opportunity_id",
+    "opportunity_digest",
+    "canonical_main",
+    "priority_observation_digest",
+    "r150_receipt_digest",
+    "r150_final_disposition",
+    "standing_user_policy_ref",
+    "priority_semantics_ref",
+    "release_gate_refs",
+    "side_effect_plan",
+    "authority",
+    "independent_exact_head_review_required",
+    "apply_requires_fresh_recheck",
+    "authorization_id",
+    "authorization_digest"
+  ],
+  "properties": {
+    "schema_version": {"const": "IdleSignalAutoReleaseAuthorization/v1"},
+    "signal_ref": {"type": "string", "minLength": 1},
+    "opportunity_id": {"type": "string", "minLength": 1},
+    "opportunity_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "canonical_main": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "priority_observation_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "r150_receipt_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "r150_final_disposition": {
+      "enum": [
+        "RELEASE_BOUNDED_TASK",
+        "RELEASE_AS_EXTENSION",
+        "RELEASE_AS_ADAPTER_OR_PLUGIN"
+      ]
+    },
+    "standing_user_policy_ref": {"const": "issue://461#user-direction-2026-08-26"},
+    "priority_semantics_ref": {"type": "string", "minLength": 1},
+    "release_gate_refs": {
+      "type": "array",
+      "minItems": 2,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "side_effect_plan": {
+      "const": [
+        "create_issue",
+        "create_route",
+        "create_work_claim",
+        "allocate_worker_slot",
+        "begin_bounded_engineering"
+      ]
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "creates_signal_truth",
+        "signal_self_authorizes",
+        "can_create_issue",
+        "can_create_route",
+        "can_create_work_claim",
+        "can_allocate_worker_slot",
+        "can_begin_bounded_engineering",
+        "can_merge_without_independent_accept",
+        "can_deploy_production",
+        "can_expand_permissions_or_secrets",
+        "can_touch_trading_orders_or_funds",
+        "can_perform_destructive_history_rewrite"
+      ],
+      "properties": {
+        "creates_signal_truth": {"const": false},
+        "signal_self_authorizes": {"const": false},
+        "can_create_issue": {"const": true},
+        "can_create_route": {"const": true},
+        "can_create_work_claim": {"const": true},
+        "can_allocate_worker_slot": {"const": true},
+        "can_begin_bounded_engineering": {"const": true},
+        "can_merge_without_independent_accept": {"const": false},
+        "can_deploy_production": {"const": false},
+        "can_expand_permissions_or_secrets": {"const": false},
+        "can_touch_trading_orders_or_funds": {"const": false},
+        "can_perform_destructive_history_rewrite": {"const": false}
+      }
+    },
+    "independent_exact_head_review_required": {"const": true},
+    "apply_requires_fresh_recheck": {"const": true},
+    "authorization_id": {"type": "string", "pattern": "^r151-auto-release:[0-9a-f]{24}$"},
+    "authorization_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}
