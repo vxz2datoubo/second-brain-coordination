@@ -1,6 +1,7 @@
 # R152 — Idle Signal Auto-Release Apply Transaction
 
 Issue: #463
+Draft PR: #464
 
 Base main at engineering start: `9ba2fa2346fcb813782a840a781de1ad7338663a`
 
@@ -16,7 +17,7 @@ A further canonical constraint was discovered during implementation: R144 requir
 
 R152 preserves the R151 logical plan but materializes it in two governed stages:
 
-1. **NON_EXECUTABLE_BOOTSTRAP**
+1. **NONEXECUTABLE BOOTSTRAP**
    - fresh replay R151;
    - deterministic task / route / worker / branch identity from the R151 authorization digest;
    - create the implementation Issue;
@@ -24,7 +25,7 @@ R152 preserves the R151 logical plan but materializes it in two governed stages:
    - create a Draft implementation PR;
    - no file mutation, no Route / Work Claim / worker-slot canonical write, no execution authority.
 
-2. **ACTIVATION_GATE_CANDIDATE**
+2. **ACTIVATION GATE CANDIDATE**
    - fresh replay R151 again against exact current main;
    - require exact bootstrap Issue / PR / branch / bootstrap-head evidence;
    - require original proposal surface == requested apply surface;
