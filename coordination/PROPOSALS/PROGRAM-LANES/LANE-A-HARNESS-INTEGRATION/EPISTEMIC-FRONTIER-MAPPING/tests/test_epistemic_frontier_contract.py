@@ -1,3 +1,4 @@
+from copy import deepcopy
 from pathlib import Path
 import unittest
 import yaml
@@ -6,6 +7,179 @@ import yaml
 ROOT = Path(__file__).resolve().parents[5]
 SKILL = ROOT / "SKILLS" / "EPISTEMIC-KNOWLEDGE-STATE-FRONTIER-MAPPING-SKILL-v1.0.yaml"
 EVALS = Path(__file__).resolve().parents[1] / "EPISTEMIC-FRONTIER-EVALS-v1.0.yaml"
+
+
+def _has_cycle(edges):
+    graph = {}
+    for source, target in edges:
+        graph.setdefault(source, set()).add(target)
+        graph.setdefault(target, set())
+
+    visiting = set()
+    visited = set()
+
+    def visit(node):
+        if node in visiting:
+            return True
+        if node in visited:
+            return False
+        visiting.add(node)
+        for neighbor in graph.get(node, ()):
+            if visit(neighbor):
+                return True
+        visiting.remove(node)
+        visited.add(node)
+        return False
+
+    return any(visit(node) for node in graph)
+
+
+def _derive_expected(case):
+    """Deterministic public-safe reference semantics for the frozen eval contract.
+
+    This is intentionally test/eval-only. It does not implement a production W3,
+    PEOS, profile, or skill runtime. The fixture's ``expected`` section is data
+    under test, not authority: critical outcomes are derived independently from
+    the case inputs below and then compared field-for-field.
+    """
+    evidence = case.get("evidence", {})
+    policy = case.get("policy", {})
+    modes = set(evidence.get("modes", []))
+    polarity = evidence.get("knowledge_claim_polarity")
+    provenance = evidence.get("provenance_refs")
+
+    if policy.get("access_disposition") == "SCOPE_FORBIDDEN":
+        return {
+            "projection_authorized": False,
+            "no_cross_scope_fallback": True,
+        }
+
+    requested = str(case.get("requested_inference", "")).lower()
+    if requested and any(term in requested for term in ("political", "religious", "health")):
+        return {
+            "authorized": False,
+            "disposition": "ABSTAIN",
+        }
+
+    if "caller_numeric_threshold" in policy and not policy.get("inference_policy_ref"):
+        return {
+            "cognitive_band_authorized": False,
+            "reason": "VERSIONED_CLASSIFICATION_POLICY_REQUIRED",
+        }
+
+    if provenance == []:
+        return {
+            "cognitive_band_authorized": False,
+            "reason": "PROVENANCE_REQUIRED",
+        }
+
+    graph = case.get("prerequisite_graph")
+    if graph is not None and _has_cycle(graph.get("edges", [])):
+        return {
+            "prerequisite_coverage": "CYCLIC_OR_INVALID",
+            "frontier_recommendation_authorized": False,
+        }
+
+    crosswalk = case.get("crosswalk")
+    if crosswalk is not None and crosswalk.get("mapping_relation") == "CLOSE_MATCH":
+        return {
+            "canonical_identity_merge_authorized": False,
+            "transitive_exact_match_authorized": False,
+        }
+
+    research_candidate = case.get("research_candidate")
+    if research_candidate is not None:
+        return {
+            "downstream": "BLUEPRINT-TO-SKILL-GAP-COMPILER-0012",
+            "automatic_formal_skill_promotion": False,
+        }
+
+    if evidence.get("freshness_status") == "STALE":
+        return {
+            "cognitive_state_may_remain_known": True,
+            "current_method_validity": "REVALIDATION_REQUIRED",
+            "trading_authority": False,
+        }
+
+    if evidence.get("pure_similarity_only"):
+        return {
+            "forbidden_cognitive_bands": ["KNOWN_UNSAID_INFERRED", "KNOWN_SAID"],
+            "allowed_outcomes": ["UNOBSERVED", "UNKNOWN", "ABSTAIN"],
+        }
+
+    if polarity == "DENIES_KNOWLEDGE" and "USER_CORRECTION" in modes:
+        return {
+            "forbidden_cognitive_bands": ["KNOWN_UNSAID_INFERRED"],
+            "correction_must_be_current_authority_for_user_claim": True,
+            "historical_inference_must_remain_traceable": True,
+        }
+
+    source_domain = evidence.get("source_domain")
+    target_domain = evidence.get("target_domain")
+    target_domain_evidence_present = evidence.get(
+        "target_domain_evidence_present",
+        policy.get("target_domain_evidence_present"),
+    )
+    if source_domain and target_domain and source_domain != target_domain and target_domain_evidence_present is False:
+        return {
+            "forbidden_cognitive_bands": ["KNOWN_UNSAID_INFERRED"],
+            "allowed_outcomes": [
+                "UNKNOWN_BUT_ACCESSIBLE",
+                "UNKNOWN_REQUIRES_SCAFFOLDING",
+                "UNKNOWN",
+                "ABSTAIN",
+            ],
+        }
+
+    if polarity == "AFFIRMS_KNOWLEDGE" and "USER_EXPLICIT" in modes:
+        return {
+            "cognitive_band": "KNOWN_SAID",
+            "mastery_must_remain_independent": True,
+        }
+
+    if (
+        polarity == "DEMONSTRATES_COMPETENCE"
+        and policy.get("inference_policy_ref")
+        and target_domain_evidence_present is not False
+        and modes.intersection({"DIRECT_TASK_DEMONSTRATION", "REPEATED_BEHAVIORAL_EVIDENCE"})
+    ):
+        return {
+            "cognitive_band": "KNOWN_UNSAID_INFERRED",
+            "may_not_be_represented_as_user_explicit": True,
+        }
+
+    if (
+        polarity == "DOES_NOT_ESTABLISH_KNOWLEDGE"
+        and policy.get("prerequisite_coverage") == "SUFFICIENT"
+        and policy.get("readiness_policy_ref")
+    ):
+        return {
+            "cognitive_band": "UNKNOWN_BUT_ACCESSIBLE",
+            "must_not_imply_user_does_not_know": True,
+            "probe_allowed": True,
+        }
+
+    if (
+        polarity == "UNKNOWN"
+        and policy.get("prerequisite_coverage") == "MISSING"
+        and policy.get("readiness_policy_ref")
+    ):
+        return {
+            "cognitive_band": "UNKNOWN_REQUIRES_SCAFFOLDING",
+            "required_scaffold": "PREREQUISITE_CONCEPT",
+        }
+
+    raise AssertionError(f"No deterministic reference rule covers {case.get('case_id')}")
+
+
+def _validate_case(case):
+    derived = _derive_expected(case)
+    expected = case.get("expected", {})
+    return {
+        key: (expected.get(key), required_value)
+        for key, required_value in derived.items()
+        if expected.get(key) != required_value
+    }
 
 
 class EpistemicFrontierContractTests(unittest.TestCase):
@@ -99,9 +273,9 @@ class EpistemicFrontierContractTests(unittest.TestCase):
         self.assertEqual(self.skill["maturity"]["formal_skill_promotion"], "NOT_AUTHORIZED")
         self.assertTrue(self.skill["maturity"]["runtime_not_implemented"])
 
-    def test_adversarial_eval_suite_covers_required_failure_modes(self):
+    def test_adversarial_eval_suite_is_executable_against_reference_semantics(self):
         ids = {case["case_id"] for case in self.evals["cases"]}
-        expected = {
+        required_ids = {
             "EKM-EVAL-003-SIMILARITY-ONLY",
             "EKM-EVAL-004-EXPLICIT-DENIAL-OVERRIDES-INFERENCE",
             "EKM-EVAL-007-CROSS-DOMAIN-NEGATIVE-TRANSFER",
@@ -114,8 +288,26 @@ class EpistemicFrontierContractTests(unittest.TestCase):
             "EKM-EVAL-014-CALLER-CONTROLLED-THRESHOLD",
             "EKM-EVAL-015-MISSING-PROVENANCE",
         }
-        self.assertTrue(expected <= ids)
+        self.assertTrue(required_ids <= ids)
         self.assertEqual(self.evals["boundary"], "SYNTHETIC_PUBLIC_SAFE / NO_RUNTIME_AUTHORIZATION / NO_TRADE")
+        for case in self.evals["cases"]:
+            with self.subTest(case_id=case["case_id"]):
+                self.assertEqual(_validate_case(case), {})
+
+    def test_mutation_scope_forbidden_cannot_flip_projection_authorized(self):
+        case = deepcopy(next(case for case in self.evals["cases"] if case["case_id"] == "EKM-EVAL-012-SCOPE-FORBIDDEN"))
+        case["expected"]["projection_authorized"] = True
+        self.assertEqual(_validate_case(case)["projection_authorized"], (True, False))
+
+    def test_mutation_sensitive_profile_cannot_flip_authorized(self):
+        case = deepcopy(next(case for case in self.evals["cases"] if case["case_id"] == "EKM-EVAL-013-SENSITIVE-PROFILE-INFERENCE"))
+        case["expected"]["authorized"] = True
+        self.assertEqual(_validate_case(case)["authorized"], (True, False))
+
+    def test_mutation_caller_threshold_cannot_flip_cognitive_authorization(self):
+        case = deepcopy(next(case for case in self.evals["cases"] if case["case_id"] == "EKM-EVAL-014-CALLER-CONTROLLED-THRESHOLD"))
+        case["expected"]["cognitive_band_authorized"] = True
+        self.assertEqual(_validate_case(case)["cognitive_band_authorized"], (True, False))
 
 
 if __name__ == "__main__":
