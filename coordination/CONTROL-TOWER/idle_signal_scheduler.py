@@ -147,6 +147,38 @@ def _exclusion_hits(value: Any) -> tuple[str, ...]:
     return tuple(sorted(STANDING_AUTO_RELEASE_EXCLUSIONS & _risk_tokens(value)))
 
 
+def _requested_side_effect_surface(candidate: Mapping[str, Any]) -> dict[str, Any]:
+    """Project only requested/effective side effects, never negative safeguards.
+
+    `out_of_scope` is an explicit statement of what the task promises not to do.
+    Treating those words as requested risk would invert the user's safety policy
+    and route ordinary bounded work to USER_GATE. R151 therefore checks actual
+    risk declarations and proposed write/authority surfaces only.
+    """
+    proposal = candidate.get("task_release_proposal")
+    if not isinstance(proposal, Mapping):
+        raise IdleSignalSchedulerError("TASK_RELEASE_PROPOSAL_REQUIRED")
+    surface = proposal.get("proposed_write_surface")
+    if not isinstance(surface, Mapping):
+        raise IdleSignalSchedulerError("PROPOSED_WRITE_SURFACE_REQUIRED")
+    interfaces = surface.get("interfaces", [])
+    write_interfaces: list[Any] = []
+    if isinstance(interfaces, list):
+        for item in interfaces:
+            if isinstance(item, Mapping):
+                if str(item.get("mode", "")).casefold() == "write":
+                    write_interfaces.append(item)
+            elif isinstance(item, str):
+                write_interfaces.append(item)
+    return {
+        "risk": proposal.get("risk", []),
+        "write_paths": surface.get("write_paths", []),
+        "write_domains": surface.get("write_domains", []),
+        "authority_claims": surface.get("authority_claims", []),
+        "write_interfaces": write_interfaces,
+    }
+
+
 def validate_priority_observation(value: Mapping[str, Any]) -> dict[str, Any]:
     if not isinstance(value, Mapping):
         raise IdleSignalSchedulerError("PRIORITY_OBSERVATION_NOT_OBJECT")
@@ -434,7 +466,7 @@ def evaluate_idle_signal_startup(
             candidate = validate_opportunity(raw, index=index)
         except IdleSignalSchedulerError:
             continue
-        hits = _exclusion_hits(candidate["task_release_proposal"])
+        hits = _exclusion_hits(_requested_side_effect_surface(candidate))
         if hits:
             user_gate.append({"opportunity_id": candidate["opportunity_id"], "exclusion_hits": list(hits)})
             continue
