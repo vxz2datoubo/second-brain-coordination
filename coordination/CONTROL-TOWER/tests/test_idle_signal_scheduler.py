@@ -435,12 +435,18 @@ class IdleSignalSchedulerTests(unittest.TestCase):
             },
         ]
 
+        class FakeGatewayError(Exception):
+            code = "FAKE"
+
         class FakeObserver:
             def _get_json(self, path):
                 return ({"content-type": "application/json"}, payload, {"path": path})
 
-        with patch("idle_signal_scheduler._ReviewQueueLiveObserver", FakeObserver):
-            blockers, refs, digest = _trusted_review_queue_blockers()
+        with patch(
+            "idle_signal_scheduler._make_review_queue_observer",
+            return_value=(FakeObserver(), FakeGatewayError),
+        ):
+            blockers, refs, digest = _trusted_review_queue_blockers(REPO_ROOT)
         self.assertEqual(len(blockers), 1)
         self.assertEqual(blockers[0]["priority"], P2)
         self.assertEqual(blockers[0]["work_ref"], f"pr://92@{head_b}")
