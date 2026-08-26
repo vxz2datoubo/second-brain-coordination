@@ -48,6 +48,67 @@ jobs:
         working-directory: coordination/CONTROL-TOWER
         run: python -m unittest tests.test_idle_signal_apply -v
 
+      - name: Prove caller reopen reason is bound to canonical lane closure semantics
+        working-directory: coordination/CONTROL-TOWER
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import copy
+          from pathlib import Path
+
+          import yaml
+
+          from idle_signal_apply import IdleSignalApplyError, _validate_lane_reopen_rule
+
+          claims_doc = yaml.safe_load(Path('LANE-WORK-CLAIMS.yaml').read_text(encoding='utf-8'))
+          claims = {
+              item['lane_id']: item
+              for item in claims_doc['claims']
+              if isinstance(item, dict) and item.get('lane_id')
+          }
+
+          def expect_pass(lane_id: str, reason: str) -> None:
+              _validate_lane_reopen_rule(claims[lane_id], reason)
+
+          def expect_fail(claim: dict, reason: str, code: str) -> None:
+              try:
+                  _validate_lane_reopen_rule(claim, reason)
+              except IdleSignalApplyError as exc:
+                  if exc.code != code:
+                      raise SystemExit(
+                          f'wrong reopen failure for {reason}: expected {code}, got {exc.code}'
+                      ) from exc
+              else:
+                  raise SystemExit(f'unauthorized reopen reason passed: {reason}')
+
+          for lane_id in ('LANE-A-HARNESS-INTEGRATION', 'LANE-B-A-SHARE-REMEDIATION'):
+              expect_pass(lane_id, 'NEW_GOVERNED_TASK')
+              expect_fail(
+                  claims[lane_id],
+                  'ARBITRARY_UNAUTHORIZED_REOPEN',
+                  'LANE_REOPEN_REASON_NOT_AUTHORIZED',
+              )
+
+          lane_c = 'LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP'
+          expect_pass(lane_c, 'BUG')
+          expect_fail(
+              claims[lane_c],
+              'NEW_GOVERNED_TASK',
+              'LANE_REOPEN_REASON_NOT_AUTHORIZED',
+          )
+
+          free_form = copy.deepcopy(claims['LANE-A-HARNESS-INTEGRATION'])
+          free_form['closure_receipt']['reopen_rule'] = 'NEW_GOVERNED_TASK WHENEVER CALLER WANTS'
+          expect_fail(
+              free_form,
+              'NEW_GOVERNED_TASK',
+              'LANE_REOPEN_RULE_UNSUPPORTED',
+          )
+
+          print('R152_LANE_REOPEN_REASON_BINDING_PASS')
+          PY
+
       - name: Retain R151 scheduler regressions
         working-directory: coordination/CONTROL-TOWER
         run: python -m unittest tests.test_idle_signal_scheduler -v
