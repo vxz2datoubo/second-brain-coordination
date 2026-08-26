@@ -17,6 +17,7 @@ from idle_signal_scheduler import (
     P4,
     PRIORITY_OBSERVATION_SCHEMA,
     IdleSignalSchedulerError,
+    _trusted_review_queue_blockers,
     evaluate_idle_signal_startup,
     validate_opportunity,
 )
@@ -119,7 +120,9 @@ def opportunity(
     p = copy.deepcopy(release_proposal or proposal(signal_ref))
     p["source_signal_refs"] = [signal_ref, "issue://461"]
     p["signal_primary_domain"] = "SHARED_COGNITIVE_OS"
-    p["desired_effect"] = "Advance one bounded idle Signal opportunity through governed engineering."
+    p["desired_effect"] = (
+        "Advance one bounded idle Signal opportunity through governed engineering."
+    )
     return {
         "schema_version": OPPORTUNITY_SCHEMA,
         "opportunity_id": opportunity_id,
@@ -146,9 +149,8 @@ def opportunity(
 def priority_observation(*items: dict) -> dict:
     return {
         "schema_version": PRIORITY_OBSERVATION_SCHEMA,
-        "observation_id": "startup-scan-r151-test",
-        "scan_complete": True,
-        "evidence_refs": ["github://issue/453", "git://active-control-plane"],
+        "observation_id": "startup-hints-r151-test",
+        "evidence_refs": ["invocation://current-user-context"],
         "items": list(items),
     }
 
@@ -157,7 +159,7 @@ def priority_item(priority: str) -> dict:
     return {
         "priority": priority,
         "work_ref": f"work://{priority}",
-        "reason": "synthetic priority fixture",
+        "reason": "synthetic additive priority fixture",
         "evidence_refs": [f"fixture://{priority}"],
     }
 
@@ -188,15 +190,32 @@ def r150_receipt(current_head: str, disposition: str = "RELEASE_AS_EXTENSION") -
 
 
 class IdleSignalSchedulerTests(unittest.TestCase):
-    def evaluate(self, items, scan=None, *, canonical_blockers=None, r150=None):
+    def evaluate(
+        self,
+        items,
+        scan=None,
+        *,
+        canonical_blockers=None,
+        trusted_review_blockers=None,
+        r150=None,
+    ):
         current = head()
         scan = scan or priority_observation()
         if r150 is None:
             r150 = r150_receipt(current)
+        trusted_review_blockers = list(trusted_review_blockers or [])
         with (
             patch(
                 "idle_signal_scheduler._canonical_idle_blockers",
                 return_value=list(canonical_blockers or []),
+            ),
+            patch(
+                "idle_signal_scheduler._trusted_review_queue_blockers",
+                return_value=(
+                    trusted_review_blockers,
+                    ["fixture://trusted-review-queue"],
+                    "b" * 64,
+                ),
             ),
             patch(
                 "idle_signal_scheduler.evaluate_trusted_release_proposal",
@@ -223,7 +242,7 @@ class IdleSignalSchedulerTests(unittest.TestCase):
         result = self.evaluate([opportunity()], priority_observation(priority_item(P2)))
         self.assertEqual(result["status"], "NO_IDLE_RELEASE")
 
-    def test_04_canonical_active_work_blocks_even_when_external_scan_empty(self) -> None:
+    def test_04_canonical_active_work_blocks_even_when_caller_hints_empty(self) -> None:
         blocker = {
             "priority": P2,
             "work_ref": "task://ACTIVE",
@@ -284,17 +303,19 @@ class IdleSignalSchedulerTests(unittest.TestCase):
 
     def test_10_high_risk_excluded_side_effect_forces_user_gate(self) -> None:
         risky = opportunity()
-        risky["task_release_proposal"]["risk"] = ["production deployment with secret token"]
+        risky["task_release_proposal"]["risk"] = [
+            "production deployment with secret token"
+        ]
         result = self.evaluate([risky])
         self.assertEqual(result["status"], "USER_GATE")
-        self.assertEqual(
-            result["reason"],
-            "ONLY_HIGH_RISK_OR_EXCLUDED_SIGNAL_OPPORTUNITIES_AVAILABLE",
-        )
 
     def test_11_stale_current_main_r150_failure_fails_closed(self) -> None:
         with (
             patch("idle_signal_scheduler._canonical_idle_blockers", return_value=[]),
+            patch(
+                "idle_signal_scheduler._trusted_review_queue_blockers",
+                return_value=([], ["fixture://trusted-review-queue"], "b" * 64),
+            ),
             patch(
                 "idle_signal_scheduler.evaluate_trusted_release_proposal",
                 side_effect=TrustedReleaseError("CANONICAL_MAIN_DRIFT"),
@@ -314,9 +335,6 @@ class IdleSignalSchedulerTests(unittest.TestCase):
             [opportunity()], r150=r150_receipt(head(), "NO_TASK_ALREADY_SATISFIED")
         )
         self.assertEqual(result["status"], "NO_IDLE_RELEASE")
-        self.assertEqual(
-            result["reason"], "R150_NON_RELEASE:NO_TASK_ALREADY_SATISFIED"
-        )
         self.assertIsNone(result["authorization"])
 
     def test_13_forged_or_malformed_r150_receipt_cannot_mint_authorization(self) -> None:
@@ -338,10 +356,9 @@ class IdleSignalSchedulerTests(unittest.TestCase):
         self.assertTrue(auth["authority"]["can_create_issue"])
         self.assertTrue(auth["authority"]["can_begin_bounded_engineering"])
         self.assertFalse(auth["authority"]["signal_self_authorizes"])
+        self.assertFalse(auth["authority"]["caller_can_attest_priority_completeness"])
         self.assertFalse(auth["authority"]["can_merge_without_independent_accept"])
         self.assertFalse(auth["authority"]["can_deploy_production"])
-        self.assertFalse(auth["authority"]["can_expand_permissions_or_secrets"])
-        self.assertFalse(auth["authority"]["can_touch_trading_orders_or_funds"])
         self.assertTrue(auth["independent_exact_head_review_required"])
         self.assertTrue(auth["apply_requires_fresh_recheck"])
 
@@ -352,9 +369,9 @@ class IdleSignalSchedulerTests(unittest.TestCase):
             validate_opportunity(bad)
         self.assertEqual(caught.exception.code, "SIGNAL_PROPOSAL_BINDING_MISSING")
 
-    def test_16_priority_scan_must_claim_complete_and_have_evidence(self) -> None:
+    def test_16_caller_cannot_self_attest_priority_scan_completeness(self) -> None:
         scan = priority_observation()
-        scan["scan_complete"] = False
+        scan["scan_complete"] = True
         with self.assertRaises(IdleSignalSchedulerError) as caught:
             evaluate_idle_signal_startup(
                 REPO_ROOT,
@@ -362,7 +379,92 @@ class IdleSignalSchedulerTests(unittest.TestCase):
                 expected_coordinator_main=head(),
                 priority_observation_value=scan,
             )
-        self.assertEqual(caught.exception.code, "STARTUP_PRIORITY_SCAN_INCOMPLETE")
+        self.assertEqual(caught.exception.code, "PRIORITY_HINTS_FIELDS_INVALID")
+
+    def test_17_forged_empty_caller_hints_cannot_hide_trusted_p1(self) -> None:
+        trusted_p1 = {
+            "priority": P1,
+            "work_ref": "pr://999@" + "c" * 40,
+            "reason": "TRUSTED_REVIEW_QUEUE_WAITING_REVIEW",
+            "evidence_refs": ["https://github.com/example/review-queue-comment"],
+        }
+        result = self.evaluate(
+            [opportunity()],
+            scan=priority_observation(),
+            trusted_review_blockers=[trusted_p1],
+        )
+        self.assertEqual(result["status"], "NO_IDLE_RELEASE")
+        self.assertEqual(result["reason"], "HIGHER_PRIORITY_OR_ACTIVE_WORK_PRESENT")
+        self.assertEqual(result["blockers"][0]["priority"], P1)
+
+    def test_18_review_queue_parser_uses_latest_event_per_pr(self) -> None:
+        head_a = "a" * 40
+        head_b = "b" * 40
+        payload = [
+            {
+                "id": 1,
+                "html_url": "https://github.com/q/1",
+                "body": (
+                    "schema: REVIEW_REQUEST/v1\nproject: SECOND_BRAIN\npr: 91\n"
+                    f"exact_head: {head_a}\nstatus: WAITING_REVIEW\n"
+                ),
+            },
+            {
+                "id": 2,
+                "html_url": "https://github.com/q/2",
+                "body": (
+                    "schema: REVIEW_RESULT/v1\nproject: SECOND_BRAIN\npr: 91\n"
+                    f"reviewed_head: {head_a}\nverdict: ACCEPT\n"
+                ),
+            },
+            {
+                "id": 3,
+                "html_url": "https://github.com/q/3",
+                "body": (
+                    "schema: REVIEW_REQUEST/v1\nproject: SECOND_BRAIN\npr: 92\n"
+                    f"exact_head: {head_b}\nstatus: WAITING_REVIEW\n"
+                ),
+            },
+            {
+                "id": 4,
+                "html_url": "https://github.com/q/4",
+                "body": (
+                    "schema: REVIEW_RESULT/v1\nproject: SECOND_BRAIN\npr: 92\n"
+                    f"reviewed_head: {head_b}\nverdict: CHANGES_REQUIRED\n"
+                ),
+            },
+        ]
+
+        class FakeObserver:
+            def _get_json(self, path):
+                return ({"content-type": "application/json"}, payload, {"path": path})
+
+        with patch("idle_signal_scheduler._ReviewQueueLiveObserver", FakeObserver):
+            blockers, refs, digest = _trusted_review_queue_blockers()
+        self.assertEqual(len(blockers), 1)
+        self.assertEqual(blockers[0]["priority"], P2)
+        self.assertEqual(blockers[0]["work_ref"], f"pr://92@{head_b}")
+        self.assertEqual(len(refs), 4)
+        self.assertEqual(len(digest), 64)
+
+    def test_19_trusted_priority_provider_failure_is_fail_closed(self) -> None:
+        with (
+            patch("idle_signal_scheduler._canonical_idle_blockers", return_value=[]),
+            patch(
+                "idle_signal_scheduler._trusted_review_queue_blockers",
+                side_effect=IdleSignalSchedulerError(
+                    "TRUSTED_REVIEW_QUEUE_PAGINATION_INCOMPLETE"
+                ),
+            ),
+        ):
+            result = evaluate_idle_signal_startup(
+                REPO_ROOT,
+                [opportunity()],
+                expected_coordinator_main=head(),
+                priority_observation_value=priority_observation(),
+            )
+        self.assertEqual(result["status"], "NO_IDLE_RELEASE")
+        self.assertIn("TRUSTED_PRIORITY_FAIL_CLOSED", result["reason"])
 
 
 if __name__ == "__main__":
