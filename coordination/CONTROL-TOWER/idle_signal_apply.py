@@ -6,16 +6,19 @@ import json
 from pathlib import Path
 import re
 import subprocess
-from typing import Any, Mapping, Sequence
+from typing import Any, Mapping
 
 import yaml
 
 from control_tower import load_yaml
 from idle_signal_scheduler import (
     AUTHORIZATION_SCHEMA,
+    MAX_REVIEW_QUEUE_PAGES,
     OPPORTUNITY_SCHEMA,
+    REVIEW_QUEUE_ISSUE,
     _exclusion_hits,
     _load_r137_provider,
+    _queue_field,
     _requested_side_effect_surface,
     evaluate_idle_signal_startup,
     validate_opportunity,
@@ -48,12 +51,18 @@ AUTHORIZED_LOGICAL_PLAN = (
 AGENT_TYPE = "GPT_ENGINEERING_WORKER"
 MODEL_ID = "GPT-5.6 Sol"
 REVIEWER_ROLE = "GPT_INDEPENDENT_REVIEWER"
+REVIEWER_SEPARATION = "EXECUTOR_IS_NOT_ACCEPTANCE_AUTHORITY"
+INDEPENDENCE_ATTESTATION = "NO_PRODUCTION_CODE_OR_REMEDIATION_ON_REVIEWED_HEAD"
 RESOURCE_CLASS = "LIGHT_TO_MEDIUM_IMPLEMENTATION"
 COORDINATOR_REPOSITORY = "vxz2datoubo/second-brain-coordination"
 ROUTES_ROOT = "coordination/ROUTES"
 _SHA40 = re.compile(r"^[0-9a-f]{40}$")
 _ISSUE_ENDPOINT = re.compile(
     r"^/repos/vxz2datoubo/second-brain-coordination/issues/[1-9][0-9]*$"
+)
+_QUEUE_COMMENT_ENDPOINT = re.compile(
+    r"^/repos/vxz2datoubo/second-brain-coordination/issues/453/comments"
+    r"\?per_page=100&page=[1-9][0-9]*$"
 )
 
 
@@ -148,10 +157,8 @@ def _surface_equal(left: Mapping[str, Any], right: Mapping[str, Any]) -> bool:
         "write_domains",
         "authority_claims",
     ):
-        left_items = left.get(key, [])
-        right_items = right.get(key, [])
-        if sorted(_canonical(item) for item in left_items) != sorted(
-            _canonical(item) for item in right_items
+        if sorted(_canonical(item) for item in left.get(key, [])) != sorted(
+            _canonical(item) for item in right.get(key, [])
         ):
             return False
     return True
@@ -174,24 +181,23 @@ def _validate_authorization(value: Mapping[str, Any]) -> dict[str, Any]:
         raise IdleSignalApplyError("R151_AUTHORIZATION_ID_INVALID")
     id_basis = dict(without_digest)
     id_basis.pop("authorization_id", None)
-    expected_id = f"r151-auto-release:{_digest(id_basis)[:24]}"
-    if authorization_id != expected_id:
+    if authorization_id != f"r151-auto-release:{_digest(id_basis)[:24]}":
         raise IdleSignalApplyError("R151_AUTHORIZATION_ID_FORGED")
     if tuple(value.get("side_effect_plan", [])) != AUTHORIZED_LOGICAL_PLAN:
         raise IdleSignalApplyError("R151_SIDE_EFFECT_PLAN_INVALID")
     authority = value.get("authority")
     if not isinstance(authority, Mapping):
         raise IdleSignalApplyError("R151_AUTHORITY_BOUNDARY_MISSING")
-    required_true = (
+    for key in (
         "can_create_issue",
         "can_create_route",
         "can_create_work_claim",
         "can_allocate_worker_slot",
         "can_begin_bounded_engineering",
-    )
-    if any(authority.get(key) is not True for key in required_true):
-        raise IdleSignalApplyError("R151_REQUIRED_APPLY_CAPABILITY_MISSING")
-    required_false = (
+    ):
+        if authority.get(key) is not True:
+            raise IdleSignalApplyError("R151_REQUIRED_APPLY_CAPABILITY_MISSING")
+    for key in (
         "creates_signal_truth",
         "signal_self_authorizes",
         "caller_can_attest_priority_completeness",
@@ -200,9 +206,9 @@ def _validate_authorization(value: Mapping[str, Any]) -> dict[str, Any]:
         "can_expand_permissions_or_secrets",
         "can_touch_trading_orders_or_funds",
         "can_perform_destructive_history_rewrite",
-    )
-    if any(authority.get(key) is not False for key in required_false):
-        raise IdleSignalApplyError("R151_UNSAFE_AUTHORITY_PRESENT")
+    ):
+        if authority.get(key) is not False:
+            raise IdleSignalApplyError("R151_UNSAFE_AUTHORITY_PRESENT")
     if value.get("apply_requires_fresh_recheck") is not True:
         raise IdleSignalApplyError("R151_FRESH_RECHECK_REQUIRED")
     if value.get("independent_exact_head_review_required") is not True:
@@ -239,7 +245,7 @@ def validate_apply_intent(value: Mapping[str, Any]) -> dict[str, Any]:
         raise IdleSignalApplyError("RESOURCE_CLASS_NOT_BOUNDED")
     if out["reviewer_role"] != REVIEWER_ROLE:
         raise IdleSignalApplyError("REVIEWER_ROLE_INVALID")
-    if out["reviewer_separation"] != "EXECUTOR_IS_NOT_ACCEPTANCE_AUTHORITY":
+    if out["reviewer_separation"] != REVIEWER_SEPARATION:
         raise IdleSignalApplyError("REVIEWER_SEPARATION_INVALID")
     if tuple(out["operation_plan"]) != AUTHORIZED_LOGICAL_PLAN:
         raise IdleSignalApplyError("APPLY_OPERATION_PLAN_INVALID")
@@ -298,14 +304,12 @@ def validate_applied_state(value: Mapping[str, Any]) -> dict[str, Any]:
 def _authorization_identity(
     authorization: Mapping[str, Any], route_epoch: int
 ) -> dict[str, Any]:
-    seed = str(authorization["authorization_digest"])
-    token = seed[:12].upper()
-    branch_token = seed[:12]
+    token = str(authorization["authorization_digest"])[:12].upper()
     return {
         "task_id": f"GPT-IDLE-SIGNAL-AUTO-{token}",
         "route_id": f"GPT-IDLE-SIGNAL-AUTO-ROUTE-{token}",
         "worker_slot_id": f"GPT-WORKER-IDLE-{token}",
-        "branch": f"gpt/idle-signal-auto-{branch_token}",
+        "branch": f"gpt/idle-signal-auto-{token.casefold()}",
         "route_epoch": route_epoch,
         "completion_signal": f"IDLE_SIGNAL_AUTO_{token}_READY_FOR_INDEPENDENT_REVIEW",
     }
@@ -323,18 +327,18 @@ def _canonical_route_epochs(root: Path) -> set[int]:
             raise IdleSignalApplyError("CANONICAL_ROUTE_DOCUMENT_INVALID") from exc
         if not isinstance(doc, Mapping):
             raise IdleSignalApplyError("CANONICAL_ROUTE_DOCUMENT_INVALID")
-        binding_raw = doc.get("binding")
-        if binding_raw is None:
-            binding: Mapping[str, Any] = {}
-        elif isinstance(binding_raw, Mapping):
-            binding = binding_raw
+        nested_raw = doc.get("binding")
+        if nested_raw is None:
+            nested: Mapping[str, Any] = {}
+        elif isinstance(nested_raw, Mapping):
+            nested = nested_raw
         else:
             raise IdleSignalApplyError("CANONICAL_ROUTE_BINDING_INVALID")
         top = doc.get("route_epoch")
-        nested = binding.get("route_epoch")
-        if top is not None and nested is not None and top != nested:
+        bound = nested.get("route_epoch")
+        if top is not None and bound is not None and top != bound:
             raise IdleSignalApplyError("CANONICAL_ROUTE_EPOCH_AMBIGUOUS")
-        value = top if top is not None else nested
+        value = top if top is not None else bound
         if value is None:
             continue
         if isinstance(value, bool) or not isinstance(value, int) or value < 1:
@@ -345,7 +349,7 @@ def _canonical_route_epochs(root: Path) -> set[int]:
 
 def _next_route_epoch(root: Path) -> int:
     epochs = _canonical_route_epochs(root)
-    return (max(epochs) + 1) if epochs else 1
+    return max(epochs, default=0) + 1
 
 
 def _load_lane_state(root: Path, lane_id: str) -> dict[str, Any]:
@@ -439,12 +443,12 @@ def _fresh_authorization(
 
 
 def _make_apply_observer(root: Path) -> tuple[Any, type[BaseException]]:
-    """Reuse R137 public GitHub observer, extending only fixed-repo Issue GET."""
+    """Reuse R137 public GitHub observer; extend only fixed coordinator reads."""
     provider_base, gateway_error = _load_r137_provider(root)
 
     class _ApplyObserver(provider_base):
         def _dynamic_domain_endpoint_allowed(self, path: str) -> bool:
-            if _ISSUE_ENDPOINT.fullmatch(path):
+            if _ISSUE_ENDPOINT.fullmatch(path) or _QUEUE_COMMENT_ENDPOINT.fullmatch(path):
                 return True
             return super()._dynamic_domain_endpoint_allowed(path)
 
@@ -461,9 +465,7 @@ def _api_json(
         _headers, payload, metadata = observer._get_json(path)
     except gateway_error as exc:
         raise IdleSignalApplyError(code) from exc
-    if not isinstance(metadata, Mapping):
-        metadata = {}
-    return payload, metadata
+    return payload, metadata if isinstance(metadata, Mapping) else {}
 
 
 def _required_bootstrap_markers(
@@ -480,9 +482,9 @@ def _required_bootstrap_markers(
 
 
 def _body_has_markers(body: Any, markers: Mapping[str, str]) -> bool:
-    if not isinstance(body, str):
-        return False
-    return all(f"{key}: {value}" in body for key, value in markers.items())
+    return isinstance(body, str) and all(
+        f"{key}: {value}" in body for key, value in markers.items()
+    )
 
 
 def _trusted_bootstrap_observation(
@@ -536,8 +538,9 @@ def _trusted_bootstrap_observation(
         or head_repo.get("full_name") != COORDINATOR_REPOSITORY
     ):
         raise IdleSignalApplyError("TRUSTED_BOOTSTRAP_PR_IDENTITY_INVALID")
-    pr_body = pr.get("body")
-    if not _body_has_markers(pr_body, markers) or f"#{issue_number}" not in str(pr_body):
+    if not _body_has_markers(pr.get("body"), markers) or f"#{issue_number}" not in str(
+        pr.get("body")
+    ):
         raise IdleSignalApplyError("TRUSTED_BOOTSTRAP_PR_MARKERS_MISSING")
 
     commit, commit_meta = _api_json(
@@ -562,11 +565,11 @@ def _trusted_bootstrap_observation(
     )
     parent = _mapping(parent, "TRUSTED_BOOTSTRAP_PARENT_INVALID")
     parent_tree = _mapping(parent.get("tree"), "TRUSTED_BOOTSTRAP_PARENT_TREE_INVALID")
-    tree_sha = _sha40(tree.get("sha"), "TRUSTED_BOOTSTRAP_TREE_SHA_INVALID", "/tree")
-    parent_tree_sha = _sha40(
-        parent_tree.get("sha"), "TRUSTED_BOOTSTRAP_PARENT_TREE_SHA_INVALID", "/parent_tree"
-    )
-    if tree_sha != parent_tree_sha:
+    if _sha40(tree.get("sha"), "TRUSTED_BOOTSTRAP_TREE_SHA_INVALID", "/tree") != _sha40(
+        parent_tree.get("sha"),
+        "TRUSTED_BOOTSTRAP_PARENT_TREE_SHA_INVALID",
+        "/parent_tree",
+    ):
         raise IdleSignalApplyError("TRUSTED_BOOTSTRAP_COMMIT_NOT_EMPTY")
 
     observation = {
@@ -590,6 +593,45 @@ def _trusted_bootstrap_observation(
     }
     observation["observation_digest"] = _digest(observation)
     return observation
+
+
+def _expected_control_documents(
+    root: Path,
+    lane_id: str,
+    replacement_claim: Mapping[str, Any],
+    worker_slot: Mapping[str, Any],
+) -> dict[str, Any]:
+    claims_doc = load_yaml(root / CLAIMS_FILE)
+    workers_doc = load_yaml(root / GPT_WORKERS_REGISTRY)
+    if not isinstance(claims_doc, Mapping) or not isinstance(workers_doc, Mapping):
+        raise IdleSignalApplyError("CONTROL_DOCUMENT_BASELINE_INVALID")
+    claims = claims_doc.get("claims")
+    slots = workers_doc.get("worker_slots")
+    if not isinstance(claims, list) or not isinstance(slots, list):
+        raise IdleSignalApplyError("CONTROL_DOCUMENT_BASELINE_INVALID")
+    matches = [index for index, item in enumerate(claims) if isinstance(item, Mapping) and item.get("lane_id") == lane_id]
+    if len(matches) != 1:
+        raise IdleSignalApplyError("CONTROL_DOCUMENT_LANE_CARDINALITY_INVALID")
+    if slots:
+        raise IdleSignalApplyError("CONTROL_DOCUMENT_WORKER_BASELINE_NOT_EMPTY")
+    expected_claims = _copy(claims_doc)
+    expected_claims["claims"][matches[0]] = _copy(replacement_claim)
+    expected_workers = _copy(workers_doc)
+    expected_workers["worker_slots"] = [_copy(worker_slot)]
+    return {
+        "claims": {
+            "path": CLAIMS_FILE,
+            "baseline_digest": _digest(claims_doc),
+            "expected_document": expected_claims,
+            "expected_digest": _digest(expected_claims),
+        },
+        "workers": {
+            "path": GPT_WORKERS_REGISTRY,
+            "baseline_digest": _digest(workers_doc),
+            "expected_document": expected_workers,
+            "expected_digest": _digest(expected_workers),
+        },
+    }
 
 
 def _bootstrap_manifest(
@@ -624,10 +666,6 @@ def _bootstrap_manifest(
             "draft_pr_required": True,
             "required_pr_body_markers": markers,
             "required_pr_issue_reference": "OUTPUT_OF_CREATE_ISSUE",
-            "reason": (
-                "R144 requires Issue/PR/branch identity before any ACTIVE or RESERVED "
-                "GPT worker slot can become canonical."
-            ),
         },
         "trusted_bootstrap_readback_required": True,
         "deferred_until_trusted_bootstrap_readback": [
@@ -655,6 +693,7 @@ def _bootstrap_manifest(
 
 
 def _activation_manifest(
+    root: Path,
     authorization: Mapping[str, Any],
     opportunity: Mapping[str, Any],
     intent: Mapping[str, Any],
@@ -752,6 +791,10 @@ def _activation_manifest(
         "activation_state": "ACTIVE",
         "closure_state": None,
     }
+    route_path = f"{ROUTES_ROOT}/{identity['route_id']}.yaml"
+    if (root / route_path).exists():
+        raise IdleSignalApplyError("DETERMINISTIC_ROUTE_ID_ALREADY_EXISTS")
+    control_documents = _expected_control_documents(root, intent["lane_id"], claim, worker_slot)
     value = {
         "schema_version": ACTIVATION_MANIFEST_SCHEMA,
         "status": "ACTIVATION_GATE_CANDIDATE",
@@ -765,18 +808,18 @@ def _activation_manifest(
         "partial_apply_forbidden": True,
         "activation_gate": {
             "must_be_separate_pr": True,
+            "exact_changed_paths": [route_path, CLAIMS_FILE, GPT_WORKERS_REGISTRY],
             "independent_exact_head_review_required": True,
+            "review_queue_issue": REVIEW_QUEUE_ISSUE,
             "merge_requires_expected_head": True,
             "merge_method_required": "merge",
             "execution_effective_only_after_gate_is_canonical": True,
             "post_merge_trusted_readback_required_before_first_implementation_commit": True,
         },
-        "route_artifact": {
-            "path": f"{ROUTES_ROOT}/{identity['route_id']}.yaml",
-            "payload": route,
-        },
+        "route_artifact": {"path": route_path, "payload": route},
         "work_claim_replacement": claim,
         "worker_slot_append": worker_slot,
+        "control_plane_documents": control_documents,
         "begin_bounded_engineering": {
             "allowed_only_after_activation_gate_canonical_and_readback_verified": True,
             "implementation_pr": pr,
@@ -818,10 +861,7 @@ def prepare_apply_transaction(
     presented = _validate_authorization(presented_authorization)
     if presented.get("canonical_main") != expected_current_main:
         raise IdleSignalApplyError("R151_AUTHORIZATION_MAIN_STALE")
-
     opportunity = validate_opportunity(opportunity_value)
-    if opportunity.get("schema_version") != OPPORTUNITY_SCHEMA:
-        raise IdleSignalApplyError("OPPORTUNITY_SCHEMA_INVALID")
     if presented.get("opportunity_id") != opportunity["opportunity_id"]:
         raise IdleSignalApplyError("AUTHORIZATION_OPPORTUNITY_ID_MISMATCH")
     if presented.get("opportunity_digest") != opportunity["opportunity_digest"]:
@@ -830,9 +870,8 @@ def prepare_apply_transaction(
         raise IdleSignalApplyError("AUTHORIZATION_SIGNAL_MISMATCH")
 
     intent = validate_apply_intent(apply_intent)
-    proposal = opportunity["task_release_proposal"]
     proposal_surface = _normalized_surface(
-        proposal.get("proposed_write_surface"),
+        opportunity["task_release_proposal"].get("proposed_write_surface"),
         "/task_release_proposal/proposed_write_surface",
     )
     if not _surface_equal(intent["requested_surface"], proposal_surface):
@@ -859,27 +898,20 @@ def prepare_apply_transaction(
         raise IdleSignalApplyError("ROUTE_EPOCH_NOT_NEXT_CANONICAL")
     claim = _load_lane_state(root, intent["lane_id"])
     _validate_lane_reopen_rule(claim, intent["release_reason_class"])
-
     identity = _authorization_identity(presented, next_epoch)
     if bootstrap_evidence is None:
         return _bootstrap_manifest(
-            presented,
-            opportunity,
-            identity,
-            current_main=expected_current_main,
+            presented, opportunity, identity, current_main=expected_current_main
         )
 
     selectors = validate_bootstrap_evidence(bootstrap_evidence)
     if selectors["branch"] != identity["branch"]:
         raise IdleSignalApplyError("BOOTSTRAP_BRANCH_MISMATCH")
     bootstrap = _trusted_bootstrap_observation(
-        root,
-        selectors,
-        presented,
-        opportunity,
-        identity,
+        root, selectors, presented, opportunity, identity
     )
     return _activation_manifest(
+        root,
         presented,
         opportunity,
         intent,
@@ -914,36 +946,196 @@ def _blob_yaml_mapping(
     return dict(value)
 
 
-def _tree_blob_index(tree_payload: Mapping[str, Any]) -> dict[str, str]:
+def _tree_index(tree_payload: Mapping[str, Any]) -> dict[str, tuple[str, str, str]]:
     if tree_payload.get("truncated") is True:
         raise IdleSignalApplyError("TRUSTED_APPLY_TREE_TRUNCATED")
     entries = tree_payload.get("tree")
     if not isinstance(entries, list):
         raise IdleSignalApplyError("TRUSTED_APPLY_TREE_INVALID")
-    out: dict[str, str] = {}
+    out: dict[str, tuple[str, str, str]] = {}
     for entry in entries:
         if not isinstance(entry, Mapping):
             continue
-        path = entry.get("path")
-        sha = entry.get("sha")
-        if entry.get("type") == "blob" and isinstance(path, str) and isinstance(sha, str):
-            out[path] = sha
+        path, sha, kind, mode = (
+            entry.get("path"),
+            entry.get("sha"),
+            entry.get("type"),
+            entry.get("mode"),
+        )
+        if all(isinstance(item, str) for item in (path, sha, kind, mode)):
+            out[path] = (sha, kind, mode)
     return out
 
 
-def _one_matching(
-    items: Any,
-    *,
-    key: str,
-    expected: Any,
-    code: str,
-) -> dict[str, Any]:
+def _changed_paths(
+    base_tree: Mapping[str, tuple[str, str, str]],
+    head_tree: Mapping[str, tuple[str, str, str]],
+) -> set[str]:
+    return {
+        path
+        for path in set(base_tree) | set(head_tree)
+        if base_tree.get(path) != head_tree.get(path)
+    }
+
+
+def _one_matching(items: Any, *, key: str, expected: Any, code: str) -> dict[str, Any]:
     if not isinstance(items, list):
         raise IdleSignalApplyError(code)
-    matches = [item for item in items if isinstance(item, Mapping) and item.get(key) == expected]
+    matches = [
+        item for item in items if isinstance(item, Mapping) and item.get(key) == expected
+    ]
     if len(matches) != 1:
         raise IdleSignalApplyError(code)
     return dict(matches[0])
+
+
+def _trusted_exact_head_acceptance(
+    root: Path, pr_number: int, reviewed_head: str
+) -> dict[str, Any]:
+    observer, gateway_error = _make_apply_observer(root)
+    events: list[dict[str, Any]] = []
+    latest_request: dict[str, Any] | None = None
+    queue_refs: list[str] = []
+    pagination_complete = False
+    for page in range(1, MAX_REVIEW_QUEUE_PAGES + 1):
+        payload, _meta = _api_json(
+            observer,
+            gateway_error,
+            f"/repos/{COORDINATOR_REPOSITORY}/issues/{REVIEW_QUEUE_ISSUE}/comments?per_page=100&page={page}",
+            "TRUSTED_REVIEW_QUEUE_READ_FAILED",
+        )
+        if not isinstance(payload, list):
+            raise IdleSignalApplyError("TRUSTED_REVIEW_QUEUE_PAYLOAD_INVALID")
+        for raw in payload:
+            if not isinstance(raw, Mapping) or not isinstance(raw.get("body"), str) or not isinstance(raw.get("id"), int):
+                raise IdleSignalApplyError("TRUSTED_REVIEW_QUEUE_COMMENT_INVALID")
+            body = str(raw["body"])
+            if _queue_field(body, "project") != "SECOND_BRAIN":
+                continue
+            try:
+                event_pr = int(_queue_field(body, "pr") or "")
+            except ValueError as exc:
+                raise IdleSignalApplyError("TRUSTED_REVIEW_QUEUE_PR_INVALID") from exc
+            if event_pr != pr_number:
+                continue
+            schema = _queue_field(body, "schema")
+            ref = str(raw.get("html_url") or f"github://{COORDINATOR_REPOSITORY}/issues/{REVIEW_QUEUE_ISSUE}#comment={raw['id']}")
+            if schema == "REVIEW_REQUEST/v1":
+                head = _queue_field(body, "exact_head")
+                if head is None or not _SHA40.fullmatch(head):
+                    raise IdleSignalApplyError("TRUSTED_REVIEW_QUEUE_HEAD_INVALID")
+                event = {
+                    "comment_id": raw["id"],
+                    "schema": schema,
+                    "head": head,
+                    "status": _queue_field(body, "status"),
+                    "evidence_ref": ref,
+                }
+                if event["status"] != "WAITING_REVIEW":
+                    raise IdleSignalApplyError("TRUSTED_REVIEW_QUEUE_STATUS_INVALID")
+                if latest_request is None or event["comment_id"] > latest_request["comment_id"]:
+                    latest_request = event
+                if head == reviewed_head:
+                    events.append(event)
+                    queue_refs.append(ref)
+            elif schema == "REVIEW_RESULT/v1":
+                head = _queue_field(body, "reviewed_head")
+                if head is None or not _SHA40.fullmatch(head):
+                    raise IdleSignalApplyError("TRUSTED_REVIEW_QUEUE_HEAD_INVALID")
+                if head != reviewed_head:
+                    continue
+                event = {
+                    "comment_id": raw["id"],
+                    "schema": schema,
+                    "head": head,
+                    "verdict": _queue_field(body, "verdict"),
+                    "review_evidence_ref": _queue_field(body, "review_evidence_ref"),
+                    "review_channel": _queue_field(body, "review_channel"),
+                    "reviewer_agent_id": _queue_field(body, "reviewer_agent_id"),
+                    "independence_attestation": _queue_field(body, "independence_attestation"),
+                    "evidence_ref": ref,
+                }
+                events.append(event)
+                queue_refs.append(ref)
+        if len(payload) < 100:
+            pagination_complete = True
+            break
+    if not pagination_complete:
+        raise IdleSignalApplyError("TRUSTED_REVIEW_QUEUE_PAGINATION_INCOMPLETE")
+    if latest_request is None or latest_request["head"] != reviewed_head:
+        raise IdleSignalApplyError("TRUSTED_REVIEW_LATEST_REQUEST_HEAD_MISMATCH")
+    if not events:
+        raise IdleSignalApplyError("TRUSTED_REVIEW_TICKET_MISSING")
+    latest = max(events, key=lambda item: int(item["comment_id"]))
+    if latest.get("schema") != "REVIEW_RESULT/v1" or latest.get("verdict") != "ACCEPT":
+        raise IdleSignalApplyError("TRUSTED_REVIEW_EXACT_HEAD_NOT_ACCEPTED")
+    if latest.get("review_channel") not in {
+        "GITHUB_APPROVE",
+        "EXACT_HEAD_COMMENT_ATTESTATION",
+    }:
+        raise IdleSignalApplyError("TRUSTED_REVIEW_CHANNEL_INVALID")
+    if latest.get("reviewer_agent_id") != REVIEWER_ROLE:
+        raise IdleSignalApplyError("TRUSTED_REVIEWER_ROLE_INVALID")
+    if latest.get("independence_attestation") != INDEPENDENCE_ATTESTATION:
+        raise IdleSignalApplyError("TRUSTED_REVIEW_INDEPENDENCE_ATTESTATION_INVALID")
+    review_ref = latest.get("review_evidence_ref")
+    if not isinstance(review_ref, str) or not review_ref.strip():
+        raise IdleSignalApplyError("TRUSTED_REVIEW_EVIDENCE_REF_MISSING")
+    ids = re.findall(r"[0-9]+", review_ref)
+    if not ids:
+        raise IdleSignalApplyError("TRUSTED_REVIEW_EVIDENCE_ID_UNRESOLVED")
+    expected_review_id = int(ids[-1])
+    expected_state = (
+        "APPROVED"
+        if latest["review_channel"] == "GITHUB_APPROVE"
+        else "COMMENTED"
+    )
+
+    matching_review: Mapping[str, Any] | None = None
+    review_pagination_complete = False
+    for page in range(1, MAX_REVIEW_QUEUE_PAGES + 1):
+        payload, _meta = _api_json(
+            observer,
+            gateway_error,
+            f"/repos/{COORDINATOR_REPOSITORY}/pulls/{pr_number}/reviews?per_page=100&page={page}",
+            "TRUSTED_PR_REVIEWS_READ_FAILED",
+        )
+        if not isinstance(payload, list):
+            raise IdleSignalApplyError("TRUSTED_PR_REVIEWS_PAYLOAD_INVALID")
+        for raw in payload:
+            if not isinstance(raw, Mapping):
+                raise IdleSignalApplyError("TRUSTED_PR_REVIEW_INVALID")
+            if (
+                raw.get("id") == expected_review_id
+                and raw.get("commit_id") == reviewed_head
+                and str(raw.get("state", "")).upper() == expected_state
+            ):
+                matching_review = raw
+        if len(payload) < 100:
+            review_pagination_complete = True
+            break
+    if not review_pagination_complete:
+        raise IdleSignalApplyError("TRUSTED_PR_REVIEWS_PAGINATION_INCOMPLETE")
+    if matching_review is None:
+        raise IdleSignalApplyError("TRUSTED_PR_REVIEW_EVIDENCE_MISMATCH")
+
+    result = {
+        "queue_issue": REVIEW_QUEUE_ISSUE,
+        "pr": pr_number,
+        "reviewed_head": reviewed_head,
+        "verdict": "ACCEPT",
+        "review_channel": latest["review_channel"],
+        "reviewer_agent_id": REVIEWER_ROLE,
+        "independence_attestation": INDEPENDENCE_ATTESTATION,
+        "queue_result_comment_id": latest["comment_id"],
+        "queue_result_ref": latest["evidence_ref"],
+        "review_evidence_ref": review_ref,
+        "review_submission_id": expected_review_id,
+        "review_submission_state": expected_state,
+        "queue_refs": sorted(set(queue_refs)),
+    }
+    result["acceptance_digest"] = _digest(result)
+    return result
 
 
 def _trusted_post_apply_observation(
@@ -955,6 +1147,7 @@ def _trusted_post_apply_observation(
     merge_commit = str(selectors["activation_gate_merge_commit"])
     reviewed_head = str(selectors["activation_gate_reviewed_head"])
     activation_pr = int(selectors["activation_gate_pr"])
+    acceptance = _trusted_exact_head_acceptance(root, activation_pr, reviewed_head)
 
     main_ref, main_meta = _api_json(
         observer,
@@ -976,6 +1169,7 @@ def _trusted_post_apply_observation(
     gate_pr = _mapping(gate_pr, "TRUSTED_APPLY_GATE_PR_INVALID")
     gate_base = _mapping(gate_pr.get("base"), "TRUSTED_APPLY_GATE_BASE_INVALID")
     gate_head = _mapping(gate_pr.get("head"), "TRUSTED_APPLY_GATE_HEAD_INVALID")
+    gate_head_repo = _mapping(gate_head.get("repo"), "TRUSTED_APPLY_GATE_HEAD_REPO_INVALID")
     if (
         gate_pr.get("number") != activation_pr
         or gate_pr.get("state") != "closed"
@@ -984,6 +1178,7 @@ def _trusted_post_apply_observation(
         or gate_pr.get("merge_commit_sha") != merge_commit
         or gate_base.get("ref") != "main"
         or gate_head.get("sha") != reviewed_head
+        or gate_head_repo.get("full_name") != COORDINATOR_REPOSITORY
     ):
         raise IdleSignalApplyError("TRUSTED_APPLY_GATE_PR_IDENTITY_INVALID")
 
@@ -1004,9 +1199,58 @@ def _trusted_post_apply_observation(
     ):
         raise IdleSignalApplyError("TRUSTED_APPLY_MERGE_PARENT_BINDING_INVALID")
     merge_tree = _mapping(merge.get("tree"), "TRUSTED_APPLY_MERGE_TREE_INVALID")
-    tree_sha = _sha40(
+    merge_tree_sha = _sha40(
         merge_tree.get("sha"), "TRUSTED_APPLY_MERGE_TREE_SHA_INVALID", "/merge/tree"
     )
+
+    base_commit, base_commit_meta = _api_json(
+        observer,
+        gateway_error,
+        f"/repos/{COORDINATOR_REPOSITORY}/git/commits/{manifest['canonical_main']}",
+        "TRUSTED_APPLY_BASE_COMMIT_READ_FAILED",
+    )
+    reviewed_commit, reviewed_commit_meta = _api_json(
+        observer,
+        gateway_error,
+        f"/repos/{COORDINATOR_REPOSITORY}/git/commits/{reviewed_head}",
+        "TRUSTED_APPLY_REVIEWED_COMMIT_READ_FAILED",
+    )
+    base_commit = _mapping(base_commit, "TRUSTED_APPLY_BASE_COMMIT_INVALID")
+    reviewed_commit = _mapping(reviewed_commit, "TRUSTED_APPLY_REVIEWED_COMMIT_INVALID")
+    base_tree_sha = _sha40(
+        _mapping(base_commit.get("tree"), "TRUSTED_APPLY_BASE_TREE_INVALID").get("sha"),
+        "TRUSTED_APPLY_BASE_TREE_SHA_INVALID",
+        "/base/tree",
+    )
+    reviewed_tree_sha = _sha40(
+        _mapping(reviewed_commit.get("tree"), "TRUSTED_APPLY_REVIEWED_TREE_INVALID").get("sha"),
+        "TRUSTED_APPLY_REVIEWED_TREE_SHA_INVALID",
+        "/reviewed/tree",
+    )
+    if reviewed_tree_sha != merge_tree_sha:
+        raise IdleSignalApplyError("TRUSTED_APPLY_MERGE_TREE_NOT_REVIEWED_TREE")
+
+    base_tree_payload, base_tree_meta = _api_json(
+        observer,
+        gateway_error,
+        f"/repos/{COORDINATOR_REPOSITORY}/git/trees/{base_tree_sha}?recursive=1",
+        "TRUSTED_APPLY_BASE_TREE_READ_FAILED",
+    )
+    reviewed_tree_payload, reviewed_tree_meta = _api_json(
+        observer,
+        gateway_error,
+        f"/repos/{COORDINATOR_REPOSITORY}/git/trees/{reviewed_tree_sha}?recursive=1",
+        "TRUSTED_APPLY_REVIEWED_TREE_READ_FAILED",
+    )
+    base_index = _tree_index(_mapping(base_tree_payload, "TRUSTED_APPLY_BASE_TREE_INVALID"))
+    reviewed_index = _tree_index(_mapping(reviewed_tree_payload, "TRUSTED_APPLY_REVIEWED_TREE_INVALID"))
+    expected_paths = set(
+        _mapping(manifest.get("activation_gate"), "TRUSTED_APPLY_GATE_MANIFEST_MISSING").get(
+            "exact_changed_paths", []
+        )
+    )
+    if _changed_paths(base_index, reviewed_index) != expected_paths:
+        raise IdleSignalApplyError("TRUSTED_APPLY_GATE_CHANGED_PATH_SET_MISMATCH")
 
     implementation_pr = int(selectors["implementation_pr"])
     implementation, implementation_meta = _api_json(
@@ -1015,9 +1259,7 @@ def _trusted_post_apply_observation(
         f"/repos/{COORDINATOR_REPOSITORY}/pulls/{implementation_pr}",
         "TRUSTED_APPLY_IMPLEMENTATION_PR_READ_FAILED",
     )
-    implementation = _mapping(
-        implementation, "TRUSTED_APPLY_IMPLEMENTATION_PR_INVALID"
-    )
+    implementation = _mapping(implementation, "TRUSTED_APPLY_IMPLEMENTATION_PR_INVALID")
     implementation_head = _mapping(
         implementation.get("head"), "TRUSTED_APPLY_IMPLEMENTATION_HEAD_INVALID"
     )
@@ -1035,66 +1277,46 @@ def _trusted_post_apply_observation(
     ):
         raise IdleSignalApplyError("TRUSTED_APPLY_IMPLEMENTATION_PR_DRIFT")
 
-    tree_payload, tree_meta = _api_json(
-        observer,
-        gateway_error,
-        f"/repos/{COORDINATOR_REPOSITORY}/git/trees/{tree_sha}?recursive=1",
-        "TRUSTED_APPLY_TREE_READ_FAILED",
-    )
-    tree_payload = _mapping(tree_payload, "TRUSTED_APPLY_TREE_INVALID")
-    blobs = _tree_blob_index(tree_payload)
     route_artifact = _mapping(
         manifest.get("route_artifact"), "TRUSTED_APPLY_ROUTE_MANIFEST_MISSING"
     )
     route_path = route_artifact.get("path")
-    if not isinstance(route_path, str) or route_path not in blobs:
+    if not isinstance(route_path, str) or route_path not in reviewed_index:
         raise IdleSignalApplyError("TRUSTED_APPLY_ROUTE_MISSING_FROM_MAIN")
-    if CLAIMS_FILE not in blobs or GPT_WORKERS_REGISTRY not in blobs:
-        raise IdleSignalApplyError("TRUSTED_APPLY_CONTROL_OBJECT_MISSING_FROM_MAIN")
+    for path in (CLAIMS_FILE, GPT_WORKERS_REGISTRY):
+        if path not in reviewed_index:
+            raise IdleSignalApplyError("TRUSTED_APPLY_CONTROL_OBJECT_MISSING_FROM_MAIN")
 
     route_doc = _blob_yaml_mapping(
         observer,
         gateway_error,
-        blobs[route_path],
+        reviewed_index[route_path][0],
         "TRUSTED_APPLY_ROUTE_BLOB_INVALID",
     )
     claims_doc = _blob_yaml_mapping(
         observer,
         gateway_error,
-        blobs[CLAIMS_FILE],
+        reviewed_index[CLAIMS_FILE][0],
         "TRUSTED_APPLY_CLAIMS_BLOB_INVALID",
     )
     workers_doc = _blob_yaml_mapping(
         observer,
         gateway_error,
-        blobs[GPT_WORKERS_REGISTRY],
+        reviewed_index[GPT_WORKERS_REGISTRY][0],
         "TRUSTED_APPLY_WORKERS_BLOB_INVALID",
     )
-
     if route_doc != route_artifact.get("payload"):
         raise IdleSignalApplyError("TRUSTED_APPLY_ROUTE_PAYLOAD_MISMATCH")
-    expected_claim = _mapping(
-        manifest.get("work_claim_replacement"), "TRUSTED_APPLY_CLAIM_MANIFEST_MISSING"
+    control_docs = _mapping(
+        manifest.get("control_plane_documents"),
+        "TRUSTED_APPLY_CONTROL_DOCUMENT_MANIFEST_MISSING",
     )
-    claim = _one_matching(
-        claims_doc.get("claims"),
-        key="lane_id",
-        expected=expected_claim.get("lane_id"),
-        code="TRUSTED_APPLY_CLAIM_CARDINALITY_INVALID",
-    )
-    if claim != expected_claim:
-        raise IdleSignalApplyError("TRUSTED_APPLY_CLAIM_PAYLOAD_MISMATCH")
-    expected_slot = _mapping(
-        manifest.get("worker_slot_append"), "TRUSTED_APPLY_SLOT_MANIFEST_MISSING"
-    )
-    slot = _one_matching(
-        workers_doc.get("worker_slots"),
-        key="worker_slot_id",
-        expected=expected_slot.get("worker_slot_id"),
-        code="TRUSTED_APPLY_SLOT_CARDINALITY_INVALID",
-    )
-    if slot != expected_slot:
-        raise IdleSignalApplyError("TRUSTED_APPLY_SLOT_PAYLOAD_MISMATCH")
+    claims_spec = _mapping(control_docs.get("claims"), "TRUSTED_APPLY_CLAIMS_SPEC_MISSING")
+    workers_spec = _mapping(control_docs.get("workers"), "TRUSTED_APPLY_WORKERS_SPEC_MISSING")
+    if claims_doc != claims_spec.get("expected_document") or _digest(claims_doc) != claims_spec.get("expected_digest"):
+        raise IdleSignalApplyError("TRUSTED_APPLY_CLAIMS_FULL_DOCUMENT_MISMATCH")
+    if workers_doc != workers_spec.get("expected_document") or _digest(workers_doc) != workers_spec.get("expected_digest"):
+        raise IdleSignalApplyError("TRUSTED_APPLY_WORKERS_FULL_DOCUMENT_MISMATCH")
 
     observation = {
         "schema_version": TRUSTED_APPLIED_STATE_SCHEMA,
@@ -1104,19 +1326,24 @@ def _trusted_post_apply_observation(
         "activation_gate_merge_commit": merge_commit,
         "current_main_after_activation": merge_commit,
         "merge_parents": [parents[0].get("sha"), parents[1].get("sha")],
+        "independent_review_acceptance": acceptance,
+        "activation_changed_paths": sorted(expected_paths),
         "implementation_issue": selectors["issue"],
         "implementation_pr": implementation_pr,
         "branch": selectors["branch"],
         "implementation_head_still_bootstrap": True,
         "route_readback_verified": True,
-        "work_claim_readback_verified": True,
-        "worker_slot_readback_verified": True,
+        "full_claims_document_readback_verified": True,
+        "full_worker_registry_readback_verified": True,
         "provider_metadata": [
             _copy(main_meta),
             _copy(gate_pr_meta),
             _copy(merge_meta),
+            _copy(base_commit_meta),
+            _copy(reviewed_commit_meta),
+            _copy(base_tree_meta),
+            _copy(reviewed_tree_meta),
             _copy(implementation_meta),
-            _copy(tree_meta),
         ],
     }
     observation["observation_digest"] = _digest(observation)
@@ -1130,17 +1357,14 @@ def verify_applied_state(
 ) -> dict[str, Any]:
     """Fresh-read post-activation canonical state. Receipt remains evidence-only."""
     root = Path(repo_root).resolve()
-    if (
-        not isinstance(manifest, Mapping)
-        or manifest.get("schema_version") != ACTIVATION_MANIFEST_SCHEMA
-    ):
+    if not isinstance(manifest, Mapping) or manifest.get("schema_version") != ACTIVATION_MANIFEST_SCHEMA:
         raise IdleSignalApplyError("ACTIVATION_MANIFEST_REQUIRED")
     expected_digest = manifest.get("manifest_digest")
     if not isinstance(expected_digest, str) or len(expected_digest) != 64:
         raise IdleSignalApplyError("ACTIVATION_MANIFEST_DIGEST_INVALID")
-    manifest_basis = dict(_copy(manifest))
-    manifest_basis.pop("manifest_digest", None)
-    if _digest(manifest_basis) != expected_digest:
+    basis = dict(_copy(manifest))
+    basis.pop("manifest_digest", None)
+    if _digest(basis) != expected_digest:
         raise IdleSignalApplyError("ACTIVATION_MANIFEST_DIGEST_FORGED")
 
     selectors = validate_applied_state(observed)
@@ -1148,16 +1372,19 @@ def verify_applied_state(
         manifest.get("trusted_bootstrap_observation"),
         "TRUSTED_APPLY_BOOTSTRAP_OBSERVATION_MISSING",
     )
-    exact_scalars = {
+    for field, expected in {
         "issue": bootstrap.get("issue"),
         "implementation_pr": bootstrap.get("implementation_pr"),
         "branch": bootstrap.get("branch"),
-    }
-    for field, expected in exact_scalars.items():
+    }.items():
         if selectors.get(field) != expected:
             raise IdleSignalApplyError("APPLIED_IDENTITY_MISMATCH", f"/{field}")
 
     trusted = _trusted_post_apply_observation(root, manifest, selectors)
+    acceptance = _mapping(
+        trusted.get("independent_review_acceptance"),
+        "TRUSTED_APPLY_REVIEW_ACCEPTANCE_MISSING",
+    )
     receipt = {
         "schema_version": APPLY_RECEIPT_SCHEMA,
         "manifest_digest": expected_digest,
@@ -1167,6 +1394,9 @@ def verify_applied_state(
         "activation_gate_reviewed_head": trusted["activation_gate_reviewed_head"],
         "activation_gate_merge_commit": trusted["activation_gate_merge_commit"],
         "current_main_after_activation": trusted["current_main_after_activation"],
+        "review_acceptance_digest": acceptance["acceptance_digest"],
+        "review_channel": acceptance["review_channel"],
+        "review_evidence_ref": acceptance["review_evidence_ref"],
         "implementation_issue": trusted["implementation_issue"],
         "implementation_pr": trusted["implementation_pr"],
         "branch": trusted["branch"],
@@ -1175,10 +1405,12 @@ def verify_applied_state(
             "current_main_is_activation_merge_commit": True,
             "merge_parent_1_is_base_main": True,
             "merge_parent_2_is_reviewed_head": True,
+            "exact_head_independent_accept_verified": True,
+            "activation_changed_paths_exact": True,
             "implementation_pr_still_at_empty_bootstrap_head": True,
             "exact_route_readback": True,
-            "exact_claim_readback": True,
-            "exact_worker_slot_readback": True,
+            "full_claims_document_readback": True,
+            "full_worker_registry_readback": True,
             "trusted_provider_readback": True,
         },
         "authority_boundary": {
