@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 import hashlib
 import json
 from pathlib import Path
+import re
 from typing import Any, Mapping, Sequence
 
 from control_tower import load_yaml
@@ -18,10 +18,13 @@ from trusted_task_release import (
     TrustedReleaseError,
     evaluate_trusted_release_proposal,
 )
+from global_signal_gateway.gateway import GatewayError
+from global_signal_gateway.live_observation_provider import LiveObservationProvider
 
 
 OPPORTUNITY_SCHEMA = "DigestedSignalOpportunity/v1"
-PRIORITY_OBSERVATION_SCHEMA = "StartupPriorityObservation/v1"
+PRIORITY_OBSERVATION_SCHEMA = "StartupPriorityHints/v1"
+TRUSTED_PRIORITY_SCHEMA = "TrustedStartupPriorityObservation/v1"
 DECISION_SCHEMA = "IdleSignalStartupDecision/v1"
 AUTHORIZATION_SCHEMA = "IdleSignalAutoReleaseAuthorization/v1"
 
@@ -73,7 +76,15 @@ STANDING_AUTO_RELEASE_EXCLUSIONS = frozenset(
     }
 )
 
-ACTIVE_PROGRAM_LANES = "coordination/ACTIVE-PROGRAM-LANES.yaml"
+COORDINATOR_REPOSITORY = "vxz2datoubo/second-brain-coordination"
+REVIEW_QUEUE_ISSUE = 453
+MAX_REVIEW_QUEUE_PAGES = 20
+_SHA40 = re.compile(r"^[0-9a-f]{40}$")
+_QUEUE_COMMENT_ENDPOINT = re.compile(
+    r"^/repos/vxz2datoubo/second-brain-coordination/issues/453/comments"
+    r"\?per_page=100&page=[1-9][0-9]*$"
+)
+
 STANDING_POLICY_REF = "issue://461#user-direction-2026-08-26"
 IAGL_PRIORITY_REF = (
     "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/"
@@ -81,6 +92,11 @@ IAGL_PRIORITY_REF = (
 )
 R149_REF = "coordination/CONTROL-TOWER/task_release_impact.py"
 R150_REF = "coordination/CONTROL-TOWER/trusted_task_release.py"
+R137_PROVIDER_REF = (
+    "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/"
+    "GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/"
+    "global_signal_gateway/live_observation_provider.py"
+)
 
 
 class IdleSignalSchedulerError(ValueError):
@@ -90,6 +106,20 @@ class IdleSignalSchedulerError(ValueError):
         super().__init__(code)
         self.code = code
         self.path = path
+
+
+class _ReviewQueueLiveObserver(LiveObservationProvider):
+    """Narrow R151 adapter over the existing R137 public GitHub transport.
+
+    It adds exactly one read-only endpoint family: comments of fixed Review Queue
+    Issue #453. HTTP, status/media checks, response limits and metadata still
+    come from the existing R137 provider. No second network transport is created.
+    """
+
+    def _dynamic_domain_endpoint_allowed(self, path: str) -> bool:
+        if _QUEUE_COMMENT_ENDPOINT.fullmatch(path):
+            return True
+        return super()._dynamic_domain_endpoint_allowed(path)
 
 
 def _canonical(value: Any) -> str:
@@ -148,13 +178,7 @@ def _exclusion_hits(value: Any) -> tuple[str, ...]:
 
 
 def _requested_side_effect_surface(candidate: Mapping[str, Any]) -> dict[str, Any]:
-    """Project only requested/effective side effects, never negative safeguards.
-
-    `out_of_scope` is an explicit statement of what the task promises not to do.
-    Treating those words as requested risk would invert the user's safety policy
-    and route ordinary bounded work to USER_GATE. R151 therefore checks actual
-    risk declarations and proposed write/authority surfaces only.
-    """
+    """Project requested side effects only; negative safeguards are not requests."""
     proposal = candidate.get("task_release_proposal")
     if not isinstance(proposal, Mapping):
         raise IdleSignalSchedulerError("TASK_RELEASE_PROPOSAL_REQUIRED")
@@ -180,22 +204,19 @@ def _requested_side_effect_surface(candidate: Mapping[str, Any]) -> dict[str, An
 
 
 def validate_priority_observation(value: Mapping[str, Any]) -> dict[str, Any]:
+    """Validate caller priority hints.
+
+    Hints are additive only. They can add a P0/P1/P2 blocker, but they cannot
+    claim scan completeness and cannot suppress trusted canonical blockers.
+    """
     if not isinstance(value, Mapping):
-        raise IdleSignalSchedulerError("PRIORITY_OBSERVATION_NOT_OBJECT")
-    required = {
-        "schema_version",
-        "observation_id",
-        "scan_complete",
-        "evidence_refs",
-        "items",
-    }
+        raise IdleSignalSchedulerError("PRIORITY_HINTS_NOT_OBJECT")
+    required = {"schema_version", "observation_id", "evidence_refs", "items"}
     if set(value) != required:
-        raise IdleSignalSchedulerError("PRIORITY_OBSERVATION_FIELDS_INVALID")
+        raise IdleSignalSchedulerError("PRIORITY_HINTS_FIELDS_INVALID")
     if value.get("schema_version") != PRIORITY_OBSERVATION_SCHEMA:
-        raise IdleSignalSchedulerError("PRIORITY_OBSERVATION_SCHEMA_INVALID")
+        raise IdleSignalSchedulerError("PRIORITY_HINTS_SCHEMA_INVALID")
     _nonempty_string(value.get("observation_id"), "/observation_id")
-    if value.get("scan_complete") is not True:
-        raise IdleSignalSchedulerError("STARTUP_PRIORITY_SCAN_INCOMPLETE", "/scan_complete")
     _list_of_strings(value.get("evidence_refs"), "/evidence_refs", nonempty=True)
     if not isinstance(value.get("items"), list):
         raise IdleSignalSchedulerError("PRIORITY_ITEMS_INVALID", "/items")
@@ -264,11 +285,17 @@ def validate_opportunity(value: Mapping[str, Any], *, index: int = 0) -> dict[st
         _nonempty_string(out[name], f"{path}/{name}")
     _list_of_strings(out["source_evidence_refs"], f"{path}/source_evidence_refs", nonempty=True)
     if out["current_disposition"] in INELIGIBLE_DISPOSITIONS:
-        raise IdleSignalSchedulerError("OPPORTUNITY_ALREADY_CLOSED_OR_SATISFIED", f"{path}/current_disposition")
+        raise IdleSignalSchedulerError(
+            "OPPORTUNITY_ALREADY_CLOSED_OR_SATISFIED", f"{path}/current_disposition"
+        )
     if out["epistemic_state"] in INELIGIBLE_EPISTEMIC_STATES:
-        raise IdleSignalSchedulerError("OPPORTUNITY_EPISTEMIC_STATE_BLOCKS_RELEASE", f"{path}/epistemic_state")
+        raise IdleSignalSchedulerError(
+            "OPPORTUNITY_EPISTEMIC_STATE_BLOCKS_RELEASE", f"{path}/epistemic_state"
+        )
     if out["desired_effect_gap_proven"] is not True:
-        raise IdleSignalSchedulerError("DESIRED_EFFECT_GAP_NOT_PROVEN", f"{path}/desired_effect_gap_proven")
+        raise IdleSignalSchedulerError(
+            "DESIRED_EFFECT_GAP_NOT_PROVEN", f"{path}/desired_effect_gap_proven"
+        )
     if out["dependency_ready"] is not True:
         raise IdleSignalSchedulerError("DEPENDENCY_NOT_READY", f"{path}/dependency_ready")
     if out["priority_class"] not in IDLE_PRIORITIES:
@@ -282,16 +309,30 @@ def validate_opportunity(value: Mapping[str, Any], *, index: int = 0) -> dict[st
         _bounded_int(out[name], f"{path}/{name}")
     _bounded_int(out["age_cycles"], f"{path}/age_cycles", low=0, high=1_000_000)
     if not isinstance(out["task_release_proposal"], Mapping):
-        raise IdleSignalSchedulerError("TASK_RELEASE_PROPOSAL_REQUIRED", f"{path}/task_release_proposal")
+        raise IdleSignalSchedulerError(
+            "TASK_RELEASE_PROPOSAL_REQUIRED", f"{path}/task_release_proposal"
+        )
     proposal = dict(out["task_release_proposal"])
     if proposal.get("schema_version") != "TaskReleaseProposal/v1":
-        raise IdleSignalSchedulerError("TASK_RELEASE_PROPOSAL_SCHEMA_INVALID", f"{path}/task_release_proposal/schema_version")
+        raise IdleSignalSchedulerError(
+            "TASK_RELEASE_PROPOSAL_SCHEMA_INVALID",
+            f"{path}/task_release_proposal/schema_version",
+        )
     if out["signal_ref"] not in proposal.get("source_signal_refs", []):
-        raise IdleSignalSchedulerError("SIGNAL_PROPOSAL_BINDING_MISSING", f"{path}/task_release_proposal/source_signal_refs")
+        raise IdleSignalSchedulerError(
+            "SIGNAL_PROPOSAL_BINDING_MISSING",
+            f"{path}/task_release_proposal/source_signal_refs",
+        )
     if proposal.get("signal_primary_domain") != out["signal_primary_domain"]:
-        raise IdleSignalSchedulerError("SIGNAL_DOMAIN_PROPOSAL_MISMATCH", f"{path}/task_release_proposal/signal_primary_domain")
+        raise IdleSignalSchedulerError(
+            "SIGNAL_DOMAIN_PROPOSAL_MISMATCH",
+            f"{path}/task_release_proposal/signal_primary_domain",
+        )
     if proposal.get("desired_effect") != out["desired_effect"]:
-        raise IdleSignalSchedulerError("DESIRED_EFFECT_PROPOSAL_MISMATCH", f"{path}/task_release_proposal/desired_effect")
+        raise IdleSignalSchedulerError(
+            "DESIRED_EFFECT_PROPOSAL_MISMATCH",
+            f"{path}/task_release_proposal/desired_effect",
+        )
     out["opportunity_digest"] = _digest(out)
     return out
 
@@ -305,11 +346,12 @@ def _canonical_idle_blockers(root: Path) -> list[dict[str, Any]]:
     for index, claim in enumerate(claims):
         if not isinstance(claim, Mapping):
             raise IdleSignalSchedulerError("CANONICAL_CLAIM_INVALID", f"/claims/{index}")
-        if claim.get("claim_state") in {ACTIVE_IMPLEMENTATION, RESERVED_IMPLEMENTATION_NON_EXECUTABLE}:
-            task_id = None
+        if claim.get("claim_state") in {
+            ACTIVE_IMPLEMENTATION,
+            RESERVED_IMPLEMENTATION_NON_EXECUTABLE,
+        }:
             binding = claim.get("route_binding")
-            if isinstance(binding, Mapping):
-                task_id = binding.get("task_id")
+            task_id = binding.get("task_id") if isinstance(binding, Mapping) else None
             blockers.append(
                 {
                     "priority": P2,
@@ -324,11 +366,15 @@ def _canonical_idle_blockers(root: Path) -> list[dict[str, Any]]:
         raise IdleSignalSchedulerError("GPT_WORKER_REGISTRY_INVALID")
     for index, slot in enumerate(slots):
         if not isinstance(slot, Mapping):
-            raise IdleSignalSchedulerError("GPT_WORKER_SLOT_INVALID", f"/worker_slots/{index}")
+            raise IdleSignalSchedulerError(
+                "GPT_WORKER_SLOT_INVALID", f"/worker_slots/{index}"
+            )
         blockers.append(
             {
                 "priority": P2,
-                "work_ref": f"worker-slot://{slot.get('worker_slot_id') or slot.get('slot_id') or index}",
+                "work_ref": (
+                    f"worker-slot://{slot.get('worker_slot_id') or slot.get('slot_id') or index}"
+                ),
                 "reason": "GPT_ENGINEERING_WORKER_SLOT_ALREADY_ACTIVE",
                 "evidence_refs": [GPT_WORKERS_REGISTRY],
             }
@@ -336,10 +382,179 @@ def _canonical_idle_blockers(root: Path) -> list[dict[str, Any]]:
     return blockers
 
 
+def _queue_field(body: str, name: str) -> str | None:
+    match = re.search(
+        rf"(?m)^[ \t]*{re.escape(name)}:[ \t]*([^\r\n#]+?)[ \t]*$",
+        body,
+    )
+    if match is None:
+        return None
+    return match.group(1).strip().strip("'\"")
+
+
+def _trusted_review_queue_blockers() -> tuple[list[dict[str, Any]], list[str], str]:
+    """Read the fixed Review Queue through the retained R137 GitHub provider."""
+    observer = _ReviewQueueLiveObserver()
+    normalized_events: list[dict[str, Any]] = []
+    evidence_refs: list[str] = []
+    pagination_complete = False
+    for page in range(1, MAX_REVIEW_QUEUE_PAGES + 1):
+        path = (
+            f"/repos/{COORDINATOR_REPOSITORY}/issues/{REVIEW_QUEUE_ISSUE}/comments"
+            f"?per_page=100&page={page}"
+        )
+        _headers, payload, _metadata = observer._get_json(path)
+        if not isinstance(payload, list):
+            raise IdleSignalSchedulerError("TRUSTED_REVIEW_QUEUE_PAYLOAD_INVALID")
+        for raw in payload:
+            if not isinstance(raw, Mapping):
+                raise IdleSignalSchedulerError("TRUSTED_REVIEW_QUEUE_COMMENT_INVALID")
+            comment_id = raw.get("id")
+            body = raw.get("body")
+            html_url = raw.get("html_url")
+            if not isinstance(comment_id, int) or not isinstance(body, str):
+                raise IdleSignalSchedulerError("TRUSTED_REVIEW_QUEUE_COMMENT_INVALID")
+            schema = _queue_field(body, "schema")
+            if schema not in {"REVIEW_REQUEST/v1", "REVIEW_RESULT/v1"}:
+                continue
+            project = _queue_field(body, "project")
+            if project != "SECOND_BRAIN":
+                continue
+            pr_raw = _queue_field(body, "pr")
+            try:
+                pr = int(pr_raw or "")
+            except ValueError as exc:
+                raise IdleSignalSchedulerError("TRUSTED_REVIEW_QUEUE_PR_INVALID") from exc
+            if pr <= 0:
+                raise IdleSignalSchedulerError("TRUSTED_REVIEW_QUEUE_PR_INVALID")
+            ref = (
+                str(html_url)
+                if isinstance(html_url, str) and html_url
+                else f"github://{COORDINATOR_REPOSITORY}/issues/{REVIEW_QUEUE_ISSUE}#comment={comment_id}"
+            )
+            evidence_refs.append(ref)
+            if schema == "REVIEW_REQUEST/v1":
+                exact_head = _queue_field(body, "exact_head")
+                status = _queue_field(body, "status")
+                if exact_head is None or not _SHA40.fullmatch(exact_head):
+                    raise IdleSignalSchedulerError("TRUSTED_REVIEW_QUEUE_HEAD_INVALID")
+                if status != "WAITING_REVIEW":
+                    raise IdleSignalSchedulerError("TRUSTED_REVIEW_QUEUE_STATUS_INVALID")
+                normalized_events.append(
+                    {
+                        "comment_id": comment_id,
+                        "schema": schema,
+                        "pr": pr,
+                        "head": exact_head,
+                        "status": status,
+                        "evidence_ref": ref,
+                    }
+                )
+            else:
+                reviewed_head = _queue_field(body, "reviewed_head")
+                verdict = _queue_field(body, "verdict")
+                if reviewed_head is None or not _SHA40.fullmatch(reviewed_head):
+                    raise IdleSignalSchedulerError("TRUSTED_REVIEW_QUEUE_HEAD_INVALID")
+                if verdict not in {"ACCEPT", "CHANGES_REQUIRED", "BLOCKED"}:
+                    raise IdleSignalSchedulerError("TRUSTED_REVIEW_QUEUE_VERDICT_INVALID")
+                normalized_events.append(
+                    {
+                        "comment_id": comment_id,
+                        "schema": schema,
+                        "pr": pr,
+                        "head": reviewed_head,
+                        "verdict": verdict,
+                        "evidence_ref": ref,
+                    }
+                )
+        if len(payload) < 100:
+            pagination_complete = True
+            break
+    if not pagination_complete:
+        raise IdleSignalSchedulerError("TRUSTED_REVIEW_QUEUE_PAGINATION_INCOMPLETE")
+
+    latest_by_pr: dict[int, dict[str, Any]] = {}
+    for event in sorted(normalized_events, key=lambda item: int(item["comment_id"])):
+        latest_by_pr[int(event["pr"])] = event
+
+    blockers: list[dict[str, Any]] = []
+    for pr, event in sorted(latest_by_pr.items()):
+        if event["schema"] == "REVIEW_REQUEST/v1":
+            blockers.append(
+                {
+                    "priority": P1,
+                    "work_ref": f"pr://{pr}@{event['head']}",
+                    "reason": "TRUSTED_REVIEW_QUEUE_WAITING_REVIEW",
+                    "evidence_refs": [event["evidence_ref"]],
+                }
+            )
+            continue
+        verdict = event["verdict"]
+        if verdict in {"CHANGES_REQUIRED", "BLOCKED"}:
+            blockers.append(
+                {
+                    "priority": P2,
+                    "work_ref": f"pr://{pr}@{event['head']}",
+                    "reason": f"TRUSTED_REVIEW_QUEUE_{verdict}",
+                    "evidence_refs": [event["evidence_ref"]],
+                }
+            )
+
+    observation = {
+        "provider_ref": R137_PROVIDER_REF,
+        "issue": REVIEW_QUEUE_ISSUE,
+        "event_count": len(normalized_events),
+        "latest_pr_states": latest_by_pr,
+        "pagination_complete": True,
+    }
+    return blockers, sorted(set(evidence_refs)), _digest(observation)
+
+
+def _trusted_priority_observation(
+    root: Path, caller_hints: Mapping[str, Any]
+) -> dict[str, Any]:
+    try:
+        review_blockers, review_refs, review_digest = _trusted_review_queue_blockers()
+    except GatewayError as exc:
+        raise IdleSignalSchedulerError(
+            f"TRUSTED_REVIEW_QUEUE_PROVIDER_FAILED:{exc.code}"
+        ) from exc
+
+    canonical_blockers = _canonical_idle_blockers(root)
+    caller_blockers = [
+        item for item in caller_hints["items"] if item["priority"] in BLOCKING_PRIORITIES
+    ]
+    items = [*review_blockers, *canonical_blockers, *caller_blockers]
+    evidence_refs = sorted(
+        set(
+            [
+                R137_PROVIDER_REF,
+                CLAIMS_FILE,
+                GPT_WORKERS_REGISTRY,
+                *review_refs,
+                *caller_hints["evidence_refs"],
+            ]
+        )
+    )
+    value = {
+        "schema_version": TRUSTED_PRIORITY_SCHEMA,
+        "scan_complete": True,
+        "trusted_sources": {
+            "review_queue_issue": REVIEW_QUEUE_ISSUE,
+            "review_queue_digest": review_digest,
+            "canonical_claims": CLAIMS_FILE,
+            "canonical_worker_slots": GPT_WORKERS_REGISTRY,
+            "caller_hints_additive_only": True,
+        },
+        "evidence_refs": evidence_refs,
+        "items": _copy(items),
+        "caller_hints_digest": caller_hints["observation_digest"],
+    }
+    value["observation_digest"] = _digest(value)
+    return value
+
+
 def _rank_key(item: Mapping[str, Any]) -> tuple[Any, ...]:
-    # IAGL-compatible ordering: priority dominates. Aging/starvation is a bounded
-    # tie-breaker inside P3/P4 and can never outrank P0/P1/P2 because those are
-    # blocked before this function is used.
     score = (
         int(item["user_value_score"])
         + int(item["materiality_score"])
@@ -355,7 +570,16 @@ def _rank_key(item: Mapping[str, Any]) -> tuple[Any, ...]:
     )
 
 
-def _decision(status: str, *, reason: str, selected: Mapping[str, Any] | None = None, blockers: Sequence[Mapping[str, Any]] = (), priority_observation: Mapping[str, Any] | None = None, r150_receipt: Mapping[str, Any] | None = None, authorization: Mapping[str, Any] | None = None) -> dict[str, Any]:
+def _decision(
+    status: str,
+    *,
+    reason: str,
+    selected: Mapping[str, Any] | None = None,
+    blockers: Sequence[Mapping[str, Any]] = (),
+    priority_observation: Mapping[str, Any] | None = None,
+    r150_receipt: Mapping[str, Any] | None = None,
+    authorization: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
     value: dict[str, Any] = {
         "schema_version": DECISION_SCHEMA,
         "status": status,
@@ -363,7 +587,11 @@ def _decision(status: str, *, reason: str, selected: Mapping[str, Any] | None = 
         "selected_opportunity_id": selected.get("opportunity_id") if selected else None,
         "selected_signal_ref": selected.get("signal_ref") if selected else None,
         "blockers": _copy(list(blockers)),
-        "priority_observation_digest": priority_observation.get("observation_digest") if priority_observation else None,
+        "priority_observation_digest": (
+            priority_observation.get("observation_digest")
+            if priority_observation
+            else None
+        ),
         "r150_receipt_digest": r150_receipt.get("receipt_digest") if r150_receipt else None,
         "authorization": _copy(authorization) if authorization else None,
     }
@@ -371,7 +599,13 @@ def _decision(status: str, *, reason: str, selected: Mapping[str, Any] | None = 
     return value
 
 
-def _authorization(selected: Mapping[str, Any], *, current_main: str, priority_observation: Mapping[str, Any], r150_receipt: Mapping[str, Any]) -> dict[str, Any]:
+def _authorization(
+    selected: Mapping[str, Any],
+    *,
+    current_main: str,
+    priority_observation: Mapping[str, Any],
+    r150_receipt: Mapping[str, Any],
+) -> dict[str, Any]:
     if r150_receipt.get("schema_version") != TRUSTED_RECEIPT_SCHEMA:
         raise IdleSignalSchedulerError("R150_TRUSTED_RECEIPT_REQUIRED")
     receipt_digest = r150_receipt.get("receipt_digest")
@@ -387,8 +621,21 @@ def _authorization(selected: Mapping[str, Any], *, current_main: str, priority_o
     if disposition not in RELEASEABLE_R150_DISPOSITIONS:
         raise IdleSignalSchedulerError("R150_DISPOSITION_NOT_AUTO_RELEASEABLE")
     authority_boundary = r150_receipt.get("authority_boundary")
-    if not isinstance(authority_boundary, Mapping) or authority_boundary.get("evidence_only") is not True:
+    if (
+        not isinstance(authority_boundary, Mapping)
+        or authority_boundary.get("evidence_only") is not True
+    ):
         raise IdleSignalSchedulerError("R150_EVIDENCE_ONLY_BOUNDARY_REQUIRED")
+    if priority_observation.get("schema_version") != TRUSTED_PRIORITY_SCHEMA:
+        raise IdleSignalSchedulerError("TRUSTED_PRIORITY_OBSERVATION_REQUIRED")
+    if priority_observation.get("scan_complete") is not True:
+        raise IdleSignalSchedulerError("TRUSTED_PRIORITY_SCAN_INCOMPLETE")
+    if any(
+        item.get("priority") in BLOCKING_PRIORITIES
+        for item in priority_observation.get("items", [])
+        if isinstance(item, Mapping)
+    ):
+        raise IdleSignalSchedulerError("TRUSTED_PRIORITY_BLOCKER_PRESENT")
 
     payload = {
         "schema_version": AUTHORIZATION_SCHEMA,
@@ -401,6 +648,7 @@ def _authorization(selected: Mapping[str, Any], *, current_main: str, priority_o
         "r150_final_disposition": disposition,
         "standing_user_policy_ref": STANDING_POLICY_REF,
         "priority_semantics_ref": IAGL_PRIORITY_REF,
+        "priority_provider_ref": R137_PROVIDER_REF,
         "release_gate_refs": [R149_REF, R150_REF],
         "side_effect_plan": [
             "create_issue",
@@ -412,6 +660,7 @@ def _authorization(selected: Mapping[str, Any], *, current_main: str, priority_o
         "authority": {
             "creates_signal_truth": False,
             "signal_self_authorizes": False,
+            "caller_can_attest_priority_completeness": False,
             "can_create_issue": True,
             "can_create_route": True,
             "can_create_work_claim": True,
@@ -438,19 +687,28 @@ def evaluate_idle_signal_startup(
     expected_coordinator_main: str,
     priority_observation_value: Mapping[str, Any],
 ) -> dict[str, Any]:
-    """Select at most one idle Signal opportunity and bind it through R150.
+    """Select at most one idle opportunity using trusted priority completeness.
 
-    This function is evaluation-only. It returns an explicit side-effect plan but
-    performs no GitHub Issue/Route/Claim/worker mutation itself.
+    Caller priority input is additive hints only. Review Queue completeness and
+    canonical active claims/worker slots are re-derived inside this function.
+    The function remains evaluation-only and performs no side effects.
     """
     root = Path(repo_root).resolve()
-    priority_observation = validate_priority_observation(priority_observation_value)
+    caller_hints = validate_priority_observation(priority_observation_value)
 
-    canonical_blockers = _canonical_idle_blockers(root)
-    external_blockers = [
-        item for item in priority_observation["items"] if item["priority"] in BLOCKING_PRIORITIES
+    try:
+        priority_observation = _trusted_priority_observation(root, caller_hints)
+    except IdleSignalSchedulerError as exc:
+        return _decision(
+            "NO_IDLE_RELEASE",
+            reason=f"TRUSTED_PRIORITY_FAIL_CLOSED:{exc.code}",
+        )
+
+    blockers = [
+        item
+        for item in priority_observation["items"]
+        if item["priority"] in BLOCKING_PRIORITIES
     ]
-    blockers = [*canonical_blockers, *external_blockers]
     if blockers:
         return _decision(
             "NO_IDLE_RELEASE",
@@ -468,7 +726,12 @@ def evaluate_idle_signal_startup(
             continue
         hits = _exclusion_hits(_requested_side_effect_surface(candidate))
         if hits:
-            user_gate.append({"opportunity_id": candidate["opportunity_id"], "exclusion_hits": list(hits)})
+            user_gate.append(
+                {
+                    "opportunity_id": candidate["opportunity_id"],
+                    "exclusion_hits": list(hits),
+                }
+            )
             continue
         valid.append(candidate)
 
@@ -520,7 +783,10 @@ def evaluate_idle_signal_startup(
     )
     return _decision(
         "AUTO_RELEASE_AUTHORIZED",
-        reason="IDLE_SIGNAL_OPPORTUNITY_PASSED_PRIORITY_R149_R150_AND_STANDING_POLICY",
+        reason=(
+            "IDLE_SIGNAL_OPPORTUNITY_PASSED_TRUSTED_PRIORITY_R149_R150_"
+            "AND_STANDING_POLICY"
+        ),
         selected=selected,
         priority_observation=priority_observation,
         r150_receipt=r150_receipt,
