@@ -20,13 +20,14 @@
         "authority_claims"
       ],
       "properties": {
-        "write_paths": {"type": "array", "items": {"type": "string"}},
+        "write_paths": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
         "read_paths": {"type": "array", "items": {"type": "string"}},
         "interfaces": {"type": "array"},
         "read_domains": {"type": "array", "items": {"type": "string"}},
         "write_domains": {"type": "array", "items": {"type": "string"}},
         "authority_claims": {"type": "array", "items": {"type": "string"}}
-      }
+      },
+      "description": "R152 only prepares bounded implementation work. The apply contract requires at least one explicit write path; canonical R144 validators independently enforce the same invariant on generated ACTIVE Work Claim and GPT worker-slot state."
     },
     "applyIntent": {
       "type": "object",
@@ -124,7 +125,8 @@
     "activation_merge": "CURRENT_MAIN_EQUALS_MERGE_COMMIT_AND_PARENTS_EQUAL_BASE_MAIN_PLUS_REVIEWED_HEAD",
     "activation_changed_paths": "EXACTLY_ROUTE_PLUS_LANE_WORK_CLAIMS_PLUS_GPT_WORKER_REGISTRY",
     "same_file_collateral_mutation": "FORBIDDEN_BY_FULL_DOCUMENT_EXPECTED_STATE_BINDING",
-    "implementation_must_remain_bootstrap_until_readback": true
+    "implementation_must_remain_bootstrap_until_readback": true,
+    "generated_state_validator": "CANONICAL_R144_VALIDATE_CLAIMS_PLUS_VALIDATE_WORKER_SLOTS"
   },
   "x-r152-authority-boundary": {
     "manifest_performs_side_effects": false,
