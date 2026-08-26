@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://second-brain.invalid/contracts/r152-idle-signal-apply.json",
+  "title": "R152 Idle Signal Apply Contract",
+  "type": "object",
+  "$defs": {
+    "surface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "write_paths",
+        "read_paths",
+        "interfaces",
+        "read_domains",
+        "write_domains",
+        "authority_claims"
+      ],
+      "properties": {
+        "write_paths": {"type": "array", "items": {"type": "string"}},
+        "read_paths": {"type": "array", "items": {"type": "string"}},
+        "interfaces": {"type": "array"},
+        "read_domains": {"type": "array", "items": {"type": "string"}},
+        "write_domains": {"type": "array", "items": {"type": "string"}},
+        "authority_claims": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "applyIntent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "lane_id",
+        "route_epoch",
+        "release_reason_class",
+        "requested_surface",
+        "resource_class",
+        "reviewer_role",
+        "reviewer_separation",
+        "operation_plan"
+      ],
+      "properties": {
+        "schema_version": {"const": "IdleSignalApplyIntent/v1"},
+        "lane_id": {"type": "string", "minLength": 1},
+        "route_epoch": {"type": "integer", "minimum": 1},
+        "release_reason_class": {"type": "string", "minLength": 1},
+        "requested_surface": {"$ref": "#/$defs/surface"},
+        "resource_class": {"const": "LIGHT_TO_MEDIUM_IMPLEMENTATION"},
+        "reviewer_role": {"const": "GPT_INDEPENDENT_REVIEWER"},
+        "reviewer_separation": {"const": "EXECUTOR_IS_NOT_ACCEPTANCE_AUTHORITY"},
+        "operation_plan": {
+          "const": [
+            "create_issue",
+            "create_route",
+            "create_work_claim",
+            "allocate_worker_slot",
+            "begin_bounded_engineering"
+          ]
+        }
+      }
+    },
+    "bootstrapEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "issue",
+        "implementation_pr",
+        "branch",
+        "bootstrap_head",
+        "draft",
+        "empty_bootstrap_commit",
+        "file_mutations"
+      ],
+      "properties": {
+        "schema_version": {"const": "IdleSignalBootstrapEvidence/v1"},
+        "issue": {"type": "integer", "minimum": 1},
+        "implementation_pr": {"type": "integer", "minimum": 1},
+        "branch": {"type": "string", "minLength": 1},
+        "bootstrap_head": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "draft": {"const": true},
+        "empty_bootstrap_commit": {"const": true},
+        "file_mutations": {"const": []}
+      }
+    }
+  },
+  "oneOf": [
+    {"$ref": "#/$defs/applyIntent"},
+    {"$ref": "#/$defs/bootstrapEvidence"}
+  ],
+  "x-r152-authority-boundary": {
+    "manifest_performs_side_effects": false,
+    "execution_authority_granted_by_manifest": false,
+    "merge_authority_granted": false,
+    "production_deploy_authorized": false,
+    "secrets_or_permission_expansion_authorized": false,
+    "trading_order_or_fund_authorized": false,
+    "destructive_history_authorized": false,
+    "w3_write_authorized": false,
+    "signal_runtime_write_authorized": false
+  }
+}
