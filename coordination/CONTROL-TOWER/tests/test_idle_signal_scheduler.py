@@ -502,7 +502,61 @@ class IdleSignalSchedulerTests(unittest.TestCase):
         self.assertEqual(len(refs), 3)
         self.assertEqual(len(digest), 64)
 
-    def test_20_trusted_priority_provider_failure_is_fail_closed(self) -> None:
+    def test_20_historical_failure_does_not_deadlock_accepted_newer_lineage(self) -> None:
+        head_a = "a" * 40
+        head_b = "b" * 40
+        payload = [
+            {
+                "id": 21,
+                "html_url": "https://github.com/q/21",
+                "body": (
+                    "schema: REVIEW_REQUEST/v1\nproject: SECOND_BRAIN\npr: 94\n"
+                    f"exact_head: {head_a}\nstatus: WAITING_REVIEW\n"
+                ),
+            },
+            {
+                "id": 22,
+                "html_url": "https://github.com/q/22",
+                "body": (
+                    "schema: REVIEW_RESULT/v1\nproject: SECOND_BRAIN\npr: 94\n"
+                    f"reviewed_head: {head_a}\nverdict: CHANGES_REQUIRED\n"
+                ),
+            },
+            {
+                "id": 23,
+                "html_url": "https://github.com/q/23",
+                "body": (
+                    "schema: REVIEW_REQUEST/v1\nproject: SECOND_BRAIN\npr: 94\n"
+                    f"exact_head: {head_b}\nstatus: WAITING_REVIEW\n"
+                ),
+            },
+            {
+                "id": 24,
+                "html_url": "https://github.com/q/24",
+                "body": (
+                    "schema: REVIEW_RESULT/v1\nproject: SECOND_BRAIN\npr: 94\n"
+                    f"reviewed_head: {head_b}\nverdict: ACCEPT\n"
+                ),
+            },
+        ]
+
+        class FakeGatewayError(Exception):
+            code = "FAKE"
+
+        class FakeObserver:
+            def _get_json(self, path):
+                return ({"content-type": "application/json"}, payload, {"path": path})
+
+        with patch(
+            "idle_signal_scheduler._make_review_queue_observer",
+            return_value=(FakeObserver(), FakeGatewayError),
+        ):
+            blockers, refs, digest = _trusted_review_queue_blockers(REPO_ROOT)
+        self.assertEqual(blockers, [])
+        self.assertEqual(len(refs), 4)
+        self.assertEqual(len(digest), 64)
+
+    def test_21_trusted_priority_provider_failure_is_fail_closed(self) -> None:
         with (
             patch("idle_signal_scheduler._canonical_idle_blockers", return_value=[]),
             patch(
