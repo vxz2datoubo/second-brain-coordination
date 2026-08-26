@@ -4,6 +4,10 @@
   "title": "R152 Idle Signal Apply Contract",
   "type": "object",
   "$defs": {
+    "sha40": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
     "surface": {
       "type": "object",
       "additionalProperties": false,
@@ -41,7 +45,11 @@
       "properties": {
         "schema_version": {"const": "IdleSignalApplyIntent/v1"},
         "lane_id": {"type": "string", "minLength": 1},
-        "route_epoch": {"type": "integer", "minimum": 1},
+        "route_epoch": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "A selector only. Runtime requires exact equality with max(canonical route epochs)+1; caller cannot choose a reused epoch."
+        },
         "release_reason_class": {"type": "string", "minLength": 1},
         "requested_surface": {"$ref": "#/$defs/surface"},
         "resource_class": {"const": "LIGHT_TO_MEDIUM_IMPLEMENTATION"},
@@ -66,27 +74,58 @@
         "issue",
         "implementation_pr",
         "branch",
-        "bootstrap_head",
-        "draft",
-        "empty_bootstrap_commit",
-        "file_mutations"
+        "bootstrap_head"
       ],
       "properties": {
         "schema_version": {"const": "IdleSignalBootstrapEvidence/v1"},
         "issue": {"type": "integer", "minimum": 1},
         "implementation_pr": {"type": "integer", "minimum": 1},
         "branch": {"type": "string", "minLength": 1},
-        "bootstrap_head": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
-        "draft": {"const": true},
-        "empty_bootstrap_commit": {"const": true},
-        "file_mutations": {"const": []}
-      }
+        "bootstrap_head": {"$ref": "#/$defs/sha40"}
+      },
+      "description": "Selectors only. Draft state, same-repository identity, exact markers, parent main, and empty-commit truth are freshly re-read through the retained R137 GitHub provider."
+    },
+    "appliedState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "activation_gate_pr",
+        "activation_gate_reviewed_head",
+        "activation_gate_merge_commit",
+        "issue",
+        "implementation_pr",
+        "branch"
+      ],
+      "properties": {
+        "schema_version": {"const": "IdleSignalAppliedState/v1"},
+        "activation_gate_pr": {"type": "integer", "minimum": 1},
+        "activation_gate_reviewed_head": {"$ref": "#/$defs/sha40"},
+        "activation_gate_merge_commit": {"$ref": "#/$defs/sha40"},
+        "issue": {"type": "integer", "minimum": 1},
+        "implementation_pr": {"type": "integer", "minimum": 1},
+        "branch": {"type": "string", "minLength": 1}
+      },
+      "description": "Selectors only. Current main, merge ancestry, exact-head independent ACCEPT, changed paths, implementation-head freshness, Route, full Work Claim document, and full worker registry document are freshly read back before a receipt can exist."
     }
   },
   "oneOf": [
     {"$ref": "#/$defs/applyIntent"},
-    {"$ref": "#/$defs/bootstrapEvidence"}
+    {"$ref": "#/$defs/bootstrapEvidence"},
+    {"$ref": "#/$defs/appliedState"}
   ],
+  "x-r152-trusted-readback": {
+    "provider": "R137_PUBLIC_GITHUB_ON_DEMAND_TRUSTED_PROCESS_V1",
+    "caller_bootstrap_truth_attestation": false,
+    "caller_applied_truth_attestation": false,
+    "route_epoch_source": "NEXT_CANONICAL_ROUTE_EPOCH",
+    "bootstrap_empty_commit": "GIT_TREE_EQUALITY_WITH_AUTHORIZATION_MAIN_PARENT",
+    "independent_acceptance": "REVIEW_QUEUE_453_EXACT_HEAD_ACCEPT_PLUS_MATCHING_PR_REVIEW_SUBMISSION",
+    "activation_merge": "CURRENT_MAIN_EQUALS_MERGE_COMMIT_AND_PARENTS_EQUAL_BASE_MAIN_PLUS_REVIEWED_HEAD",
+    "activation_changed_paths": "EXACTLY_ROUTE_PLUS_LANE_WORK_CLAIMS_PLUS_GPT_WORKER_REGISTRY",
+    "same_file_collateral_mutation": "FORBIDDEN_BY_FULL_DOCUMENT_EXPECTED_STATE_BINDING",
+    "implementation_must_remain_bootstrap_until_readback": true
+  },
   "x-r152-authority-boundary": {
     "manifest_performs_side_effects": false,
     "execution_authority_granted_by_manifest": false,
