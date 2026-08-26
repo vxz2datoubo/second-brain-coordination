@@ -23,7 +23,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 2
+      - name: Verify exact-head provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXPECTED="${{ github.event.pull_request.head.sha || github.sha }}"
+          ACTUAL="$(git rev-parse HEAD)"
+          test "$ACTUAL" = "$EXPECTED"
+          echo "EXACT_HEAD=$ACTUAL"
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
@@ -39,4 +48,13 @@ jobs:
         run: >-
           python -c "import pathlib; txt='\n'.join(p.read_text(encoding='utf-8') for p in [pathlib.Path('coordination/SKILLS/EPISTEMIC-KNOWLEDGE-STATE-FRONTIER-MAPPING-SKILL-v1.0.yaml'),pathlib.Path('coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/EPISTEMIC-FRONTIER-MAPPING/EPISTEMIC-FRONTIER-EVALS-v1.0.yaml')]); assert 'NO_TRADE' in txt; assert 'NO_SECOND_KNOWLEDGE_AUTHORITY' in txt; assert 'Private raw evidence copied into public coordination artifacts' in txt; print('EPISTEMIC_FRONTIER_BOUNDARY_PASS')"
       - name: Verify diff whitespace
-        run: git diff --check HEAD^ HEAD
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="${{ github.event.pull_request.base.sha || '' }}"
+          if [ -n "$BASE" ]; then
+            git fetch --no-tags --depth=1 origin "$BASE"
+            git diff --check "$BASE" HEAD
+          else
+            git diff --check HEAD^ HEAD
+          fi
