@@ -504,17 +504,26 @@ def _trusted_review_queue_blockers(
     if not pagination_complete:
         raise IdleSignalSchedulerError("TRUSTED_REVIEW_QUEUE_PAGINATION_INCOMPLETE")
 
-    latest_by_pr: dict[int, dict[str, Any]] = {}
+    latest_by_ticket: dict[tuple[int, str], dict[str, Any]] = {}
     for event in sorted(normalized_events, key=lambda item: int(item["comment_id"])):
-        latest_by_pr[int(event["pr"])] = event
+        ticket = (int(event["pr"]), str(event["head"]))
+        latest_by_ticket[ticket] = event
 
     blockers: list[dict[str, Any]] = []
-    for pr, event in sorted(latest_by_pr.items()):
+    latest_ticket_states: list[dict[str, Any]] = []
+    for (pr, head), event in sorted(latest_by_ticket.items()):
+        latest_ticket_states.append(
+            {
+                "pr": pr,
+                "head": head,
+                "event": event,
+            }
+        )
         if event["schema"] == "REVIEW_REQUEST/v1":
             blockers.append(
                 {
                     "priority": P1,
-                    "work_ref": f"pr://{pr}@{event['head']}",
+                    "work_ref": f"pr://{pr}@{head}",
                     "reason": "TRUSTED_REVIEW_QUEUE_WAITING_REVIEW",
                     "evidence_refs": [event["evidence_ref"]],
                 }
@@ -525,7 +534,7 @@ def _trusted_review_queue_blockers(
             blockers.append(
                 {
                     "priority": P2,
-                    "work_ref": f"pr://{pr}@{event['head']}",
+                    "work_ref": f"pr://{pr}@{head}",
                     "reason": f"TRUSTED_REVIEW_QUEUE_{verdict}",
                     "evidence_refs": [event["evidence_ref"]],
                 }
@@ -535,7 +544,7 @@ def _trusted_review_queue_blockers(
         "provider_ref": R137_PROVIDER_REF,
         "issue": REVIEW_QUEUE_ISSUE,
         "event_count": len(normalized_events),
-        "latest_pr_states": latest_by_pr,
+        "latest_ticket_states": latest_ticket_states,
         "pagination_complete": True,
     }
     return blockers, sorted(set(evidence_refs)), _digest(observation)
