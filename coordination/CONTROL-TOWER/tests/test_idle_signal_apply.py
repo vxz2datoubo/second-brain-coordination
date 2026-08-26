@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+from base64 import b64encode
 import copy
 from pathlib import Path
+import tempfile
 import unittest
 from unittest.mock import patch
+
+import yaml
 
 from idle_signal_apply import (
     ACTIVATION_MANIFEST_SCHEMA,
@@ -13,11 +17,25 @@ from idle_signal_apply import (
     AUTHORIZED_LOGICAL_PLAN,
     BOOTSTRAP_EVIDENCE_SCHEMA,
     BOOTSTRAP_MANIFEST_SCHEMA,
+    CLAIMS_FILE,
+    COORDINATOR_REPOSITORY,
+    GPT_WORKERS_REGISTRY,
+    INDEPENDENCE_ATTESTATION,
     RESOURCE_CLASS,
     REVIEWER_ROLE,
+    REVIEWER_SEPARATION,
+    TRUSTED_APPLIED_STATE_SCHEMA,
+    TRUSTED_BOOTSTRAP_SCHEMA,
     IdleSignalApplyError,
+    _authorization_identity,
     _digest,
+    _next_route_epoch,
+    _required_bootstrap_markers,
+    _trusted_bootstrap_observation,
+    _trusted_exact_head_acceptance,
+    _trusted_post_apply_observation,
     prepare_apply_transaction,
+    validate_bootstrap_evidence,
     verify_applied_state,
 )
 from idle_signal_scheduler import AUTHORIZATION_SCHEMA, OPPORTUNITY_SCHEMA
@@ -26,6 +44,23 @@ from idle_signal_scheduler import validate_opportunity
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 MAIN = "a" * 40
+REVIEWED = "e" * 40
+MERGE = "f" * 40
+BOOTSTRAP = "d" * 40
+
+
+class FakeGatewayError(Exception):
+    pass
+
+
+class FakeObserver:
+    def __init__(self, responses: dict[str, object]) -> None:
+        self.responses = copy.deepcopy(responses)
+
+    def _get_json(self, path: str):
+        if path not in self.responses:
+            raise AssertionError(f"unexpected GitHub read: {path}")
+        return {}, copy.deepcopy(self.responses[path]), {"path": path}
 
 
 def proposal(signal_ref: str = "signal:r152-fixture") -> dict:
@@ -192,40 +227,102 @@ def intent(raw_opportunity: dict, lane_id: str = "LANE-A-HARNESS-INTEGRATION") -
         ),
         "resource_class": RESOURCE_CLASS,
         "reviewer_role": REVIEWER_ROLE,
-        "reviewer_separation": "EXECUTOR_IS_NOT_ACCEPTANCE_AUTHORITY",
+        "reviewer_separation": REVIEWER_SEPARATION,
         "operation_plan": list(AUTHORIZED_LOGICAL_PLAN),
     }
 
 
-def bootstrap_evidence(bootstrap_manifest: dict) -> dict:
-    return {
-        "schema_version": BOOTSTRAP_EVIDENCE_SCHEMA,
+def trusted_bootstrap(manifest: dict) -> dict:
+    value = {
+        "schema_version": TRUSTED_BOOTSTRAP_SCHEMA,
+        "repository": COORDINATOR_REPOSITORY,
         "issue": 500,
         "implementation_pr": 501,
-        "branch": bootstrap_manifest["identity"]["branch"],
-        "bootstrap_head": "d" * 40,
-        "draft": True,
-        "empty_bootstrap_commit": True,
-        "file_mutations": [],
+        "branch": manifest["identity"]["branch"],
+        "bootstrap_head": BOOTSTRAP,
+        "bootstrap_parent_main": MAIN,
+        "empty_commit_verified": True,
+        "draft_pr_verified": True,
+        "issue_markers_verified": True,
+        "pr_markers_verified": True,
+        "provider_metadata": [],
+    }
+    value["observation_digest"] = _digest(value)
+    return value
+
+
+def bootstrap_selectors(manifest: dict) -> dict:
+    proof = trusted_bootstrap(manifest)
+    return {
+        "schema_version": BOOTSTRAP_EVIDENCE_SCHEMA,
+        "issue": proof["issue"],
+        "implementation_pr": proof["implementation_pr"],
+        "branch": proof["branch"],
+        "bootstrap_head": proof["bootstrap_head"],
     }
 
 
-def observed_state(manifest: dict) -> dict:
-    bootstrap = manifest["bootstrap_evidence"]
+def applied_selectors(manifest: dict) -> dict:
+    bootstrap = manifest["trusted_bootstrap_observation"]
     return {
         "schema_version": APPLIED_STATE_SCHEMA,
-        "canonical_main": manifest["canonical_main"],
         "activation_gate_pr": 502,
-        "activation_gate_reviewed_head": "e" * 40,
-        "activation_gate_verdict": "ACCEPT",
-        "activation_gate_merge_commit": "f" * 40,
+        "activation_gate_reviewed_head": REVIEWED,
+        "activation_gate_merge_commit": MERGE,
         "issue": bootstrap["issue"],
         "implementation_pr": bootstrap["implementation_pr"],
         "branch": bootstrap["branch"],
-        "route_artifact": copy.deepcopy(manifest["route_artifact"]),
-        "work_claim": copy.deepcopy(manifest["work_claim_replacement"]),
-        "worker_slot": copy.deepcopy(manifest["worker_slot_append"]),
     }
+
+
+def acceptance() -> dict:
+    value = {
+        "queue_issue": 453,
+        "pr": 502,
+        "reviewed_head": REVIEWED,
+        "verdict": "ACCEPT",
+        "review_channel": "EXACT_HEAD_COMMENT_ATTESTATION",
+        "reviewer_agent_id": REVIEWER_ROLE,
+        "independence_attestation": INDEPENDENCE_ATTESTATION,
+        "queue_result_comment_id": 7002,
+        "queue_result_ref": "https://github.com/example/issues/453#issuecomment-7002",
+        "review_evidence_ref": "pullrequestreview-9001",
+        "review_submission_id": 9001,
+        "review_submission_state": "COMMENTED",
+        "queue_refs": ["fixture://request", "fixture://result"],
+    }
+    value["acceptance_digest"] = _digest(value)
+    return value
+
+
+def trusted_post_apply(manifest: dict) -> dict:
+    selectors = applied_selectors(manifest)
+    value = {
+        "schema_version": TRUSTED_APPLIED_STATE_SCHEMA,
+        "base_main_before_activation": MAIN,
+        "activation_gate_pr": selectors["activation_gate_pr"],
+        "activation_gate_reviewed_head": REVIEWED,
+        "activation_gate_merge_commit": MERGE,
+        "current_main_after_activation": MERGE,
+        "merge_parents": [MAIN, REVIEWED],
+        "independent_review_acceptance": acceptance(),
+        "activation_changed_paths": sorted(manifest["activation_gate"]["exact_changed_paths"]),
+        "implementation_issue": selectors["issue"],
+        "implementation_pr": selectors["implementation_pr"],
+        "branch": selectors["branch"],
+        "implementation_head_still_bootstrap": True,
+        "route_readback_verified": True,
+        "full_claims_document_readback_verified": True,
+        "full_worker_registry_readback_verified": True,
+        "provider_metadata": [],
+    }
+    value["observation_digest"] = _digest(value)
+    return value
+
+
+def yaml_blob(value: dict) -> dict:
+    raw = yaml.safe_dump(value, sort_keys=False, allow_unicode=True).encode("utf-8")
+    return {"encoding": "base64", "content": b64encode(raw).decode("ascii")}
 
 
 class IdleSignalApplyTests(unittest.TestCase):
@@ -237,6 +334,7 @@ class IdleSignalApplyTests(unittest.TestCase):
         apply_intent: dict | None = None,
         bootstrap: dict | None = None,
         fresh_error: IdleSignalApplyError | None = None,
+        next_epoch: int = 152,
     ) -> dict:
         raw_opportunity = copy.deepcopy(raw_opportunity or opportunity())
         auth = copy.deepcopy(auth or authorization(raw_opportunity))
@@ -246,7 +344,23 @@ class IdleSignalApplyTests(unittest.TestCase):
             if fresh_error
             else patch("idle_signal_apply._fresh_authorization", return_value=auth)
         )
-        with patch("idle_signal_apply._git_head", return_value=MAIN), fresh_patch:
+        bootstrap_manifest = None
+        if bootstrap is not None:
+            bootstrap_manifest = {
+                "identity": _authorization_identity(auth, next_epoch)
+            }
+        trusted_bootstrap_value = (
+            trusted_bootstrap(bootstrap_manifest) if bootstrap_manifest else None
+        )
+        with (
+            patch("idle_signal_apply._git_head", return_value=MAIN),
+            patch("idle_signal_apply._next_route_epoch", return_value=next_epoch),
+            fresh_patch,
+            patch(
+                "idle_signal_apply._trusted_bootstrap_observation",
+                return_value=trusted_bootstrap_value,
+            ),
+        ):
             return prepare_apply_transaction(
                 REPO_ROOT,
                 raw_opportunity,
@@ -260,12 +374,8 @@ class IdleSignalApplyTests(unittest.TestCase):
     def activation(self) -> dict:
         raw = opportunity()
         auth = authorization(raw)
-        bootstrap_manifest = self.prepare(raw, auth=auth)
-        return self.prepare(
-            raw,
-            auth=auth,
-            bootstrap=bootstrap_evidence(bootstrap_manifest),
-        )
+        first = self.prepare(raw, auth=auth)
+        return self.prepare(raw, auth=auth, bootstrap=bootstrap_selectors(first))
 
     def test_01_main_drift_invalidates_authorization(self) -> None:
         raw = opportunity()
@@ -282,9 +392,7 @@ class IdleSignalApplyTests(unittest.TestCase):
                 )
 
     def test_02_new_p1_or_p2_after_scheduling_blocks_fresh_apply(self) -> None:
-        with self.assertRaisesRegex(
-            IdleSignalApplyError, "R151_FRESH_REPLAY_NOT_AUTHORIZED"
-        ):
+        with self.assertRaisesRegex(IdleSignalApplyError, "R151_FRESH_REPLAY_NOT_AUTHORIZED"):
             self.prepare(
                 fresh_error=IdleSignalApplyError(
                     "R151_FRESH_REPLAY_NOT_AUTHORIZED:HIGHER_PRIORITY_OR_ACTIVE_WORK_PRESENT"
@@ -307,7 +415,9 @@ class IdleSignalApplyTests(unittest.TestCase):
     def test_05_write_path_expansion_fails(self) -> None:
         raw = opportunity()
         apply_intent = intent(raw)
-        apply_intent["requested_surface"]["write_paths"].append("coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml")
+        apply_intent["requested_surface"]["write_paths"].append(
+            "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+        )
         with self.assertRaisesRegex(IdleSignalApplyError, "SURFACE_EXPANSION_OR_DRIFT"):
             self.prepare(raw, apply_intent=apply_intent)
 
@@ -321,7 +431,9 @@ class IdleSignalApplyTests(unittest.TestCase):
     def test_07_authority_claim_expansion_fails(self) -> None:
         raw = opportunity()
         apply_intent = intent(raw)
-        apply_intent["requested_surface"]["authority_claims"].append("SECOND_TASK_AUTHORITY")
+        apply_intent["requested_surface"]["authority_claims"].append(
+            "SECOND_TASK_AUTHORITY"
+        )
         with self.assertRaisesRegex(IdleSignalApplyError, "SURFACE_EXPANSION_OR_DRIFT"):
             self.prepare(raw, apply_intent=apply_intent)
 
@@ -332,46 +444,70 @@ class IdleSignalApplyTests(unittest.TestCase):
         with self.assertRaisesRegex(IdleSignalApplyError, "SURFACE_EXPANSION_OR_DRIFT"):
             self.prepare(raw, apply_intent=apply_intent)
 
-    def test_09_task_identity_drift_across_applied_state_fails(self) -> None:
-        manifest = self.activation()
-        observed = observed_state(manifest)
-        observed["worker_slot"]["task_id"] = "ATTACKER-TASK"
-        with self.assertRaisesRegex(IdleSignalApplyError, "WORKER_SLOT_MISMATCH"):
-            verify_applied_state(manifest, observed)
+    def test_09_route_epoch_is_not_caller_reusable(self) -> None:
+        raw = opportunity()
+        apply_intent = intent(raw)
+        apply_intent["route_epoch"] = 151
+        with self.assertRaisesRegex(IdleSignalApplyError, "ROUTE_EPOCH_NOT_NEXT_CANONICAL"):
+            self.prepare(raw, apply_intent=apply_intent, next_epoch=152)
 
-    def test_10_route_epoch_drift_fails(self) -> None:
-        manifest = self.activation()
-        observed = observed_state(manifest)
-        observed["work_claim"]["route_binding"]["route_epoch"] += 1
-        with self.assertRaisesRegex(IdleSignalApplyError, "CLAIM_MISMATCH"):
-            verify_applied_state(manifest, observed)
+    def test_10_next_route_epoch_is_derived_from_canonical_routes(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            routes = root / "coordination/ROUTES"
+            routes.mkdir(parents=True)
+            (routes / "a.yaml").write_text("route_epoch: 145\n", encoding="utf-8")
+            (routes / "b.yaml").write_text(
+                "binding:\n  route_epoch: 147\n", encoding="utf-8"
+            )
+            self.assertEqual(_next_route_epoch(root), 148)
 
-    def test_11_branch_drift_fails(self) -> None:
-        manifest = self.activation()
-        observed = observed_state(manifest)
-        observed["branch"] = "gpt/attacker-branch"
-        with self.assertRaisesRegex(IdleSignalApplyError, "APPLIED_IDENTITY_MISMATCH"):
-            verify_applied_state(manifest, observed)
+    def test_11_ambiguous_route_epoch_fails_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            routes = root / "coordination/ROUTES"
+            routes.mkdir(parents=True)
+            (routes / "bad.yaml").write_text(
+                "route_epoch: 145\nbinding:\n  route_epoch: 146\n", encoding="utf-8"
+            )
+            with self.assertRaisesRegex(IdleSignalApplyError, "ROUTE_EPOCH_AMBIGUOUS"):
+                _next_route_epoch(root)
 
-    def test_12_issue_drift_fails(self) -> None:
-        manifest = self.activation()
-        observed = observed_state(manifest)
-        observed["issue"] += 1
-        with self.assertRaisesRegex(IdleSignalApplyError, "APPLIED_IDENTITY_MISMATCH"):
-            verify_applied_state(manifest, observed)
+    def test_12_old_self_attested_bootstrap_truth_fields_are_rejected(self) -> None:
+        value = {
+            "schema_version": BOOTSTRAP_EVIDENCE_SCHEMA,
+            "issue": 500,
+            "implementation_pr": 501,
+            "branch": "gpt/x",
+            "bootstrap_head": BOOTSTRAP,
+            "draft": True,
+            "empty_bootstrap_commit": True,
+            "file_mutations": [],
+        }
+        with self.assertRaisesRegex(IdleSignalApplyError, "BOOTSTRAP_EVIDENCE_FIELDS_INVALID"):
+            validate_bootstrap_evidence(value)
 
-    def test_13_lane_c_ordinary_improvement_cannot_bypass_reopen_rule(self) -> None:
+    def test_13_valid_bootstrap_manifest_is_deterministic_and_non_executable(self) -> None:
+        first = self.prepare()
+        second = self.prepare()
+        self.assertEqual(first, second)
+        self.assertEqual(first["schema_version"], BOOTSTRAP_MANIFEST_SCHEMA)
+        self.assertEqual(first["runtime_pr_bootstrap"]["file_mutations"], [])
+        self.assertTrue(first["trusted_bootstrap_readback_required"])
+        self.assertFalse(first["authority_boundary"]["execution_authority_granted"])
+
+    def test_14_lane_c_ordinary_improvement_cannot_bypass_reopen_rule(self) -> None:
         raw = opportunity()
         apply_intent = intent(raw, "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP")
-        apply_intent["release_reason_class"] = "NEW_GOVERNED_TASK"
         with self.assertRaisesRegex(IdleSignalApplyError, "LANE_REOPEN_REASON_NOT_AUTHORIZED"):
             self.prepare(raw, apply_intent=apply_intent)
 
-    def test_14_existing_active_claim_or_slot_blocks_duplicate_apply(self) -> None:
+    def test_15_existing_active_claim_or_slot_blocks_duplicate_apply(self) -> None:
         raw = opportunity()
         auth = authorization(raw)
         with (
             patch("idle_signal_apply._git_head", return_value=MAIN),
+            patch("idle_signal_apply._next_route_epoch", return_value=152),
             patch("idle_signal_apply._fresh_authorization", return_value=auth),
             patch(
                 "idle_signal_apply._assert_no_existing_live_control_state",
@@ -388,19 +524,16 @@ class IdleSignalApplyTests(unittest.TestCase):
                     expected_current_main=MAIN,
                 )
 
-    def test_15_partial_operation_plan_fails(self) -> None:
+    def test_16_partial_or_reordered_operation_plan_fails(self) -> None:
         raw = opportunity()
-        apply_intent = intent(raw)
-        apply_intent["operation_plan"] = apply_intent["operation_plan"][:-1]
+        partial = intent(raw)
+        partial["operation_plan"] = partial["operation_plan"][:-1]
         with self.assertRaisesRegex(IdleSignalApplyError, "OPERATION_PLAN_INVALID"):
-            self.prepare(raw, apply_intent=apply_intent)
-
-    def test_16_reordered_operation_plan_fails(self) -> None:
-        raw = opportunity()
-        apply_intent = intent(raw)
-        apply_intent["operation_plan"][1:3] = reversed(apply_intent["operation_plan"][1:3])
+            self.prepare(raw, apply_intent=partial)
+        reordered = intent(raw)
+        reordered["operation_plan"][1:3] = reversed(reordered["operation_plan"][1:3])
         with self.assertRaisesRegex(IdleSignalApplyError, "OPERATION_PLAN_INVALID"):
-            self.prepare(raw, apply_intent=apply_intent)
+            self.prepare(raw, apply_intent=reordered)
 
     def test_17_excluded_high_risk_side_effect_fails(self) -> None:
         p = proposal()
@@ -409,65 +542,340 @@ class IdleSignalApplyTests(unittest.TestCase):
         with self.assertRaisesRegex(IdleSignalApplyError, "EXCLUDED_SIDE_EFFECT_REQUESTED"):
             self.prepare(raw)
 
-    def test_18_valid_bootstrap_manifest_is_deterministic_and_non_executable(self) -> None:
-        first = self.prepare()
-        second = self.prepare()
-        self.assertEqual(first, second)
-        self.assertEqual(first["schema_version"], BOOTSTRAP_MANIFEST_SCHEMA)
-        self.assertEqual(first["status"], "BOOTSTRAP_REQUIRED")
-        self.assertEqual(first["runtime_pr_bootstrap"]["file_mutations"], [])
-        self.assertFalse(first["authority_boundary"]["execution_authority_granted"])
-
-    def test_19_valid_activation_manifest_is_exact_bound_and_candidate_only(self) -> None:
+    def test_18_valid_activation_manifest_binds_full_control_documents(self) -> None:
         manifest = self.activation()
         self.assertEqual(manifest["schema_version"], ACTIVATION_MANIFEST_SCHEMA)
+        self.assertEqual(len(manifest["activation_gate"]["exact_changed_paths"]), 3)
         self.assertTrue(manifest["atomic_control_plane_commit_required"])
         self.assertTrue(manifest["partial_apply_forbidden"])
-        self.assertFalse(manifest["authority_boundary"]["manifest_performs_side_effects"])
+        self.assertIn("expected_document", manifest["control_plane_documents"]["claims"])
+        self.assertIn("expected_document", manifest["control_plane_documents"]["workers"])
         self.assertFalse(manifest["authority_boundary"]["execution_authority_granted_by_manifest"])
-        self.assertFalse(manifest["authority_boundary"]["merge_authority_granted"])
-        self.assertFalse(manifest["authority_boundary"]["w3_write_authorized"])
-        self.assertFalse(manifest["authority_boundary"]["signal_runtime_write_authorized"])
-        claim = manifest["work_claim_replacement"]
-        slot = manifest["worker_slot_append"]
-        self.assertEqual(claim["route_binding"]["task_id"], slot["task_id"])
-        self.assertEqual(claim["route_binding"]["route_epoch"], slot["route_epoch"])
-        self.assertEqual(claim["route_binding"]["issue"], slot["issue"])
-        self.assertEqual(claim["route_binding"]["pr"], slot["pr"])
-        self.assertEqual(claim["route_binding"]["branch"], slot["branch"])
 
-    def test_20_bootstrap_requires_empty_commit_without_file_mutation(self) -> None:
-        bootstrap_manifest = self.prepare()
-        evidence = bootstrap_evidence(bootstrap_manifest)
-        evidence["file_mutations"] = ["README.md"]
-        with self.assertRaisesRegex(IdleSignalApplyError, "BOOTSTRAP_FILE_MUTATION_FORBIDDEN"):
-            self.prepare(bootstrap=evidence)
-
-    def test_21_bootstrap_branch_is_not_caller_replaceable(self) -> None:
-        bootstrap_manifest = self.prepare()
-        evidence = bootstrap_evidence(bootstrap_manifest)
-        evidence["branch"] = "gpt/attacker"
+    def test_19_bootstrap_branch_is_not_caller_replaceable(self) -> None:
+        first = self.prepare()
+        selectors = bootstrap_selectors(first)
+        selectors["branch"] = "gpt/attacker"
         with self.assertRaisesRegex(IdleSignalApplyError, "BOOTSTRAP_BRANCH_MISMATCH"):
-            self.prepare(bootstrap=evidence)
+            self.prepare(bootstrap=selectors)
 
-    def test_22_post_apply_partial_state_fails_closed(self) -> None:
-        manifest = self.activation()
-        observed = observed_state(manifest)
-        observed.pop("worker_slot")
-        with self.assertRaisesRegex(IdleSignalApplyError, "APPLIED_STATE_FIELDS_INVALID"):
-            verify_applied_state(manifest, observed)
+    def _bootstrap_fake(self, *, mutate: callable | None = None):
+        raw = opportunity()
+        auth = authorization(raw)
+        identity = _authorization_identity(auth, 152)
+        markers = _required_bootstrap_markers(auth, validate_opportunity(raw), identity)
+        marker_text = "\n".join(f"{k}: {v}" for k, v in markers.items())
+        branch = identity["branch"]
+        tree_sha = "1" * 40
+        responses = {
+            f"/repos/{COORDINATOR_REPOSITORY}/issues/500": {
+                "number": 500,
+                "state": "open",
+                "body": marker_text,
+            },
+            f"/repos/{COORDINATOR_REPOSITORY}/pulls/501": {
+                "number": 501,
+                "state": "open",
+                "draft": True,
+                "merged": False,
+                "body": f"{marker_text}\nCloses #500",
+                "base": {"ref": "main", "repo": {"full_name": COORDINATOR_REPOSITORY}},
+                "head": {
+                    "ref": branch,
+                    "sha": BOOTSTRAP,
+                    "repo": {"full_name": COORDINATOR_REPOSITORY},
+                },
+            },
+            f"/repos/{COORDINATOR_REPOSITORY}/git/commits/{BOOTSTRAP}": {
+                "tree": {"sha": tree_sha},
+                "parents": [{"sha": MAIN}],
+            },
+            f"/repos/{COORDINATOR_REPOSITORY}/git/commits/{MAIN}": {
+                "tree": {"sha": tree_sha},
+                "parents": [],
+            },
+        }
+        if mutate:
+            mutate(responses)
+        selectors = {
+            "schema_version": BOOTSTRAP_EVIDENCE_SCHEMA,
+            "issue": 500,
+            "implementation_pr": 501,
+            "branch": branch,
+            "bootstrap_head": BOOTSTRAP,
+        }
+        return raw, auth, identity, selectors, responses
 
-    def test_23_post_apply_requires_independent_accept(self) -> None:
-        manifest = self.activation()
-        observed = observed_state(manifest)
-        observed["activation_gate_verdict"] = "CHANGES_REQUIRED"
-        with self.assertRaisesRegex(IdleSignalApplyError, "ACTIVATION_GATE_NOT_ACCEPTED"):
-            verify_applied_state(manifest, observed)
+    def test_20_trusted_bootstrap_readback_proves_draft_empty_commit(self) -> None:
+        raw, auth, identity, selectors, responses = self._bootstrap_fake()
+        fake = FakeObserver(responses)
+        with patch("idle_signal_apply._make_apply_observer", return_value=(fake, FakeGatewayError)):
+            result = _trusted_bootstrap_observation(
+                REPO_ROOT, selectors, auth, validate_opportunity(raw), identity
+            )
+        self.assertTrue(result["empty_commit_verified"])
+        self.assertTrue(result["draft_pr_verified"])
 
-    def test_24_valid_post_apply_receipt_is_evidence_only(self) -> None:
+    def test_21_nonempty_bootstrap_commit_fails_trusted_readback(self) -> None:
+        def mutate(responses):
+            responses[f"/repos/{COORDINATOR_REPOSITORY}/git/commits/{BOOTSTRAP}"]["tree"]["sha"] = "2" * 40
+
+        raw, auth, identity, selectors, responses = self._bootstrap_fake(mutate=mutate)
+        fake = FakeObserver(responses)
+        with patch("idle_signal_apply._make_apply_observer", return_value=(fake, FakeGatewayError)):
+            with self.assertRaisesRegex(IdleSignalApplyError, "COMMIT_NOT_EMPTY"):
+                _trusted_bootstrap_observation(
+                    REPO_ROOT, selectors, auth, validate_opportunity(raw), identity
+                )
+
+    def test_22_bootstrap_wrong_parent_main_fails(self) -> None:
+        def mutate(responses):
+            responses[f"/repos/{COORDINATOR_REPOSITORY}/git/commits/{BOOTSTRAP}"]["parents"] = [{"sha": "9" * 40}]
+
+        raw, auth, identity, selectors, responses = self._bootstrap_fake(mutate=mutate)
+        fake = FakeObserver(responses)
+        with patch("idle_signal_apply._make_apply_observer", return_value=(fake, FakeGatewayError)):
+            with self.assertRaisesRegex(IdleSignalApplyError, "PARENT_MAIN_MISMATCH"):
+                _trusted_bootstrap_observation(
+                    REPO_ROOT, selectors, auth, validate_opportunity(raw), identity
+                )
+
+    def test_23_bootstrap_not_draft_or_marker_mismatch_fails(self) -> None:
+        def mutate(responses):
+            responses[f"/repos/{COORDINATOR_REPOSITORY}/pulls/501"]["draft"] = False
+
+        raw, auth, identity, selectors, responses = self._bootstrap_fake(mutate=mutate)
+        fake = FakeObserver(responses)
+        with patch("idle_signal_apply._make_apply_observer", return_value=(fake, FakeGatewayError)):
+            with self.assertRaisesRegex(IdleSignalApplyError, "PR_IDENTITY_INVALID"):
+                _trusted_bootstrap_observation(
+                    REPO_ROOT, selectors, auth, validate_opportunity(raw), identity
+                )
+
+    def _review_fake(self, *, mutate: callable | None = None):
+        request = {
+            "id": 7001,
+            "html_url": "fixture://request",
+            "body": (
+                "schema: REVIEW_REQUEST/v1\nproject: SECOND_BRAIN\npr: 502\n"
+                f"exact_head: {REVIEWED}\nstatus: WAITING_REVIEW\n"
+            ),
+        }
+        result = {
+            "id": 7002,
+            "html_url": "fixture://result",
+            "body": (
+                "schema: REVIEW_RESULT/v1\nproject: SECOND_BRAIN\npr: 502\n"
+                f"reviewed_head: {REVIEWED}\nverdict: ACCEPT\n"
+                "review_evidence_ref: pullrequestreview-9001\n"
+                "review_channel: EXACT_HEAD_COMMENT_ATTESTATION\n"
+                f"reviewer_agent_id: {REVIEWER_ROLE}\n"
+                f"independence_attestation: {INDEPENDENCE_ATTESTATION}\n"
+            ),
+        }
+        reviews = [{"id": 9001, "commit_id": REVIEWED, "state": "COMMENTED"}]
+        responses = {
+            f"/repos/{COORDINATOR_REPOSITORY}/issues/453/comments?per_page=100&page=1": [request, result],
+            f"/repos/{COORDINATOR_REPOSITORY}/pulls/502/reviews?per_page=100&page=1": reviews,
+        }
+        if mutate:
+            mutate(responses)
+        return responses
+
+    def test_24_queue_accept_requires_matching_exact_head_pr_review(self) -> None:
+        fake = FakeObserver(self._review_fake())
+        with patch("idle_signal_apply._make_apply_observer", return_value=(fake, FakeGatewayError)):
+            result = _trusted_exact_head_acceptance(REPO_ROOT, 502, REVIEWED)
+        self.assertEqual(result["verdict"], "ACCEPT")
+        self.assertEqual(result["review_submission_state"], "COMMENTED")
+
+    def test_25_queue_accept_without_independence_attestation_fails(self) -> None:
+        def mutate(responses):
+            result = responses[f"/repos/{COORDINATOR_REPOSITORY}/issues/453/comments?per_page=100&page=1"][1]
+            result["body"] = result["body"].replace(
+                f"independence_attestation: {INDEPENDENCE_ATTESTATION}\n", ""
+            )
+
+        fake = FakeObserver(self._review_fake(mutate=mutate))
+        with patch("idle_signal_apply._make_apply_observer", return_value=(fake, FakeGatewayError)):
+            with self.assertRaisesRegex(IdleSignalApplyError, "INDEPENDENCE_ATTESTATION_INVALID"):
+                _trusted_exact_head_acceptance(REPO_ROOT, 502, REVIEWED)
+
+    def test_26_queue_accept_with_no_matching_pr_review_fails(self) -> None:
+        def mutate(responses):
+            responses[f"/repos/{COORDINATOR_REPOSITORY}/pulls/502/reviews?per_page=100&page=1"][0]["commit_id"] = "9" * 40
+
+        fake = FakeObserver(self._review_fake(mutate=mutate))
+        with patch("idle_signal_apply._make_apply_observer", return_value=(fake, FakeGatewayError)):
+            with self.assertRaisesRegex(IdleSignalApplyError, "REVIEW_EVIDENCE_MISMATCH"):
+                _trusted_exact_head_acceptance(REPO_ROOT, 502, REVIEWED)
+
+    def _post_apply_fake(self, manifest: dict, *, mutate: callable | None = None):
+        route_path = manifest["route_artifact"]["path"]
+        base_tree_sha = "2" * 40
+        reviewed_tree_sha = "3" * 40
+        route_blob = "7" * 40
+        claims_blob = "8" * 40
+        workers_blob = "9" * 40
+        base_entries = [
+            {"path": CLAIMS_FILE, "sha": "4" * 40, "type": "blob", "mode": "100644"},
+            {"path": GPT_WORKERS_REGISTRY, "sha": "5" * 40, "type": "blob", "mode": "100644"},
+        ]
+        reviewed_entries = [
+            {"path": route_path, "sha": route_blob, "type": "blob", "mode": "100644"},
+            {"path": CLAIMS_FILE, "sha": claims_blob, "type": "blob", "mode": "100644"},
+            {"path": GPT_WORKERS_REGISTRY, "sha": workers_blob, "type": "blob", "mode": "100644"},
+        ]
+        branch = manifest["trusted_bootstrap_observation"]["branch"]
+        responses = {
+            f"/repos/{COORDINATOR_REPOSITORY}/git/ref/heads/main": {"object": {"sha": MERGE}},
+            f"/repos/{COORDINATOR_REPOSITORY}/pulls/502": {
+                "number": 502,
+                "state": "closed",
+                "merged": True,
+                "draft": False,
+                "merge_commit_sha": MERGE,
+                "base": {"ref": "main"},
+                "head": {"sha": REVIEWED, "repo": {"full_name": COORDINATOR_REPOSITORY}},
+            },
+            f"/repos/{COORDINATOR_REPOSITORY}/git/commits/{MERGE}": {
+                "tree": {"sha": reviewed_tree_sha},
+                "parents": [{"sha": MAIN}, {"sha": REVIEWED}],
+            },
+            f"/repos/{COORDINATOR_REPOSITORY}/git/commits/{MAIN}": {
+                "tree": {"sha": base_tree_sha},
+                "parents": [],
+            },
+            f"/repos/{COORDINATOR_REPOSITORY}/git/commits/{REVIEWED}": {
+                "tree": {"sha": reviewed_tree_sha},
+                "parents": [{"sha": MAIN}],
+            },
+            f"/repos/{COORDINATOR_REPOSITORY}/git/trees/{base_tree_sha}?recursive=1": {
+                "truncated": False,
+                "tree": base_entries,
+            },
+            f"/repos/{COORDINATOR_REPOSITORY}/git/trees/{reviewed_tree_sha}?recursive=1": {
+                "truncated": False,
+                "tree": reviewed_entries,
+            },
+            f"/repos/{COORDINATOR_REPOSITORY}/pulls/501": {
+                "number": 501,
+                "state": "open",
+                "draft": True,
+                "merged": False,
+                "head": {"ref": branch, "sha": BOOTSTRAP},
+            },
+            f"/repos/{COORDINATOR_REPOSITORY}/git/blobs/{route_blob}": yaml_blob(
+                manifest["route_artifact"]["payload"]
+            ),
+            f"/repos/{COORDINATOR_REPOSITORY}/git/blobs/{claims_blob}": yaml_blob(
+                manifest["control_plane_documents"]["claims"]["expected_document"]
+            ),
+            f"/repos/{COORDINATOR_REPOSITORY}/git/blobs/{workers_blob}": yaml_blob(
+                manifest["control_plane_documents"]["workers"]["expected_document"]
+            ),
+        }
+        if mutate:
+            mutate(responses, reviewed_entries, route_blob, claims_blob, workers_blob)
+        return responses
+
+    def test_27_valid_post_apply_trusted_readback_verifies_atomic_state(self) -> None:
         manifest = self.activation()
-        receipt = verify_applied_state(manifest, observed_state(manifest))
+        fake = FakeObserver(self._post_apply_fake(manifest))
+        with (
+            patch("idle_signal_apply._make_apply_observer", return_value=(fake, FakeGatewayError)),
+            patch("idle_signal_apply._trusted_exact_head_acceptance", return_value=acceptance()),
+        ):
+            trusted = _trusted_post_apply_observation(
+                REPO_ROOT, manifest, applied_selectors(manifest)
+            )
+        self.assertEqual(trusted["current_main_after_activation"], MERGE)
+        self.assertTrue(trusted["full_claims_document_readback_verified"])
+
+    def test_28_current_main_must_equal_activation_merge_commit(self) -> None:
+        manifest = self.activation()
+        def mutate(responses, *_):
+            responses[f"/repos/{COORDINATOR_REPOSITORY}/git/ref/heads/main"]["object"]["sha"] = "6" * 40
+        fake = FakeObserver(self._post_apply_fake(manifest, mutate=mutate))
+        with (
+            patch("idle_signal_apply._make_apply_observer", return_value=(fake, FakeGatewayError)),
+            patch("idle_signal_apply._trusted_exact_head_acceptance", return_value=acceptance()),
+        ):
+            with self.assertRaisesRegex(IdleSignalApplyError, "CURRENT_MAIN_MISMATCH"):
+                _trusted_post_apply_observation(REPO_ROOT, manifest, applied_selectors(manifest))
+
+    def test_29_merge_parent_2_must_be_reviewed_head(self) -> None:
+        manifest = self.activation()
+        def mutate(responses, *_):
+            responses[f"/repos/{COORDINATOR_REPOSITORY}/git/commits/{MERGE}"]["parents"][1]["sha"] = "6" * 40
+        fake = FakeObserver(self._post_apply_fake(manifest, mutate=mutate))
+        with (
+            patch("idle_signal_apply._make_apply_observer", return_value=(fake, FakeGatewayError)),
+            patch("idle_signal_apply._trusted_exact_head_acceptance", return_value=acceptance()),
+        ):
+            with self.assertRaisesRegex(IdleSignalApplyError, "MERGE_PARENT_BINDING_INVALID"):
+                _trusted_post_apply_observation(REPO_ROOT, manifest, applied_selectors(manifest))
+
+    def test_30_activation_gate_extra_fourth_path_fails(self) -> None:
+        manifest = self.activation()
+        def mutate(responses, reviewed_entries, *_):
+            reviewed_entries.append(
+                {"path": "coordination/ATTACK.yaml", "sha": "6" * 40, "type": "blob", "mode": "100644"}
+            )
+            responses[f"/repos/{COORDINATOR_REPOSITORY}/git/trees/{'3' * 40}?recursive=1"]["tree"] = reviewed_entries
+        fake = FakeObserver(self._post_apply_fake(manifest, mutate=mutate))
+        with (
+            patch("idle_signal_apply._make_apply_observer", return_value=(fake, FakeGatewayError)),
+            patch("idle_signal_apply._trusted_exact_head_acceptance", return_value=acceptance()),
+        ):
+            with self.assertRaisesRegex(IdleSignalApplyError, "CHANGED_PATH_SET_MISMATCH"):
+                _trusted_post_apply_observation(REPO_ROOT, manifest, applied_selectors(manifest))
+
+    def test_31_same_claims_file_collateral_mutation_fails_full_document_readback(self) -> None:
+        manifest = self.activation()
+        def mutate(responses, _entries, _route_blob, claims_blob, _workers_blob):
+            attacked = copy.deepcopy(
+                manifest["control_plane_documents"]["claims"]["expected_document"]
+            )
+            attacked["owner"] = "ATTACKER"
+            responses[f"/repos/{COORDINATOR_REPOSITORY}/git/blobs/{claims_blob}"] = yaml_blob(attacked)
+        fake = FakeObserver(self._post_apply_fake(manifest, mutate=mutate))
+        with (
+            patch("idle_signal_apply._make_apply_observer", return_value=(fake, FakeGatewayError)),
+            patch("idle_signal_apply._trusted_exact_head_acceptance", return_value=acceptance()),
+        ):
+            with self.assertRaisesRegex(IdleSignalApplyError, "CLAIMS_FULL_DOCUMENT_MISMATCH"):
+                _trusted_post_apply_observation(REPO_ROOT, manifest, applied_selectors(manifest))
+
+    def test_32_implementation_pr_must_still_be_at_empty_bootstrap_head(self) -> None:
+        manifest = self.activation()
+        def mutate(responses, *_):
+            responses[f"/repos/{COORDINATOR_REPOSITORY}/pulls/501"]["head"]["sha"] = "6" * 40
+        fake = FakeObserver(self._post_apply_fake(manifest, mutate=mutate))
+        with (
+            patch("idle_signal_apply._make_apply_observer", return_value=(fake, FakeGatewayError)),
+            patch("idle_signal_apply._trusted_exact_head_acceptance", return_value=acceptance()),
+        ):
+            with self.assertRaisesRegex(IdleSignalApplyError, "IMPLEMENTATION_PR_DRIFT"):
+                _trusted_post_apply_observation(REPO_ROOT, manifest, applied_selectors(manifest))
+
+    def test_33_applied_selector_issue_or_branch_drift_fails_before_readback(self) -> None:
+        manifest = self.activation()
+        selectors = applied_selectors(manifest)
+        selectors["issue"] += 1
+        with self.assertRaisesRegex(IdleSignalApplyError, "APPLIED_IDENTITY_MISMATCH"):
+            verify_applied_state(REPO_ROOT, manifest, selectors)
+
+    def test_34_valid_receipt_is_trusted_and_evidence_only(self) -> None:
+        manifest = self.activation()
+        trusted = trusted_post_apply(manifest)
+        with patch("idle_signal_apply._trusted_post_apply_observation", return_value=trusted):
+            receipt = verify_applied_state(
+                REPO_ROOT, manifest, applied_selectors(manifest)
+            )
         self.assertEqual(receipt["schema_version"], APPLY_RECEIPT_SCHEMA)
+        self.assertEqual(receipt["current_main_after_activation"], MERGE)
+        self.assertTrue(receipt["verification"]["exact_head_independent_accept_verified"])
         self.assertTrue(receipt["authority_boundary"]["evidence_only"])
         self.assertFalse(receipt["authority_boundary"]["grants_execution_authority"])
         self.assertFalse(receipt["authority_boundary"]["grants_merge_authority"])
