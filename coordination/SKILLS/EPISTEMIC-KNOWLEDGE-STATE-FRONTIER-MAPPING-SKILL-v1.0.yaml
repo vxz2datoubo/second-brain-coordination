@@ -1,9 +1,10 @@
-schema_version: "1.0"
+schema_version: "1.1"
 skill_id: "EPISTEMIC-KNOWLEDGE-STATE-AND-FRONTIER-MAPPING-SKILL-0013"
 module_id: "EPISTEMIC-KNOWLEDGE-STATE-FRONTIER-MAPPING-0013"
 name: "Epistemic Knowledge-State and Frontier Mapping"
 status: "CANDIDATE_ARCHITECTURE / NOT_FORMAL_SKILL"
 implementation_issue: 457
+remediation_issue: 459
 owner: "USER"
 architecture_owner: "GPT"
 boundary: "ARCHITECTURE_CONTRACT_EVAL_ONLY / NO_SECOND_KNOWLEDGE_AUTHORITY / NO_TRADE"
@@ -19,6 +20,7 @@ canonical_reuse:
   no_new_memory_runtime: true
   no_new_knowledge_graph_authority: true
   no_new_personal_profile_authority: true
+  no_new_mastery_authority: true
   no_new_skill_authority: true
 
 purpose:
@@ -26,7 +28,7 @@ purpose:
   - "Distinguish what the user explicitly expressed, what is cautiously inferred, what appears directly learnable, and what currently requires scaffolding."
   - "Connect cognitive state to prerequisites, methods, skills, evidence, external standards, research sources, temporal validity, failure modes and next-frontier actions."
   - "Adapt explanation and research depth without changing underlying canonical facts."
-  - "Preserve UNKNOWN, UNOBSERVED and ABSTAIN when evidence is insufficient."
+  - "Preserve UNKNOWN, UNOBSERVED, SCOPE_FORBIDDEN and ABSTAIN when evidence is insufficient or access is not authorized."
 
 when_to_use:
   - "A complex answer materially benefits from knowing what the user already expressed or demonstrated."
@@ -34,7 +36,7 @@ when_to_use:
   - "The system must decide explanation depth, whether to probe, or whether additional evidence has value."
   - "A blueprint, paper, standard, institution framework or new term must be mapped to existing methods/skills before new skill creation."
   - "A technical, policy, financial or market concept may be stale and requires current-validity separation from historical knowledge."
-  - "Cross-domain transfer is proposed and needs evidence rather than assumption."
+  - "Cross-domain transfer is proposed and needs target-domain evidence rather than assumption."
 
 when_not_to_use:
   - "Simple low-risk one-shot factual answer where personal cognitive state cannot materially improve correctness or utility."
@@ -45,37 +47,52 @@ when_not_to_use:
 
 cognitive_bands:
   KNOWN_SAID:
-    meaning: "Direct evidence exists that the user explicitly stated, confirmed, corrected, authored or directly demonstrated the concept in a measurement-relevant task."
+    meaning: "Direct evidence exists that the user explicitly affirmed knowledge, authored a knowledge-bearing artifact, or directly demonstrated the concept in a measurement-relevant task."
     does_not_mean:
       - "CALIBRATED_MASTERY"
       - "current domain validity"
       - "formal skill competence"
+    required_polarities:
+      - AFFIRMS_KNOWLEDGE
+      - DEMONSTRATES_COMPETENCE
   KNOWN_UNSAID_INFERRED:
     meaning: "The user did not explicitly state the concept, but bounded evidence supports a domain/context-scoped inference of likely knowledge or usable prerequisite structure."
     required:
       - "no conflicting user explicit/correction evidence"
-      - "traceable performance, repeated-behavioral, transfer or strong prerequisite evidence"
+      - "traceable performance, repeated-behavioral or target-domain transfer evidence"
       - "bounded domain_scope and context_scope"
-      - "confidence at policy threshold"
+      - "versioned inference policy reference"
+      - "confidence evaluated under that policy"
       - "inference provenance"
     forbidden_sources_as_sole_basis:
       - "embedding similarity"
       - "topic similarity"
       - "single adjacent concept"
       - "assistant intuition"
+      - "cross-domain evidence without target-domain evidence"
+      - "caller-supplied numeric threshold"
   UNKNOWN_BUT_ACCESSIBLE:
-    meaning: "No sufficient evidence establishes current mastery, but prerequisite coverage and explanation compatibility indicate low-scaffolding learnability or easy verification."
+    meaning: "No sufficient evidence establishes current mastery, but prerequisite coverage and explanation compatibility under a versioned readiness policy indicate low-scaffolding learnability or easy verification."
     invariant: "THIS_IS_NOT_A_CLAIM_THAT_THE_USER_DOES_NOT_KNOW_THE_CONCEPT"
   UNKNOWN_REQUIRES_SCAFFOLDING:
     meaning: "Current evidence indicates that prerequisite, terminology, domain, tool/data, freshness or complexity gaps must be resolved before direct explanation/application is likely to be reliable."
     invariant: "THIS_IS_NOT_A_GLOBAL_INTELLIGENCE_OR_PERSONALITY_JUDGMENT"
 
-unclassified_outcomes:
+legal_epistemic_outcomes:
+  - KNOWN_SAID
+  - KNOWN_UNSAID_INFERRED
+  - UNKNOWN_BUT_ACCESSIBLE
+  - UNKNOWN_REQUIRES_SCAFFOLDING
   - UNOBSERVED
   - UNKNOWN
   - ABSTAIN
-  - SCOPE_FORBIDDEN
   - REVALIDATION_REQUIRED
+
+access_dispositions:
+  - AUTHORIZED
+  - SCOPE_FORBIDDEN
+  - PERMISSION_UNKNOWN
+  - ABSTAIN
 
 mastery_authority:
   source: "PEOS_EXISTING_MASTERY_LADDER"
@@ -104,16 +121,20 @@ state_key:
 EpistemicStateProjection_v1:
   required:
     - schema_version
+    - projection_version
     - projection_id
     - user_scope
     - concept_ref
     - domain_scope
     - context_scope
     - valid_time
+    - access_disposition
     - cognitive_band
     - mastery_level
     - evidence_modes
+    - knowledge_claim_polarity
     - confidence
+    - confidence_basis
     - calibration_status
     - prerequisite_coverage
     - comprehension_readiness
@@ -124,16 +145,21 @@ EpistemicStateProjection_v1:
     - unknown_type
     - explanation_bridge_refs
     - invalidation_conditions
+    - inference_policy_ref
+    - readiness_policy_ref
     - provenance_refs
     - created_at
+    - last_evaluated_at
   fields:
     schema_version: {const: "EpistemicStateProjection/v1"}
+    projection_version: {const: "1.1"}
     projection_id: {type: string}
     user_scope: {type: string}
     concept_ref: {type: string}
     domain_scope: {type: array, items: {type: string}, minItems: 1}
     context_scope: {type: array, items: {type: string}, minItems: 1}
     valid_time: {type: string}
+    access_disposition: {enum: [AUTHORIZED, SCOPE_FORBIDDEN, PERMISSION_UNKNOWN, ABSTAIN]}
     cognitive_band:
       enum: [KNOWN_SAID, KNOWN_UNSAID_INFERRED, UNKNOWN_BUT_ACCESSIBLE, UNKNOWN_REQUIRES_SCAFFOLDING, UNOBSERVED, UNKNOWN, ABSTAIN, REVALIDATION_REQUIRED]
     mastery_level: {type: string}
@@ -141,6 +167,8 @@ EpistemicStateProjection_v1:
       type: array
       items:
         enum: [USER_EXPLICIT, USER_CORRECTION, USER_AUTHORED_ARTIFACT, DIRECT_TASK_DEMONSTRATION, REPEATED_BEHAVIORAL_EVIDENCE, CROSS_CONTEXT_TRANSFER_EVIDENCE, PREREQUISITE_INFERENCE, MODEL_INFERENCE, UNOBSERVED, UNKNOWN]
+    knowledge_claim_polarity:
+      enum: [AFFIRMS_KNOWLEDGE, DENIES_KNOWLEDGE, DEMONSTRATES_COMPETENCE, DOES_NOT_ESTABLISH_KNOWLEDGE, UNKNOWN]
     confidence: {type: number, minimum: 0.0, maximum: 1.0}
     confidence_basis: {type: array, items: {type: string}}
     calibration_status: {enum: [CALIBRATED, PARTIAL, UNCALIBRATED, REVALIDATION_REQUIRED, UNKNOWN]}
@@ -153,16 +181,36 @@ EpistemicStateProjection_v1:
     unknown_type: {type: [string, "null"]}
     explanation_bridge_refs: {type: array, items: {type: string}}
     invalidation_conditions: {type: array, items: {type: string}}
+    inference_policy_ref: {type: [string, "null"]}
+    readiness_policy_ref: {type: [string, "null"]}
     provenance_refs: {type: array, items: {type: string}, minItems: 1}
     created_at: {type: string}
+    last_evaluated_at: {type: string}
   invariants:
+    - "access_disposition != AUTHORIZED means no epistemic projection may be used for answer adaptation."
     - "USER_CORRECTION must outrank conflicting derived inference."
+    - "DENIES_KNOWLEDGE cannot produce KNOWN_UNSAID_INFERRED."
     - "KNOWN_UNSAID_INFERRED must never be represented as USER_EXPLICIT."
+    - "KNOWN_UNSAID_INFERRED requires inference_policy_ref and cannot use a caller-supplied threshold."
+    - "UNKNOWN_BUT_ACCESSIBLE requires readiness_policy_ref."
     - "UNKNOWN_BUT_ACCESSIBLE does not imply UNKNOWN_TO_USER."
     - "UNOBSERVED must remain available when absence of evidence is the material fact."
-    - "No cross-domain mastery transfer without explicit transfer evidence or bounded candidate status."
+    - "No cross-domain KNOWN_UNSAID_INFERRED without target-domain evidence."
     - "Stale or superseded evidence cannot alone authorize CURRENT state."
     - "Projection is rebuildable and non-authoritative."
+
+ClassificationPolicyBinding_v1:
+  purpose: "Prevent callers from manufacturing epistemic authority by choosing their own thresholds or readiness rules."
+  required_policy_refs:
+    KNOWN_UNSAID_INFERRED: inference_policy_ref
+    UNKNOWN_BUT_ACCESSIBLE: readiness_policy_ref
+    UNKNOWN_REQUIRES_SCAFFOLDING: readiness_policy_ref
+  policy_requirements:
+    - "policy reference is versioned and externally governed"
+    - "policy provenance is auditable"
+    - "caller numeric threshold is not authoritative"
+    - "missing required policy reference fails closed to UNKNOWN or ABSTAIN"
+  numeric_thresholds: "NOT_FROZEN_IN_THIS_SLICE"
 
 EvidencePriority_v1:
   order:
@@ -178,6 +226,7 @@ EvidencePriority_v1:
   rules:
     - "PURE_SIMILARITY can discover candidates but cannot grant KNOWN_UNSAID_INFERRED."
     - "Higher-priority evidence does not erase lower-priority historical evidence; it changes current projection."
+    - "Explicit denial/correction blocks conflicting inferred-known state until new user-authorized or target-domain evidence resolves it."
 
 ConceptGraph_v1:
   node_classes:
@@ -205,9 +254,10 @@ ConceptGraph_v1:
     - PART_OF
     - IS_A
   mapping_rules:
-    - "EXACT_MATCH requires high-confidence semantic equivalence."
+    - "EXACT_MATCH requires high-confidence semantic equivalence under a governed crosswalk."
     - "CLOSE_MATCH is non-transitive for local crosswalk use."
     - "External concept identity never silently replaces internal canonical identity."
+    - "Weak mapping chains cannot be composed into EXACT_MATCH."
 
 SkillCapabilityGraph_v1:
   source_authority: "EXISTING_FORMAL_SKILL_GOVERNANCE_AND_METHOD_MEMORY"
@@ -223,7 +273,20 @@ SkillCapabilityGraph_v1:
     - CONFLICTS_WITH
     - ALTERNATIVE_TO
   candidate_relation: "CANDIDATE_PREREQUISITE"
-  rule: "Learned or inferred prerequisite edges remain candidate until independently validated by governed evidence."
+  rules:
+    - "Learned or inferred prerequisite edges remain candidate until independently validated by governed evidence."
+    - "Candidate prerequisite edges cannot grant mastery."
+    - "Candidate prerequisite edges cannot alone grant KNOWN_UNSAID_INFERRED."
+
+PrerequisiteGraphPolicy_v1:
+  cycle_policy: "FAIL_CLOSED"
+  cycle_outcome: "CYCLIC_OR_INVALID"
+  on_cycle:
+    frontier_recommendation_authorized: false
+    mastery_inference_authorized: false
+  cross_domain_policy:
+    source_domain_mastery_can_seed_candidate: true
+    target_domain_known_inference_without_target_evidence: false
 
 EvidenceGraph_v1:
   source_authority: "W3_SECOND_BRAIN"
@@ -239,6 +302,7 @@ EvidenceGraph_v1:
     - REVALIDATED_BY
     - DERIVED_FROM
   raw_private_copy_forbidden: true
+  provenance_required_for_material_projection: true
 
 FrontierProjection_v1:
   outputs:
@@ -264,6 +328,23 @@ FrontierProjection_v1:
   rules:
     - "Analogy may explain but is non-evidentiary unless separately supported."
     - "Frontier ranking cannot change canonical knowledge or skill truth."
+    - "Cycle or missing governed readiness policy prevents NEXT_ACCESSIBLE_FRONTIER authorization."
+
+ExternalCrosswalkRecord_v1:
+  required:
+    - source_system
+    - source_version
+    - source_ref
+    - target_ref
+    - mapping_relation
+    - confidence
+    - provenance_refs
+    - valid_time
+  mapping_relation_enum: [EXACT_MATCH, CLOSE_MATCH, BROADER_THAN, NARROWER_THAN, RELATED_TO]
+  invariants:
+    - "CLOSE_MATCH cannot authorize canonical identity merge."
+    - "EXACT_MATCH cannot be inferred transitively through CLOSE_MATCH."
+    - "Missing source_version or provenance fails closed."
 
 ExternalCrosswalkRegistry_v1:
   adapters:
@@ -352,11 +433,21 @@ ResearchFrontierScanner_v1:
     - ORPHAN_TERM
     - POTENTIAL_METHOD
     - REVALIDATION_TRIGGER
+  quality_dimensions:
+    - source_type
+    - venue_or_publisher_quality
+    - replication_or_review_status
+    - methodological_fit
+    - recency_when_material
+    - citation_network_context
+    - counterevidence_presence
+    - applicability_scope
   downstream: "BLUEPRINT-TO-SKILL-GAP-COMPILER-0012"
   forbidden:
     - "automatic Formal Skill promotion"
     - "citation-count-only quality authority"
     - "topic assignment treated as ground truth"
+    - "research discovery treated as current domain validity"
 
 research_to_skill_disposition:
   allowed:
@@ -380,6 +471,8 @@ explanation_policy:
     - "Expose the minimal prerequisite path."
     - "Use staged examples or visual/analogy aids without converting analogy to evidence."
     - "Re-evaluate after each scaffold."
+  UNOBSERVED:
+    - "Do not infer ignorance; either explain neutrally or probe only when material."
 
 financial_regime_policy:
   ontology_adapter: FIBO
@@ -419,11 +512,11 @@ adversarial_cases:
     story: "Embedding similarity to concepts the user knows but no performance evidence."
     expected: "candidate retrieval only; cannot become KNOWN_UNSAID_INFERRED."
   - id: EKM-ADV-03
-    story: "User explicitly corrects an inferred mastery claim."
-    expected: "current projection follows correction; historical inference evidence remains traceable."
+    story: "User explicitly denies or corrects an inferred mastery claim."
+    expected: "current projection cannot remain KNOWN_UNSAID_INFERRED; historical inference evidence remains traceable."
   - id: EKM-ADV-04
     story: "Strong financial knowledge in one domain, novel medical domain query."
-    expected: "cross-domain transfer is candidate-only and requires validation."
+    expected: "target domain cannot become KNOWN_UNSAID_INFERRED without target-domain evidence."
   - id: EKM-ADV-05
     story: "Old API knowledge after breaking version change."
     expected: "historical mastery retained; current validity becomes REVALIDATION_REQUIRED."
@@ -442,6 +535,12 @@ adversarial_cases:
   - id: EKM-ADV-10
     story: "User knows a method but method health is DEGRADED in current market regime."
     expected: "cognitive state may remain known while method selection is blocked/revalidated."
+  - id: EKM-ADV-11
+    story: "Caller supplies an unusually permissive numeric inference threshold."
+    expected: "threshold ignored as authority; versioned inference_policy_ref required."
+  - id: EKM-ADV-12
+    story: "Evidence is in an unauthorized user/project/privacy scope."
+    expected: "SCOPE_FORBIDDEN and no cross-scope fallback."
 
 metrics:
   cognitive_state:
@@ -487,11 +586,13 @@ maturity:
   formal_skill_promotion: "NOT_AUTHORIZED"
 
 promotion_gates:
-  - "Independent third-window review ACCEPT."
+  - "Independent third-window review ACCEPT on exact head."
+  - "Machine-verifiable contract/eval CI passes on exact head."
   - "No authority overlap with issues 61, 282, 312, or 63."
   - "Explicit vs inferred evidence separation is machine-verifiable."
   - "UNOBSERVED is distinct from UNKNOWN."
   - "User correction overrides derived inference."
+  - "Caller-controlled threshold cannot grant cognitive authority."
   - "Prerequisite cycles and malformed mappings fail closed."
   - "External crosswalk cannot create canonical identity merge."
   - "Research frontier outputs route through Gap Compiler."
