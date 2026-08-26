@@ -1,0 +1,268 @@
+name: Program Control Tower R152 Idle Signal Apply
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/program-control-tower-r152-idle-signal-apply.yml"
+      - "coordination/CONTROL-TOWER/idle_signal_apply.py"
+      - "coordination/CONTROL-TOWER/tests/test_idle_signal_apply.py"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R152/**"
+
+permissions:
+  contents: read
+
+jobs:
+  r152:
+    name: R152 apply transaction (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Verify exact-head provenance and current base
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+          test "${{ github.event.pull_request.base.ref }}" = "main"
+          git fetch --no-tags origin main
+          test "$(git rev-parse origin/main)" = "${{ github.event.pull_request.base.sha }}"
+          git merge-base --is-ancestor "${{ github.event.pull_request.base.sha }}" HEAD
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install test-only YAML parser
+        run: python -m pip install --disable-pip-version-check PyYAML==6.0.2
+
+      - name: Run R152 adversarial tests
+        working-directory: coordination/CONTROL-TOWER
+        run: python -m unittest tests.test_idle_signal_apply -v
+
+      - name: Prove caller reopen reason is bound to canonical lane closure semantics
+        working-directory: coordination/CONTROL-TOWER
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import copy
+          from pathlib import Path
+
+          import yaml
+
+          from idle_signal_apply import IdleSignalApplyError, _validate_lane_reopen_rule
+
+          claims_doc = yaml.safe_load(Path('LANE-WORK-CLAIMS.yaml').read_text(encoding='utf-8'))
+          claims = {
+              item['lane_id']: item
+              for item in claims_doc['claims']
+              if isinstance(item, dict) and item.get('lane_id')
+          }
+
+          def expect_pass(lane_id: str, reason: str) -> None:
+              _validate_lane_reopen_rule(claims[lane_id], reason)
+
+          def expect_fail(claim: dict, reason: str, code: str) -> None:
+              try:
+                  _validate_lane_reopen_rule(claim, reason)
+              except IdleSignalApplyError as exc:
+                  if exc.code != code:
+                      raise SystemExit(
+                          f'wrong reopen failure for {reason}: expected {code}, got {exc.code}'
+                      ) from exc
+              else:
+                  raise SystemExit(f'unauthorized reopen reason passed: {reason}')
+
+          for lane_id in ('LANE-A-HARNESS-INTEGRATION', 'LANE-B-A-SHARE-REMEDIATION'):
+              expect_pass(lane_id, 'NEW_GOVERNED_TASK')
+              expect_fail(
+                  claims[lane_id],
+                  'ARBITRARY_UNAUTHORIZED_REOPEN',
+                  'LANE_REOPEN_REASON_NOT_AUTHORIZED',
+              )
+
+          lane_c = 'LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP'
+          expect_pass(lane_c, 'BUG')
+          expect_fail(
+              claims[lane_c],
+              'NEW_GOVERNED_TASK',
+              'LANE_REOPEN_REASON_NOT_AUTHORIZED',
+          )
+
+          free_form = copy.deepcopy(claims['LANE-A-HARNESS-INTEGRATION'])
+          free_form['closure_receipt']['reopen_rule'] = 'NEW_GOVERNED_TASK WHENEVER CALLER WANTS'
+          expect_fail(
+              free_form,
+              'NEW_GOVERNED_TASK',
+              'LANE_REOPEN_RULE_UNSUPPORTED',
+          )
+
+          print('R152_LANE_REOPEN_REASON_BINDING_PASS')
+          PY
+
+      - name: Retain R151 scheduler regressions
+        working-directory: coordination/CONTROL-TOWER
+        run: python -m unittest tests.test_idle_signal_scheduler -v
+
+      - name: Retain R150 trusted-release regressions
+        working-directory: coordination/CONTROL-TOWER
+        run: python -m unittest tests.test_trusted_task_release -v
+
+      - name: Retain R149 release-impact regressions
+        working-directory: coordination/CONTROL-TOWER
+        run: python -m unittest tests.test_task_release_impact -v
+
+      - name: Run full Control Tower suite
+        working-directory: coordination/CONTROL-TOWER
+        run: python run_all_tests.py
+
+      - name: Prove generated R152 state is accepted by canonical R144 validators
+        working-directory: coordination/CONTROL-TOWER
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import copy
+          from pathlib import Path
+          import shutil
+          import tempfile
+
+          import yaml
+
+          from lane_claims import validate_claims
+          from worker_slots import validate_worker_slots
+          from tests.test_idle_signal_apply import IdleSignalApplyTests
+
+          repo_root = Path('../..').resolve()
+          manifest = IdleSignalApplyTests().activation()
+          lane_id = manifest['work_claim_replacement']['lane_id']
+          slot_id = manifest['worker_slot_append']['worker_slot_id']
+
+          def write_yaml(root: Path, relpath: str, value: dict) -> None:
+              target = root / relpath
+              target.parent.mkdir(parents=True, exist_ok=True)
+              target.write_text(
+                  yaml.safe_dump(value, sort_keys=False, allow_unicode=True),
+                  encoding='utf-8',
+              )
+
+          with tempfile.TemporaryDirectory() as temp:
+              temp_root = Path(temp) / 'repo'
+              shutil.copytree(
+                  repo_root,
+                  temp_root,
+                  ignore=shutil.ignore_patterns('.git', '__pycache__', '.pytest_cache'),
+              )
+
+              claims_contract = manifest['control_plane_documents']['claims']
+              workers_contract = manifest['control_plane_documents']['workers']
+              write_yaml(temp_root, claims_contract['path'], claims_contract['expected_document'])
+              write_yaml(temp_root, workers_contract['path'], workers_contract['expected_document'])
+              write_yaml(
+                  temp_root,
+                  manifest['route_artifact']['path'],
+                  manifest['route_artifact']['payload'],
+              )
+
+              claims_result = validate_claims(temp_root)
+              workers_result = validate_worker_slots(temp_root)
+              if claims_result['claim_structural_check'] != 'PASS':
+                  raise SystemExit(f"R152 generated claim rejected by canonical validator: {claims_result['errors']}")
+              if workers_result['worker_slot_structural_check'] != 'PASS':
+                  raise SystemExit(f"R152 generated worker slot rejected by canonical R144 validator: {workers_result['errors']}")
+              if slot_id not in workers_result['active_executable_slots']:
+                  raise SystemExit('R152 generated ACTIVE worker slot is not executable under canonical R144')
+
+              empty_claims = copy.deepcopy(claims_contract['expected_document'])
+              empty_workers = copy.deepcopy(workers_contract['expected_document'])
+              for claim in empty_claims['claims']:
+                  if claim.get('lane_id') == lane_id:
+                      claim['write_paths'] = []
+              for slot in empty_workers['worker_slots']:
+                  if slot.get('worker_slot_id') == slot_id:
+                      slot['write_paths'] = []
+              write_yaml(temp_root, claims_contract['path'], empty_claims)
+              write_yaml(temp_root, workers_contract['path'], empty_workers)
+
+              rejected_claims = validate_claims(temp_root)
+              rejected_workers = validate_worker_slots(temp_root)
+              claim_codes = {item['code'] for item in rejected_claims['errors']}
+              worker_codes = {item['code'] for item in rejected_workers['errors']}
+              if 'ACTIVE_CLAIM_WRITE_SURFACE_MISSING' not in claim_codes:
+                  raise SystemExit(f'canonical claim validator failed to reject empty R152 write surface: {claim_codes}')
+              if 'WORKER_SLOT_WRITE_SURFACE_MISSING' not in worker_codes:
+                  raise SystemExit(f'canonical R144 validator failed to reject empty R152 write surface: {worker_codes}')
+
+          print('R152_R144_COMPATIBILITY_PASS')
+          PY
+
+      - name: Verify bounded changed-path allowlist
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="${{ github.event.pull_request.base.sha }}"
+          mapfile -t changed < <(git diff --name-only "$BASE" HEAD)
+          allowed() {
+            case "$1" in
+              .github/workflows/program-control-tower-r152-idle-signal-apply.yml) return 0 ;;
+              coordination/CONTROL-TOWER/idle_signal_apply.py) return 0 ;;
+              coordination/CONTROL-TOWER/tests/test_idle_signal_apply.py) return 0 ;;
+              coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R152/PROJECT-PLAN.md) return 0 ;;
+              coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R152/IDLE-SIGNAL-APPLY-CONTRACT.schema.json) return 0 ;;
+              *) return 1 ;;
+            esac
+          }
+          for path in "${changed[@]}"; do
+            if ! allowed "$path"; then
+              echo "R152 out-of-scope path: $path" >&2
+              exit 1
+            fi
+          done
+          test "${#changed[@]}" -eq 5
+
+      - name: Verify implementation PR does not mutate live authority surfaces
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="${{ github.event.pull_request.base.sha }}"
+          if git diff --name-only "$BASE" HEAD | grep -E '^(coordination/ACTIVE-|coordination/ROUTES/|coordination/CONTROL-TOWER/LANE-WORK-CLAIMS\.yaml$)'; then
+            echo "R152 implementation PR may not mutate ACTIVE/ROUTES/current Work Claim authority" >&2
+            exit 1
+          fi
+          python - <<'PY'
+          from pathlib import Path
+          text = Path('coordination/CONTROL-TOWER/idle_signal_apply.py').read_text(encoding='utf-8')
+          required = [
+              'execution_authority_granted_by_manifest": False',
+              'merge_authority_granted": False',
+              'w3_write_authorized": False',
+              'signal_runtime_write_authorized": False',
+              'empty_commit_required": True',
+              'atomic_control_plane_commit_required": True',
+              'independent_exact_head_review_required": True',
+          ]
+          for needle in required:
+              if needle not in text:
+                  raise SystemExit(f'missing R152 boundary: {needle}')
+          print('R152_AUTHORITY_BOUNDARY_PASS')
+          PY
+
+      - name: Verify whitespace and no unfinished implementation markers
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check "${{ github.event.pull_request.base.sha }}" HEAD
+          if grep -R -n -E 'TODO|FIXME|NotImplementedError' \
+            coordination/CONTROL-TOWER/idle_signal_apply.py \
+            coordination/CONTROL-TOWER/tests/test_idle_signal_apply.py; then
+            exit 1
+          fi

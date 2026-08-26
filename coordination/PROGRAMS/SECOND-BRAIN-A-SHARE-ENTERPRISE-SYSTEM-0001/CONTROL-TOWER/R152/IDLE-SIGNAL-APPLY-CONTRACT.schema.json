@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://second-brain.invalid/contracts/r152-idle-signal-apply.json",
+  "title": "R152 Idle Signal Apply Contract",
+  "type": "object",
+  "$defs": {
+    "sha40": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "surface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "write_paths",
+        "read_paths",
+        "interfaces",
+        "read_domains",
+        "write_domains",
+        "authority_claims"
+      ],
+      "properties": {
+        "write_paths": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "read_paths": {"type": "array", "items": {"type": "string"}},
+        "interfaces": {"type": "array"},
+        "read_domains": {"type": "array", "items": {"type": "string"}},
+        "write_domains": {"type": "array", "items": {"type": "string"}},
+        "authority_claims": {"type": "array", "items": {"type": "string"}}
+      },
+      "description": "R152 only prepares bounded implementation work. The apply contract requires at least one explicit write path; canonical R144 validators independently enforce the same invariant on generated ACTIVE Work Claim and GPT worker-slot state."
+    },
+    "applyIntent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "lane_id",
+        "route_epoch",
+        "release_reason_class",
+        "requested_surface",
+        "resource_class",
+        "reviewer_role",
+        "reviewer_separation",
+        "operation_plan"
+      ],
+      "properties": {
+        "schema_version": {"const": "IdleSignalApplyIntent/v1"},
+        "lane_id": {"type": "string", "minLength": 1},
+        "route_epoch": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "A selector only. Runtime requires exact equality with max(canonical route epochs)+1; caller cannot choose a reused epoch."
+        },
+        "release_reason_class": {"type": "string", "minLength": 1},
+        "requested_surface": {"$ref": "#/$defs/surface"},
+        "resource_class": {"const": "LIGHT_TO_MEDIUM_IMPLEMENTATION"},
+        "reviewer_role": {"const": "GPT_INDEPENDENT_REVIEWER"},
+        "reviewer_separation": {"const": "EXECUTOR_IS_NOT_ACCEPTANCE_AUTHORITY"},
+        "operation_plan": {
+          "const": [
+            "create_issue",
+            "create_route",
+            "create_work_claim",
+            "allocate_worker_slot",
+            "begin_bounded_engineering"
+          ]
+        }
+      }
+    },
+    "bootstrapEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "issue",
+        "implementation_pr",
+        "branch",
+        "bootstrap_head"
+      ],
+      "properties": {
+        "schema_version": {"const": "IdleSignalBootstrapEvidence/v1"},
+        "issue": {"type": "integer", "minimum": 1},
+        "implementation_pr": {"type": "integer", "minimum": 1},
+        "branch": {"type": "string", "minLength": 1},
+        "bootstrap_head": {"$ref": "#/$defs/sha40"}
+      },
+      "description": "Selectors only. Draft state, same-repository identity, exact markers, parent main, and empty-commit truth are freshly re-read through the retained R137 GitHub provider."
+    },
+    "appliedState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "activation_gate_pr",
+        "activation_gate_reviewed_head",
+        "activation_gate_merge_commit",
+        "issue",
+        "implementation_pr",
+        "branch"
+      ],
+      "properties": {
+        "schema_version": {"const": "IdleSignalAppliedState/v1"},
+        "activation_gate_pr": {"type": "integer", "minimum": 1},
+        "activation_gate_reviewed_head": {"$ref": "#/$defs/sha40"},
+        "activation_gate_merge_commit": {"$ref": "#/$defs/sha40"},
+        "issue": {"type": "integer", "minimum": 1},
+        "implementation_pr": {"type": "integer", "minimum": 1},
+        "branch": {"type": "string", "minLength": 1}
+      },
+      "description": "Selectors only. Current main, merge ancestry, exact-head independent ACCEPT, changed paths, implementation-head freshness, Route, full Work Claim document, and full worker registry document are freshly read back before a receipt can exist."
+    }
+  },
+  "oneOf": [
+    {"$ref": "#/$defs/applyIntent"},
+    {"$ref": "#/$defs/bootstrapEvidence"},
+    {"$ref": "#/$defs/appliedState"}
+  ],
+  "x-r152-trusted-readback": {
+    "provider": "R137_PUBLIC_GITHUB_ON_DEMAND_TRUSTED_PROCESS_V1",
+    "caller_bootstrap_truth_attestation": false,
+    "caller_applied_truth_attestation": false,
+    "route_epoch_source": "NEXT_CANONICAL_ROUTE_EPOCH",
+    "bootstrap_empty_commit": "GIT_TREE_EQUALITY_WITH_AUTHORIZATION_MAIN_PARENT",
+    "independent_acceptance": "REVIEW_QUEUE_453_EXACT_HEAD_ACCEPT_PLUS_MATCHING_PR_REVIEW_SUBMISSION",
+    "activation_merge": "CURRENT_MAIN_EQUALS_MERGE_COMMIT_AND_PARENTS_EQUAL_BASE_MAIN_PLUS_REVIEWED_HEAD",
+    "activation_changed_paths": "EXACTLY_ROUTE_PLUS_LANE_WORK_CLAIMS_PLUS_GPT_WORKER_REGISTRY",
+    "same_file_collateral_mutation": "FORBIDDEN_BY_FULL_DOCUMENT_EXPECTED_STATE_BINDING",
+    "implementation_must_remain_bootstrap_until_readback": true,
+    "generated_state_validator": "CANONICAL_R144_VALIDATE_CLAIMS_PLUS_VALIDATE_WORKER_SLOTS"
+  },
+  "x-r152-authority-boundary": {
+    "manifest_performs_side_effects": false,
+    "execution_authority_granted_by_manifest": false,
+    "merge_authority_granted": false,
+    "production_deploy_authorized": false,
+    "secrets_or_permission_expansion_authorized": false,
+    "trading_order_or_fund_authorized": false,
+    "destructive_history_authorized": false,
+    "w3_write_authorized": false,
+    "signal_runtime_write_authorized": false
+  }
+}
