@@ -1,17 +1,21 @@
 from __future__ import annotations
 
+from base64 import b64decode
 import hashlib
 import json
 from pathlib import Path
 import re
 import subprocess
-from typing import Any, Mapping
+from typing import Any, Mapping, Sequence
+
+import yaml
 
 from control_tower import load_yaml
 from idle_signal_scheduler import (
     AUTHORIZATION_SCHEMA,
     OPPORTUNITY_SCHEMA,
     _exclusion_hits,
+    _load_r137_provider,
     _requested_side_effect_surface,
     evaluate_idle_signal_startup,
     validate_opportunity,
@@ -27,9 +31,11 @@ from trusted_task_release import GPT_WORKERS_REGISTRY
 
 APPLY_INTENT_SCHEMA = "IdleSignalApplyIntent/v1"
 BOOTSTRAP_EVIDENCE_SCHEMA = "IdleSignalBootstrapEvidence/v1"
+TRUSTED_BOOTSTRAP_SCHEMA = "TrustedIdleSignalBootstrapObservation/v1"
 BOOTSTRAP_MANIFEST_SCHEMA = "IdleSignalBootstrapManifest/v1"
 ACTIVATION_MANIFEST_SCHEMA = "IdleSignalActivationManifest/v1"
 APPLIED_STATE_SCHEMA = "IdleSignalAppliedState/v1"
+TRUSTED_APPLIED_STATE_SCHEMA = "TrustedIdleSignalAppliedStateObservation/v1"
 APPLY_RECEIPT_SCHEMA = "IdleSignalApplyReceipt/v1"
 
 AUTHORIZED_LOGICAL_PLAN = (
@@ -43,7 +49,12 @@ AGENT_TYPE = "GPT_ENGINEERING_WORKER"
 MODEL_ID = "GPT-5.6 Sol"
 REVIEWER_ROLE = "GPT_INDEPENDENT_REVIEWER"
 RESOURCE_CLASS = "LIGHT_TO_MEDIUM_IMPLEMENTATION"
+COORDINATOR_REPOSITORY = "vxz2datoubo/second-brain-coordination"
+ROUTES_ROOT = "coordination/ROUTES"
 _SHA40 = re.compile(r"^[0-9a-f]{40}$")
+_ISSUE_ENDPOINT = re.compile(
+    r"^/repos/vxz2datoubo/second-brain-coordination/issues/[1-9][0-9]*$"
+)
 
 
 class IdleSignalApplyError(ValueError):
@@ -89,6 +100,18 @@ def _nonempty(value: Any, path: str) -> str:
 def _positive_int(value: Any, path: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int) or value < 1:
         raise IdleSignalApplyError("INVALID_POSITIVE_INTEGER", path)
+    return value
+
+
+def _sha40(value: Any, code: str, path: str) -> str:
+    if not isinstance(value, str) or not _SHA40.fullmatch(value):
+        raise IdleSignalApplyError(code, path)
+    return value
+
+
+def _mapping(value: Any, code: str) -> Mapping[str, Any]:
+    if not isinstance(value, Mapping):
+        raise IdleSignalApplyError(code)
     return value
 
 
@@ -224,6 +247,7 @@ def validate_apply_intent(value: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def validate_bootstrap_evidence(value: Mapping[str, Any]) -> dict[str, Any]:
+    """Validate selectors only. Bootstrap truth is re-read from GitHub."""
     if not isinstance(value, Mapping):
         raise IdleSignalApplyError("BOOTSTRAP_EVIDENCE_NOT_OBJECT")
     required = {
@@ -232,9 +256,6 @@ def validate_bootstrap_evidence(value: Mapping[str, Any]) -> dict[str, Any]:
         "implementation_pr",
         "branch",
         "bootstrap_head",
-        "draft",
-        "empty_bootstrap_commit",
-        "file_mutations",
     }
     if set(value) != required:
         raise IdleSignalApplyError("BOOTSTRAP_EVIDENCE_FIELDS_INVALID")
@@ -244,16 +265,33 @@ def validate_bootstrap_evidence(value: Mapping[str, Any]) -> dict[str, Any]:
     _positive_int(out["issue"], "/issue")
     _positive_int(out["implementation_pr"], "/implementation_pr")
     _nonempty(out["branch"], "/branch")
-    if not isinstance(out["bootstrap_head"], str) or not _SHA40.fullmatch(
-        out["bootstrap_head"]
-    ):
-        raise IdleSignalApplyError("BOOTSTRAP_HEAD_INVALID")
-    if out["draft"] is not True:
-        raise IdleSignalApplyError("BOOTSTRAP_PR_MUST_BE_DRAFT")
-    if out["empty_bootstrap_commit"] is not True:
-        raise IdleSignalApplyError("BOOTSTRAP_COMMIT_MUST_BE_EMPTY")
-    if out["file_mutations"] != []:
-        raise IdleSignalApplyError("BOOTSTRAP_FILE_MUTATION_FORBIDDEN")
+    _sha40(out["bootstrap_head"], "BOOTSTRAP_HEAD_INVALID", "/bootstrap_head")
+    return out
+
+
+def validate_applied_state(value: Mapping[str, Any]) -> dict[str, Any]:
+    """Validate post-apply selectors only. Canonical truth is re-read live."""
+    if not isinstance(value, Mapping):
+        raise IdleSignalApplyError("APPLIED_STATE_NOT_OBJECT")
+    required = {
+        "schema_version",
+        "activation_gate_pr",
+        "activation_gate_reviewed_head",
+        "activation_gate_merge_commit",
+        "issue",
+        "implementation_pr",
+        "branch",
+    }
+    if set(value) != required:
+        raise IdleSignalApplyError("APPLIED_STATE_FIELDS_INVALID")
+    if value.get("schema_version") != APPLIED_STATE_SCHEMA:
+        raise IdleSignalApplyError("APPLIED_STATE_SCHEMA_INVALID")
+    out = _copy(value)
+    for field in ("activation_gate_pr", "issue", "implementation_pr"):
+        _positive_int(out[field], f"/{field}")
+    _nonempty(out["branch"], "/branch")
+    for field in ("activation_gate_reviewed_head", "activation_gate_merge_commit"):
+        _sha40(out[field], "APPLIED_STATE_SHA_INVALID", f"/{field}")
     return out
 
 
@@ -271,6 +309,43 @@ def _authorization_identity(
         "route_epoch": route_epoch,
         "completion_signal": f"IDLE_SIGNAL_AUTO_{token}_READY_FOR_INDEPENDENT_REVIEW",
     }
+
+
+def _canonical_route_epochs(root: Path) -> set[int]:
+    route_root = root / ROUTES_ROOT
+    if not route_root.is_dir():
+        raise IdleSignalApplyError("CANONICAL_ROUTE_ROOT_MISSING")
+    epochs: set[int] = set()
+    for path in sorted(route_root.glob("*.yaml")):
+        try:
+            doc = load_yaml(path)
+        except (OSError, ValueError, TypeError) as exc:
+            raise IdleSignalApplyError("CANONICAL_ROUTE_DOCUMENT_INVALID") from exc
+        if not isinstance(doc, Mapping):
+            raise IdleSignalApplyError("CANONICAL_ROUTE_DOCUMENT_INVALID")
+        binding_raw = doc.get("binding")
+        if binding_raw is None:
+            binding: Mapping[str, Any] = {}
+        elif isinstance(binding_raw, Mapping):
+            binding = binding_raw
+        else:
+            raise IdleSignalApplyError("CANONICAL_ROUTE_BINDING_INVALID")
+        top = doc.get("route_epoch")
+        nested = binding.get("route_epoch")
+        if top is not None and nested is not None and top != nested:
+            raise IdleSignalApplyError("CANONICAL_ROUTE_EPOCH_AMBIGUOUS")
+        value = top if top is not None else nested
+        if value is None:
+            continue
+        if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+            raise IdleSignalApplyError("CANONICAL_ROUTE_EPOCH_INVALID")
+        epochs.add(value)
+    return epochs
+
+
+def _next_route_epoch(root: Path) -> int:
+    epochs = _canonical_route_epochs(root)
+    return (max(epochs) + 1) if epochs else 1
 
 
 def _load_lane_state(root: Path, lane_id: str) -> dict[str, Any]:
@@ -363,6 +438,160 @@ def _fresh_authorization(
     return _validate_authorization(authorization)
 
 
+def _make_apply_observer(root: Path) -> tuple[Any, type[BaseException]]:
+    """Reuse R137 public GitHub observer, extending only fixed-repo Issue GET."""
+    provider_base, gateway_error = _load_r137_provider(root)
+
+    class _ApplyObserver(provider_base):
+        def _dynamic_domain_endpoint_allowed(self, path: str) -> bool:
+            if _ISSUE_ENDPOINT.fullmatch(path):
+                return True
+            return super()._dynamic_domain_endpoint_allowed(path)
+
+    return _ApplyObserver(), gateway_error
+
+
+def _api_json(
+    observer: Any,
+    gateway_error: type[BaseException],
+    path: str,
+    code: str,
+) -> tuple[Any, Mapping[str, Any]]:
+    try:
+        _headers, payload, metadata = observer._get_json(path)
+    except gateway_error as exc:
+        raise IdleSignalApplyError(code) from exc
+    if not isinstance(metadata, Mapping):
+        metadata = {}
+    return payload, metadata
+
+
+def _required_bootstrap_markers(
+    authorization: Mapping[str, Any],
+    opportunity: Mapping[str, Any],
+    identity: Mapping[str, Any],
+) -> dict[str, str]:
+    return {
+        "r151_authorization_id": str(authorization["authorization_id"]),
+        "r151_authorization_digest": str(authorization["authorization_digest"]),
+        "signal_ref": str(opportunity["signal_ref"]),
+        "task_id": str(identity["task_id"]),
+    }
+
+
+def _body_has_markers(body: Any, markers: Mapping[str, str]) -> bool:
+    if not isinstance(body, str):
+        return False
+    return all(f"{key}: {value}" in body for key, value in markers.items())
+
+
+def _trusted_bootstrap_observation(
+    root: Path,
+    selectors: Mapping[str, Any],
+    authorization: Mapping[str, Any],
+    opportunity: Mapping[str, Any],
+    identity: Mapping[str, Any],
+) -> dict[str, Any]:
+    observer, gateway_error = _make_apply_observer(root)
+    issue_number = int(selectors["issue"])
+    pr_number = int(selectors["implementation_pr"])
+    branch = str(selectors["branch"])
+    bootstrap_head = str(selectors["bootstrap_head"])
+    markers = _required_bootstrap_markers(authorization, opportunity, identity)
+
+    issue, issue_meta = _api_json(
+        observer,
+        gateway_error,
+        f"/repos/{COORDINATOR_REPOSITORY}/issues/{issue_number}",
+        "TRUSTED_BOOTSTRAP_ISSUE_READ_FAILED",
+    )
+    issue = _mapping(issue, "TRUSTED_BOOTSTRAP_ISSUE_INVALID")
+    if issue.get("number") != issue_number or issue.get("state") != "open":
+        raise IdleSignalApplyError("TRUSTED_BOOTSTRAP_ISSUE_IDENTITY_INVALID")
+    if "pull_request" in issue:
+        raise IdleSignalApplyError("TRUSTED_BOOTSTRAP_ISSUE_IS_PULL_REQUEST")
+    if not _body_has_markers(issue.get("body"), markers):
+        raise IdleSignalApplyError("TRUSTED_BOOTSTRAP_ISSUE_MARKERS_MISSING")
+
+    pr, pr_meta = _api_json(
+        observer,
+        gateway_error,
+        f"/repos/{COORDINATOR_REPOSITORY}/pulls/{pr_number}",
+        "TRUSTED_BOOTSTRAP_PR_READ_FAILED",
+    )
+    pr = _mapping(pr, "TRUSTED_BOOTSTRAP_PR_INVALID")
+    base = _mapping(pr.get("base"), "TRUSTED_BOOTSTRAP_PR_BASE_INVALID")
+    head = _mapping(pr.get("head"), "TRUSTED_BOOTSTRAP_PR_HEAD_INVALID")
+    base_repo = _mapping(base.get("repo"), "TRUSTED_BOOTSTRAP_PR_BASE_REPO_INVALID")
+    head_repo = _mapping(head.get("repo"), "TRUSTED_BOOTSTRAP_PR_HEAD_REPO_INVALID")
+    if (
+        pr.get("number") != pr_number
+        or pr.get("state") != "open"
+        or pr.get("draft") is not True
+        or pr.get("merged") is not False
+        or base.get("ref") != "main"
+        or base_repo.get("full_name") != COORDINATOR_REPOSITORY
+        or head.get("ref") != branch
+        or head.get("sha") != bootstrap_head
+        or head_repo.get("full_name") != COORDINATOR_REPOSITORY
+    ):
+        raise IdleSignalApplyError("TRUSTED_BOOTSTRAP_PR_IDENTITY_INVALID")
+    pr_body = pr.get("body")
+    if not _body_has_markers(pr_body, markers) or f"#{issue_number}" not in str(pr_body):
+        raise IdleSignalApplyError("TRUSTED_BOOTSTRAP_PR_MARKERS_MISSING")
+
+    commit, commit_meta = _api_json(
+        observer,
+        gateway_error,
+        f"/repos/{COORDINATOR_REPOSITORY}/git/commits/{bootstrap_head}",
+        "TRUSTED_BOOTSTRAP_COMMIT_READ_FAILED",
+    )
+    commit = _mapping(commit, "TRUSTED_BOOTSTRAP_COMMIT_INVALID")
+    tree = _mapping(commit.get("tree"), "TRUSTED_BOOTSTRAP_TREE_INVALID")
+    parents = commit.get("parents")
+    if not isinstance(parents, list) or len(parents) != 1 or not isinstance(parents[0], Mapping):
+        raise IdleSignalApplyError("TRUSTED_BOOTSTRAP_PARENT_CARDINALITY_INVALID")
+    parent_sha = parents[0].get("sha")
+    if parent_sha != authorization.get("canonical_main"):
+        raise IdleSignalApplyError("TRUSTED_BOOTSTRAP_PARENT_MAIN_MISMATCH")
+    parent, parent_meta = _api_json(
+        observer,
+        gateway_error,
+        f"/repos/{COORDINATOR_REPOSITORY}/git/commits/{parent_sha}",
+        "TRUSTED_BOOTSTRAP_PARENT_READ_FAILED",
+    )
+    parent = _mapping(parent, "TRUSTED_BOOTSTRAP_PARENT_INVALID")
+    parent_tree = _mapping(parent.get("tree"), "TRUSTED_BOOTSTRAP_PARENT_TREE_INVALID")
+    tree_sha = _sha40(tree.get("sha"), "TRUSTED_BOOTSTRAP_TREE_SHA_INVALID", "/tree")
+    parent_tree_sha = _sha40(
+        parent_tree.get("sha"), "TRUSTED_BOOTSTRAP_PARENT_TREE_SHA_INVALID", "/parent_tree"
+    )
+    if tree_sha != parent_tree_sha:
+        raise IdleSignalApplyError("TRUSTED_BOOTSTRAP_COMMIT_NOT_EMPTY")
+
+    observation = {
+        "schema_version": TRUSTED_BOOTSTRAP_SCHEMA,
+        "repository": COORDINATOR_REPOSITORY,
+        "issue": issue_number,
+        "implementation_pr": pr_number,
+        "branch": branch,
+        "bootstrap_head": bootstrap_head,
+        "bootstrap_parent_main": parent_sha,
+        "empty_commit_verified": True,
+        "draft_pr_verified": True,
+        "issue_markers_verified": True,
+        "pr_markers_verified": True,
+        "provider_metadata": [
+            _copy(issue_meta),
+            _copy(pr_meta),
+            _copy(commit_meta),
+            _copy(parent_meta),
+        ],
+    }
+    observation["observation_digest"] = _digest(observation)
+    return observation
+
+
 def _bootstrap_manifest(
     authorization: Mapping[str, Any],
     opportunity: Mapping[str, Any],
@@ -370,6 +599,7 @@ def _bootstrap_manifest(
     *,
     current_main: str,
 ) -> dict[str, Any]:
+    markers = _required_bootstrap_markers(authorization, opportunity, identity)
     value = {
         "schema_version": BOOTSTRAP_MANIFEST_SCHEMA,
         "status": "BOOTSTRAP_REQUIRED",
@@ -381,27 +611,26 @@ def _bootstrap_manifest(
         "issue": {
             "operation": "create_issue",
             "title": f"Auto-released bounded engineering: {opportunity['desired_effect']}",
-            "body_markers": {
-                "r151_authorization_id": authorization["authorization_id"],
-                "r151_authorization_digest": authorization["authorization_digest"],
-                "signal_ref": opportunity["signal_ref"],
-                "task_id": identity["task_id"],
-            },
+            "required_body_markers": markers,
         },
         "runtime_pr_bootstrap": {
             "operation": "begin_bounded_engineering",
             "phase": "NON_EXECUTABLE_BOOTSTRAP_ONLY",
             "branch": identity["branch"],
+            "branch_parent": current_main,
             "requires_issue_output": True,
             "empty_commit_required": True,
             "file_mutations": [],
             "draft_pr_required": True,
+            "required_pr_body_markers": markers,
+            "required_pr_issue_reference": "OUTPUT_OF_CREATE_ISSUE",
             "reason": (
                 "R144 requires Issue/PR/branch identity before any ACTIVE or RESERVED "
                 "GPT worker slot can become canonical."
             ),
         },
-        "deferred_until_bootstrap_evidence": [
+        "trusted_bootstrap_readback_required": True,
+        "deferred_until_trusted_bootstrap_readback": [
             "create_route",
             "create_work_claim",
             "allocate_worker_slot",
@@ -449,7 +678,7 @@ def _activation_manifest(
     route = {
         "schema_version": "1.3",
         "route_id": identity["route_id"],
-        "repository": "vxz2datoubo/second-brain-coordination",
+        "repository": COORDINATOR_REPOSITORY,
         "status": "ACTIVE_IMPLEMENTATION",
         "execution_allowed": True,
         "runtime_code_change_allowed": True,
@@ -515,6 +744,7 @@ def _activation_manifest(
             "r151_authorization_id": authorization["authorization_id"],
             "r151_authorization_digest": authorization["authorization_digest"],
             "r152_base_main": current_main,
+            "trusted_bootstrap_observation_digest": bootstrap["observation_digest"],
             "bootstrap_head": bootstrap["bootstrap_head"],
         },
         "reviewer_role": intent["reviewer_role"],
@@ -528,7 +758,7 @@ def _activation_manifest(
         "canonical_main": current_main,
         "authorization_digest": authorization["authorization_digest"],
         "opportunity_digest": opportunity["opportunity_digest"],
-        "bootstrap_evidence": _copy(bootstrap),
+        "trusted_bootstrap_observation": _copy(bootstrap),
         "identity": _copy(identity),
         "logical_authorized_plan": list(AUTHORIZED_LOGICAL_PLAN),
         "atomic_control_plane_commit_required": True,
@@ -537,18 +767,21 @@ def _activation_manifest(
             "must_be_separate_pr": True,
             "independent_exact_head_review_required": True,
             "merge_requires_expected_head": True,
+            "merge_method_required": "merge",
             "execution_effective_only_after_gate_is_canonical": True,
+            "post_merge_trusted_readback_required_before_first_implementation_commit": True,
         },
         "route_artifact": {
-            "path": f"coordination/ROUTES/{identity['route_id']}.yaml",
+            "path": f"{ROUTES_ROOT}/{identity['route_id']}.yaml",
             "payload": route,
         },
         "work_claim_replacement": claim,
         "worker_slot_append": worker_slot,
         "begin_bounded_engineering": {
-            "allowed_only_after_activation_gate_canonical": True,
+            "allowed_only_after_activation_gate_canonical_and_readback_verified": True,
             "implementation_pr": pr,
             "branch": branch,
+            "expected_pre_implementation_head": bootstrap["bootstrap_head"],
             "write_paths": list(surface["write_paths"]),
         },
         "authority_boundary": {
@@ -621,10 +854,13 @@ def prepare_apply_transaction(
         raise IdleSignalApplyError("R150_RECEIPT_DRIFT")
 
     _assert_no_existing_live_control_state(root)
+    next_epoch = _next_route_epoch(root)
+    if intent["route_epoch"] != next_epoch:
+        raise IdleSignalApplyError("ROUTE_EPOCH_NOT_NEXT_CANONICAL")
     claim = _load_lane_state(root, intent["lane_id"])
     _validate_lane_reopen_rule(claim, intent["release_reason_class"])
 
-    identity = _authorization_identity(presented, intent["route_epoch"])
+    identity = _authorization_identity(presented, next_epoch)
     if bootstrap_evidence is None:
         return _bootstrap_manifest(
             presented,
@@ -633,9 +869,16 @@ def prepare_apply_transaction(
             current_main=expected_current_main,
         )
 
-    bootstrap = validate_bootstrap_evidence(bootstrap_evidence)
-    if bootstrap["branch"] != identity["branch"]:
+    selectors = validate_bootstrap_evidence(bootstrap_evidence)
+    if selectors["branch"] != identity["branch"]:
         raise IdleSignalApplyError("BOOTSTRAP_BRANCH_MISMATCH")
+    bootstrap = _trusted_bootstrap_observation(
+        root,
+        selectors,
+        presented,
+        opportunity,
+        identity,
+    )
     return _activation_manifest(
         presented,
         opportunity,
@@ -646,10 +889,247 @@ def prepare_apply_transaction(
     )
 
 
-def verify_applied_state(
-    manifest: Mapping[str, Any], observed: Mapping[str, Any]
+def _blob_yaml_mapping(
+    observer: Any,
+    gateway_error: type[BaseException],
+    blob_sha: str,
+    code: str,
 ) -> dict[str, Any]:
-    """Verify exact post-apply bindings. Receipt is evidence-only."""
+    payload, _meta = _api_json(
+        observer,
+        gateway_error,
+        f"/repos/{COORDINATOR_REPOSITORY}/git/blobs/{blob_sha}",
+        code,
+    )
+    payload = _mapping(payload, code)
+    if payload.get("encoding") != "base64" or not isinstance(payload.get("content"), str):
+        raise IdleSignalApplyError(code)
+    try:
+        raw = b64decode(payload["content"], validate=False).decode("utf-8")
+        value = yaml.safe_load(raw)
+    except (ValueError, UnicodeDecodeError, yaml.YAMLError) as exc:
+        raise IdleSignalApplyError(code) from exc
+    if not isinstance(value, Mapping):
+        raise IdleSignalApplyError(code)
+    return dict(value)
+
+
+def _tree_blob_index(tree_payload: Mapping[str, Any]) -> dict[str, str]:
+    if tree_payload.get("truncated") is True:
+        raise IdleSignalApplyError("TRUSTED_APPLY_TREE_TRUNCATED")
+    entries = tree_payload.get("tree")
+    if not isinstance(entries, list):
+        raise IdleSignalApplyError("TRUSTED_APPLY_TREE_INVALID")
+    out: dict[str, str] = {}
+    for entry in entries:
+        if not isinstance(entry, Mapping):
+            continue
+        path = entry.get("path")
+        sha = entry.get("sha")
+        if entry.get("type") == "blob" and isinstance(path, str) and isinstance(sha, str):
+            out[path] = sha
+    return out
+
+
+def _one_matching(
+    items: Any,
+    *,
+    key: str,
+    expected: Any,
+    code: str,
+) -> dict[str, Any]:
+    if not isinstance(items, list):
+        raise IdleSignalApplyError(code)
+    matches = [item for item in items if isinstance(item, Mapping) and item.get(key) == expected]
+    if len(matches) != 1:
+        raise IdleSignalApplyError(code)
+    return dict(matches[0])
+
+
+def _trusted_post_apply_observation(
+    root: Path,
+    manifest: Mapping[str, Any],
+    selectors: Mapping[str, Any],
+) -> dict[str, Any]:
+    observer, gateway_error = _make_apply_observer(root)
+    merge_commit = str(selectors["activation_gate_merge_commit"])
+    reviewed_head = str(selectors["activation_gate_reviewed_head"])
+    activation_pr = int(selectors["activation_gate_pr"])
+
+    main_ref, main_meta = _api_json(
+        observer,
+        gateway_error,
+        f"/repos/{COORDINATOR_REPOSITORY}/git/ref/heads/main",
+        "TRUSTED_APPLY_MAIN_READ_FAILED",
+    )
+    main_ref = _mapping(main_ref, "TRUSTED_APPLY_MAIN_INVALID")
+    main_object = _mapping(main_ref.get("object"), "TRUSTED_APPLY_MAIN_OBJECT_INVALID")
+    if main_object.get("sha") != merge_commit:
+        raise IdleSignalApplyError("TRUSTED_APPLY_CURRENT_MAIN_MISMATCH")
+
+    gate_pr, gate_pr_meta = _api_json(
+        observer,
+        gateway_error,
+        f"/repos/{COORDINATOR_REPOSITORY}/pulls/{activation_pr}",
+        "TRUSTED_APPLY_GATE_PR_READ_FAILED",
+    )
+    gate_pr = _mapping(gate_pr, "TRUSTED_APPLY_GATE_PR_INVALID")
+    gate_base = _mapping(gate_pr.get("base"), "TRUSTED_APPLY_GATE_BASE_INVALID")
+    gate_head = _mapping(gate_pr.get("head"), "TRUSTED_APPLY_GATE_HEAD_INVALID")
+    if (
+        gate_pr.get("number") != activation_pr
+        or gate_pr.get("state") != "closed"
+        or gate_pr.get("merged") is not True
+        or gate_pr.get("draft") is not False
+        or gate_pr.get("merge_commit_sha") != merge_commit
+        or gate_base.get("ref") != "main"
+        or gate_head.get("sha") != reviewed_head
+    ):
+        raise IdleSignalApplyError("TRUSTED_APPLY_GATE_PR_IDENTITY_INVALID")
+
+    merge, merge_meta = _api_json(
+        observer,
+        gateway_error,
+        f"/repos/{COORDINATOR_REPOSITORY}/git/commits/{merge_commit}",
+        "TRUSTED_APPLY_MERGE_COMMIT_READ_FAILED",
+    )
+    merge = _mapping(merge, "TRUSTED_APPLY_MERGE_COMMIT_INVALID")
+    parents = merge.get("parents")
+    if (
+        not isinstance(parents, list)
+        or len(parents) != 2
+        or not all(isinstance(item, Mapping) for item in parents)
+        or parents[0].get("sha") != manifest.get("canonical_main")
+        or parents[1].get("sha") != reviewed_head
+    ):
+        raise IdleSignalApplyError("TRUSTED_APPLY_MERGE_PARENT_BINDING_INVALID")
+    merge_tree = _mapping(merge.get("tree"), "TRUSTED_APPLY_MERGE_TREE_INVALID")
+    tree_sha = _sha40(
+        merge_tree.get("sha"), "TRUSTED_APPLY_MERGE_TREE_SHA_INVALID", "/merge/tree"
+    )
+
+    implementation_pr = int(selectors["implementation_pr"])
+    implementation, implementation_meta = _api_json(
+        observer,
+        gateway_error,
+        f"/repos/{COORDINATOR_REPOSITORY}/pulls/{implementation_pr}",
+        "TRUSTED_APPLY_IMPLEMENTATION_PR_READ_FAILED",
+    )
+    implementation = _mapping(
+        implementation, "TRUSTED_APPLY_IMPLEMENTATION_PR_INVALID"
+    )
+    implementation_head = _mapping(
+        implementation.get("head"), "TRUSTED_APPLY_IMPLEMENTATION_HEAD_INVALID"
+    )
+    bootstrap = _mapping(
+        manifest.get("trusted_bootstrap_observation"),
+        "TRUSTED_APPLY_BOOTSTRAP_OBSERVATION_MISSING",
+    )
+    if (
+        implementation.get("number") != implementation_pr
+        or implementation.get("state") != "open"
+        or implementation.get("draft") is not True
+        or implementation.get("merged") is not False
+        or implementation_head.get("ref") != selectors["branch"]
+        or implementation_head.get("sha") != bootstrap.get("bootstrap_head")
+    ):
+        raise IdleSignalApplyError("TRUSTED_APPLY_IMPLEMENTATION_PR_DRIFT")
+
+    tree_payload, tree_meta = _api_json(
+        observer,
+        gateway_error,
+        f"/repos/{COORDINATOR_REPOSITORY}/git/trees/{tree_sha}?recursive=1",
+        "TRUSTED_APPLY_TREE_READ_FAILED",
+    )
+    tree_payload = _mapping(tree_payload, "TRUSTED_APPLY_TREE_INVALID")
+    blobs = _tree_blob_index(tree_payload)
+    route_artifact = _mapping(
+        manifest.get("route_artifact"), "TRUSTED_APPLY_ROUTE_MANIFEST_MISSING"
+    )
+    route_path = route_artifact.get("path")
+    if not isinstance(route_path, str) or route_path not in blobs:
+        raise IdleSignalApplyError("TRUSTED_APPLY_ROUTE_MISSING_FROM_MAIN")
+    if CLAIMS_FILE not in blobs or GPT_WORKERS_REGISTRY not in blobs:
+        raise IdleSignalApplyError("TRUSTED_APPLY_CONTROL_OBJECT_MISSING_FROM_MAIN")
+
+    route_doc = _blob_yaml_mapping(
+        observer,
+        gateway_error,
+        blobs[route_path],
+        "TRUSTED_APPLY_ROUTE_BLOB_INVALID",
+    )
+    claims_doc = _blob_yaml_mapping(
+        observer,
+        gateway_error,
+        blobs[CLAIMS_FILE],
+        "TRUSTED_APPLY_CLAIMS_BLOB_INVALID",
+    )
+    workers_doc = _blob_yaml_mapping(
+        observer,
+        gateway_error,
+        blobs[GPT_WORKERS_REGISTRY],
+        "TRUSTED_APPLY_WORKERS_BLOB_INVALID",
+    )
+
+    if route_doc != route_artifact.get("payload"):
+        raise IdleSignalApplyError("TRUSTED_APPLY_ROUTE_PAYLOAD_MISMATCH")
+    expected_claim = _mapping(
+        manifest.get("work_claim_replacement"), "TRUSTED_APPLY_CLAIM_MANIFEST_MISSING"
+    )
+    claim = _one_matching(
+        claims_doc.get("claims"),
+        key="lane_id",
+        expected=expected_claim.get("lane_id"),
+        code="TRUSTED_APPLY_CLAIM_CARDINALITY_INVALID",
+    )
+    if claim != expected_claim:
+        raise IdleSignalApplyError("TRUSTED_APPLY_CLAIM_PAYLOAD_MISMATCH")
+    expected_slot = _mapping(
+        manifest.get("worker_slot_append"), "TRUSTED_APPLY_SLOT_MANIFEST_MISSING"
+    )
+    slot = _one_matching(
+        workers_doc.get("worker_slots"),
+        key="worker_slot_id",
+        expected=expected_slot.get("worker_slot_id"),
+        code="TRUSTED_APPLY_SLOT_CARDINALITY_INVALID",
+    )
+    if slot != expected_slot:
+        raise IdleSignalApplyError("TRUSTED_APPLY_SLOT_PAYLOAD_MISMATCH")
+
+    observation = {
+        "schema_version": TRUSTED_APPLIED_STATE_SCHEMA,
+        "base_main_before_activation": manifest["canonical_main"],
+        "activation_gate_pr": activation_pr,
+        "activation_gate_reviewed_head": reviewed_head,
+        "activation_gate_merge_commit": merge_commit,
+        "current_main_after_activation": merge_commit,
+        "merge_parents": [parents[0].get("sha"), parents[1].get("sha")],
+        "implementation_issue": selectors["issue"],
+        "implementation_pr": implementation_pr,
+        "branch": selectors["branch"],
+        "implementation_head_still_bootstrap": True,
+        "route_readback_verified": True,
+        "work_claim_readback_verified": True,
+        "worker_slot_readback_verified": True,
+        "provider_metadata": [
+            _copy(main_meta),
+            _copy(gate_pr_meta),
+            _copy(merge_meta),
+            _copy(implementation_meta),
+            _copy(tree_meta),
+        ],
+    }
+    observation["observation_digest"] = _digest(observation)
+    return observation
+
+
+def verify_applied_state(
+    repo_root: str | Path,
+    manifest: Mapping[str, Any],
+    observed: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Fresh-read post-activation canonical state. Receipt remains evidence-only."""
+    root = Path(repo_root).resolve()
     if (
         not isinstance(manifest, Mapping)
         or manifest.get("schema_version") != ACTIVATION_MANIFEST_SCHEMA
@@ -663,69 +1143,43 @@ def verify_applied_state(
     if _digest(manifest_basis) != expected_digest:
         raise IdleSignalApplyError("ACTIVATION_MANIFEST_DIGEST_FORGED")
 
-    if (
-        not isinstance(observed, Mapping)
-        or observed.get("schema_version") != APPLIED_STATE_SCHEMA
-    ):
-        raise IdleSignalApplyError("APPLIED_STATE_SCHEMA_INVALID")
-    required = {
-        "schema_version",
-        "canonical_main",
-        "activation_gate_pr",
-        "activation_gate_reviewed_head",
-        "activation_gate_verdict",
-        "activation_gate_merge_commit",
-        "issue",
-        "implementation_pr",
-        "branch",
-        "route_artifact",
-        "work_claim",
-        "worker_slot",
-    }
-    if set(observed) != required:
-        raise IdleSignalApplyError("APPLIED_STATE_FIELDS_INVALID")
-    if observed["activation_gate_verdict"] != "ACCEPT":
-        raise IdleSignalApplyError("ACTIVATION_GATE_NOT_ACCEPTED")
-    for field in ("activation_gate_reviewed_head", "activation_gate_merge_commit"):
-        if not isinstance(observed[field], str) or not _SHA40.fullmatch(observed[field]):
-            raise IdleSignalApplyError("ACTIVATION_GATE_SHA_INVALID", f"/{field}")
-    _positive_int(observed["activation_gate_pr"], "/activation_gate_pr")
-
-    bootstrap = manifest["bootstrap_evidence"]
+    selectors = validate_applied_state(observed)
+    bootstrap = _mapping(
+        manifest.get("trusted_bootstrap_observation"),
+        "TRUSTED_APPLY_BOOTSTRAP_OBSERVATION_MISSING",
+    )
     exact_scalars = {
-        "canonical_main": manifest["canonical_main"],
-        "issue": bootstrap["issue"],
-        "implementation_pr": bootstrap["implementation_pr"],
-        "branch": bootstrap["branch"],
+        "issue": bootstrap.get("issue"),
+        "implementation_pr": bootstrap.get("implementation_pr"),
+        "branch": bootstrap.get("branch"),
     }
     for field, expected in exact_scalars.items():
-        if observed.get(field) != expected:
+        if selectors.get(field) != expected:
             raise IdleSignalApplyError("APPLIED_IDENTITY_MISMATCH", f"/{field}")
 
-    if observed["route_artifact"] != manifest["route_artifact"]:
-        raise IdleSignalApplyError("APPLIED_ROUTE_MISMATCH")
-    if observed["work_claim"] != manifest["work_claim_replacement"]:
-        raise IdleSignalApplyError("APPLIED_CLAIM_MISMATCH")
-    if observed["worker_slot"] != manifest["worker_slot_append"]:
-        raise IdleSignalApplyError("APPLIED_WORKER_SLOT_MISMATCH")
-
+    trusted = _trusted_post_apply_observation(root, manifest, selectors)
     receipt = {
         "schema_version": APPLY_RECEIPT_SCHEMA,
         "manifest_digest": expected_digest,
-        "canonical_main_before_activation": manifest["canonical_main"],
-        "activation_gate_pr": observed["activation_gate_pr"],
-        "activation_gate_reviewed_head": observed["activation_gate_reviewed_head"],
-        "activation_gate_merge_commit": observed["activation_gate_merge_commit"],
-        "implementation_issue": observed["issue"],
-        "implementation_pr": observed["implementation_pr"],
-        "branch": observed["branch"],
+        "trusted_observation_digest": trusted["observation_digest"],
+        "base_main_before_activation": trusted["base_main_before_activation"],
+        "activation_gate_pr": trusted["activation_gate_pr"],
+        "activation_gate_reviewed_head": trusted["activation_gate_reviewed_head"],
+        "activation_gate_merge_commit": trusted["activation_gate_merge_commit"],
+        "current_main_after_activation": trusted["current_main_after_activation"],
+        "implementation_issue": trusted["implementation_issue"],
+        "implementation_pr": trusted["implementation_pr"],
+        "branch": trusted["branch"],
         "identity": _copy(manifest["identity"]),
         "verification": {
-            "exact_issue_pr_branch_binding": True,
-            "exact_route_binding": True,
-            "exact_claim_binding": True,
-            "exact_worker_slot_binding": True,
-            "activation_gate_accept_required": True,
+            "current_main_is_activation_merge_commit": True,
+            "merge_parent_1_is_base_main": True,
+            "merge_parent_2_is_reviewed_head": True,
+            "implementation_pr_still_at_empty_bootstrap_head": True,
+            "exact_route_readback": True,
+            "exact_claim_readback": True,
+            "exact_worker_slot_readback": True,
+            "trusted_provider_readback": True,
         },
         "authority_boundary": {
             "evidence_only": True,
