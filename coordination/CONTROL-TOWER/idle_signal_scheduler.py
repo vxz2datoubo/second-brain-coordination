@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import hashlib
+import importlib
 import json
 from pathlib import Path
 import re
+import sys
 from typing import Any, Mapping, Sequence
 
 from control_tower import load_yaml
@@ -18,8 +20,6 @@ from trusted_task_release import (
     TrustedReleaseError,
     evaluate_trusted_release_proposal,
 )
-from global_signal_gateway.gateway import GatewayError
-from global_signal_gateway.live_observation_provider import LiveObservationProvider
 
 
 OPPORTUNITY_SCHEMA = "DigestedSignalOpportunity/v1"
@@ -92,10 +92,12 @@ IAGL_PRIORITY_REF = (
 )
 R149_REF = "coordination/CONTROL-TOWER/task_release_impact.py"
 R150_REF = "coordination/CONTROL-TOWER/trusted_task_release.py"
-R137_PROVIDER_REF = (
+R137_PROVIDER_SRC = (
     "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/"
-    "GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/"
-    "global_signal_gateway/live_observation_provider.py"
+    "GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src"
+)
+R137_PROVIDER_REF = (
+    f"{R137_PROVIDER_SRC}/global_signal_gateway/live_observation_provider.py"
 )
 
 
@@ -108,18 +110,39 @@ class IdleSignalSchedulerError(ValueError):
         self.path = path
 
 
-class _ReviewQueueLiveObserver(LiveObservationProvider):
-    """Narrow R151 adapter over the existing R137 public GitHub transport.
+def _load_r137_provider(root: Path) -> tuple[Any, Any]:
+    """Load the retained R137 provider without ambient PYTHONPATH dependence."""
+    src = (root / R137_PROVIDER_SRC).resolve()
+    if not src.is_dir():
+        raise IdleSignalSchedulerError("R137_PROVIDER_SOURCE_MISSING")
+    original_path = list(sys.path)
+    try:
+        sys.path.insert(0, str(src))
+        module = importlib.import_module(
+            "global_signal_gateway.live_observation_provider"
+        )
+    except (ImportError, OSError) as exc:
+        raise IdleSignalSchedulerError("R137_PROVIDER_LOAD_FAILED") from exc
+    finally:
+        sys.path[:] = original_path
+    provider = getattr(module, "LiveObservationProvider", None)
+    gateway_error = getattr(module, "GatewayError", None)
+    if not isinstance(provider, type) or not isinstance(gateway_error, type):
+        raise IdleSignalSchedulerError("R137_PROVIDER_API_INCOMPLETE")
+    return provider, gateway_error
 
-    It adds exactly one read-only endpoint family: comments of fixed Review Queue
-    Issue #453. HTTP, status/media checks, response limits and metadata still
-    come from the existing R137 provider. No second network transport is created.
-    """
 
-    def _dynamic_domain_endpoint_allowed(self, path: str) -> bool:
-        if _QUEUE_COMMENT_ENDPOINT.fullmatch(path):
-            return True
-        return super()._dynamic_domain_endpoint_allowed(path)
+def _make_review_queue_observer(root: Path) -> tuple[Any, type[BaseException]]:
+    """Adapt only fixed Review Queue #453 onto the retained R137 transport."""
+    provider_base, gateway_error = _load_r137_provider(root)
+
+    class _ReviewQueueLiveObserver(provider_base):
+        def _dynamic_domain_endpoint_allowed(self, path: str) -> bool:
+            if _QUEUE_COMMENT_ENDPOINT.fullmatch(path):
+                return True
+            return super()._dynamic_domain_endpoint_allowed(path)
+
+    return _ReviewQueueLiveObserver(), gateway_error
 
 
 def _canonical(value: Any) -> str:
@@ -392,9 +415,11 @@ def _queue_field(body: str, name: str) -> str | None:
     return match.group(1).strip().strip("'\"")
 
 
-def _trusted_review_queue_blockers() -> tuple[list[dict[str, Any]], list[str], str]:
-    """Read the fixed Review Queue through the retained R137 GitHub provider."""
-    observer = _ReviewQueueLiveObserver()
+def _trusted_review_queue_blockers(
+    root: Path,
+) -> tuple[list[dict[str, Any]], list[str], str]:
+    """Read fixed Review Queue #453 through the retained R137 GitHub provider."""
+    observer, gateway_error = _make_review_queue_observer(root)
     normalized_events: list[dict[str, Any]] = []
     evidence_refs: list[str] = []
     pagination_complete = False
@@ -403,7 +428,13 @@ def _trusted_review_queue_blockers() -> tuple[list[dict[str, Any]], list[str], s
             f"/repos/{COORDINATOR_REPOSITORY}/issues/{REVIEW_QUEUE_ISSUE}/comments"
             f"?per_page=100&page={page}"
         )
-        _headers, payload, _metadata = observer._get_json(path)
+        try:
+            _headers, payload, _metadata = observer._get_json(path)
+        except gateway_error as exc:
+            code = getattr(exc, "code", "UNKNOWN")
+            raise IdleSignalSchedulerError(
+                f"TRUSTED_REVIEW_QUEUE_PROVIDER_FAILED:{code}"
+            ) from exc
         if not isinstance(payload, list):
             raise IdleSignalSchedulerError("TRUSTED_REVIEW_QUEUE_PAYLOAD_INVALID")
         for raw in payload:
@@ -513,13 +544,7 @@ def _trusted_review_queue_blockers() -> tuple[list[dict[str, Any]], list[str], s
 def _trusted_priority_observation(
     root: Path, caller_hints: Mapping[str, Any]
 ) -> dict[str, Any]:
-    try:
-        review_blockers, review_refs, review_digest = _trusted_review_queue_blockers()
-    except GatewayError as exc:
-        raise IdleSignalSchedulerError(
-            f"TRUSTED_REVIEW_QUEUE_PROVIDER_FAILED:{exc.code}"
-        ) from exc
-
+    review_blockers, review_refs, review_digest = _trusted_review_queue_blockers(root)
     canonical_blockers = _canonical_idle_blockers(root)
     caller_blockers = [
         item for item in caller_hints["items"] if item["priority"] in BLOCKING_PRIORITIES
