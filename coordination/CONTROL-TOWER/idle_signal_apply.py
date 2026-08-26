@@ -389,13 +389,28 @@ def _validate_lane_reopen_rule(
     rule = receipt.get("reopen_rule") if isinstance(receipt, Mapping) else None
     if not isinstance(rule, str) or not rule.strip():
         raise IdleSignalApplyError("LANE_REOPEN_RULE_MISSING")
-    upper = rule.upper()
-    restricted = {"BUG", "SECURITY_GAP", "CONTRACT_DEFECT", "PROVEN_REGRESSION"}
-    if "BUG" in upper and "SECURITY_GAP" in upper:
-        if release_reason_class not in restricted:
-            raise IdleSignalApplyError("LANE_REOPEN_REASON_NOT_AUTHORIZED")
-    elif "NEW_GOVERNED_TASK" not in upper and "NEW_GOVERNED_SUCCESSOR" not in upper:
+
+    normalized_rule = " ".join(rule.strip().upper().split())
+    normalized_reason = release_reason_class.strip().upper()
+    supported_rules = {
+        "BUG / SECURITY_GAP / CONTRACT_DEFECT / PROVEN_REGRESSION ONLY": {
+            "BUG",
+            "SECURITY_GAP",
+            "CONTRACT_DEFECT",
+            "PROVEN_REGRESSION",
+        },
+        "NEW_GOVERNED_TASK + FRESH_SIGNAL_TOWER_PREFLIGHT + FRESH_WORK_CLAIM + FRESH_AUTHORIZATION_WITNESS": {
+            "NEW_GOVERNED_TASK"
+        },
+        "NEW_GOVERNED_SUCCESSOR + FRESH_SIGNAL_TOWER_PREFLIGHT + FRESH_WORK_CLAIM + FRESH_AUTHORIZATION_WITNESS": {
+            "NEW_GOVERNED_SUCCESSOR"
+        },
+    }
+    allowed_reasons = supported_rules.get(normalized_rule)
+    if allowed_reasons is None:
         raise IdleSignalApplyError("LANE_REOPEN_RULE_UNSUPPORTED")
+    if normalized_reason not in allowed_reasons:
+        raise IdleSignalApplyError("LANE_REOPEN_REASON_NOT_AUTHORIZED")
 
 
 def _assert_no_existing_live_control_state(root: Path) -> None:
