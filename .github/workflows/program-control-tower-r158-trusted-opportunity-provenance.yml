@@ -53,21 +53,17 @@ jobs:
               raise SystemExit(f"expected 6 transport blobs, got {len(shas)}")
           for sha in shas:
               url = f"https://api.github.com/repos/{os.environ['GITHUB_REPOSITORY']}/git/blobs/{sha}"
-              request = Request(
-                  url,
-                  headers={
-                      "Authorization": f"Bearer {os.environ['GH_TOKEN']}",
-                      "Accept": "application/vnd.github+json",
-                      "X-GitHub-Api-Version": "2022-11-28",
-                  },
-              )
+              request = Request(url, headers={
+                  "Authorization": f"Bearer {os.environ['GH_TOKEN']}",
+                  "Accept": "application/vnd.github+json",
+                  "X-GitHub-Api-Version": "2022-11-28",
+              })
               with urlopen(request) as response:
                   payload = json.load(response)
               if payload.get("sha") != sha or payload.get("encoding") != "base64":
                   raise SystemExit(f"transport blob identity invalid: {sha}")
               chunks.append(base64.b64decode(payload["content"]).decode("utf-8"))
-          packed = "".join(chunks)
-          script = gzip.decompress(base64.b64decode(packed))
+          script = gzip.decompress(base64.b64decode("".join(chunks)))
           Path("/tmp/r158_patch.py").write_bytes(script)
           PY
           python -m py_compile /tmp/r158_patch.py
@@ -77,7 +73,6 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
-
           path = Path("coordination/CONTROL-TOWER/idle_signal_apply.py")
           source = path.read_text(encoding="utf-8")
           anchor = (
@@ -110,18 +105,16 @@ jobs:
             coordination/CONTROL-TOWER/tests/test_idle_signal_apply.py
           python -m json.tool coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R158/TRUSTED-OPPORTUNITY-PROVENANCE.schema.json >/dev/null
 
-      - name: Run migrated R151 and R152 regressions before commit
+      - name: Run migrated R151 and R152 regressions before publication
         working-directory: coordination/CONTROL-TOWER
         run: |
           python -m unittest tests.test_idle_signal_scheduler -v
           python -m unittest tests.test_idle_signal_apply -v
 
-      - name: Commit exact bounded R158 migration
+      - name: Verify exact seven-file staged migration
         shell: bash
         run: |
           set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add \
             .github/workflows/program-control-tower-r158-trusted-opportunity-provenance.yml \
             coordination/CONTROL-TOWER/idle_signal_scheduler.py \
@@ -131,7 +124,41 @@ jobs:
             coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R158/PROJECT-PLAN.md \
             coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R158/TRUSTED-OPPORTUNITY-PROVENANCE.schema.json
           mapfile -t staged < <(git diff --cached --name-only)
+          printf 'R158_STAGED %s\n' "${staged[@]}"
           test "${#staged[@]}" -eq 7
           git diff --cached --check
-          git commit -m "R158: bind trusted opportunity provenance into R151 R152"
-          git push origin HEAD:gpt/r158-trusted-opportunity-provenance-binding
+
+      - name: Publish tested final blobs without updating refs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import base64
+          import json
+          import os
+          from pathlib import Path
+          from urllib.request import Request, urlopen
+
+          paths = [
+              ".github/workflows/program-control-tower-r158-trusted-opportunity-provenance.yml",
+              "coordination/CONTROL-TOWER/idle_signal_scheduler.py",
+              "coordination/CONTROL-TOWER/idle_signal_apply.py",
+              "coordination/CONTROL-TOWER/tests/test_idle_signal_scheduler.py",
+              "coordination/CONTROL-TOWER/tests/test_idle_signal_apply.py",
+              "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R158/PROJECT-PLAN.md",
+              "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R158/TRUSTED-OPPORTUNITY-PROVENANCE.schema.json",
+          ]
+          url = f"https://api.github.com/repos/{os.environ['GITHUB_REPOSITORY']}/git/blobs"
+          for path in paths:
+              raw = Path(path).read_bytes()
+              body = json.dumps({"content": base64.b64encode(raw).decode("ascii"), "encoding": "base64"}).encode()
+              request = Request(url, data=body, method="POST", headers={
+                  "Authorization": f"Bearer {os.environ['GH_TOKEN']}",
+                  "Accept": "application/vnd.github+json",
+                  "Content-Type": "application/json",
+                  "X-GitHub-Api-Version": "2022-11-28",
+              })
+              with urlopen(request) as response:
+                  payload = json.load(response)
+              print(f"R158_FINAL_BLOB {path} {payload['sha']}")
+          PY
