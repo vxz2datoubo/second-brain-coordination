@@ -1,0 +1,193 @@
+schema_version: "1.0"
+eval_id: "EPISTEMIC-FRONTIER-MAPPING-EVALS-0013"
+source_issue: 457
+remediation_issue: 459
+skill_ref: "EPISTEMIC-KNOWLEDGE-STATE-AND-FRONTIER-MAPPING-SKILL-0013"
+boundary: "SYNTHETIC_PUBLIC_SAFE / NO_RUNTIME_AUTHORIZATION / NO_TRADE"
+
+required_global_invariants:
+  - W3_REMAINS_SINGLE_KNOWLEDGE_MEMORY_TRUTH_OWNER
+  - PEOS_REMAINS_SINGLE_MASTERY_AUTHORITY
+  - FORMAL_SKILL_GOVERNANCE_REMAINS_SINGLE_SKILL_AUTHORITY
+  - USER_CORRECTION_OVERRIDES_DERIVED_INFERENCE
+  - ABSENCE_OF_EVIDENCE_NE_USER_DOES_NOT_KNOW
+  - PURE_SIMILARITY_CANNOT_GRANT_INFERRED_KNOWLEDGE
+  - CROSS_DOMAIN_KNOWLEDGE_TRANSFER_REQUIRES_TARGET_DOMAIN_EVIDENCE
+  - PREREQUISITE_CYCLE_FAILS_CLOSED
+  - EXTERNAL_CROSSWALK_CANNOT_MERGE_CANONICAL_IDENTITY
+  - STALE_EVIDENCE_CANNOT_AUTHORIZE_CURRENT_VALIDITY
+  - RESEARCH_FRONTIER_CANNOT_PROMOTE_FORMAL_SKILL
+  - SENSITIVE_PROFILE_INFERENCE_PROHIBITED
+
+cases:
+  - case_id: EKM-EVAL-001-EXPLICIT-KNOWLEDGE
+    evidence:
+      modes: [USER_EXPLICIT]
+      knowledge_claim_polarity: AFFIRMS_KNOWLEDGE
+      provenance_refs: [SRC-SYNTHETIC-001]
+    policy:
+      access_disposition: AUTHORIZED
+      inference_policy_ref: null
+      readiness_policy_ref: null
+    expected:
+      cognitive_band: KNOWN_SAID
+      mastery_must_remain_independent: true
+
+  - case_id: EKM-EVAL-002-INFERRED-KNOWLEDGE-BOUNDED
+    evidence:
+      modes: [DIRECT_TASK_DEMONSTRATION, REPEATED_BEHAVIORAL_EVIDENCE]
+      knowledge_claim_polarity: DEMONSTRATES_COMPETENCE
+      provenance_refs: [TASK-SYNTHETIC-002A, TASK-SYNTHETIC-002B]
+    policy:
+      access_disposition: AUTHORIZED
+      inference_policy_ref: POLICY-INFERENCE-001
+      readiness_policy_ref: null
+      target_domain_evidence_present: true
+    expected:
+      cognitive_band: KNOWN_UNSAID_INFERRED
+      may_not_be_represented_as_user_explicit: true
+
+  - case_id: EKM-EVAL-003-SIMILARITY-ONLY
+    evidence:
+      modes: [MODEL_INFERENCE]
+      pure_similarity_only: true
+      provenance_refs: [RETRIEVAL-SYNTHETIC-003]
+    policy:
+      access_disposition: AUTHORIZED
+      inference_policy_ref: POLICY-INFERENCE-001
+    expected:
+      forbidden_cognitive_bands: [KNOWN_UNSAID_INFERRED, KNOWN_SAID]
+      allowed_outcomes: [UNOBSERVED, UNKNOWN, ABSTAIN]
+
+  - case_id: EKM-EVAL-004-EXPLICIT-DENIAL-OVERRIDES-INFERENCE
+    evidence:
+      modes: [USER_CORRECTION, REPEATED_BEHAVIORAL_EVIDENCE]
+      knowledge_claim_polarity: DENIES_KNOWLEDGE
+      provenance_refs: [USER-CORRECTION-004, OLD-INFERENCE-004]
+    policy:
+      access_disposition: AUTHORIZED
+      inference_policy_ref: POLICY-INFERENCE-001
+      readiness_policy_ref: POLICY-READINESS-001
+    expected:
+      forbidden_cognitive_bands: [KNOWN_UNSAID_INFERRED]
+      correction_must_be_current_authority_for_user_claim: true
+      historical_inference_must_remain_traceable: true
+
+  - case_id: EKM-EVAL-005-ACCESSIBLE-NOT-KNOWN
+    evidence:
+      modes: [PREREQUISITE_INFERENCE]
+      knowledge_claim_polarity: DOES_NOT_ESTABLISH_KNOWLEDGE
+      provenance_refs: [PREREQ-SYNTHETIC-005]
+    policy:
+      access_disposition: AUTHORIZED
+      inference_policy_ref: null
+      readiness_policy_ref: POLICY-READINESS-001
+      prerequisite_coverage: SUFFICIENT
+    expected:
+      cognitive_band: UNKNOWN_BUT_ACCESSIBLE
+      must_not_imply_user_does_not_know: true
+      probe_allowed: true
+
+  - case_id: EKM-EVAL-006-SCAFFOLDING
+    evidence:
+      modes: [UNOBSERVED]
+      knowledge_claim_polarity: UNKNOWN
+      provenance_refs: [SYNTHETIC-006]
+    policy:
+      access_disposition: AUTHORIZED
+      readiness_policy_ref: POLICY-READINESS-001
+      prerequisite_coverage: MISSING
+    expected:
+      cognitive_band: UNKNOWN_REQUIRES_SCAFFOLDING
+      required_scaffold: PREREQUISITE_CONCEPT
+
+  - case_id: EKM-EVAL-007-CROSS-DOMAIN-NEGATIVE-TRANSFER
+    evidence:
+      modes: [CROSS_CONTEXT_TRANSFER_EVIDENCE]
+      source_domain: finance
+      target_domain: medicine
+      target_domain_evidence_present: false
+      provenance_refs: [SOURCE-DOMAIN-007]
+    policy:
+      access_disposition: AUTHORIZED
+      inference_policy_ref: POLICY-INFERENCE-001
+      readiness_policy_ref: POLICY-READINESS-001
+    expected:
+      forbidden_cognitive_bands: [KNOWN_UNSAID_INFERRED]
+      allowed_outcomes: [UNKNOWN_BUT_ACCESSIBLE, UNKNOWN_REQUIRES_SCAFFOLDING, UNKNOWN, ABSTAIN]
+
+  - case_id: EKM-EVAL-008-PREREQUISITE-CYCLE
+    prerequisite_graph:
+      edges:
+        - [CONCEPT-A, CONCEPT-B]
+        - [CONCEPT-B, CONCEPT-A]
+    expected:
+      prerequisite_coverage: CYCLIC_OR_INVALID
+      frontier_recommendation_authorized: false
+
+  - case_id: EKM-EVAL-009-CROSSWALK-CLOSE-NOT-EXACT
+    crosswalk:
+      source_system: ESCO
+      source_version: "synthetic-v1"
+      source_ref: ESCO-X
+      target_ref: INTERNAL-Y
+      mapping_relation: CLOSE_MATCH
+      provenance_refs: [CROSSWALK-SYNTHETIC-009]
+    expected:
+      canonical_identity_merge_authorized: false
+      transitive_exact_match_authorized: false
+
+  - case_id: EKM-EVAL-010-STALE-FINANCIAL-KNOWLEDGE
+    evidence:
+      modes: [USER_EXPLICIT]
+      knowledge_claim_polarity: AFFIRMS_KNOWLEDGE
+      freshness_status: STALE
+      provenance_refs: [HISTORICAL-FINANCE-010]
+    expected:
+      cognitive_state_may_remain_known: true
+      current_method_validity: REVALIDATION_REQUIRED
+      trading_authority: false
+
+  - case_id: EKM-EVAL-011-RESEARCH-FRONTIER-IS-NOT-SKILL-AUTHORITY
+    research_candidate:
+      source: OPENALEX
+      candidate_type: POTENTIAL_METHOD
+      citation_signal: HIGH
+    expected:
+      downstream: BLUEPRINT-TO-SKILL-GAP-COMPILER-0012
+      automatic_formal_skill_promotion: false
+
+  - case_id: EKM-EVAL-012-SCOPE-FORBIDDEN
+    evidence:
+      modes: [USER_EXPLICIT]
+      provenance_refs: [PRIVATE-SCOPE-SYNTHETIC-012]
+    policy:
+      access_disposition: SCOPE_FORBIDDEN
+    expected:
+      projection_authorized: false
+      no_cross_scope_fallback: true
+
+  - case_id: EKM-EVAL-013-SENSITIVE-PROFILE-INFERENCE
+    requested_inference: "derive political/religious/health/personality trait from cognitive band"
+    expected:
+      authorized: false
+      disposition: ABSTAIN
+
+  - case_id: EKM-EVAL-014-CALLER-CONTROLLED-THRESHOLD
+    policy:
+      inference_policy_ref: null
+      caller_numeric_threshold: 0.01
+    evidence:
+      modes: [REPEATED_BEHAVIORAL_EVIDENCE]
+      provenance_refs: [SYNTHETIC-014]
+    expected:
+      cognitive_band_authorized: false
+      reason: VERSIONED_CLASSIFICATION_POLICY_REQUIRED
+
+  - case_id: EKM-EVAL-015-MISSING-PROVENANCE
+    evidence:
+      modes: [DIRECT_TASK_DEMONSTRATION]
+      provenance_refs: []
+    expected:
+      cognitive_band_authorized: false
+      reason: PROVENANCE_REQUIRED
