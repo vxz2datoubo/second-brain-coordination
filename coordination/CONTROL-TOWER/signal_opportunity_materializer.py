@@ -19,6 +19,11 @@ from idle_signal_scheduler import (
     _requested_side_effect_surface,
     validate_opportunity,
 )
+from signal_opportunity_ranking import (
+    RankingEvidenceError,
+    derive_trusted_ranking_evidence,
+    ranking_evidence_ref,
+)
 from trusted_task_release import (
     TRUSTED_RECEIPT_SCHEMA,
     TrustedReleaseError,
@@ -57,9 +62,9 @@ MAX_OWNER_PAGES = 20
 _SHA40 = re.compile(r"^[0-9a-f]{40}$")
 _OWNER_REPOSITORY = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 
-# R153 must not become a second priority authority.  Caller ranking fields are
-# retained only for backward-compatible draft shape validation and are ignored
-# when authority-bearing R151 opportunities are emitted.
+# Compatibility baseline retained for the accepted R153 fixture/regressions only.
+# The production materialization path no longer expands this constant; R154
+# derives the authority-bearing rank vector from trusted evidence instead.
 TRUSTED_NEUTRAL_RANKING = {
     "priority_class": P3,
     "user_value_score": 50,
@@ -298,8 +303,23 @@ def _signal_origin(
         raise SignalOpportunityMaterializerError("S0C_SEMANTIC_ORIGIN_MISSING")
     origin = sorted(origins, key=lambda item: int(item.get("ledger_offset", 0)))[0]
     primary_domain = _nonempty(origin.get("primary_domain"), "/s0c/primary_domain")
+    signal_kind = _nonempty(origin.get("signal_kind"), "/s0c/signal_kind")
+    origin_offset = origin.get("ledger_offset")
+    watermark = projection.get("ledger_watermark")
+    if (
+        isinstance(origin_offset, bool)
+        or not isinstance(origin_offset, int)
+        or origin_offset <= 0
+        or isinstance(watermark, bool)
+        or not isinstance(watermark, int)
+        or watermark <= 0
+        or origin_offset > watermark
+    ):
+        raise SignalOpportunityMaterializerError("S0C_SIGNAL_LEDGER_POSITION_INVALID")
     metadata = origin["public_safe_metadata"]
     envelope = dict(metadata["intent_envelope"])
+    route = metadata.get("route") if isinstance(metadata, Mapping) else None
+    materiality_class = route.get("materiality_class") if isinstance(route, Mapping) else None
     signal_proof_ref = (
         f"s0c://signal/{signal_ref}"
         f"#reducer={projection['reducer_version']};watermark={projection['ledger_watermark']}"
@@ -308,6 +328,10 @@ def _signal_origin(
     return effective, {
         "signal_ref": signal_ref,
         "primary_domain": primary_domain,
+        "signal_kind": signal_kind,
+        "materiality_class": materiality_class,
+        "origin_ledger_offset": origin_offset,
+        "ledger_watermark": watermark,
         "epistemic_state": epistemic_state,
         "desired_effect": envelope["desired_effect"],
         "problem_to_solve": envelope["problem_to_solve"],
@@ -1099,12 +1123,40 @@ def materialize_signal_opportunity(
             owner_binding=owner_binding,
         )
 
+    try:
+        ranking = derive_trusted_ranking_evidence(
+            signal_ref=signal_ref,
+            signal_proof_ref=signal_proof_ref,
+            signal_kind=origin["signal_kind"],
+            materiality_class=origin.get("materiality_class"),
+            origin_ledger_offset=origin["origin_ledger_offset"],
+            ledger_watermark=origin["ledger_watermark"],
+            dependency_ready=owner.get("dependency_ready") is True,
+            task_release_proposal=proposal,
+            source_evidence_refs=evidence,
+        )
+        ranking_ref = ranking_evidence_ref(ranking)
+    except RankingEvidenceError as exc:
+        return _decision(
+            signal_ref=signal_ref,
+            disposition=(
+                "INELIGIBLE_SIGNAL_STATE"
+                if exc.code == "HIGH_RISK_SIGNAL_NOT_IDLE_RANKABLE"
+                else "NEEDS_REVALIDATION"
+            ),
+            reason=f"R154_RANKING_FAILED:{exc.code}",
+            evidence_refs=evidence,
+            owner_binding=owner_binding,
+        )
+    evidence = sorted(set([*evidence, ranking_ref]))
+    rank_vector = dict(ranking["rank_vector"])
+
     candidate = {
         "schema_version": OPPORTUNITY_SCHEMA,
         "opportunity_id": f"r153-opportunity:{_digest([signal_ref, owner_main, proposal])[:24]}",
         "signal_ref": signal_ref,
         "signal_primary_domain": origin["primary_domain"],
-        "source_evidence_refs": sorted(set(evidence)),
+        "source_evidence_refs": evidence,
         "desired_effect": origin["desired_effect"],
         "problem_to_solve": origin["problem_to_solve"],
         "success_condition": origin["success_condition"],
@@ -1112,7 +1164,7 @@ def materialize_signal_opportunity(
         "epistemic_state": origin["epistemic_state"],
         "desired_effect_gap_proven": True,
         "dependency_ready": owner.get("dependency_ready") is True,
-        **TRUSTED_NEUTRAL_RANKING,
+        **rank_vector,
         "task_release_proposal": proposal,
     }
     try:
@@ -1185,7 +1237,7 @@ def materialize_signal_opportunity(
     return _decision(
         signal_ref=signal_ref,
         disposition="MATERIALIZED_FOR_R151",
-        reason="S0C_OWNER_RECONCILIATION_R145_R150_BOUND",
+        reason="S0C_OWNER_RECONCILIATION_R145_R154_R150_BOUND",
         evidence_refs=normalized["source_evidence_refs"],
         owner_binding=owner_binding,
         opportunity=normalized,
