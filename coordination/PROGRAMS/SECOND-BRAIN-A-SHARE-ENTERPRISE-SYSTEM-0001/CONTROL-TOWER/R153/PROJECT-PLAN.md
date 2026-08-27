@@ -6,73 +6,124 @@ Base main at engineering start: `450dc7ba20dcc8425d970f4f0657e28a833e4cee`
 
 ## Why this exists
 
-Canonical R151 accepts `DigestedSignalOpportunity/v1`, ranks P3/P4 opportunities after trusted P0/P1/P2 reconciliation, and may mint bounded authorization. Canonical R152 safely applies such an authorization. The remaining seam is that the opportunity itself is still planner/caller supplied.
+Canonical R151 can rank `DigestedSignalOpportunity/v1` values and R152 can safely apply a valid R151 authorization, but the pre-R151 opportunity used to be planner supplied. R153 closes that seam without becoming a second Signal, owner, priority, task, route, claim, worker, or semantic authority.
 
-The first production dogfood exposed this clearly. Durable Signal `signal:r147-4a6244d5b465ca2ce8e9cdd26d870f60` is real S0C truth, but owner-domain AI Film already has Issue #16 / PR #17 doing materially overlapping runtime validation. A correct autonomous system must reuse/abstain, not print a duplicate Issue.
+The first production dogfood is durable Signal `signal:r147-4a6244d5b465ca2ce8e9cdd26d870f60`. AI Film Issue #16 / PR #17 already owns overlapping production validation. Correct autonomous behavior is reuse/abstain while that exact owner work is current.
 
-R153 makes that pre-R151 materialization machine-verifiable.
+## Canonical flow
 
-## Truth and authority model
+`canonical S0C DurableSignalLedger`
+→ exact effective Signal + semantic origin
+→ read-only S0C canonical replay/content-integrity proof
+→ retained R145 owner authority/freshness
+→ governed owner-domain reconciliation evidence through retained R137 GET transport
+→ fresh referenced Issue/PR/head/review-lineage verification when REUSE is claimed
+→ planner `TaskReleaseProposal/v1` semantic candidate
+→ retained R151 standing exclusions
+→ retained R150/R149 preflight
+→ deterministic R151-compatible `DigestedSignalOpportunity/v1`
 
-R153 does not read Git transport JSON as Signal truth. It accepts only an exact instance of the canonical S0C `DurableSignalLedger` class and verifies its current projection watermark/input revision before recovering the effective Signal and semantic-origin envelope.
+R153 only returns evidence decisions. It creates no Signal, Issue, Task, Route, Work Claim or worker slot and grants no execution, domain-write, W3 or merge authority.
 
-The planner may supply a `SignalOpportunityDraft/v1`, but may not redefine:
-- Signal existence/effective state;
-- Signal primary domain;
-- desired effect;
-- problem to solve;
-- success condition;
-- owner repository/current main;
-- owner reconciliation disposition;
-- R149/R150 release disposition.
+## Review remediation incorporated
 
-Owner authority is resolved through retained R145 `DomainAuthorityResolver` with exact-read, semantic-authority and live freshness proofs.
+Independent review `5039041547` on prior head `e70bbf6bf7cd17c43a21d9dbb382e0c12b02bf7b` identified three P1s and one P2. The remediation is bounded inside the same R153 implementation surface.
 
-Owner-domain overlap/satisfaction is not inferred by fuzzy text similarity. R153 reuses the retained R137 GitHub GET transport through a narrow adapter and requires an exact durable-Signal backlink in a structured owner-domain reconciliation record.
+### Trusted owner reconciliation provenance
 
-Supported owner record forms:
+Public GitHub text is evidence, not authority merely because R137 fetched it.
 
-1. `DURABLE_SIGNAL_OWNER_DOMAIN_REUSE_HANDOFF/v1`
-   - existing production dogfood handoff format;
-   - exact `source_signal_id` + current owner main + open owner work → `REUSE_EXISTING_OWNER_WORK`.
+An authority-bearing reconciliation record now requires GitHub-computed owner provenance:
+- repository owner, or
+- `OWNER` / `MEMBER` / `COLLABORATOR` association through the already-used `chatgpt-codex-connector` app.
 
-2. `SIGNAL_OWNER_RECONCILIATION/v1`
-   - exact `signal_id`;
-   - exact R145 owner domain + owner main;
-   - disposition is one of `REUSE_EXISTING_WORK`, `ALREADY_SATISFIED`, `GAP_PROVEN`, `NEEDS_REVALIDATION`;
-   - `GAP_PROVEN` additionally requires `dependency_ready: true` and no `work_refs`.
+Untrusted matching text fails closed. A later untrusted comment cannot override a trusted record. Generic records must bind `reconciliation_issue` to the exact container Issue. The legacy AI Film handoff must bind its `existing_issue` to that same container.
 
-No matching exact-signal record means `NEEDS_REVALIDATION`, never guessed NEW.
+No new actor registry is introduced. The trust evidence is GitHub metadata on the existing R137 transport plus the R145 owner repository binding.
 
-## Materialization flow
+### Fresh current-work verification
 
-`canonical S0C ledger`
-→ effective eligible NOT_STARTED Signal
-→ semantic-origin fields from S0C history
-→ R145 owner authority/freshness
-→ current owner reconciliation Issue + comments through retained R137 transport
-→ REUSE / SATISFIED / REVALIDATE, or `GAP_PROVEN`
-→ planner `TaskReleaseProposal/v1` exact-binding checks
-→ R151 standing risk exclusion
-→ retained R150 (and transitively R149/R145/current Control Tower) preflight
-→ exact R151-compatible `DigestedSignalOpportunity/v1`
+`REUSE_EXISTING_WORK` is not accepted from stale handoff text. R153 fresh-reads:
+- referenced owner Issue and requires it open;
+- referenced owner PR and requires it open/unmerged;
+- exact PR head and requires equality with `existing_exact_head`;
+- PR base/main binding and owner main;
+- owner review queue lineage when the reconciliation record declares a review queue/state.
 
-R153 only returns a deterministic evidence decision. It creates no Signal/Task/Issue/Route/Claim/slot and grants no execution/domain/W3/merge authority.
+Closed work, moved head, base drift, stale review ticket or changed review state becomes `NEEDS_REVALIDATION`.
 
-## Fail-closed notes
+### S0C projection integrity
 
-- A dict/object with ledger-like methods is not S0C. Exact canonical `DurableSignalLedger` class identity is required.
-- Transport/replay evidence alone cannot materialize.
-- stale coordinator checkout, S0C projection, owner main or R145 binding cannot materialize.
-- DONE/CANCELLED/SUPERSEDED/CONFLICTED/BLOCKED/non-NOT_STARTED and UNKNOWN/NEEDS_REVALIDATION Signals do not materialize.
-- cross-domain auto-materialization is forbidden in this slice.
-- semantic similarity without exact owner reconciliation evidence remains `NEEDS_REVALIDATION`.
-- standing production/secrets/permission/trading/destructive exclusions remain inherited from R151.
-- R150 must return a releaseable final disposition before an opportunity is emitted.
+R153 does not rebuild or mutate S0C during materialization. Missing projection fails closed.
+
+For an existing projection it uses the retained canonical S0C reducer itself as a read-only replay and proves:
+- stable input revision across read/replay;
+- watermark/history equality;
+- reducer-version equality;
+- stored projection core equals canonical replay;
+- stored checksum equals the canonical replay checksum.
+
+R153 does not copy reducer semantics and Git transport never becomes Signal truth.
+
+### Caller ranking fields are non-authoritative hints
+
+The legacy draft shape still accepts:
+- `priority_class`
+- `user_value_score`
+- `materiality_score`
+- `dependency_readiness_score`
+- `age_cycles`
+- `estimated_cost_score`
+
+They are compatibility hints only and are not copied into an authority-bearing opportunity. R153 emits one fixed neutral ranking vector:
+
+```yaml
+priority_class: P3_BOUNDED_IMPROVEMENT
+user_value_score: 50
+materiality_score: 50
+dependency_readiness_score: 100
+age_cycles: 0
+estimated_cost_score: 50
+```
+
+Therefore score inflation cannot reorder autonomous R153 opportunities. R151 remains the only retained selection/release authority. A future governed ranking policy may replace the neutral vector, but R153 does not invent one.
+
+## Owner reconciliation forms
+
+### `DURABLE_SIGNAL_OWNER_DOMAIN_REUSE_HANDOFF/v1`
+
+Compatibility form for the first AI Film production dogfood. It requires exact Signal ID, owner project/domain binding, current owner main, exact existing Issue/PR/head and source proof. If review queue/state is declared, current queue lineage must match it.
+
+### `SIGNAL_OWNER_RECONCILIATION/v1`
+
+Generic exact-Signal form. It requires:
+- exact `signal_id`;
+- exact R145 owner domain;
+- exact current owner main;
+- exact `reconciliation_issue` binding;
+- disposition in `REUSE_EXISTING_WORK`, `ALREADY_SATISFIED`, `GAP_PROVEN`, `NEEDS_REVALIDATION`.
+
+`GAP_PROVEN` requires `dependency_ready: true`, no conflicting work refs and an open reconciliation Issue. `ALREADY_SATISFIED` requires the reconciliation Issue closed. REUSE additionally requires fresh referenced work verification.
+
+No exact trusted record means `NEEDS_REVALIDATION`; semantic similarity never guesses NEW or DUPLICATE.
+
+## Fail-closed invariants
+
+- exact canonical `DurableSignalLedger` instance required;
+- transport/replay artifacts alone cannot substitute for S0C truth;
+- missing/tampered/stale S0C projection cannot materialize;
+- non-`NOT_STARTED`, conflicted, superseded, rejected, closed or epistemically unknown Signals cannot materialize;
+- unresolved R145 owner authority cannot materialize;
+- caller cannot redefine owner main/domain or Signal desired effect;
+- arbitrary/untrusted owner comments cannot mint reconciliation truth;
+- stale referenced owner work cannot yield REUSE;
+- cross-domain auto-materialization is forbidden in R153;
+- R151 production/secrets/permissions/trading/destructive exclusions remain inherited;
+- R150 must return a releaseable exact-current-state disposition.
 
 ## Scope
 
-Only these five files are allowed in the R153 implementation PR:
+Only these five files belong to the R153 PR:
 
 1. `coordination/CONTROL-TOWER/signal_opportunity_materializer.py`
 2. `coordination/CONTROL-TOWER/tests/test_signal_opportunity_materializer.py`
@@ -80,18 +131,19 @@ Only these five files are allowed in the R153 implementation PR:
 4. `coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R153/SIGNAL-OPPORTUNITY-MATERIALIZATION.schema.json`
 5. `.github/workflows/program-control-tower-r153-signal-opportunity-materializer.yml`
 
-No mutation to `coordination/ACTIVE-*`, `coordination/ROUTES/**`, `LANE-WORK-CLAIMS.yaml`, S0C implementation, W3, Signal runtime, owner-domain code, trading, production, credential or permission surfaces.
+No mutation to live `ACTIVE-*`, `ROUTES/**`, Work Claims, worker authority, S0C implementation, R145/R149/R150/R151/R152 semantics, W3, owner-domain production code, trading, production deploy, credentials or permissions.
 
 ## Stop gate
 
 - exact-head Python 3.11 + 3.13 R153 adversarial suite;
-- retained R152/R151/R150/R149;
+- retained R152/R151/R150/R149 regressions;
 - full Control Tower suite;
 - Foundation / Phase 3 where triggered;
-- five-file scope and authority-boundary checks;
-- independent exact-head review through #453;
+- exact five-file scope and authority-boundary checks;
+- new exact-head `REVIEW_REQUEST/v1` through #453;
+- independent other-window review;
 - no self-review and no merge before governed ACCEPT.
 
 Completion signal:
 
-`R153_DURABLE_SIGNAL_OPPORTUNITY_MATERIALIZER_READY_FOR_INDEPENDENT_REVIEW`
+`R153_REMEDIATED_READY_FOR_INDEPENDENT_RE_REVIEW`
