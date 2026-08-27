@@ -10,6 +10,9 @@ from signal_user_value import (
     CONTROL_ISSUE,
     EVIDENCE_SCHEMA,
     ExplicitUserValueError,
+    TRUSTED_CONNECTOR_APP,
+    TRUSTED_USER_ID,
+    TRUSTED_USER_LOGIN,
     explicit_user_value_ref,
     observe_explicit_user_value,
 )
@@ -17,7 +20,6 @@ from signal_user_value import (
 
 SIGNAL = "signal:r155-fixture"
 DOMAIN = "SECOND_BRAIN_SYSTEM"
-OWNER = "vxz1datoubo"
 REPO = "vxz2datoubo/second-brain-coordination"
 
 
@@ -26,9 +28,12 @@ def declaration(
     *,
     signal_id: str = SIGNAL,
     comment_id: int = 100,
-    owner: bool = True,
     source: str = "USER_EXPLICIT",
     declaration_id: str | None = None,
+    login: str = TRUSTED_USER_LOGIN,
+    user_id: int = TRUSTED_USER_ID,
+    association: str = "COLLABORATOR",
+    app_slug: str | None = TRUSTED_CONNECTOR_APP,
 ) -> dict:
     declaration_id = declaration_id or f"r155-declaration-{comment_id}"
     body = f"""```yaml
@@ -38,13 +43,16 @@ signal_id: {signal_id}
 source: {source}
 value_class: {value_class}
 ```"""
-    return {
+    value = {
         "id": comment_id,
         "body": body,
         "html_url": f"https://github.com/{REPO}/issues/{CONTROL_ISSUE}#issuecomment-{comment_id}",
-        "user": {"login": OWNER if owner else "random-user"},
-        "author_association": "OWNER" if owner else "NONE",
+        "user": {"login": login, "id": user_id},
+        "author_association": association,
     }
+    if app_slug is not None:
+        value["performed_via_github_app"] = {"slug": app_slug}
+    return value
 
 
 class FakeObserver:
@@ -69,6 +77,14 @@ class FakeObserver:
         if "comments?per_page=100&page=" in path:
             return {}, [], {}
         raise AssertionError(f"unexpected path: {path}")
+
+
+def observe_with(observer: FakeObserver) -> dict:
+    with patch(
+        "signal_user_value._make_observer",
+        return_value=(observer, RuntimeError),
+    ):
+        return observe_explicit_user_value(".", SIGNAL)
 
 
 def proposal() -> dict:
@@ -140,6 +156,9 @@ def run_current(observer: FakeObserver, *, base=None) -> dict:
     with patch(
         "signal_opportunity_materializer_current._materialize_r153",
         return_value=result,
+    ), patch(
+        "signal_user_value._make_observer",
+        return_value=(observer, RuntimeError),
     ):
         return materialize_signal_opportunity(
             Path(__file__).resolve().parents[3],
@@ -148,33 +167,36 @@ def run_current(observer: FakeObserver, *, base=None) -> dict:
             expected_coordinator_main="e" * 40,
             domain_authority_descriptors=[],
             domain_authority_observations=[],
-            user_value_observer=observer,
         )
 
 
 class ExplicitUserValueTests(unittest.TestCase):
     def test_01_no_declaration_is_neutral(self) -> None:
-        value = observe_explicit_user_value(".", SIGNAL, observer=FakeObserver())
+        value = observe_with(FakeObserver())
         self.assertEqual(value["schema_version"], EVIDENCE_SCHEMA)
         self.assertEqual(value["status"], "NO_TRUSTED_DECLARATION_NEUTRAL")
         self.assertEqual(value["user_value_score"], 50)
         self.assertIsNone(value["value_class"])
 
-    def test_02_low_normal_high_are_exact_bounded_mapping(self) -> None:
+    def test_02_real_shaped_connected_user_low_normal_high_are_accepted(self) -> None:
         for cls, expected in (("LOW", 25), ("NORMAL", 50), ("HIGH", 75)):
             with self.subTest(cls=cls):
-                value = observe_explicit_user_value(
-                    ".", SIGNAL, observer=FakeObserver([declaration(cls)])
-                )
+                value = observe_with(FakeObserver([declaration(cls)]))
                 self.assertEqual(value["status"], "VERIFIED_EXPLICIT_DECLARATION")
                 self.assertEqual(value["user_value_score"], expected)
 
-    def test_03_untrusted_actor_cannot_raise_value(self) -> None:
-        value = observe_explicit_user_value(
-            ".", SIGNAL, observer=FakeObserver([declaration("HIGH", owner=False)])
-        )
-        self.assertEqual(value["user_value_score"], 50)
-        self.assertEqual(value["status"], "NO_TRUSTED_DECLARATION_NEUTRAL")
+    def test_03_unrelated_collaborator_or_wrong_principal_cannot_raise_value(self) -> None:
+        cases = [
+            declaration("HIGH", login="other-collaborator", user_id=42),
+            declaration("HIGH", user_id=42),
+            declaration("HIGH", app_slug="other-app"),
+            declaration("HIGH", association="NONE"),
+        ]
+        for raw in cases:
+            with self.subTest(raw=raw):
+                value = observe_with(FakeObserver([raw]))
+                self.assertEqual(value["user_value_score"], 50)
+                self.assertEqual(value["status"], "NO_TRUSTED_DECLARATION_NEUTRAL")
 
     def test_04_wrong_signal_and_free_text_are_ignored(self) -> None:
         comments = [
@@ -183,17 +205,18 @@ class ExplicitUserValueTests(unittest.TestCase):
                 "id": 102,
                 "body": "URGENT CRITICAL 最重要 high value high value high value",
                 "html_url": "https://example.invalid/102",
-                "user": {"login": OWNER},
-                "author_association": "OWNER",
+                "user": {"login": TRUSTED_USER_LOGIN, "id": TRUSTED_USER_ID},
+                "author_association": "COLLABORATOR",
+                "performed_via_github_app": {"slug": TRUSTED_CONNECTOR_APP},
             },
         ]
-        value = observe_explicit_user_value(".", SIGNAL, observer=FakeObserver(comments))
+        value = observe_with(FakeObserver(comments))
         self.assertEqual(value["user_value_score"], 50)
 
     def test_05_trusted_exact_signal_malformed_declaration_fails_closed(self) -> None:
         bad = declaration("HIGH", source="MODEL_INFERRED")
         with self.assertRaises(ExplicitUserValueError) as raised:
-            observe_explicit_user_value(".", SIGNAL, observer=FakeObserver([bad]))
+            observe_with(FakeObserver([bad]))
         self.assertEqual(raised.exception.code, "TRUSTED_EXACT_SIGNAL_DECLARATION_INVALID")
 
     def test_06_latest_trusted_exact_signal_declaration_wins(self) -> None:
@@ -202,32 +225,29 @@ class ExplicitUserValueTests(unittest.TestCase):
             declaration("LOW", signal_id="signal:other", comment_id=999),
             declaration("LOW", comment_id=200),
         ]
-        value = observe_explicit_user_value(".", SIGNAL, observer=FakeObserver(comments))
+        value = observe_with(FakeObserver(comments))
         self.assertEqual(value["value_class"], "LOW")
         self.assertEqual(value["user_value_score"], 25)
         self.assertIn("issuecomment-200", value["declaration_ref"])
 
     def test_07_provider_or_closed_control_issue_never_fabricates_value(self) -> None:
-        unavailable = observe_explicit_user_value(".", SIGNAL, observer=FakeObserver(fail=True))
-        closed = observe_explicit_user_value(
-            ".", SIGNAL, observer=FakeObserver([declaration("HIGH")], issue_state="closed")
-        )
+        unavailable = observe_with(FakeObserver(fail=True))
+        closed = observe_with(FakeObserver([declaration("HIGH")], issue_state="closed"))
         self.assertEqual(unavailable["user_value_score"], 50)
         self.assertEqual(closed["user_value_score"], 50)
         self.assertIn("NEUTRAL", unavailable["status"])
         self.assertIn("NEUTRAL", closed["status"])
 
-    def test_08_observer_is_mechanically_fixed_to_control_issue_456(self) -> None:
+    def test_08_internal_observer_is_mechanically_fixed_to_control_issue_456(self) -> None:
         observer = FakeObserver()
-        observe_explicit_user_value(".", SIGNAL, observer=observer)
+        observe_with(observer)
         self.assertTrue(observer.paths)
         self.assertEqual(observer.paths[0], f"/repos/{REPO}/issues/{CONTROL_ISSUE}")
         self.assertTrue(all(f"/issues/{CONTROL_ISSUE}" in path for path in observer.paths))
 
     def test_09_evidence_and_reference_are_deterministic_and_authority_free(self) -> None:
-        observer = FakeObserver([declaration("HIGH")])
-        first = observe_explicit_user_value(".", SIGNAL, observer=observer)
-        second = observe_explicit_user_value(".", SIGNAL, observer=FakeObserver([declaration("HIGH")]))
+        first = observe_with(FakeObserver([declaration("HIGH")]))
+        second = observe_with(FakeObserver([declaration("HIGH")]))
         self.assertEqual(first, second)
         ref = explicit_user_value_ref(first)
         self.assertIn(first["evidence_digest"], ref)
@@ -271,7 +291,22 @@ class ExplicitUserValueTests(unittest.TestCase):
         self.assertEqual(result, base)
         self.assertEqual(observer.paths, [])
 
-    def test_13_no_production_consumer_bypasses_current_materializer_entrypoint(self) -> None:
+    def test_13_production_api_rejects_caller_observer_injection(self) -> None:
+        fake = FakeObserver([declaration("HIGH")])
+        with self.assertRaises(TypeError):
+            observe_explicit_user_value(".", SIGNAL, observer=fake)  # type: ignore[call-arg]
+        with self.assertRaises(TypeError):
+            materialize_signal_opportunity(
+                ".",
+                object(),
+                {"signal_ref": SIGNAL},
+                expected_coordinator_main="e" * 40,
+                domain_authority_descriptors=[],
+                domain_authority_observations=[],
+                user_value_observer=fake,  # type: ignore[call-arg]
+            )
+
+    def test_14_no_production_consumer_bypasses_current_materializer_entrypoint(self) -> None:
         root = Path(__file__).resolve().parents[1]
         allowed = {
             "signal_opportunity_materializer.py",
