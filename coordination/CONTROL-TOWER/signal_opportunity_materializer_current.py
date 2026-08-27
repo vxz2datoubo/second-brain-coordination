@@ -82,14 +82,14 @@ def materialize_signal_opportunity(
     authority_exact_read_proofs: Sequence[Any] = (),
     authority_live_observation_proof: Any = None,
     owner_observer: Any = None,
-    user_value_observer: Any = None,
 ) -> dict[str, Any]:
     """Current materializer entrypoint: retained R153 + bounded R155 value upgrade.
 
     R153 remains responsible for S0C replay, owner reconciliation and R150/R149.
     R155 may alter only the already-neutral user-value feature of the resulting
     R151 opportunity, using a trusted explicit declaration bound to the exact
-    Signal. It never selects or releases the opportunity itself.
+    Signal. The R155 GitHub observer is constructed internally and cannot be
+    supplied by a production caller. R155 never selects or releases work.
     """
     base = _materialize_r153(
         repo_root,
@@ -167,11 +167,7 @@ def materialize_signal_opportunity(
         )
 
     try:
-        user_value = observe_explicit_user_value(
-            repo_root,
-            signal_ref,
-            observer=user_value_observer,
-        )
+        user_value = observe_explicit_user_value(repo_root, signal_ref)
         user_value_ref = explicit_user_value_ref(user_value)
     except ExplicitUserValueError as exc:
         return _decision(
