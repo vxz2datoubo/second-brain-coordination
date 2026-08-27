@@ -1,0 +1,175 @@
+name: Program Control Tower R155 Explicit User Value
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/program-control-tower-r155-explicit-user-value.yml"
+      - "coordination/CONTROL-TOWER/signal_user_value.py"
+      - "coordination/CONTROL-TOWER/signal_opportunity_materializer_current.py"
+      - "coordination/CONTROL-TOWER/tests/test_signal_user_value.py"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R155/**"
+
+permissions:
+  contents: read
+
+jobs:
+  r155:
+    name: R155 explicit user value (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Verify exact-head provenance and base
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+          test "${{ github.event.pull_request.base.ref }}" = "main"
+          git fetch --no-tags origin main
+          test "$(git rev-parse origin/main)" = "${{ github.event.pull_request.base.sha }}"
+          git merge-base --is-ancestor "${{ github.event.pull_request.base.sha }}" HEAD
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install test-only YAML parser
+        run: python -m pip install --disable-pip-version-check PyYAML==6.0.2
+
+      - name: Compile R155 modules
+        working-directory: coordination/CONTROL-TOWER
+        run: python -m py_compile signal_user_value.py signal_opportunity_materializer_current.py tests/test_signal_user_value.py
+
+      - name: Validate R155 JSON schema document
+        run: python -m json.tool coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R155/EXPLICIT-USER-VALUE.schema.json >/dev/null
+
+      - name: Run R155 adversarial tests
+        working-directory: coordination/CONTROL-TOWER
+        run: python -m unittest tests.test_signal_user_value -v
+
+      - name: Retain R154 ranking regressions
+        working-directory: coordination/CONTROL-TOWER
+        run: python -m unittest tests.test_signal_opportunity_ranking -v
+
+      - name: Retain R153 materializer regressions
+        working-directory: coordination/CONTROL-TOWER
+        run: python -m unittest tests.test_signal_opportunity_materializer -v
+
+      - name: Retain R152 apply regressions
+        working-directory: coordination/CONTROL-TOWER
+        run: python -m unittest tests.test_idle_signal_apply -v
+
+      - name: Retain R151 scheduler regressions
+        working-directory: coordination/CONTROL-TOWER
+        run: python -m unittest tests.test_idle_signal_scheduler -v
+
+      - name: Retain R150 trusted release regressions
+        working-directory: coordination/CONTROL-TOWER
+        run: python -m unittest tests.test_trusted_task_release -v
+
+      - name: Retain R149 impact regressions
+        working-directory: coordination/CONTROL-TOWER
+        run: python -m unittest tests.test_task_release_impact -v
+
+      - name: Run full Control Tower suite
+        working-directory: coordination/CONTROL-TOWER
+        run: python run_all_tests.py
+
+      - name: Verify exact six-additive-file scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="${{ github.event.pull_request.base.sha }}"
+          mapfile -t changed < <(git diff --name-only "$BASE" HEAD)
+          allowed() {
+            case "$1" in
+              .github/workflows/program-control-tower-r155-explicit-user-value.yml) return 0 ;;
+              coordination/CONTROL-TOWER/signal_user_value.py) return 0 ;;
+              coordination/CONTROL-TOWER/signal_opportunity_materializer_current.py) return 0 ;;
+              coordination/CONTROL-TOWER/tests/test_signal_user_value.py) return 0 ;;
+              coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R155/PROJECT-PLAN.md) return 0 ;;
+              coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R155/EXPLICIT-USER-VALUE.schema.json) return 0 ;;
+              *) return 1 ;;
+            esac
+          }
+          for path in "${changed[@]}"; do
+            if ! allowed "$path"; then
+              echo "R155 out-of-scope path: $path" >&2
+              exit 1
+            fi
+          done
+          test "${#changed[@]}" -eq 6
+          if git diff --name-status "$BASE" HEAD | grep -v '^A[[:space:]]'; then
+            echo "R155 is additive-only; existing-file mutation detected" >&2
+            exit 1
+          fi
+          echo R155_SCOPE_PASS
+
+      - name: Verify trust and authority boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="${{ github.event.pull_request.base.sha }}"
+          if git diff --name-only "$BASE" HEAD | grep -E '^(coordination/ACTIVE-|coordination/ROUTES/|coordination/CONTROL-TOWER/LANE-WORK-CLAIMS\.yaml$|coordination/PROGRAMS/.*/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC/)'; then
+            echo "R155 may not mutate live authority or S0C" >&2
+            exit 1
+          fi
+          python - <<'PY'
+          from pathlib import Path
+          value = Path('coordination/CONTROL-TOWER/signal_user_value.py').read_text(encoding='utf-8')
+          current = Path('coordination/CONTROL-TOWER/signal_opportunity_materializer_current.py').read_text(encoding='utf-8')
+          required_value = [
+              'CONTROL_ISSUE = 456',
+              'REPOSITORY_OWNER = "vxz1datoubo"',
+              'VALUE_SCORES = {"LOW": 25, "NORMAL": 50, "HIGH": 75}',
+              'source != "USER_EXPLICIT"',
+              'creates_signal_truth": False',
+              'selects_opportunity": False',
+              'releases_task": False',
+              'grants_execution_authority": False',
+              'grants_domain_write": False',
+              'grants_w3_write": False',
+              'grants_merge_authority": False',
+          ]
+          for needle in required_value:
+              if needle not in value:
+                  raise SystemExit(f'missing R155 value boundary: {needle}')
+          required_current = [
+              'R154_RANKING_PREFIX = "r154://ranking/"',
+              'R154_NEUTRAL_USER_VALUE = 50',
+              '_materialize_r153(',
+              'R155_BASE_USER_VALUE_NOT_NEUTRAL',
+              'R155_R154_RANKING_EVIDENCE_REQUIRED',
+              'r155://ranking-upgrade/',
+          ]
+          for needle in required_current:
+              if needle not in current:
+                  raise SystemExit(f'missing R155 composition boundary: {needle}')
+          forbidden = ('sentiment_score', 'embedding', 'jaccard', 'behavior_profile', 'private_chain_of_thought')
+          combined = (value + '\n' + current).casefold()
+          for needle in forbidden:
+              if needle in combined:
+                  raise SystemExit(f'forbidden R155 inference surface: {needle}')
+          print('R155_AUTHORITY_BOUNDARY_PASS')
+          PY
+
+      - name: Verify whitespace and unfinished markers
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check "${{ github.event.pull_request.base.sha }}" HEAD
+          if grep -R -n -E 'TODO|FIXME|NotImplementedError' \
+            coordination/CONTROL-TOWER/signal_user_value.py \
+            coordination/CONTROL-TOWER/signal_opportunity_materializer_current.py \
+            coordination/CONTROL-TOWER/tests/test_signal_user_value.py; then
+            exit 1
+          fi
