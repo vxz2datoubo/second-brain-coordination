@@ -129,9 +129,14 @@ jobs:
           current = Path('coordination/CONTROL-TOWER/signal_opportunity_materializer_current.py').read_text(encoding='utf-8')
           required_value = [
               'CONTROL_ISSUE = 456',
-              'REPOSITORY_OWNER = "vxz1datoubo"',
+              'TRUSTED_USER_LOGIN = "vxz1datoubo"',
+              'TRUSTED_USER_ID = 320840467',
+              'TRUSTED_AUTHOR_ASSOCIATIONS = frozenset({"OWNER", "MEMBER", "COLLABORATOR"})',
+              'TRUSTED_CONNECTOR_APP = "chatgpt-codex-connector"',
+              'performed_via_github_app',
               'VALUE_SCORES = {"LOW": 25, "NORMAL": 50, "HIGH": 75}',
               'source != "USER_EXPLICIT"',
+              'observer, gateway_error = _make_observer(root)',
               'creates_signal_truth": False',
               'selects_opportunity": False',
               'releases_task": False',
@@ -147,6 +152,7 @@ jobs:
               'R154_RANKING_PREFIX = "r154://ranking/"',
               'R154_NEUTRAL_USER_VALUE = 50',
               '_materialize_r153(',
+              'observe_explicit_user_value(repo_root, signal_ref)',
               'R155_BASE_USER_VALUE_NOT_NEUTRAL',
               'R155_R154_RANKING_EVIDENCE_REQUIRED',
               'r155://ranking-upgrade/',
@@ -154,6 +160,10 @@ jobs:
           for needle in required_current:
               if needle not in current:
                   raise SystemExit(f'missing R155 composition boundary: {needle}')
+          if 'observer: Any = None' in value:
+              raise SystemExit('caller-injectable user-value observer remains in public observer API')
+          if 'user_value_observer' in current:
+              raise SystemExit('caller-injectable user-value observer remains in current materializer API')
           forbidden = ('sentiment_score', 'embedding', 'jaccard', 'behavior_profile', 'private_chain_of_thought')
           combined = (value + '\n' + current).casefold()
           for needle in forbidden:
