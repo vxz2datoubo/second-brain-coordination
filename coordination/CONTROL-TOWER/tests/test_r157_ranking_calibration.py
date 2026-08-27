@@ -39,10 +39,113 @@ class R157RankingCalibrationTests(unittest.TestCase):
         report = evaluate_corpus(_load_corpus())
         self.assertEqual(report["schema_version"], REPORT_SCHEMA)
         self.assertEqual(report["status"], "PASS")
-        self.assertEqual(report["total_scenarios"], 13)
-        self.assertEqual(report["passed_scenarios"], 13)
+        self.assertEqual(report["total_scenarios"], 14)
+        self.assertEqual(report["passed_scenarios"], 14)
         self.assertEqual(report["failed_scenarios"], 0)
         self.assertEqual(len(report["report_digest"]), 64)
+
+    def test_required_coverage_matrix_is_mechanically_present(self) -> None:
+        normalized = validate_corpus(_load_corpus())
+        scenarios = normalized["scenarios"]
+        kinds = {item["kind"] for item in scenarios}
+        self.assertEqual(
+            kinds,
+            {
+                "MONOTONIC_AXIS",
+                "AGE_CAP_PLATEAU",
+                "PRIORITY_DOMINANCE",
+                "LEXICAL_TIE_BREAK",
+                "PERMUTATION_INVARIANCE",
+            },
+        )
+        axes = {
+            item["axis"]
+            for item in scenarios
+            if item["kind"] == "MONOTONIC_AXIS"
+        }
+        self.assertEqual(
+            axes,
+            {
+                "user_value_score",
+                "materiality_score",
+                "dependency_readiness_score",
+                "age_cycles",
+                "estimated_cost_score",
+            },
+        )
+        modes = {
+            item["mode"]
+            for item in scenarios
+            if item["kind"] == "PERMUTATION_INVARIANCE"
+        }
+        self.assertEqual(modes, {"LEXICAL_TIE", "HETEROGENEOUS_RANK_KEYS"})
+
+    def test_heterogeneous_permutation_is_order_invariant_and_nonlexical(self) -> None:
+        report = evaluate_corpus(_load_corpus())
+        result = next(
+            item
+            for item in report["results"]
+            if item["scenario_id"] == "PERMUTATION-HETEROGENEOUS-001"
+        )
+        observed = result["observed"]
+        self.assertTrue(result["passed"])
+        self.assertEqual(observed["mode"], "HETEROGENEOUS_RANK_KEYS")
+        self.assertEqual(observed["expected_winner"], "opportunity-z-high")
+        self.assertEqual(observed["forward_winner"], "opportunity-z-high")
+        self.assertEqual(observed["reverse_winner"], "opportunity-z-high")
+        self.assertEqual(observed["rotated_winner"], "opportunity-z-high")
+        self.assertNotEqual(observed["expected_winner"], min(observed["candidate_keys"]))
+        prefixes = {tuple(key[:-1]) for key in observed["candidate_keys"].values()}
+        self.assertGreater(len(prefixes), 1)
+
+    def test_lexical_tie_permutation_remains_distinct(self) -> None:
+        report = evaluate_corpus(_load_corpus())
+        result = next(
+            item
+            for item in report["results"]
+            if item["scenario_id"] == "PERMUTATION-TIE-001"
+        )
+        observed = result["observed"]
+        self.assertTrue(result["passed"])
+        self.assertEqual(observed["mode"], "LEXICAL_TIE")
+        self.assertEqual(observed["expected_winner"], "opportunity-a")
+        prefixes = {tuple(key[:-1]) for key in observed["candidate_keys"].values()}
+        self.assertEqual(len(prefixes), 1)
+
+    def test_missing_permutation_mode_fails_closed(self) -> None:
+        corpus = _load_corpus()
+        corpus["scenarios"] = [
+            item
+            for item in corpus["scenarios"]
+            if item["scenario_id"] != "PERMUTATION-HETEROGENEOUS-001"
+        ]
+        with self.assertRaisesRegex(
+            RankingCalibrationError, "REQUIRED_PERMUTATION_MODE_MISSING"
+        ):
+            validate_corpus(corpus)
+
+    def test_heterogeneous_mode_rejects_equal_rank_key_prefixes(self) -> None:
+        corpus = _load_corpus()
+        target = next(
+            item
+            for item in corpus["scenarios"]
+            if item["scenario_id"] == "PERMUTATION-HETEROGENEOUS-001"
+        )
+        first = target["candidates"][0]
+        for candidate in target["candidates"][1:]:
+            for field in (
+                "priority_class",
+                "user_value_score",
+                "materiality_score",
+                "dependency_readiness_score",
+                "age_cycles",
+                "estimated_cost_score",
+            ):
+                candidate[field] = first[field]
+        with self.assertRaisesRegex(
+            RankingCalibrationError, "PERMUTATION_KEYS_NOT_HETEROGENEOUS"
+        ):
+            validate_corpus(corpus)
 
     def test_report_is_repeatable_for_identical_corpus(self) -> None:
         corpus = _load_corpus()
