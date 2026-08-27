@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://second-brain.local/contracts/ExplicitUserValueEvidence-v1.schema.json",
+  "title": "ExplicitUserValueEvidence/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "policy_version",
+    "signal_ref",
+    "status",
+    "value_class",
+    "user_value_score",
+    "declaration_id",
+    "declaration_ref",
+    "source_evidence_refs",
+    "authority_boundary",
+    "evidence_digest"
+  ],
+  "properties": {
+    "schema_version": {"const": "ExplicitUserValueEvidence/v1"},
+    "policy_version": {"const": "R155/v1"},
+    "signal_ref": {"type": "string", "pattern": "^signal:[A-Za-z0-9_.:-]+$"},
+    "status": {
+      "enum": [
+        "VERIFIED_EXPLICIT_DECLARATION",
+        "NO_TRUSTED_DECLARATION_NEUTRAL",
+        "PROVIDER_UNAVAILABLE_NEUTRAL",
+        "CONTROL_ISSUE_UNAVAILABLE_NEUTRAL"
+      ]
+    },
+    "value_class": {"type": ["string", "null"], "enum": ["LOW", "NORMAL", "HIGH", null]},
+    "user_value_score": {"type": "integer", "enum": [25, 50, 75]},
+    "declaration_id": {"type": ["string", "null"], "minLength": 1},
+    "declaration_ref": {"type": ["string", "null"], "minLength": 1},
+    "source_evidence_refs": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "authority_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "creates_signal_truth",
+        "creates_task",
+        "selects_opportunity",
+        "releases_task",
+        "creates_issue",
+        "creates_route",
+        "creates_work_claim",
+        "creates_worker_slot",
+        "grants_execution_authority",
+        "grants_domain_write",
+        "grants_w3_write",
+        "grants_merge_authority"
+      ],
+      "properties": {
+        "creates_signal_truth": {"const": false},
+        "creates_task": {"const": false},
+        "selects_opportunity": {"const": false},
+        "releases_task": {"const": false},
+        "creates_issue": {"const": false},
+        "creates_route": {"const": false},
+        "creates_work_claim": {"const": false},
+        "creates_worker_slot": {"const": false},
+        "grants_execution_authority": {"const": false},
+        "grants_domain_write": {"const": false},
+        "grants_w3_write": {"const": false},
+        "grants_merge_authority": {"const": false}
+      }
+    },
+    "evidence_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "VERIFIED_EXPLICIT_DECLARATION"}}},
+      "then": {
+        "properties": {
+          "value_class": {"enum": ["LOW", "NORMAL", "HIGH"]},
+          "declaration_id": {"type": "string", "minLength": 1},
+          "declaration_ref": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"not": {"const": "VERIFIED_EXPLICIT_DECLARATION"}}}},
+      "then": {
+        "properties": {
+          "value_class": {"const": null},
+          "user_value_score": {"const": 50},
+          "declaration_id": {"const": null},
+          "declaration_ref": {"const": null}
+        }
+      }
+    }
+  ]
+}
