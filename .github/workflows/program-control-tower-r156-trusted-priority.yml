@@ -138,6 +138,7 @@ jobs:
               'priority = P4',
               'priority = P3',
               'R155_RANKING_UPGRADE_EVIDENCE_REQUIRED',
+              'r156://priority/',
               'selects_opportunity": False',
               'releases_task": False',
               'grants_execution_authority": False',
@@ -152,11 +153,10 @@ jobs:
               'derive_trusted_priority_evidence(',
               'R156_BASE_PRIORITY_NOT_R154_P3',
               'R156_R155_RANKING_UPGRADE_EVIDENCE_REQUIRED',
-              'r156://priority/',
               'R153_R154_R155_R156_TRUSTED_PRIORITY_BOUND',
           ]
           for needle in required_current:
-              if needle not in current and needle != 'r156://priority/':
+              if needle not in current:
                   raise SystemExit(f'missing R156 composition boundary: {needle}')
           forbidden_parameters = ('priority_override', 'caller_priority', 'signal_kind:', 'desired_effect:', 'sentiment', 'embedding', 'jaccard', 'behavior_profile', 'private_chain_of_thought')
           for needle in forbidden_parameters:
