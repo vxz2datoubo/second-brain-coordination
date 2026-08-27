@@ -20,7 +20,7 @@ R156 activates only the narrow research distinction that is already machine-veri
 → updated opportunity priority only
 → retained R151 selector/release authority.
 
-R156 consumes the `epistemic_state` that R153 copied from replay-proven S0C into the validated opportunity. It requires the exact R155 opportunity digest plus S0C and R155 evidence refs before changing the priority feature.
+R156 consumes the `epistemic_state` that R153 copied from replay-proven S0C into the validated opportunity. R156 deliberately does not become a second S0C replay or URI parser. It requires the exact post-R155 opportunity digest plus retained `r154://ranking/...` and `r155://ranking-upgrade/...` evidence before changing the priority feature. S0C replay and exact Signal binding remain the retained R153 authority.
 
 ## V1 policy
 
@@ -45,7 +45,7 @@ This means R156/v1 is a conservative epistemic research-demotion rule, not a uni
 
 ## Trust and anti-injection boundary
 
-R154 remains the expected starting priority and must still be P3. R155 must have already produced an exact `r155://ranking-upgrade/...` evidence ref. R156 binds its evidence to that exact post-R155 opportunity digest.
+R154 remains the expected starting priority and must still be P3. R155 must have already produced an exact `r155://ranking-upgrade/...` evidence ref, and the retained `r154://ranking/...` evidence must still be present. R156 binds its evidence to that exact post-R155 opportunity digest.
 
 A caller cannot pass `priority_class`, `signal_kind`, free text, or a classifier/provider object to `derive_trusted_priority_evidence()`. The production materializer computes the R156 evidence internally.
 
