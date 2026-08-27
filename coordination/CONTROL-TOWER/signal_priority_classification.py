@@ -15,8 +15,8 @@ ACTION_CAPABLE_EPISTEMIC_STATES = frozenset(
 )
 RESEARCH_EPISTEMIC_STATE = "CANDIDATE_HYPOTHESIS"
 INELIGIBLE_EPISTEMIC_STATES = frozenset({"UNKNOWN", "NEEDS_REVALIDATION"})
+R154_RANKING_PREFIX = "r154://ranking/"
 R155_UPGRADE_PREFIX = "r155://ranking-upgrade/"
-S0C_SIGNAL_PREFIX = "s0c://signal/"
 
 
 class PriorityClassificationError(ValueError):
@@ -76,18 +76,20 @@ def derive_trusted_priority_evidence(
 ) -> dict[str, Any]:
     """Classify only from canonical S0C epistemic state already proven by R153.
 
-    This function has no free-text, signal-kind, caller-priority, sentiment or
-    model-classification input.  R156 is evidence-only and cannot select or
-    release work.
+    R156 does not become a second S0C replay/proof parser. The sealed current
+    materializer supplies the post-R155 opportunity, while this evidence layer
+    requires the retained R154 and R155 evidence chain plus that exact base
+    digest. It has no free-text, signal-kind, caller-priority, sentiment or
+    model-classification input and cannot select or release work.
     """
     signal = _nonempty(signal_ref, "/signal_ref")
     state = _nonempty(epistemic_state, "/epistemic_state").upper()
     base_digest = _sha256(base_opportunity_digest, "/base_opportunity_digest")
     refs = _refs(source_evidence_refs)
 
-    if not any(ref.startswith(f"{S0C_SIGNAL_PREFIX}{signal}#") for ref in refs):
+    if not any(ref.startswith(R154_RANKING_PREFIX) for ref in refs):
         raise PriorityClassificationError(
-            "S0C_SIGNAL_PROOF_REQUIRED", "/source_evidence_refs"
+            "R154_RANKING_EVIDENCE_REQUIRED", "/source_evidence_refs"
         )
     if not any(ref.startswith(R155_UPGRADE_PREFIX) for ref in refs):
         raise PriorityClassificationError(
