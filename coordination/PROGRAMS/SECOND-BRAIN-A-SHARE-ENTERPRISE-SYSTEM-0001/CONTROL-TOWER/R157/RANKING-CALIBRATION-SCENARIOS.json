@@ -1,0 +1,128 @@
+{
+  "schema_version": "R157RankingCalibrationScenarios/v1",
+  "subject_ref": "coordination/CONTROL-TOWER/idle_signal_scheduler.py#_rank_key",
+  "scenarios": [
+    {
+      "scenario_id": "UV-MONO-001",
+      "kind": "MONOTONIC_AXIS",
+      "axis": "user_value_score",
+      "before": 25,
+      "after": 50
+    },
+    {
+      "scenario_id": "UV-MONO-002",
+      "kind": "MONOTONIC_AXIS",
+      "axis": "user_value_score",
+      "before": 50,
+      "after": 75
+    },
+    {
+      "scenario_id": "MAT-MONO-001",
+      "kind": "MONOTONIC_AXIS",
+      "axis": "materiality_score",
+      "before": 25,
+      "after": 50
+    },
+    {
+      "scenario_id": "DEP-MONO-001",
+      "kind": "MONOTONIC_AXIS",
+      "axis": "dependency_readiness_score",
+      "before": 50,
+      "after": 100
+    },
+    {
+      "scenario_id": "COST-MONO-001",
+      "kind": "MONOTONIC_AXIS",
+      "axis": "estimated_cost_score",
+      "before": 100,
+      "after": 50
+    },
+    {
+      "scenario_id": "COST-MONO-002",
+      "kind": "MONOTONIC_AXIS",
+      "axis": "estimated_cost_score",
+      "before": 50,
+      "after": 0
+    },
+    {
+      "scenario_id": "AGE-MONO-001",
+      "kind": "MONOTONIC_AXIS",
+      "axis": "age_cycles",
+      "before": 0,
+      "after": 10
+    },
+    {
+      "scenario_id": "AGE-MONO-002",
+      "kind": "MONOTONIC_AXIS",
+      "axis": "age_cycles",
+      "before": 10,
+      "after": 20
+    },
+    {
+      "scenario_id": "AGE-CAP-001",
+      "kind": "AGE_CAP_PLATEAU",
+      "before": 20,
+      "after": 21
+    },
+    {
+      "scenario_id": "AGE-CAP-002",
+      "kind": "AGE_CAP_PLATEAU",
+      "before": 20,
+      "after": 1000
+    },
+    {
+      "scenario_id": "PRIORITY-DOMINANCE-001",
+      "kind": "PRIORITY_DOMINANCE"
+    },
+    {
+      "scenario_id": "LEXICAL-TIE-001",
+      "kind": "LEXICAL_TIE_BREAK",
+      "left_id": "opportunity-a",
+      "right_id": "opportunity-b"
+    },
+    {
+      "scenario_id": "PERMUTATION-TIE-001",
+      "kind": "PERMUTATION_INVARIANCE",
+      "mode": "LEXICAL_TIE",
+      "candidate_ids": [
+        "opportunity-c",
+        "opportunity-a",
+        "opportunity-b"
+      ]
+    },
+    {
+      "scenario_id": "PERMUTATION-HETEROGENEOUS-001",
+      "kind": "PERMUTATION_INVARIANCE",
+      "mode": "HETEROGENEOUS_RANK_KEYS",
+      "candidates": [
+        {
+          "opportunity_id": "opportunity-a-low",
+          "priority_class": "P3_BOUNDED_IMPROVEMENT",
+          "user_value_score": 25,
+          "materiality_score": 25,
+          "dependency_readiness_score": 50,
+          "age_cycles": 0,
+          "estimated_cost_score": 80
+        },
+        {
+          "opportunity_id": "opportunity-z-high",
+          "priority_class": "P3_BOUNDED_IMPROVEMENT",
+          "user_value_score": 75,
+          "materiality_score": 50,
+          "dependency_readiness_score": 100,
+          "age_cycles": 20,
+          "estimated_cost_score": 0
+        },
+        {
+          "opportunity_id": "opportunity-m-mid",
+          "priority_class": "P3_BOUNDED_IMPROVEMENT",
+          "user_value_score": 50,
+          "materiality_score": 50,
+          "dependency_readiness_score": 100,
+          "age_cycles": 5,
+          "estimated_cost_score": 50
+        }
+      ]
+    }
+  ]
+}
