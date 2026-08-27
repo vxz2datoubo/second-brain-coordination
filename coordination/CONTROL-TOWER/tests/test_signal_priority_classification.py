@@ -40,6 +40,7 @@ def classify(state: str) -> dict:
 
 
 def opportunity(*, state: str = "USER_EXPLICIT", priority: str = P3) -> dict:
+    release = proposal()
     value = {
         "schema_version": "DigestedSignalOpportunity/v1",
         "opportunity_id": "r153-opportunity:r156-fixture",
@@ -49,7 +50,7 @@ def opportunity(*, state: str = "USER_EXPLICIT", priority: str = P3) -> dict:
             f"s0c://signal/{SIGNAL}#sha256=" + "a" * 64,
             "r154://ranking/" + "b" * 64 + "#policy=R154/v1",
         ],
-        "desired_effect": "Classify research priority only from canonical epistemic state.",
+        "desired_effect": release["desired_effect"],
         "problem_to_solve": "R154 defaults every idle opportunity to P3.",
         "success_condition": "Candidate hypotheses are P4 without caller priority authority.",
         "current_disposition": "NEW_DURABLE_SIGNAL",
@@ -62,7 +63,7 @@ def opportunity(*, state: str = "USER_EXPLICIT", priority: str = P3) -> dict:
         "dependency_readiness_score": 100,
         "age_cycles": 0,
         "estimated_cost_score": 50,
-        "task_release_proposal": proposal(),
+        "task_release_proposal": release,
     }
     return validate_opportunity(value)
 
