@@ -14,7 +14,10 @@ DECLARATION_SCHEMA = "SIGNAL_USER_VALUE_DECLARATION/v1"
 POLICY_VERSION = "R155/v1"
 COORDINATOR_REPOSITORY = "vxz2datoubo/second-brain-coordination"
 CONTROL_ISSUE = 456
-REPOSITORY_OWNER = "vxz1datoubo"
+TRUSTED_USER_LOGIN = "vxz1datoubo"
+TRUSTED_USER_ID = 320840467
+TRUSTED_AUTHOR_ASSOCIATIONS = frozenset({"OWNER", "MEMBER", "COLLABORATOR"})
+TRUSTED_CONNECTOR_APP = "chatgpt-codex-connector"
 MAX_COMMENT_PAGES = 20
 NEUTRAL_SCORE = 50
 VALUE_SCORES = {"LOW": 25, "NORMAL": 50, "HIGH": 75}
@@ -75,11 +78,28 @@ def _make_observer(root: Path) -> tuple[Any, type[BaseException]]:
     return _UserValueObserver(), gateway_error
 
 
-def _trusted_repository_owner(raw: Mapping[str, Any]) -> bool:
+def _trusted_user_principal(raw: Mapping[str, Any]) -> bool:
+    """Bind the declaration to the real connected human principal.
+
+    GitHub reports the connected user as a COLLABORATOR in this repository,
+    not as the repository OWNER. Login alone is not sufficient: bind the
+    immutable user id, an allowed repository association, and the connector
+    app that produced the controlled declaration surface.
+    """
     user = raw.get("user")
-    login = user.get("login") if isinstance(user, Mapping) else None
+    if not isinstance(user, Mapping):
+        return False
+    login = user.get("login")
+    user_id = user.get("id")
     association = str(raw.get("author_association", "")).upper()
-    return login == REPOSITORY_OWNER and association == "OWNER"
+    app = raw.get("performed_via_github_app")
+    app_slug = app.get("slug") if isinstance(app, Mapping) else None
+    return (
+        login == TRUSTED_USER_LOGIN
+        and user_id == TRUSTED_USER_ID
+        and association in TRUSTED_AUTHOR_ASSOCIATIONS
+        and app_slug == TRUSTED_CONNECTOR_APP
+    )
 
 
 def _evidence(
@@ -135,21 +155,17 @@ def _neutral(signal_ref: str, status: str, issue_ref: str) -> dict[str, Any]:
 def observe_explicit_user_value(
     repo_root: str | Path,
     signal_ref: str,
-    *,
-    observer: Any = None,
 ) -> dict[str, Any]:
-    """Observe explicit repository-owner declarations on the fixed #456 control issue.
+    """Observe explicit trusted-user declarations on the fixed #456 control issue.
 
-    The GitHub declaration is user-value attestation only. It never creates or
-    replaces Signal truth. The R155 current materializer consumes this function
-    only after the retained R153 path has already replay-verified canonical S0C.
+    The observer is always constructed internally from the retained R137 live
+    provider. Production callers cannot inject GitHub observations. The GitHub
+    declaration is user-value attestation only and never creates Signal truth.
+    R155 consumes it only after retained R153 has replay-verified canonical S0C.
     """
     signal = _signal(signal_ref)
     root = Path(repo_root).resolve()
-    if observer is None:
-        observer, gateway_error = _make_observer(root)
-    else:
-        gateway_error = Exception
+    observer, gateway_error = _make_observer(root)
 
     issue_path = f"/repos/{COORDINATOR_REPOSITORY}/issues/{CONTROL_ISSUE}"
     issue_ref = f"https://github.com/{COORDINATOR_REPOSITORY}/issues/{CONTROL_ISSUE}"
@@ -188,7 +204,7 @@ def observe_explicit_user_value(
                 continue
             if _queue_field(body, "signal_id") != signal:
                 continue
-            if not _trusted_repository_owner(raw):
+            if not _trusted_user_principal(raw):
                 continue
             declaration_id = _queue_field(body, "declaration_id")
             source = _queue_field(body, "source")
