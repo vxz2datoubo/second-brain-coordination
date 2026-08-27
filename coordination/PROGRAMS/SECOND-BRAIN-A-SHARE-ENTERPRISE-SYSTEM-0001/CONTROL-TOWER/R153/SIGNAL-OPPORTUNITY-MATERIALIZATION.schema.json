@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://second-brain.invalid/contracts/r153-signal-opportunity-materialization.json",
+  "title": "R153 Durable Signal Opportunity Materialization",
+  "type": "object",
+  "$defs": {
+    "draft": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "signal_ref",
+        "owner_reconciliation_issue",
+        "priority_class",
+        "user_value_score",
+        "materiality_score",
+        "dependency_readiness_score",
+        "age_cycles",
+        "estimated_cost_score",
+        "task_release_proposal"
+      ],
+      "properties": {
+        "schema_version": {"const": "SignalOpportunityDraft/v1"},
+        "signal_ref": {"type": "string", "minLength": 1},
+        "owner_reconciliation_issue": {"type": "integer", "minimum": 1},
+        "priority_class": {"enum": ["P3_BOUNDED_IMPROVEMENT", "P4_RESEARCH"]},
+        "user_value_score": {"type": "integer", "minimum": 0, "maximum": 100},
+        "materiality_score": {"type": "integer", "minimum": 0, "maximum": 100},
+        "dependency_readiness_score": {"type": "integer", "minimum": 0, "maximum": 100},
+        "age_cycles": {"type": "integer", "minimum": 0, "maximum": 1000000},
+        "estimated_cost_score": {"type": "integer", "minimum": 0, "maximum": 100},
+        "task_release_proposal": {
+          "type": "object",
+          "required": ["schema_version", "source_signal_refs", "signal_primary_domain", "desired_effect", "proposed_target_domain", "proposed_write_surface"],
+          "properties": {"schema_version": {"const": "TaskReleaseProposal/v1"}}
+        }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "signal_ref",
+        "disposition",
+        "reason",
+        "evidence_refs",
+        "owner_binding_digest",
+        "opportunity",
+        "authority_boundary",
+        "decision_digest"
+      ],
+      "properties": {
+        "schema_version": {"const": "SignalOpportunityMaterializationDecision/v1"},
+        "signal_ref": {"type": "string", "minLength": 1},
+        "disposition": {
+          "enum": [
+            "REUSE_EXISTING_OWNER_WORK",
+            "ALREADY_SATISFIED",
+            "NEEDS_REVALIDATION",
+            "INELIGIBLE_SIGNAL_STATE",
+            "MATERIALIZED_FOR_R151"
+          ]
+        },
+        "reason": {"type": "string", "minLength": 1},
+        "evidence_refs": {"type": "array", "items": {"type": "string"}},
+        "owner_binding_digest": {"type": ["string", "null"]},
+        "opportunity": {"type": ["object", "null"]},
+        "authority_boundary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "creates_signal_truth",
+            "creates_task",
+            "creates_issue",
+            "creates_route",
+            "creates_work_claim",
+            "creates_worker_slot",
+            "grants_execution_authority",
+            "grants_domain_write",
+            "grants_w3_write",
+            "grants_merge_authority"
+          ],
+          "properties": {
+            "creates_signal_truth": {"const": false},
+            "creates_task": {"const": false},
+            "creates_issue": {"const": false},
+            "creates_route": {"const": false},
+            "creates_work_claim": {"const": false},
+            "creates_worker_slot": {"const": false},
+            "grants_execution_authority": {"const": false},
+            "grants_domain_write": {"const": false},
+            "grants_w3_write": {"const": false},
+            "grants_merge_authority": {"const": false}
+          }
+        },
+        "decision_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    }
+  },
+  "oneOf": [
+    {"$ref": "#/$defs/draft"},
+    {"$ref": "#/$defs/decision"}
+  ],
+  "x-r153-truth-boundaries": {
+    "signal_truth": "S0C_DurableSignalLedger_ONLY",
+    "owner_authority": "R145_ONLY",
+    "owner_network_transport": "REUSE_R137_ONLY",
+    "release_impact": "R149_R150_ONLY",
+    "idle_authorization": "R151_ONLY",
+    "apply": "R152_ONLY",
+    "fuzzy_owner_work_matching": false,
+    "materializer_performs_side_effects": false
+  }
+}
