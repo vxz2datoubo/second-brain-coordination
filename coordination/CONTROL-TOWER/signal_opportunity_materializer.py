@@ -41,7 +41,9 @@ S0C_SRC = (
 )
 ELIGIBLE_PRIORITY = frozenset({P3, P4})
 ELIGIBLE_EXECUTION_STATE = "NOT_STARTED"
-INELIGIBLE_PLANNING_STATES = frozenset({"SUPERSEDED", "CONFLICTED", "CANCELLED", "DONE"})
+INELIGIBLE_PLANNING_STATES = frozenset(
+    {"SUPERSEDED", "CONFLICTED", "REJECTED", "CLOSED_NO_ACTION"}
+)
 INELIGIBLE_EPISTEMIC_STATES = frozenset({"UNKNOWN", "NEEDS_REVALIDATION"})
 OWNER_DISPOSITIONS = frozenset(
     {"REUSE_EXISTING_WORK", "ALREADY_SATISFIED", "GAP_PROVEN", "NEEDS_REVALIDATION"}
@@ -49,7 +51,23 @@ OWNER_DISPOSITIONS = frozenset(
 RELEASEABLE_R150 = frozenset(
     {"RELEASE_BOUNDED_TASK", "RELEASE_AS_EXTENSION", "RELEASE_AS_ADAPTER_OR_PLUGIN"}
 )
+TRUSTED_GITHUB_ASSOCIATIONS = frozenset({"OWNER", "MEMBER", "COLLABORATOR"})
+TRUSTED_CONNECTOR_APP = "chatgpt-codex-connector"
+MAX_OWNER_PAGES = 20
+_SHA40 = re.compile(r"^[0-9a-f]{40}$")
 _OWNER_REPOSITORY = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
+
+# R153 must not become a second priority authority.  Caller ranking fields are
+# retained only for backward-compatible draft shape validation and are ignored
+# when authority-bearing R151 opportunities are emitted.
+TRUSTED_NEUTRAL_RANKING = {
+    "priority_class": P3,
+    "user_value_score": 50,
+    "materiality_score": 50,
+    "dependency_readiness_score": 100,
+    "age_cycles": 0,
+    "estimated_cost_score": 50,
+}
 
 
 class SignalOpportunityMaterializerError(ValueError):
@@ -83,6 +101,18 @@ def _bounded_int(value: Any, path: str, *, high: int = 100) -> int:
     if isinstance(value, bool) or not isinstance(value, int) or value < 0 or value > high:
         raise SignalOpportunityMaterializerError("INVALID_INTEGER", path)
     return value
+
+
+def _positive_int(value: Any, code: str) -> int:
+    if isinstance(value, bool):
+        raise SignalOpportunityMaterializerError(code)
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError) as exc:
+        raise SignalOpportunityMaterializerError(code) from exc
+    if parsed <= 0:
+        raise SignalOpportunityMaterializerError(code)
+    return parsed
 
 
 def _git_head(root: Path) -> str:
@@ -150,11 +180,7 @@ def validate_draft(value: Mapping[str, Any]) -> dict[str, Any]:
         raise SignalOpportunityMaterializerError("DRAFT_SCHEMA_INVALID")
     out = _copy(value)
     _nonempty(out["signal_ref"], "/signal_ref")
-    issue = out["owner_reconciliation_issue"]
-    if isinstance(issue, bool) or not isinstance(issue, int) or issue <= 0:
-        raise SignalOpportunityMaterializerError(
-            "OWNER_RECONCILIATION_ISSUE_INVALID", "/owner_reconciliation_issue"
-        )
+    _positive_int(out["owner_reconciliation_issue"], "OWNER_RECONCILIATION_ISSUE_INVALID")
     if out["priority_class"] not in ELIGIBLE_PRIORITY:
         raise SignalOpportunityMaterializerError("IDLE_PRIORITY_REQUIRED", "/priority_class")
     for field in (
@@ -173,28 +199,61 @@ def validate_draft(value: Mapping[str, Any]) -> dict[str, Any]:
 def _projection_and_history(
     root: Path, ledger: Any
 ) -> tuple[Mapping[str, Any], list[dict[str, Any]]]:
+    """Read S0C truth and prove the stored projection equals canonical replay.
+
+    The replay intentionally calls the retained S0C reducer itself.  R153 does
+    not reimplement reducer semantics and does not mutate the durable ledger.
+    """
     ledger_type = _load_s0c_ledger_type(root)
     if type(ledger) is not ledger_type:
         raise SignalOpportunityMaterializerError("CANONICAL_S0C_LEDGER_INSTANCE_REQUIRED")
+
+    revision_before = ledger.input_revision()
     projection = ledger.current_projection()
     if projection is None:
-        projection = ledger.rebuild_projection(
-            expected_version=ledger.current_projection_version()
-        )
+        raise SignalOpportunityMaterializerError("S0C_PROJECTION_REQUIRED")
     if not isinstance(projection, Mapping):
         raise SignalOpportunityMaterializerError("S0C_PROJECTION_INVALID")
+
     history = ledger.history()
     if not isinstance(history, list) or not all(isinstance(item, Mapping) for item in history):
         raise SignalOpportunityMaterializerError("S0C_HISTORY_INVALID")
+
+    reducer = getattr(ledger, "_reduce", None)
+    if not callable(reducer):
+        raise SignalOpportunityMaterializerError("S0C_CANONICAL_REDUCER_UNAVAILABLE")
+    replay = reducer()
+    revision_after = ledger.input_revision()
+    if revision_before != revision_after:
+        raise SignalOpportunityMaterializerError("S0C_INPUT_REVISION_DRIFT")
+    if not isinstance(replay, Mapping):
+        raise SignalOpportunityMaterializerError("S0C_CANONICAL_REPLAY_INVALID")
+
     if projection.get("ledger_watermark") != len(history):
         raise SignalOpportunityMaterializerError("S0C_LEDGER_WATERMARK_MISMATCH")
-    if projection.get("input_revision") != ledger.input_revision():
+    if projection.get("input_revision") != revision_after:
         raise SignalOpportunityMaterializerError("S0C_INPUT_REVISION_MISMATCH")
-    if not isinstance(projection.get("checksum"), str) or not isinstance(
-        projection.get("reducer_version"), str
-    ):
+    if replay.get("ledger_watermark") != len(history) or replay.get("input_revision") != revision_after:
+        raise SignalOpportunityMaterializerError("S0C_CANONICAL_REPLAY_REVISION_MISMATCH")
+
+    reducer_version = projection.get("reducer_version")
+    checksum = projection.get("checksum")
+    if not isinstance(checksum, str) or len(checksum) != 64 or not isinstance(reducer_version, str):
         raise SignalOpportunityMaterializerError("S0C_PROJECTION_PROOF_INVALID")
-    return projection, [dict(item) for item in history]
+    if replay.get("reducer_version") != reducer_version:
+        raise SignalOpportunityMaterializerError("S0C_REDUCER_VERSION_MISMATCH")
+
+    projection_core = {
+        key: value
+        for key, value in projection.items()
+        if key not in {"checksum", "projection_version", "generated_at"}
+    }
+    if _canonical(projection_core) != _canonical(replay):
+        raise SignalOpportunityMaterializerError("S0C_PROJECTION_REPLAY_MISMATCH")
+    if checksum != _digest(replay):
+        raise SignalOpportunityMaterializerError("S0C_PROJECTION_CHECKSUM_MISMATCH")
+
+    return dict(projection), [dict(item) for item in history]
 
 
 def _signal_origin(
@@ -300,6 +359,8 @@ def _make_owner_observer(root: Path, repository: str) -> tuple[Any, type[BaseExc
         def _dynamic_domain_endpoint_allowed(self, path: str) -> bool:
             if re.fullmatch(escaped + r"/issues/[1-9][0-9]*", path):
                 return True
+            if re.fullmatch(escaped + r"/pulls/[1-9][0-9]*", path):
+                return True
             if re.fullmatch(
                 escaped + r"/issues/[1-9][0-9]*/comments\?per_page=100&page=[1-9][0-9]*",
                 path,
@@ -310,20 +371,50 @@ def _make_owner_observer(root: Path, repository: str) -> tuple[Any, type[BaseExc
     return _OwnerObserver(), gateway_error
 
 
+def _trusted_owner_actor(raw: Mapping[str, Any], repository: str) -> bool:
+    user = raw.get("user")
+    login = user.get("login") if isinstance(user, Mapping) else None
+    repository_owner = repository.split("/", 1)[0]
+    if login == repository_owner:
+        return True
+    association = str(raw.get("author_association", "")).upper()
+    app = raw.get("performed_via_github_app")
+    app_slug = app.get("slug") if isinstance(app, Mapping) else None
+    return association in TRUSTED_GITHUB_ASSOCIATIONS and app_slug == TRUSTED_CONNECTOR_APP
+
+
+def _record_int(body: str, name: str) -> int | None:
+    raw = _queue_field(body, name)
+    if raw is None or not raw.isdigit():
+        return None
+    value = int(raw)
+    return value if value > 0 else None
+
+
 def _normalize_owner_record(
     body: str,
     *,
     signal_ref: str,
     owner_domain: str,
+    owner_project: str,
     owner_main: str,
     evidence_ref: str,
+    container_issue: int,
 ) -> dict[str, Any] | None:
     schema = _queue_field(body, "schema")
     if schema == AI_FILM_REUSE_HANDOFF_SCHEMA:
         if _queue_field(body, "source_signal_id") != signal_ref:
             return None
-        current_main = _queue_field(body, "current_main")
-        if current_main != owner_main:
+        declared_owner = _queue_field(body, "owner_domain")
+        if declared_owner not in {owner_domain, owner_project}:
+            return {
+                "disposition": "NEEDS_REVALIDATION",
+                "reason": "OWNER_RECONCILIATION_DOMAIN_MISMATCH",
+                "evidence_refs": [evidence_ref],
+                "dependency_ready": False,
+                "work_refs": [],
+            }
+        if _queue_field(body, "current_main") != owner_main:
             return {
                 "disposition": "NEEDS_REVALIDATION",
                 "reason": "OWNER_RECONCILIATION_STALE_MAIN",
@@ -331,20 +422,50 @@ def _normalize_owner_record(
                 "dependency_ready": False,
                 "work_refs": [],
             }
-        reconciliation = _queue_field(body, "reconciliation")
-        if reconciliation != "REUSE_EXTEND_EXISTING_WORK":
+        if _queue_field(body, "reconciliation") != "REUSE_EXTEND_EXISTING_WORK":
             return None
-        work_refs = []
-        for name, prefix in (("existing_issue", "issue"), ("existing_pr", "pr")):
-            raw = _queue_field(body, name)
-            if raw and raw.isdigit():
-                work_refs.append(f"github://{prefix}/{raw}")
+        existing_issue = _record_int(body, "existing_issue")
+        existing_pr = _record_int(body, "existing_pr")
+        exact_head = _queue_field(body, "existing_exact_head")
+        review_queue = _record_int(body, "review_queue")
+        review_state = _queue_field(body, "review_state")
+        proof_ref = _queue_field(body, "source_proof_git_ref")
+        if (
+            existing_issue != container_issue
+            or existing_pr is None
+            or exact_head is None
+            or not _SHA40.fullmatch(exact_head)
+            or not proof_ref
+        ):
+            return {
+                "disposition": "NEEDS_REVALIDATION",
+                "reason": "OWNER_REUSE_HANDOFF_BINDING_INVALID",
+                "evidence_refs": [evidence_ref],
+                "dependency_ready": False,
+                "work_refs": [],
+            }
+        if (review_queue is None) != (review_state is None):
+            return {
+                "disposition": "NEEDS_REVALIDATION",
+                "reason": "OWNER_REVIEW_LINEAGE_BINDING_INVALID",
+                "evidence_refs": [evidence_ref],
+                "dependency_ready": False,
+                "work_refs": [],
+            }
         return {
             "disposition": "REUSE_EXISTING_WORK",
             "reason": "EXACT_SIGNAL_BACKLINK_TO_EXISTING_OWNER_WORK",
             "evidence_refs": [evidence_ref],
             "dependency_ready": False,
-            "work_refs": work_refs,
+            "work_refs": [
+                f"github://{owner_project or owner_domain}/issue/{existing_issue}",
+                f"github://{owner_project or owner_domain}/pr/{existing_pr}@{exact_head}",
+            ],
+            "existing_issue": existing_issue,
+            "existing_pr": existing_pr,
+            "existing_exact_head": exact_head,
+            "review_queue": review_queue,
+            "review_state": review_state,
         }
 
     if schema != GENERIC_OWNER_RECONCILIATION_SCHEMA:
@@ -355,6 +476,14 @@ def _normalize_owner_record(
         return {
             "disposition": "NEEDS_REVALIDATION",
             "reason": "OWNER_RECONCILIATION_DOMAIN_MISMATCH",
+            "evidence_refs": [evidence_ref],
+            "dependency_ready": False,
+            "work_refs": [],
+        }
+    if _record_int(body, "reconciliation_issue") != container_issue:
+        return {
+            "disposition": "NEEDS_REVALIDATION",
+            "reason": "OWNER_RECONCILIATION_CONTAINER_UNBOUND",
             "evidence_refs": [evidence_ref],
             "dependency_ready": False,
             "work_refs": [],
@@ -395,13 +524,278 @@ def _normalize_owner_record(
             "dependency_ready": False,
             "work_refs": work_refs,
         }
-    return {
+
+    normalized: dict[str, Any] = {
         "disposition": disposition,
         "reason": "OWNER_RECONCILIATION_EXACT_SIGNAL_RECORD",
         "evidence_refs": [evidence_ref],
         "dependency_ready": dependency_ready,
         "work_refs": work_refs,
     }
+    if disposition == "REUSE_EXISTING_WORK":
+        existing_issue = _record_int(body, "existing_issue")
+        existing_pr = _record_int(body, "existing_pr")
+        exact_head = _queue_field(body, "existing_exact_head")
+        review_queue = _record_int(body, "review_queue")
+        review_state = _queue_field(body, "review_state")
+        if (
+            existing_issue != container_issue
+            or existing_pr is None
+            or exact_head is None
+            or not _SHA40.fullmatch(exact_head)
+        ):
+            return {
+                "disposition": "NEEDS_REVALIDATION",
+                "reason": "OWNER_REUSE_HANDOFF_BINDING_INVALID",
+                "evidence_refs": [evidence_ref],
+                "dependency_ready": False,
+                "work_refs": [],
+            }
+        normalized.update(
+            existing_issue=existing_issue,
+            existing_pr=existing_pr,
+            existing_exact_head=exact_head,
+            review_queue=review_queue,
+            review_state=review_state,
+        )
+    return normalized
+
+
+def _fetch_paginated_comments(
+    observer: Any,
+    gateway_error: type[BaseException],
+    repository: str,
+    issue_number: int,
+) -> list[Mapping[str, Any]]:
+    comments: list[Mapping[str, Any]] = []
+    for page in range(1, MAX_OWNER_PAGES + 1):
+        path = (
+            f"/repos/{repository}/issues/{issue_number}/comments"
+            f"?per_page=100&page={page}"
+        )
+        try:
+            _headers, payload, _meta = observer._get_json(path)
+        except gateway_error as exc:
+            raise SignalOpportunityMaterializerError("OWNER_PROVIDER_FAILED") from exc
+        if not isinstance(payload, list):
+            raise SignalOpportunityMaterializerError("OWNER_COMMENTS_PAYLOAD_INVALID")
+        for item in payload:
+            if not isinstance(item, Mapping):
+                raise SignalOpportunityMaterializerError("OWNER_COMMENT_INVALID")
+            comments.append(item)
+        if len(payload) < 100:
+            return comments
+    raise SignalOpportunityMaterializerError("OWNER_COMMENTS_PAGINATION_INCOMPLETE")
+
+
+def _verify_review_queue_ticket(
+    observer: Any,
+    gateway_error: type[BaseException],
+    *,
+    repository: str,
+    queue_issue: int,
+    owner_project: str,
+    pr_number: int,
+    exact_head: str,
+    expected_state: str,
+) -> tuple[bool, str, list[str]]:
+    try:
+        _headers, queue_payload, _meta = observer._get_json(
+            f"/repos/{repository}/issues/{queue_issue}"
+        )
+    except gateway_error as exc:
+        raise SignalOpportunityMaterializerError("OWNER_PROVIDER_FAILED") from exc
+    if (
+        not isinstance(queue_payload, Mapping)
+        or queue_payload.get("number") != queue_issue
+        or queue_payload.get("state") != "open"
+    ):
+        return False, "OWNER_REVIEW_QUEUE_NOT_CURRENT", []
+
+    events: list[dict[str, Any]] = []
+    evidence_refs: list[str] = []
+    for raw in _fetch_paginated_comments(observer, gateway_error, repository, queue_issue):
+        comment_id = raw.get("id")
+        body = raw.get("body")
+        if not isinstance(comment_id, int) or not isinstance(body, str):
+            raise SignalOpportunityMaterializerError("OWNER_COMMENT_INVALID")
+        if not _trusted_owner_actor(raw, repository):
+            continue
+        schema = _queue_field(body, "schema")
+        if schema not in {"REVIEW_REQUEST/v1", "REVIEW_RESULT/v1"}:
+            continue
+        if _queue_field(body, "project") != owner_project:
+            continue
+        pr_raw = _queue_field(body, "pr")
+        if pr_raw is None or not pr_raw.isdigit() or int(pr_raw) != pr_number:
+            continue
+        head = (
+            _queue_field(body, "exact_head")
+            if schema == "REVIEW_REQUEST/v1"
+            else _queue_field(body, "reviewed_head")
+        )
+        if head is None or not _SHA40.fullmatch(head):
+            return False, "OWNER_REVIEW_QUEUE_HEAD_INVALID", evidence_refs
+        ref = str(
+            raw.get("html_url")
+            or f"github://{repository}/issues/{queue_issue}#comment={comment_id}"
+        )
+        evidence_refs.append(ref)
+        event: dict[str, Any] = {
+            "comment_id": comment_id,
+            "schema": schema,
+            "head": head,
+            "evidence_ref": ref,
+        }
+        if schema == "REVIEW_REQUEST/v1":
+            if _queue_field(body, "status") != "WAITING_REVIEW":
+                return False, "OWNER_REVIEW_QUEUE_STATUS_INVALID", evidence_refs
+            event["state"] = "WAITING_REVIEW"
+        else:
+            verdict = _queue_field(body, "verdict")
+            if verdict not in {"ACCEPT", "CHANGES_REQUIRED", "BLOCKED"}:
+                return False, "OWNER_REVIEW_QUEUE_VERDICT_INVALID", evidence_refs
+            event["state"] = verdict
+        events.append(event)
+
+    requests = [event for event in events if event["schema"] == "REVIEW_REQUEST/v1"]
+    if not requests:
+        return False, "OWNER_REVIEW_REQUEST_MISSING", evidence_refs
+    current_request = sorted(requests, key=lambda item: int(item["comment_id"]))[-1]
+    if current_request["head"] != exact_head:
+        return False, "OWNER_REVIEW_LINEAGE_STALE_HEAD", evidence_refs
+    same_ticket = [event for event in events if event["head"] == exact_head]
+    current_event = sorted(same_ticket, key=lambda item: int(item["comment_id"]))[-1]
+    if current_event["state"] != expected_state:
+        return False, "OWNER_REVIEW_LINEAGE_STATE_DRIFT", evidence_refs
+    return True, "OWNER_REVIEW_LINEAGE_CURRENT", evidence_refs
+
+
+def _verify_reuse_work(
+    observer: Any,
+    gateway_error: type[BaseException],
+    *,
+    repository: str,
+    owner_project: str,
+    owner_main: str,
+    record: Mapping[str, Any],
+) -> dict[str, Any]:
+    existing_issue = record.get("existing_issue")
+    existing_pr = record.get("existing_pr")
+    exact_head = record.get("existing_exact_head")
+    if (
+        not isinstance(existing_issue, int)
+        or not isinstance(existing_pr, int)
+        or not isinstance(exact_head, str)
+        or not _SHA40.fullmatch(exact_head)
+    ):
+        return {
+            "disposition": "NEEDS_REVALIDATION",
+            "reason": "OWNER_REUSE_HANDOFF_BINDING_INVALID",
+            "evidence_refs": list(record.get("evidence_refs", [])),
+            "dependency_ready": False,
+            "work_refs": [],
+        }
+    try:
+        _headers, issue_payload, _meta = observer._get_json(
+            f"/repos/{repository}/issues/{existing_issue}"
+        )
+        _headers, pr_payload, _meta = observer._get_json(
+            f"/repos/{repository}/pulls/{existing_pr}"
+        )
+    except gateway_error as exc:
+        raise SignalOpportunityMaterializerError("OWNER_PROVIDER_FAILED") from exc
+
+    issue_ref = f"https://github.com/{repository}/issues/{existing_issue}"
+    pr_ref = f"https://github.com/{repository}/pull/{existing_pr}"
+    evidence = [*record.get("evidence_refs", []), issue_ref, pr_ref]
+    if (
+        not isinstance(issue_payload, Mapping)
+        or issue_payload.get("number") != existing_issue
+        or issue_payload.get("state") != "open"
+    ):
+        return {
+            "disposition": "NEEDS_REVALIDATION",
+            "reason": "OWNER_REFERENCED_ISSUE_NOT_OPEN",
+            "evidence_refs": evidence,
+            "dependency_ready": False,
+            "work_refs": list(record.get("work_refs", [])),
+        }
+    if not isinstance(pr_payload, Mapping) or pr_payload.get("number") != existing_pr:
+        return {
+            "disposition": "NEEDS_REVALIDATION",
+            "reason": "OWNER_REFERENCED_PR_INVALID",
+            "evidence_refs": evidence,
+            "dependency_ready": False,
+            "work_refs": list(record.get("work_refs", [])),
+        }
+    if pr_payload.get("state") != "open" or pr_payload.get("merged_at") is not None:
+        return {
+            "disposition": "NEEDS_REVALIDATION",
+            "reason": "OWNER_REFERENCED_PR_NOT_OPEN",
+            "evidence_refs": evidence,
+            "dependency_ready": False,
+            "work_refs": list(record.get("work_refs", [])),
+        }
+    head = pr_payload.get("head")
+    base = pr_payload.get("base")
+    observed_head = head.get("sha") if isinstance(head, Mapping) else None
+    if observed_head != exact_head:
+        return {
+            "disposition": "NEEDS_REVALIDATION",
+            "reason": "OWNER_REFERENCED_PR_HEAD_DRIFT",
+            "evidence_refs": evidence,
+            "dependency_ready": False,
+            "work_refs": list(record.get("work_refs", [])),
+        }
+    if (
+        not isinstance(base, Mapping)
+        or base.get("ref") != "main"
+        or base.get("sha") != owner_main
+    ):
+        return {
+            "disposition": "NEEDS_REVALIDATION",
+            "reason": "OWNER_REFERENCED_PR_BASE_DRIFT",
+            "evidence_refs": evidence,
+            "dependency_ready": False,
+            "work_refs": list(record.get("work_refs", [])),
+        }
+
+    review_queue = record.get("review_queue")
+    review_state = record.get("review_state")
+    if review_queue is not None or review_state is not None:
+        if not isinstance(review_queue, int) or not isinstance(review_state, str):
+            return {
+                "disposition": "NEEDS_REVALIDATION",
+                "reason": "OWNER_REVIEW_LINEAGE_BINDING_INVALID",
+                "evidence_refs": evidence,
+                "dependency_ready": False,
+                "work_refs": list(record.get("work_refs", [])),
+            }
+        ok, reason, review_refs = _verify_review_queue_ticket(
+            observer,
+            gateway_error,
+            repository=repository,
+            queue_issue=review_queue,
+            owner_project=owner_project,
+            pr_number=existing_pr,
+            exact_head=exact_head,
+            expected_state=review_state,
+        )
+        evidence.extend(review_refs)
+        if not ok:
+            return {
+                "disposition": "NEEDS_REVALIDATION",
+                "reason": reason,
+                "evidence_refs": sorted(set(evidence)),
+                "dependency_ready": False,
+                "work_refs": list(record.get("work_refs", [])),
+            }
+
+    verified = dict(record)
+    verified["reason"] = "EXACT_CURRENT_OWNER_WORK_VERIFIED"
+    verified["evidence_refs"] = sorted(set(evidence))
+    return verified
 
 
 def _observe_owner_reconciliation(
@@ -411,6 +805,7 @@ def _observe_owner_reconciliation(
     issue_number: int,
     signal_ref: str,
     owner_domain: str,
+    owner_project: str,
     owner_main: str,
     observer: Any = None,
 ) -> dict[str, Any]:
@@ -441,81 +836,97 @@ def _observe_owner_reconciliation(
         }
     if not isinstance(issue_payload, Mapping) or issue_payload.get("number") != issue_number:
         raise SignalOpportunityMaterializerError("OWNER_RECONCILIATION_ISSUE_INVALID")
+
     issue_state = issue_payload.get("state")
-    records: list[tuple[int, dict[str, Any]]] = []
+    issue_url = str(
+        issue_payload.get("html_url") or f"https://github.com/{repository}/issues/{issue_number}"
+    )
+    trusted_records: list[tuple[int, dict[str, Any]]] = []
+    untrusted_matching_record = False
+
     issue_body = issue_payload.get("body")
-    issue_url = issue_payload.get("html_url")
     if isinstance(issue_body, str):
         record = _normalize_owner_record(
             issue_body,
             signal_ref=signal_ref,
             owner_domain=owner_domain,
+            owner_project=owner_project,
             owner_main=owner_main,
-            evidence_ref=str(issue_url or f"github://{repository}/issues/{issue_number}"),
+            evidence_ref=issue_url,
+            container_issue=issue_number,
         )
         if record is not None:
-            records.append((0, record))
-    pagination_complete = False
-    for page in range(1, 21):
-        path = (
-            f"/repos/{repository}/issues/{issue_number}/comments"
-            f"?per_page=100&page={page}"
+            if _trusted_owner_actor(issue_payload, repository):
+                trusted_records.append((0, record))
+            else:
+                untrusted_matching_record = True
+
+    for item in _fetch_paginated_comments(observer, gateway_error, repository, issue_number):
+        comment_id = item.get("id")
+        body = item.get("body")
+        if not isinstance(comment_id, int) or not isinstance(body, str):
+            raise SignalOpportunityMaterializerError("OWNER_COMMENT_INVALID")
+        evidence_ref = str(
+            item.get("html_url")
+            or f"github://{repository}/issues/{issue_number}#comment={comment_id}"
         )
-        try:
-            _headers, payload, _meta = observer._get_json(path)
-        except gateway_error as exc:
-            raise SignalOpportunityMaterializerError("OWNER_PROVIDER_FAILED") from exc
-        if not isinstance(payload, list):
-            raise SignalOpportunityMaterializerError("OWNER_COMMENTS_PAYLOAD_INVALID")
-        for item in payload:
-            if not isinstance(item, Mapping):
-                raise SignalOpportunityMaterializerError("OWNER_COMMENT_INVALID")
-            comment_id = item.get("id")
-            body = item.get("body")
-            if not isinstance(comment_id, int) or not isinstance(body, str):
-                raise SignalOpportunityMaterializerError("OWNER_COMMENT_INVALID")
-            record = _normalize_owner_record(
-                body,
-                signal_ref=signal_ref,
-                owner_domain=owner_domain,
-                owner_main=owner_main,
-                evidence_ref=str(
-                    item.get("html_url")
-                    or f"github://{repository}/issues/{issue_number}#comment={comment_id}"
-                ),
-            )
-            if record is not None:
-                records.append((comment_id, record))
-        if len(payload) < 100:
-            pagination_complete = True
-            break
-    if not pagination_complete:
-        raise SignalOpportunityMaterializerError("OWNER_COMMENTS_PAGINATION_INCOMPLETE")
-    if not records:
+        record = _normalize_owner_record(
+            body,
+            signal_ref=signal_ref,
+            owner_domain=owner_domain,
+            owner_project=owner_project,
+            owner_main=owner_main,
+            evidence_ref=evidence_ref,
+            container_issue=issue_number,
+        )
+        if record is None:
+            continue
+        if _trusted_owner_actor(item, repository):
+            trusted_records.append((comment_id, record))
+        else:
+            untrusted_matching_record = True
+
+    if not trusted_records:
         return {
             "disposition": "NEEDS_REVALIDATION",
-            "reason": "OWNER_EXACT_SIGNAL_RECONCILIATION_RECORD_REQUIRED",
-            "evidence_refs": [str(issue_url or f"github://{repository}/issues/{issue_number}")],
+            "reason": (
+                "OWNER_RECONCILIATION_UNTRUSTED_PROVENANCE"
+                if untrusted_matching_record
+                else "OWNER_EXACT_SIGNAL_RECONCILIATION_RECORD_REQUIRED"
+            ),
+            "evidence_refs": [issue_url],
             "dependency_ready": False,
             "work_refs": [],
         }
-    result = dict(sorted(records, key=lambda pair: pair[0])[-1][1])
-    if result["disposition"] == "REUSE_EXISTING_WORK" and issue_state != "open":
-        return {
+
+    result = dict(sorted(trusted_records, key=lambda pair: pair[0])[-1][1])
+    if result["disposition"] == "REUSE_EXISTING_WORK":
+        result = _verify_reuse_work(
+            observer,
+            gateway_error,
+            repository=repository,
+            owner_project=owner_project,
+            owner_main=owner_main,
+            record=result,
+        )
+    elif result["disposition"] == "ALREADY_SATISFIED":
+        if issue_state != "closed":
+            result = {
+                "disposition": "NEEDS_REVALIDATION",
+                "reason": "OWNER_SATISFIED_RECORD_REQUIRES_CLOSED_ISSUE",
+                "evidence_refs": result["evidence_refs"],
+                "dependency_ready": False,
+                "work_refs": result["work_refs"],
+            }
+    elif result["disposition"] == "GAP_PROVEN" and issue_state != "open":
+        result = {
             "disposition": "NEEDS_REVALIDATION",
-            "reason": "OWNER_REUSE_RECORD_STALE_AFTER_ISSUE_CLOSED",
+            "reason": "OWNER_GAP_RECORD_REQUIRES_OPEN_RECONCILIATION_ISSUE",
             "evidence_refs": result["evidence_refs"],
             "dependency_ready": False,
             "work_refs": result["work_refs"],
         }
-    if result["disposition"] == "ALREADY_SATISFIED" and issue_state != "closed":
-        return {
-            "disposition": "NEEDS_REVALIDATION",
-            "reason": "OWNER_SATISFIED_RECORD_REQUIRES_CLOSED_ISSUE",
-            "evidence_refs": result["evidence_refs"],
-            "dependency_ready": False,
-            "work_refs": result["work_refs"],
-        }
+
     result["owner_issue_state"] = issue_state
     result["owner_main"] = owner_main
     return result
@@ -605,12 +1016,14 @@ def materialize_signal_opportunity(
         )
     owner_repo = str(owner_binding["repository"])
     owner_main = str(owner_binding["canonical_commit"])
+    owner_project = str(owner_binding.get("project_id") or origin["primary_domain"])
     owner = _observe_owner_reconciliation(
         root,
         repository=owner_repo,
         issue_number=draft["owner_reconciliation_issue"],
         signal_ref=signal_ref,
         owner_domain=origin["primary_domain"],
+        owner_project=owner_project,
         owner_main=owner_main,
         observer=owner_observer,
     )
@@ -688,7 +1101,7 @@ def materialize_signal_opportunity(
 
     candidate = {
         "schema_version": OPPORTUNITY_SCHEMA,
-        "opportunity_id": f"r153-opportunity:{_digest([signal_ref, owner['owner_main'], proposal])[:24]}",
+        "opportunity_id": f"r153-opportunity:{_digest([signal_ref, owner_main, proposal])[:24]}",
         "signal_ref": signal_ref,
         "signal_primary_domain": origin["primary_domain"],
         "source_evidence_refs": sorted(set(evidence)),
@@ -699,12 +1112,7 @@ def materialize_signal_opportunity(
         "epistemic_state": origin["epistemic_state"],
         "desired_effect_gap_proven": True,
         "dependency_ready": owner.get("dependency_ready") is True,
-        "priority_class": draft["priority_class"],
-        "user_value_score": draft["user_value_score"],
-        "materiality_score": draft["materiality_score"],
-        "dependency_readiness_score": draft["dependency_readiness_score"],
-        "age_cycles": draft["age_cycles"],
-        "estimated_cost_score": draft["estimated_cost_score"],
+        **TRUSTED_NEUTRAL_RANKING,
         "task_release_proposal": proposal,
     }
     try:
