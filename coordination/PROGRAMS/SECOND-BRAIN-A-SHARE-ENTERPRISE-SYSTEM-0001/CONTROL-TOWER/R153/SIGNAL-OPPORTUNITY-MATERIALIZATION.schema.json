@@ -22,17 +22,58 @@
       "properties": {
         "schema_version": {"const": "SignalOpportunityDraft/v1"},
         "signal_ref": {"type": "string", "minLength": 1},
-        "owner_reconciliation_issue": {"type": "integer", "minimum": 1},
-        "priority_class": {"enum": ["P3_BOUNDED_IMPROVEMENT", "P4_RESEARCH"]},
-        "user_value_score": {"type": "integer", "minimum": 0, "maximum": 100},
-        "materiality_score": {"type": "integer", "minimum": 0, "maximum": 100},
-        "dependency_readiness_score": {"type": "integer", "minimum": 0, "maximum": 100},
-        "age_cycles": {"type": "integer", "minimum": 0, "maximum": 1000000},
-        "estimated_cost_score": {"type": "integer", "minimum": 0, "maximum": 100},
+        "owner_reconciliation_issue": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Locator only. The Issue cannot mint owner disposition unless the fetched record is mechanically bound to trusted GitHub owner provenance and the same reconciliation container."
+        },
+        "priority_class": {
+          "enum": ["P3_BOUNDED_IMPROVEMENT", "P4_RESEARCH"],
+          "description": "Backward-compatible non-authoritative caller hint. It is not copied into the authority-bearing R151 opportunity."
+        },
+        "user_value_score": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Non-authoritative caller hint; ignored for autonomous ranking."
+        },
+        "materiality_score": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Non-authoritative caller hint; ignored for autonomous ranking."
+        },
+        "dependency_readiness_score": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Non-authoritative caller hint; ignored for autonomous ranking. Actual dependency readiness is owner-evidence-derived."
+        },
+        "age_cycles": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000,
+          "description": "Non-authoritative caller hint; ignored for autonomous ranking."
+        },
+        "estimated_cost_score": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Non-authoritative caller hint; ignored for autonomous ranking."
+        },
         "task_release_proposal": {
           "type": "object",
-          "required": ["schema_version", "source_signal_refs", "signal_primary_domain", "desired_effect", "proposed_target_domain", "proposed_write_surface"],
-          "properties": {"schema_version": {"const": "TaskReleaseProposal/v1"}}
+          "required": [
+            "schema_version",
+            "source_signal_refs",
+            "signal_primary_domain",
+            "desired_effect",
+            "proposed_target_domain",
+            "proposed_write_surface"
+          ],
+          "properties": {
+            "schema_version": {"const": "TaskReleaseProposal/v1"}
+          }
         }
       }
     },
@@ -104,11 +145,23 @@
   ],
   "x-r153-truth-boundaries": {
     "signal_truth": "S0C_DurableSignalLedger_ONLY",
+    "signal_projection_integrity": "RETAINED_S0C_CANONICAL_REDUCER_READ_ONLY_REPLAY",
     "owner_authority": "R145_ONLY",
     "owner_network_transport": "REUSE_R137_ONLY",
+    "owner_reconciliation_provenance": "GITHUB_OWNER_OR_GOVERNED_COLLABORATOR_VIA_EXISTING_CONNECTOR",
+    "owner_reuse_freshness": "REFERENCED_ISSUE_PR_EXACT_HEAD_AND_DECLARED_REVIEW_LINEAGE",
     "release_impact": "R149_R150_ONLY",
     "idle_authorization": "R151_ONLY",
     "apply": "R152_ONLY",
+    "caller_ranking_fields": "NON_AUTHORITATIVE_COMPATIBILITY_HINTS_ONLY",
+    "authority_bearing_ranking_vector": {
+      "priority_class": "P3_BOUNDED_IMPROVEMENT",
+      "user_value_score": 50,
+      "materiality_score": 50,
+      "dependency_readiness_score": 100,
+      "age_cycles": 0,
+      "estimated_cost_score": 50
+    },
     "fuzzy_owner_work_matching": false,
     "materializer_performs_side_effects": false
   }
