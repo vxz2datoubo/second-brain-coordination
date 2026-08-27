@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://second-brain.local/contracts/TrustedSignalOpportunityRankingEvidence-v1.schema.json",
+  "title": "TrustedSignalOpportunityRankingEvidence/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "policy_version",
+    "signal_ref",
+    "source_evidence_refs",
+    "rank_vector",
+    "feature_provenance",
+    "authority_boundary",
+    "ranking_digest"
+  ],
+  "properties": {
+    "schema_version": {"const": "TrustedSignalOpportunityRankingEvidence/v1"},
+    "policy_version": {"const": "R154/v1"},
+    "signal_ref": {"type": "string", "minLength": 1},
+    "source_evidence_refs": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "rank_vector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "priority_class",
+        "user_value_score",
+        "materiality_score",
+        "dependency_readiness_score",
+        "age_cycles",
+        "estimated_cost_score"
+      ],
+      "properties": {
+        "priority_class": {"const": "P3_BOUNDED_IMPROVEMENT"},
+        "user_value_score": {"type": "integer", "minimum": 0, "maximum": 100},
+        "materiality_score": {"type": "integer", "minimum": 0, "maximum": 100},
+        "dependency_readiness_score": {"const": 100},
+        "age_cycles": {"type": "integer", "minimum": 0, "maximum": 20},
+        "estimated_cost_score": {"type": "integer", "minimum": 0, "maximum": 100}
+      }
+    },
+    "feature_provenance": {"type": "object"},
+    "authority_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "selects_opportunity",
+        "releases_task",
+        "creates_task",
+        "creates_issue",
+        "creates_route",
+        "creates_work_claim",
+        "creates_worker_slot",
+        "grants_execution_authority",
+        "grants_domain_write",
+        "grants_merge_authority"
+      ],
+      "properties": {
+        "selects_opportunity": {"const": false},
+        "releases_task": {"const": false},
+        "creates_task": {"const": false},
+        "creates_issue": {"const": false},
+        "creates_route": {"const": false},
+        "creates_work_claim": {"const": false},
+        "creates_worker_slot": {"const": false},
+        "grants_execution_authority": {"const": false},
+        "grants_domain_write": {"const": false},
+        "grants_merge_authority": {"const": false}
+      }
+    },
+    "ranking_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}
