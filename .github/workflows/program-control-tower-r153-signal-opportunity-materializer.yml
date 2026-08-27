@@ -72,13 +72,38 @@ jobs:
         working-directory: coordination/CONTROL-TOWER
         run: python run_all_tests.py
 
-      - name: Verify exact five-file scope
+      - name: Verify R153 or exact governed successor scope
         shell: bash
         run: |
           set -euo pipefail
           BASE="${{ github.event.pull_request.base.sha }}"
           mapfile -t changed < <(git diff --name-only "$BASE" HEAD)
-          allowed() {
+
+          if printf '%s\n' "${changed[@]}" | grep -q '^coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R154/'; then
+            allowed_successor() {
+              case "$1" in
+                .github/workflows/program-control-tower-r153-signal-opportunity-materializer.yml) return 0 ;;
+                .github/workflows/program-control-tower-r154-signal-opportunity-ranking.yml) return 0 ;;
+                coordination/CONTROL-TOWER/signal_opportunity_materializer.py) return 0 ;;
+                coordination/CONTROL-TOWER/signal_opportunity_ranking.py) return 0 ;;
+                coordination/CONTROL-TOWER/tests/test_signal_opportunity_ranking.py) return 0 ;;
+                coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R154/PROJECT-PLAN.md) return 0 ;;
+                coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R154/TRUSTED-SIGNAL-OPPORTUNITY-RANKING.schema.json) return 0 ;;
+                *) return 1 ;;
+              esac
+            }
+            for path in "${changed[@]}"; do
+              if ! allowed_successor "$path"; then
+                echo "R154 successor out-of-scope path under retained R153 workflow: $path" >&2
+                exit 1
+              fi
+            done
+            test "${#changed[@]}" -eq 7
+            echo R153_R154_SUCCESSOR_SCOPE_PASS
+            exit 0
+          fi
+
+          allowed_r153() {
             case "$1" in
               .github/workflows/program-control-tower-r153-signal-opportunity-materializer.yml) return 0 ;;
               coordination/CONTROL-TOWER/signal_opportunity_materializer.py) return 0 ;;
@@ -89,7 +114,7 @@ jobs:
             esac
           }
           for path in "${changed[@]}"; do
-            if ! allowed "$path"; then
+            if ! allowed_r153 "$path"; then
               echo "R153 out-of-scope path: $path" >&2
               exit 1
             fi
