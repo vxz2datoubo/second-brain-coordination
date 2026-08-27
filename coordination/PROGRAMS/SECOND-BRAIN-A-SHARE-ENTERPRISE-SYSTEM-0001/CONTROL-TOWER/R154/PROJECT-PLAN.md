@@ -95,9 +95,11 @@ R153 remains the only canonical materializer from S0C + owner gap into a R151 op
 
 R154 evidence is rebuildable; `r154://ranking/<digest>` in opportunity evidence binds the emitted numeric vector to the deterministic policy without creating another store.
 
+The retained R153 workflow is amended only to understand this exact governed successor shape. Its historical R153 five-file mode remains fail-closed; when an R154 contract path is present it switches to an exact seven-file successor allowlist instead of treating a legitimate R153 integration change as historical-scope corruption.
+
 ## Scope
 
-Six files only:
+Seven files only:
 
 1. `coordination/CONTROL-TOWER/signal_opportunity_ranking.py`
 2. `coordination/CONTROL-TOWER/tests/test_signal_opportunity_ranking.py`
@@ -105,6 +107,7 @@ Six files only:
 4. `coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R154/PROJECT-PLAN.md`
 5. `coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R154/TRUSTED-SIGNAL-OPPORTUNITY-RANKING.schema.json`
 6. `.github/workflows/program-control-tower-r154-signal-opportunity-ranking.yml`
+7. `.github/workflows/program-control-tower-r153-signal-opportunity-materializer.yml`
 
 No changes to R151/R150/R149/R152 authority semantics, S0C implementation, R145, live routes/claims/worker slots, W3, trading, credentials, permissions or production deployment.
 
@@ -115,7 +118,7 @@ No changes to R151/R150/R149/R152 authority semantics, S0C implementation, R145,
 - retained R153/R152/R151/R150/R149;
 - full Control Tower;
 - Foundation / Phase 3 where triggered;
-- exact six-file scope and authority checks;
+- exact seven-file scope and authority checks;
 - independent exact-head review through #453;
 - no self-review and no merge before governed ACCEPT.
 
