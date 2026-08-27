@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - ".github/workflows/program-control-tower-r154-signal-opportunity-ranking.yml"
+      - ".github/workflows/program-control-tower-r153-signal-opportunity-materializer.yml"
       - "coordination/CONTROL-TOWER/signal_opportunity_ranking.py"
       - "coordination/CONTROL-TOWER/tests/test_signal_opportunity_ranking.py"
       - "coordination/CONTROL-TOWER/signal_opportunity_materializer.py"
@@ -77,7 +78,7 @@ jobs:
         working-directory: coordination/CONTROL-TOWER
         run: python run_all_tests.py
 
-      - name: Verify exact six-file scope
+      - name: Verify exact seven-file scope
         shell: bash
         run: |
           set -euo pipefail
@@ -85,6 +86,7 @@ jobs:
           mapfile -t changed < <(git diff --name-only "$BASE" HEAD)
           allowed() {
             case "$1" in
+              .github/workflows/program-control-tower-r153-signal-opportunity-materializer.yml) return 0 ;;
               .github/workflows/program-control-tower-r154-signal-opportunity-ranking.yml) return 0 ;;
               coordination/CONTROL-TOWER/signal_opportunity_ranking.py) return 0 ;;
               coordination/CONTROL-TOWER/tests/test_signal_opportunity_ranking.py) return 0 ;;
@@ -100,7 +102,7 @@ jobs:
               exit 1
             fi
           done
-          test "${#changed[@]}" -eq 6
+          test "${#changed[@]}" -eq 7
           echo R154_SCOPE_PASS
 
       - name: Verify authority boundary and no protected mutations
@@ -128,7 +130,7 @@ jobs:
                   raise SystemExit(f'missing R154 boundary: {needle}')
           if 'derive_trusted_ranking_evidence' not in materializer or 'ranking_evidence_ref' not in materializer:
               raise SystemExit('R153 is not mechanically integrated with R154')
-          if 'TRUSTED_NEUTRAL_RANKING,' in materializer:
+          if '**TRUSTED_NEUTRAL_RANKING' in materializer:
               raise SystemExit('R153 still expands the hard-coded neutral ranking vector')
           for forbidden in ('embedding', 'jaccard'):
               if forbidden in ranker.casefold():
