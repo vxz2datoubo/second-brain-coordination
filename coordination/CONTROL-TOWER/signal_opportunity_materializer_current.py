@@ -116,8 +116,20 @@ def materialize_signal_opportunity(
             owner_binding=_owner_binding_stub(base),
         )
 
+    supplied_base_digest = opportunity_raw.get("opportunity_digest")
+    if not isinstance(supplied_base_digest, str) or len(supplied_base_digest) != 64:
+        return _decision(
+            signal_ref=signal_ref,
+            disposition="NEEDS_REVALIDATION",
+            reason="R155_BASE_OPPORTUNITY_DIGEST_INVALID",
+            evidence_refs=list(base.get("evidence_refs", [])),
+            owner_binding=_owner_binding_stub(base),
+        )
+
+    opportunity_input = dict(opportunity_raw)
+    opportunity_input.pop("opportunity_digest", None)
     try:
-        opportunity = validate_opportunity(opportunity_raw)
+        opportunity = validate_opportunity(opportunity_input)
     except Exception as exc:
         code = getattr(exc, "code", "R155_BASE_OPPORTUNITY_INVALID")
         return _decision(
@@ -125,6 +137,14 @@ def materialize_signal_opportunity(
             disposition="NEEDS_REVALIDATION",
             reason=f"R155_BASE_OPPORTUNITY_INVALID:{code}",
             evidence_refs=list(base.get("evidence_refs", [])),
+            owner_binding=_owner_binding_stub(base),
+        )
+    if opportunity.get("opportunity_digest") != supplied_base_digest:
+        return _decision(
+            signal_ref=signal_ref,
+            disposition="NEEDS_REVALIDATION",
+            reason="R155_BASE_OPPORTUNITY_DIGEST_MISMATCH",
+            evidence_refs=list(opportunity.get("source_evidence_refs", [])),
             owner_binding=_owner_binding_stub(base),
         )
 
@@ -179,17 +199,8 @@ def materialize_signal_opportunity(
             owner_binding=_owner_binding_stub(base),
         )
 
-    base_digest = str(opportunity.get("opportunity_digest") or "")
-    if len(base_digest) != 64:
-        return _decision(
-            signal_ref=signal_ref,
-            disposition="NEEDS_REVALIDATION",
-            reason="R155_BASE_OPPORTUNITY_DIGEST_INVALID",
-            evidence_refs=evidence_refs,
-            owner_binding=_owner_binding_stub(base),
-        )
     upgrade_ref = _upgrade_ref(
-        base_opportunity_digest=base_digest,
+        base_opportunity_digest=supplied_base_digest,
         user_value_evidence_digest=digest,
         user_value_score=score,
     )
