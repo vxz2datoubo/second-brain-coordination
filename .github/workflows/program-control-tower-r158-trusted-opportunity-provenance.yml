@@ -73,6 +73,33 @@ jobs:
           python -m py_compile /tmp/r158_patch.py
           python /tmp/r158_patch.py
 
+      - name: Harden presented authorization to fresh opportunity binding
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("coordination/CONTROL-TOWER/idle_signal_apply.py")
+          source = path.read_text(encoding="utf-8")
+          anchor = '''    fresh, opportunity, fresh_batch = _fresh_authorization(
+              root,
+              materialization_requests,
+              priority_hints,
+              expected_current_main=expected_current_main,
+          )
+'''
+          replacement = anchor + '''    if presented.get("opportunity_id") != opportunity["opportunity_id"]:
+              raise IdleSignalApplyError("AUTHORIZATION_OPPORTUNITY_ID_MISMATCH")
+          if presented.get("opportunity_digest") != opportunity["opportunity_digest"]:
+              raise IdleSignalApplyError("AUTHORIZATION_OPPORTUNITY_DIGEST_MISMATCH")
+          if presented.get("signal_ref") != opportunity["signal_ref"]:
+              raise IdleSignalApplyError("AUTHORIZATION_SIGNAL_MISMATCH")
+'''
+          if source.count(anchor) != 1:
+              raise SystemExit(f"R158 fresh binding anchor cardinality invalid: {source.count(anchor)}")
+          source = source.replace(anchor, replacement, 1)
+          path.write_text(source, encoding="utf-8")
+          PY
+
       - name: Compile migrated R158 surfaces
         run: |
           python -m py_compile \
