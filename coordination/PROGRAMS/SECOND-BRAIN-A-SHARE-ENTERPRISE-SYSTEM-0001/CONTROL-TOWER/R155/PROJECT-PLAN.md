@@ -28,6 +28,14 @@ Current flow:
 
 The old `signal_opportunity_materializer.py` remains retained R153 implementation and regression surface. New production consumers must use `signal_opportunity_materializer_current.py`. R155 tests scan current Control Tower production Python consumers so a new direct R153 import cannot silently bypass the successor entrypoint.
 
+## Governance alignment
+
+Independent review `5041236449` correctly identified that the remediated implementation had become safer and operationally usable while Issue #469 still contained the earlier shorthand `repository owner only` trust rule.
+
+Issue #469 is now the authoritative R155/v1 principal decision: it explicitly delegates only `USER_EXPLICIT` user-value declaration authority to the exact connected-user provenance tuple below. This bounded delegation supersedes the old owner-only shorthand and does not authorize arbitrary collaborators or any broader execution authority.
+
+The implementation and regression suite must remain mechanically aligned with Issue #469. Any future additional human principal requires a separately governed/versioned delegation decision; hard-coded allowlist expansion is out of scope.
+
 ## Declaration contract
 
 ```yaml
@@ -38,14 +46,16 @@ source: USER_EXPLICIT
 value_class: LOW | NORMAL | HIGH
 ```
 
-The v1 trusted human principal is mechanically bound to the real GitHub provenance observed on Issue #456:
+The v1 trusted human principal is mechanically bound to the real GitHub provenance observed on Issue #456 and explicitly authorized by Issue #469:
 
 - login: `vxz1datoubo`;
 - immutable GitHub user id: `320840467`;
 - repository association: `OWNER | MEMBER | COLLABORATOR`;
-- `performed_via_github_app.slug`: `chatgpt-codex-connector`.
+- `performed_via_github_app.slug`: `chatgpt-codex-connector`;
+- repository: `vxz2datoubo/second-brain-coordination`;
+- control surface: Issue `#456`.
 
-The repository itself is owned by `vxz2datoubo`, so requiring `author_association=OWNER` for `vxz1datoubo` would make the intended declaration path impossible. Exact user login + immutable id + allowed repository association + connector app is the v1 principal binding.
+The repository itself is owned by `vxz2datoubo`, so requiring `author_association=OWNER` for `vxz1datoubo` would make the intended declaration path impossible. Exact user login + immutable id + allowed repository association + connector app is the authorized v1 principal binding.
 
 Untrusted actors, wrong ids, wrong apps, other issues, other Signals and free text are ignored. A malformed trusted declaration that targets the exact Signal fails closed.
 
