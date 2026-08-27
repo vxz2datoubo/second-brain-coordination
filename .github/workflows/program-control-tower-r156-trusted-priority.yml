@@ -128,7 +128,9 @@ jobs:
             exit 1
           fi
           python - <<'PY'
+          import ast
           from pathlib import Path
+
           priority = Path('coordination/CONTROL-TOWER/signal_priority_classification.py').read_text(encoding='utf-8')
           current = Path('coordination/CONTROL-TOWER/signal_opportunity_materializer_current.py').read_text(encoding='utf-8')
           required_priority = [
@@ -137,6 +139,7 @@ jobs:
               'INELIGIBLE_EPISTEMIC_STATES = frozenset({"UNKNOWN", "NEEDS_REVALIDATION"})',
               'priority = P4',
               'priority = P3',
+              'R154_RANKING_EVIDENCE_REQUIRED',
               'R155_RANKING_UPGRADE_EVIDENCE_REQUIRED',
               'r156://priority/',
               'selects_opportunity": False',
@@ -158,10 +161,54 @@ jobs:
           for needle in required_current:
               if needle not in current:
                   raise SystemExit(f'missing R156 composition boundary: {needle}')
-          forbidden_parameters = ('priority_override', 'caller_priority', 'signal_kind:', 'desired_effect:', 'sentiment', 'embedding', 'jaccard', 'behavior_profile', 'private_chain_of_thought')
-          for needle in forbidden_parameters:
-              if needle in priority.casefold():
-                  raise SystemExit(f'forbidden R156 inference/injection surface: {needle}')
+
+          tree = ast.parse(priority)
+          target = next(
+              (
+                  node
+                  for node in tree.body
+                  if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+                  and node.name == 'derive_trusted_priority_evidence'
+              ),
+              None,
+          )
+          if target is None:
+              raise SystemExit('R156 classifier function missing')
+          arg_names = {
+              arg.arg
+              for arg in (
+                  list(target.args.posonlyargs)
+                  + list(target.args.args)
+                  + list(target.args.kwonlyargs)
+              )
+          }
+          expected_args = {
+              'signal_ref',
+              'epistemic_state',
+              'base_opportunity_digest',
+              'source_evidence_refs',
+          }
+          if arg_names != expected_args or target.args.vararg is not None or target.args.kwarg is not None:
+              raise SystemExit(f'R156 authority inputs changed: {sorted(arg_names)}')
+
+          forbidden_symbols = {
+              'priority_override',
+              'caller_priority',
+              'signal_kind',
+              'desired_effect',
+              'problem_to_solve',
+              'success_condition',
+              'sentiment_score',
+              'embedding',
+              'jaccard',
+              'behavior_profile',
+              'private_chain_of_thought',
+          }
+          used_names = {node.id for node in ast.walk(target) if isinstance(node, ast.Name)}
+          used_attrs = {node.attr for node in ast.walk(target) if isinstance(node, ast.Attribute)}
+          hits = sorted(forbidden_symbols & (used_names | used_attrs))
+          if hits:
+              raise SystemExit(f'forbidden R156 inference/injection symbols: {hits}')
           print('R156_AUTHORITY_BOUNDARY_PASS')
           PY
 
