@@ -131,22 +131,22 @@ class TrustedPriorityClassificationTests(unittest.TestCase):
             classify("MODEL_SAYS_RESEARCH")
         self.assertEqual(raised.exception.code, "UNRECOGNIZED_EPISTEMIC_STATE")
 
-    def test_05_exact_s0c_and_r155_evidence_are_required(self) -> None:
+    def test_05_retained_r154_and_r155_evidence_are_required(self) -> None:
         base = {
             "signal_ref": SIGNAL,
             "epistemic_state": "CANDIDATE_HYPOTHESIS",
             "base_opportunity_digest": "e" * 64,
         }
-        with self.assertRaises(PriorityClassificationError) as no_s0c:
+        with self.assertRaises(PriorityClassificationError) as no_r154:
             derive_trusted_priority_evidence(
                 **base,
                 source_evidence_refs=["r155://ranking-upgrade/" + "d" * 64],
             )
-        self.assertEqual(no_s0c.exception.code, "S0C_SIGNAL_PROOF_REQUIRED")
+        self.assertEqual(no_r154.exception.code, "R154_RANKING_EVIDENCE_REQUIRED")
         with self.assertRaises(PriorityClassificationError) as no_r155:
             derive_trusted_priority_evidence(
                 **base,
-                source_evidence_refs=[f"s0c://signal/{SIGNAL}#proof"],
+                source_evidence_refs=["r154://ranking/" + "b" * 64],
             )
         self.assertEqual(
             no_r155.exception.code,
