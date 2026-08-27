@@ -84,35 +84,62 @@ jobs:
         working-directory: coordination/CONTROL-TOWER
         run: python run_all_tests.py
 
-      - name: Verify exact six-additive-file scope
+      - name: Verify historical R155 or exact R156 successor scope
         shell: bash
         run: |
           set -euo pipefail
           BASE="${{ github.event.pull_request.base.sha }}"
           mapfile -t changed < <(git diff --name-only "$BASE" HEAD)
-          allowed() {
-            case "$1" in
-              .github/workflows/program-control-tower-r155-explicit-user-value.yml) return 0 ;;
-              coordination/CONTROL-TOWER/signal_user_value.py) return 0 ;;
-              coordination/CONTROL-TOWER/signal_opportunity_materializer_current.py) return 0 ;;
-              coordination/CONTROL-TOWER/tests/test_signal_user_value.py) return 0 ;;
-              coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R155/PROJECT-PLAN.md) return 0 ;;
-              coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R155/EXPLICIT-USER-VALUE.schema.json) return 0 ;;
-              *) return 1 ;;
-            esac
-          }
-          for path in "${changed[@]}"; do
-            if ! allowed "$path"; then
-              echo "R155 out-of-scope path: $path" >&2
+          R156_SCHEMA="coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R156/TRUSTED-IDLE-PRIORITY-CLASSIFICATION.schema.json"
+
+          if printf '%s\n' "${changed[@]}" | grep -Fxq "$R156_SCHEMA"; then
+            allowed_r156() {
+              case "$1" in
+                .github/workflows/program-control-tower-r156-trusted-priority.yml) return 0 ;;
+                .github/workflows/program-control-tower-r155-explicit-user-value.yml) return 0 ;;
+                coordination/CONTROL-TOWER/signal_priority_classification.py) return 0 ;;
+                coordination/CONTROL-TOWER/signal_opportunity_materializer_current.py) return 0 ;;
+                coordination/CONTROL-TOWER/tests/test_signal_priority_classification.py) return 0 ;;
+                coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R156/PROJECT-PLAN.md) return 0 ;;
+                coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R156/TRUSTED-IDLE-PRIORITY-CLASSIFICATION.schema.json) return 0 ;;
+                *) return 1 ;;
+              esac
+            }
+            for path in "${changed[@]}"; do
+              if ! allowed_r156 "$path"; then
+                echo "R155 successor mode rejects out-of-scope path: $path" >&2
+                exit 1
+              fi
+            done
+            test "${#changed[@]}" -eq 7
+            test "$(git diff --name-status "$BASE" HEAD | grep -c '^A[[:space:]]')" -eq 5
+            test "$(git diff --name-status "$BASE" HEAD | grep -c '^M[[:space:]]')" -eq 2
+            echo R155_R156_SUCCESSOR_SCOPE_PASS
+          else
+            allowed_r155() {
+              case "$1" in
+                .github/workflows/program-control-tower-r155-explicit-user-value.yml) return 0 ;;
+                coordination/CONTROL-TOWER/signal_user_value.py) return 0 ;;
+                coordination/CONTROL-TOWER/signal_opportunity_materializer_current.py) return 0 ;;
+                coordination/CONTROL-TOWER/tests/test_signal_user_value.py) return 0 ;;
+                coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R155/PROJECT-PLAN.md) return 0 ;;
+                coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R155/EXPLICIT-USER-VALUE.schema.json) return 0 ;;
+                *) return 1 ;;
+              esac
+            }
+            for path in "${changed[@]}"; do
+              if ! allowed_r155 "$path"; then
+                echo "R155 out-of-scope path: $path" >&2
+                exit 1
+              fi
+            done
+            test "${#changed[@]}" -eq 6
+            if git diff --name-status "$BASE" HEAD | grep -v '^A[[:space:]]'; then
+              echo "R155 historical mode is additive-only; existing-file mutation detected" >&2
               exit 1
             fi
-          done
-          test "${#changed[@]}" -eq 6
-          if git diff --name-status "$BASE" HEAD | grep -v '^A[[:space:]]'; then
-            echo "R155 is additive-only; existing-file mutation detected" >&2
-            exit 1
+            echo R155_HISTORICAL_SCOPE_PASS
           fi
-          echo R155_SCOPE_PASS
 
       - name: Verify trust and authority boundary
         shell: bash

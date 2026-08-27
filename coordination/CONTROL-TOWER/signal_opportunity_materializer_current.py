@@ -5,10 +5,15 @@ import json
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
-from idle_signal_scheduler import validate_opportunity
+from idle_signal_scheduler import P3, validate_opportunity
 from signal_opportunity_materializer import (
     _decision,
     materialize_signal_opportunity as _materialize_r153,
+)
+from signal_priority_classification import (
+    PriorityClassificationError,
+    derive_trusted_priority_evidence,
+    priority_evidence_ref,
 )
 from signal_user_value import (
     ExplicitUserValueError,
@@ -20,6 +25,7 @@ from signal_user_value import (
 UPGRADE_SCHEMA = "ExplicitUserValueRankingUpgrade/v1"
 POLICY_VERSION = "R155/v1"
 R154_RANKING_PREFIX = "r154://ranking/"
+R155_RANKING_UPGRADE_PREFIX = "r155://ranking-upgrade/"
 R154_NEUTRAL_USER_VALUE = 50
 
 
@@ -83,13 +89,13 @@ def materialize_signal_opportunity(
     authority_live_observation_proof: Any = None,
     owner_observer: Any = None,
 ) -> dict[str, Any]:
-    """Current materializer entrypoint: retained R153 + bounded R155 value upgrade.
+    """Current materializer: R153 + R154 + R155 + bounded R156 evidence.
 
     R153 remains responsible for S0C replay, owner reconciliation and R150/R149.
-    R155 may alter only the already-neutral user-value feature of the resulting
-    R151 opportunity, using a trusted explicit declaration bound to the exact
-    Signal. The R155 GitHub observer is constructed internally and cannot be
-    supplied by a production caller. R155 never selects or releases work.
+    R155 may alter only R154's neutral user-value feature using the sealed explicit
+    user declaration path. R156 then classifies P3/P4 only from the canonical
+    epistemic state already replay-proven by R153. Neither successor selects or
+    releases work; retained R151 remains the sole selector/release authority.
     """
     base = _materialize_r153(
         repo_root,
@@ -221,11 +227,71 @@ def materialize_signal_opportunity(
             owner_binding=_owner_binding_stub(base),
         )
 
+    r155_refs = list(upgraded.get("source_evidence_refs", []))
+    r155_digest = upgraded.get("opportunity_digest")
+    if upgraded.get("priority_class") != P3:
+        return _decision(
+            signal_ref=signal_ref,
+            disposition="NEEDS_REVALIDATION",
+            reason="R156_BASE_PRIORITY_NOT_R154_P3",
+            evidence_refs=r155_refs,
+            owner_binding=_owner_binding_stub(base),
+        )
+    if not any(ref.startswith(R155_RANKING_UPGRADE_PREFIX) for ref in r155_refs):
+        return _decision(
+            signal_ref=signal_ref,
+            disposition="NEEDS_REVALIDATION",
+            reason="R156_R155_RANKING_UPGRADE_EVIDENCE_REQUIRED",
+            evidence_refs=r155_refs,
+            owner_binding=_owner_binding_stub(base),
+        )
+    if not isinstance(r155_digest, str) or len(r155_digest) != 64:
+        return _decision(
+            signal_ref=signal_ref,
+            disposition="NEEDS_REVALIDATION",
+            reason="R156_R155_OPPORTUNITY_DIGEST_INVALID",
+            evidence_refs=r155_refs,
+            owner_binding=_owner_binding_stub(base),
+        )
+
+    try:
+        priority_evidence = derive_trusted_priority_evidence(
+            signal_ref=signal_ref,
+            epistemic_state=str(upgraded.get("epistemic_state") or ""),
+            base_opportunity_digest=r155_digest,
+            source_evidence_refs=r155_refs,
+        )
+        priority_ref = priority_evidence_ref(priority_evidence)
+    except PriorityClassificationError as exc:
+        return _decision(
+            signal_ref=signal_ref,
+            disposition="NEEDS_REVALIDATION",
+            reason=f"R156_PRIORITY_CLASSIFICATION_FAILED:{exc.code}",
+            evidence_refs=r155_refs,
+            owner_binding=_owner_binding_stub(base),
+        )
+
+    final = dict(upgraded)
+    final.pop("opportunity_digest", None)
+    final["priority_class"] = priority_evidence["priority_class"]
+    final["source_evidence_refs"] = sorted(set(r155_refs) | {priority_ref})
+    try:
+        final = validate_opportunity(final)
+    except Exception as exc:
+        code = getattr(exc, "code", "R156_UPGRADED_OPPORTUNITY_INVALID")
+        return _decision(
+            signal_ref=signal_ref,
+            disposition="NEEDS_REVALIDATION",
+            reason=f"R156_UPGRADED_OPPORTUNITY_INVALID:{code}",
+            evidence_refs=final.get("source_evidence_refs", r155_refs),
+            owner_binding=_owner_binding_stub(base),
+        )
+
     return _decision(
         signal_ref=signal_ref,
         disposition="MATERIALIZED_FOR_R151",
-        reason="R153_R154_R155_EXPLICIT_USER_VALUE_BOUND",
-        evidence_refs=upgraded["source_evidence_refs"],
+        reason="R153_R154_R155_R156_TRUSTED_PRIORITY_BOUND",
+        evidence_refs=final["source_evidence_refs"],
         owner_binding=_owner_binding_stub(base),
-        opportunity=upgraded,
+        opportunity=final,
     )
