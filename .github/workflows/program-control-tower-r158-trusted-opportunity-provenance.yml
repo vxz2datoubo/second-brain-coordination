@@ -80,24 +80,25 @@ jobs:
 
           path = Path("coordination/CONTROL-TOWER/idle_signal_apply.py")
           source = path.read_text(encoding="utf-8")
-          anchor = '''    fresh, opportunity, fresh_batch = _fresh_authorization(
-              root,
-              materialization_requests,
-              priority_hints,
-              expected_current_main=expected_current_main,
+          anchor = (
+              "    fresh, opportunity, fresh_batch = _fresh_authorization(\n"
+              "        root,\n"
+              "        materialization_requests,\n"
+              "        priority_hints,\n"
+              "        expected_current_main=expected_current_main,\n"
+              "    )\n"
           )
-'''
-          replacement = anchor + '''    if presented.get("opportunity_id") != opportunity["opportunity_id"]:
-              raise IdleSignalApplyError("AUTHORIZATION_OPPORTUNITY_ID_MISMATCH")
-          if presented.get("opportunity_digest") != opportunity["opportunity_digest"]:
-              raise IdleSignalApplyError("AUTHORIZATION_OPPORTUNITY_DIGEST_MISMATCH")
-          if presented.get("signal_ref") != opportunity["signal_ref"]:
-              raise IdleSignalApplyError("AUTHORIZATION_SIGNAL_MISMATCH")
-'''
+          replacement = anchor + (
+              "    if presented.get(\"opportunity_id\") != opportunity[\"opportunity_id\"]:\n"
+              "        raise IdleSignalApplyError(\"AUTHORIZATION_OPPORTUNITY_ID_MISMATCH\")\n"
+              "    if presented.get(\"opportunity_digest\") != opportunity[\"opportunity_digest\"]:\n"
+              "        raise IdleSignalApplyError(\"AUTHORIZATION_OPPORTUNITY_DIGEST_MISMATCH\")\n"
+              "    if presented.get(\"signal_ref\") != opportunity[\"signal_ref\"]:\n"
+              "        raise IdleSignalApplyError(\"AUTHORIZATION_SIGNAL_MISMATCH\")\n"
+          )
           if source.count(anchor) != 1:
               raise SystemExit(f"R158 fresh binding anchor cardinality invalid: {source.count(anchor)}")
-          source = source.replace(anchor, replacement, 1)
-          path.write_text(source, encoding="utf-8")
+          path.write_text(source.replace(anchor, replacement, 1), encoding="utf-8")
           PY
 
       - name: Compile migrated R158 surfaces
