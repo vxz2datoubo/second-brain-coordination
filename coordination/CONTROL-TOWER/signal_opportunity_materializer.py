@@ -5,6 +5,7 @@ import importlib
 import json
 from pathlib import Path
 import re
+import subprocess
 import sys
 from typing import Any, Mapping, Sequence
 
@@ -19,7 +20,7 @@ from idle_signal_scheduler import (
     validate_opportunity,
 )
 from trusted_task_release import (
-    RELEASEABLE_DISPOSITIONS if False else TRUSTED_RECEIPT_SCHEMA,  # type: ignore
+    TRUSTED_RECEIPT_SCHEMA,
     TrustedReleaseError,
     evaluate_trusted_release_proposal,
 )
@@ -34,6 +35,10 @@ R145_SRC = (
     "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/"
     "GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src"
 )
+S0C_SRC = (
+    "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/"
+    "GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC/src"
+)
 ELIGIBLE_PRIORITY = frozenset({P3, P4})
 ELIGIBLE_EXECUTION_STATE = "NOT_STARTED"
 INELIGIBLE_PLANNING_STATES = frozenset({"SUPERSEDED", "CONFLICTED", "CANCELLED", "DONE"})
@@ -44,7 +49,6 @@ OWNER_DISPOSITIONS = frozenset(
 RELEASEABLE_R150 = frozenset(
     {"RELEASE_BOUNDED_TASK", "RELEASE_AS_EXTENSION", "RELEASE_AS_ADAPTER_OR_PLUGIN"}
 )
-_SHA40 = re.compile(r"^[0-9a-f]{40}$")
 _OWNER_REPOSITORY = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 
 
@@ -81,23 +85,48 @@ def _bounded_int(value: Any, path: str, *, high: int = 100) -> int:
     return value
 
 
-def _load_r145_api(root: Path) -> tuple[type[Any], type[BaseException]]:
-    src = (root / R145_SRC).resolve()
+def _git_head(root: Path) -> str:
+    try:
+        return subprocess.check_output(
+            ["git", "-C", str(root), "rev-parse", "HEAD"],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip()
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise SignalOpportunityMaterializerError("COORDINATOR_GIT_HEAD_UNAVAILABLE") from exc
+
+
+def _load_module_from_src(root: Path, src_rel: str, module_name: str, code: str) -> Any:
+    src = (root / src_rel).resolve()
     if not src.is_dir():
-        raise SignalOpportunityMaterializerError("R145_SOURCE_MISSING")
+        raise SignalOpportunityMaterializerError(f"{code}_SOURCE_MISSING")
     original = list(sys.path)
     try:
         sys.path.insert(0, str(src))
-        module = importlib.import_module("global_signal_gateway.domain_authority")
+        return importlib.import_module(module_name)
     except (ImportError, OSError) as exc:
-        raise SignalOpportunityMaterializerError("R145_LOAD_FAILED") from exc
+        raise SignalOpportunityMaterializerError(f"{code}_LOAD_FAILED") from exc
     finally:
         sys.path[:] = original
+
+
+def _load_r145_api(root: Path) -> tuple[type[Any], type[BaseException]]:
+    module = _load_module_from_src(
+        root, R145_SRC, "global_signal_gateway.domain_authority", "R145"
+    )
     resolver = getattr(module, "DomainAuthorityResolver", None)
     domain_error = getattr(module, "DomainAuthorityError", None)
     if not isinstance(resolver, type) or not isinstance(domain_error, type):
         raise SignalOpportunityMaterializerError("R145_API_INCOMPLETE")
     return resolver, domain_error
+
+
+def _load_s0c_ledger_type(root: Path) -> type[Any]:
+    module = _load_module_from_src(root, S0C_SRC, "global_signal_plane.ledger", "S0C")
+    ledger_type = getattr(module, "DurableSignalLedger", None)
+    if not isinstance(ledger_type, type):
+        raise SignalOpportunityMaterializerError("S0C_API_INCOMPLETE")
+    return ledger_type
 
 
 def validate_draft(value: Mapping[str, Any]) -> dict[str, Any]:
@@ -141,16 +170,12 @@ def validate_draft(value: Mapping[str, Any]) -> dict[str, Any]:
     return out
 
 
-def _projection_and_history(ledger: Any) -> tuple[Mapping[str, Any], list[dict[str, Any]]]:
-    required = (
-        "history",
-        "current_projection",
-        "rebuild_projection",
-        "current_projection_version",
-        "input_revision",
-    )
-    if ledger is None or not all(hasattr(ledger, name) for name in required):
-        raise SignalOpportunityMaterializerError("S0C_LEDGER_REQUIRED")
+def _projection_and_history(
+    root: Path, ledger: Any
+) -> tuple[Mapping[str, Any], list[dict[str, Any]]]:
+    ledger_type = _load_s0c_ledger_type(root)
+    if type(ledger) is not ledger_type:
+        raise SignalOpportunityMaterializerError("CANONICAL_S0C_LEDGER_INSTANCE_REQUIRED")
     projection = ledger.current_projection()
     if projection is None:
         projection = ledger.rebuild_projection(
@@ -173,9 +198,9 @@ def _projection_and_history(ledger: Any) -> tuple[Mapping[str, Any], list[dict[s
 
 
 def _signal_origin(
-    ledger: Any, signal_ref: str
+    root: Path, ledger: Any, signal_ref: str
 ) -> tuple[dict[str, Any], dict[str, Any], str]:
-    projection, history = _projection_and_history(ledger)
+    projection, history = _projection_and_history(root, ledger)
     signals = projection.get("signals")
     if not isinstance(signals, list):
         raise SignalOpportunityMaterializerError("S0C_SIGNALS_INVALID")
@@ -547,10 +572,12 @@ def materialize_signal_opportunity(
     owner_observer: Any = None,
 ) -> dict[str, Any]:
     root = Path(repo_root).resolve()
+    if _git_head(root) != expected_coordinator_main:
+        raise SignalOpportunityMaterializerError("CANONICAL_MAIN_DRIFT")
     draft = validate_draft(draft_value)
     signal_ref = draft["signal_ref"]
     try:
-        _effective, origin, signal_proof_ref = _signal_origin(ledger, signal_ref)
+        _effective, origin, signal_proof_ref = _signal_origin(root, ledger, signal_ref)
     except SignalOpportunityMaterializerError as exc:
         return _decision(
             signal_ref=signal_ref,
@@ -724,13 +751,21 @@ def materialize_signal_opportunity(
             evidence_refs=evidence,
             owner_binding=owner_binding,
         )
-    final_disposition = r150.get("impact_receipt", {}).get("final_disposition")
+    impact_receipt = r150.get("impact_receipt")
+    final_disposition = (
+        impact_receipt.get("final_disposition")
+        if isinstance(impact_receipt, Mapping)
+        else None
+    )
     if final_disposition not in RELEASEABLE_R150:
         return _decision(
             signal_ref=signal_ref,
             disposition="NEEDS_REVALIDATION",
             reason=f"R150_NOT_RELEASEABLE:{final_disposition or 'UNKNOWN'}",
-            evidence_refs=[*evidence, f"r150://receipt/{r150.get('receipt_digest', 'UNKNOWN')}"],
+            evidence_refs=[
+                *evidence,
+                f"r150://receipt/{r150.get('receipt_digest', 'UNKNOWN')}",
+            ],
             owner_binding=owner_binding,
         )
     normalized["source_evidence_refs"] = sorted(
