@@ -53,6 +53,18 @@ _SUPPORTED_KINDS = frozenset(
         "PERMUTATION_INVARIANCE",
     }
 )
+_PERMUTATION_MODES = frozenset({"LEXICAL_TIE", "HETEROGENEOUS_RANK_KEYS"})
+_PERMUTATION_VECTOR_FIELDS = frozenset(
+    {
+        "opportunity_id",
+        "priority_class",
+        "user_value_score",
+        "materiality_score",
+        "dependency_readiness_score",
+        "age_cycles",
+        "estimated_cost_score",
+    }
+)
 
 
 class RankingCalibrationError(ValueError):
@@ -134,11 +146,73 @@ def _validate_monotonic(scenario: Mapping[str, Any], path: str) -> dict[str, Any
     return dict(scenario)
 
 
+def _validate_permutation_candidate(value: Any, path: str) -> dict[str, Any]:
+    if not isinstance(value, Mapping) or set(value) != _PERMUTATION_VECTOR_FIELDS:
+        raise RankingCalibrationError("PERMUTATION_CANDIDATE_FIELDS_INVALID", path)
+    out = dict(value)
+    _nonempty_string(out.get("opportunity_id"), f"{path}/opportunity_id")
+    if out.get("priority_class") not in {P3, P4}:
+        raise RankingCalibrationError("PERMUTATION_PRIORITY_INVALID", f"{path}/priority_class")
+    for field in _SCORE_AXES:
+        _bounded_int(out.get(field), f"{path}/{field}")
+    _bounded_int(out.get("age_cycles"), f"{path}/age_cycles", high=1_000_000)
+    return out
+
+
+def _validate_permutation(scenario: Mapping[str, Any], path: str) -> dict[str, Any]:
+    mode = _nonempty_string(scenario.get("mode"), f"{path}/mode")
+    if mode not in _PERMUTATION_MODES:
+        raise RankingCalibrationError("PERMUTATION_MODE_INVALID", f"{path}/mode")
+    scenario_id = str(scenario["scenario_id"])
+    kind = str(scenario["kind"])
+
+    if mode == "LEXICAL_TIE":
+        if set(scenario) != {"scenario_id", "kind", "mode", "candidate_ids"}:
+            raise RankingCalibrationError("PERMUTATION_FIELDS_INVALID", path)
+        candidate_ids = scenario.get("candidate_ids")
+        if not isinstance(candidate_ids, list) or len(candidate_ids) < 2:
+            raise RankingCalibrationError("PERMUTATION_IDS_INVALID", f"{path}/candidate_ids")
+        normalized_ids = [
+            _nonempty_string(value, f"{path}/candidate_ids/{offset}")
+            for offset, value in enumerate(candidate_ids)
+        ]
+        if len(set(normalized_ids)) != len(normalized_ids):
+            raise RankingCalibrationError("PERMUTATION_IDS_NOT_UNIQUE", path)
+        return {
+            "scenario_id": scenario_id,
+            "kind": kind,
+            "mode": mode,
+            "candidate_ids": normalized_ids,
+        }
+
+    if set(scenario) != {"scenario_id", "kind", "mode", "candidates"}:
+        raise RankingCalibrationError("PERMUTATION_FIELDS_INVALID", path)
+    candidates_raw = scenario.get("candidates")
+    if not isinstance(candidates_raw, list) or len(candidates_raw) < 2:
+        raise RankingCalibrationError("PERMUTATION_CANDIDATES_INVALID", f"{path}/candidates")
+    candidates = [
+        _validate_permutation_candidate(value, f"{path}/candidates/{offset}")
+        for offset, value in enumerate(candidates_raw)
+    ]
+    ids = [str(item["opportunity_id"]) for item in candidates]
+    if len(set(ids)) != len(ids):
+        raise RankingCalibrationError("PERMUTATION_IDS_NOT_UNIQUE", path)
+    key_prefixes = {tuple(_observed_key(item)[:-1]) for item in candidates}
+    if len(key_prefixes) < 2:
+        raise RankingCalibrationError("PERMUTATION_KEYS_NOT_HETEROGENEOUS", path)
+    return {
+        "scenario_id": scenario_id,
+        "kind": kind,
+        "mode": mode,
+        "candidates": candidates,
+    }
+
+
 def _validate_scenario(scenario: Mapping[str, Any], index: int) -> dict[str, Any]:
     path = f"/scenarios/{index}"
     if not isinstance(scenario, Mapping):
         raise RankingCalibrationError("SCENARIO_NOT_OBJECT", path)
-    scenario_id = _nonempty_string(scenario.get("scenario_id"), f"{path}/scenario_id")
+    _nonempty_string(scenario.get("scenario_id"), f"{path}/scenario_id")
     kind = _nonempty_string(scenario.get("kind"), f"{path}/kind")
     if kind not in _SUPPORTED_KINDS:
         raise RankingCalibrationError("SCENARIO_KIND_INVALID", f"{path}/kind")
@@ -165,19 +239,27 @@ def _validate_scenario(scenario: Mapping[str, Any], index: int) -> dict[str, Any
         if left_id == right_id:
             raise RankingCalibrationError("LEXICAL_TIE_IDS_NOT_DISTINCT", path)
         return dict(scenario)
+    return _validate_permutation(scenario, path)
 
-    if set(scenario) != {"scenario_id", "kind", "candidate_ids"}:
-        raise RankingCalibrationError("PERMUTATION_FIELDS_INVALID", path)
-    candidate_ids = scenario.get("candidate_ids")
-    if not isinstance(candidate_ids, list) or len(candidate_ids) < 2:
-        raise RankingCalibrationError("PERMUTATION_IDS_INVALID", f"{path}/candidate_ids")
-    normalized_ids = [
-        _nonempty_string(value, f"{path}/candidate_ids/{offset}")
-        for offset, value in enumerate(candidate_ids)
-    ]
-    if len(set(normalized_ids)) != len(normalized_ids):
-        raise RankingCalibrationError("PERMUTATION_IDS_NOT_UNIQUE", path)
-    return {"scenario_id": scenario_id, "kind": kind, "candidate_ids": normalized_ids}
+
+def _validate_coverage_matrix(scenarios: Sequence[Mapping[str, Any]]) -> None:
+    kinds = {str(item["kind"]) for item in scenarios}
+    if not _SUPPORTED_KINDS.issubset(kinds):
+        raise RankingCalibrationError("REQUIRED_SCENARIO_KIND_MISSING", "/scenarios")
+    monotonic_axes = {
+        str(item["axis"])
+        for item in scenarios
+        if item.get("kind") == "MONOTONIC_AXIS"
+    }
+    if monotonic_axes != _MONOTONIC_AXES:
+        raise RankingCalibrationError("REQUIRED_MONOTONIC_AXIS_MISSING", "/scenarios")
+    permutation_modes = {
+        str(item["mode"])
+        for item in scenarios
+        if item.get("kind") == "PERMUTATION_INVARIANCE"
+    }
+    if permutation_modes != _PERMUTATION_MODES:
+        raise RankingCalibrationError("REQUIRED_PERMUTATION_MODE_MISSING", "/scenarios")
 
 
 def validate_corpus(corpus: Mapping[str, Any]) -> dict[str, Any]:
@@ -197,6 +279,7 @@ def validate_corpus(corpus: Mapping[str, Any]) -> dict[str, Any]:
     ids = [item["scenario_id"] for item in normalized]
     if len(set(ids)) != len(ids):
         raise RankingCalibrationError("SCENARIO_ID_DUPLICATE", "/scenarios")
+    _validate_coverage_matrix(normalized)
     return {
         "schema_version": SCENARIO_SCHEMA,
         "subject_ref": SUBJECT_REF,
@@ -243,8 +326,8 @@ def _evaluate_age_cap(scenario: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def _evaluate_priority_dominance() -> dict[str, Any]:
-    worst_p3 = _base_candidate("z-worst-p3")
-    worst_p3.update(
+    low_metric_p3 = _base_candidate("z-low-metric-p3")
+    low_metric_p3.update(
         {
             "priority_class": P3,
             "user_value_score": 25,
@@ -254,8 +337,8 @@ def _evaluate_priority_dominance() -> dict[str, Any]:
             "estimated_cost_score": 100,
         }
     )
-    best_p4 = _base_candidate("a-best-p4")
-    best_p4.update(
+    high_metric_p4 = _base_candidate("a-high-metric-p4")
+    high_metric_p4.update(
         {
             "priority_class": P4,
             "user_value_score": 75,
@@ -265,11 +348,11 @@ def _evaluate_priority_dominance() -> dict[str, Any]:
             "estimated_cost_score": 0,
         }
     )
-    p3_key = _observed_key(worst_p3)
-    p4_key = _observed_key(best_p4)
+    p3_key = _observed_key(low_metric_p3)
+    p4_key = _observed_key(high_metric_p4)
     return {
         "passed": tuple(p3_key) < tuple(p4_key),
-        "observed": {"worst_p3_key": p3_key, "best_p4_key": p4_key},
+        "observed": {"low_metric_p3_key": p3_key, "high_metric_p4_key": p4_key},
     }
 
 
@@ -279,9 +362,13 @@ def _evaluate_lexical_tie(scenario: Mapping[str, Any]) -> dict[str, Any]:
     left_key = _observed_key(left)
     right_key = _observed_key(right)
     expected_winner = min(str(scenario["left_id"]), str(scenario["right_id"]))
-    observed_winner = str(scenario["left_id"]) if tuple(left_key) < tuple(right_key) else str(scenario["right_id"])
+    observed_winner = (
+        str(scenario["left_id"])
+        if tuple(left_key) < tuple(right_key)
+        else str(scenario["right_id"])
+    )
     return {
-        "passed": left_key != right_key and observed_winner == expected_winner,
+        "passed": left_key[:-1] == right_key[:-1] and observed_winner == expected_winner,
         "observed": {
             "left_key": left_key,
             "right_key": right_key,
@@ -291,25 +378,34 @@ def _evaluate_lexical_tie(scenario: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
-def _winner(candidate_ids: Sequence[str]) -> str:
-    candidates = [_base_candidate(candidate_id) for candidate_id in candidate_ids]
-    return min(candidates, key=_rank_key)["opportunity_id"]
+def _winner(candidates: Sequence[Mapping[str, Any]]) -> str:
+    winner = min(candidates, key=_rank_key)
+    return str(winner["opportunity_id"])
 
 
 def _evaluate_permutation(scenario: Mapping[str, Any]) -> dict[str, Any]:
-    candidate_ids = list(scenario["candidate_ids"])
-    forward = _winner(candidate_ids)
-    reverse = _winner(list(reversed(candidate_ids)))
-    rotated_ids = candidate_ids[1:] + candidate_ids[:1]
-    rotated = _winner(rotated_ids)
-    expected = min(candidate_ids)
+    mode = str(scenario["mode"])
+    if mode == "LEXICAL_TIE":
+        candidates = [_base_candidate(candidate_id) for candidate_id in scenario["candidate_ids"]]
+        expected = min(str(item["opportunity_id"]) for item in candidates)
+    else:
+        candidates = [_copy(item) for item in scenario["candidates"]]
+        expected = _winner(candidates)
+
+    forward = _winner(candidates)
+    reverse = _winner(list(reversed(candidates)))
+    rotated_candidates = candidates[1:] + candidates[:1]
+    rotated = _winner(rotated_candidates)
+    keys = {str(item["opportunity_id"]): _observed_key(item) for item in candidates}
     return {
         "passed": forward == reverse == rotated == expected,
         "observed": {
+            "mode": mode,
             "forward_winner": forward,
             "reverse_winner": reverse,
             "rotated_winner": rotated,
             "expected_winner": expected,
+            "candidate_keys": keys,
         },
     }
 
