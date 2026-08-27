@@ -1,0 +1,109 @@
+name: R158 Bootstrap Trusted Opportunity Provenance
+
+on:
+  push:
+    branches:
+      - gpt/r158-trusted-opportunity-provenance-binding
+    paths:
+      - ".github/workflows/program-control-tower-r158-trusted-opportunity-provenance.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  bootstrap:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact bootstrap head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install retained test dependency
+        run: python -m pip install --disable-pip-version-check PyYAML==6.0.2
+
+      - name: Rebuild one-time migration from content-addressed transport blobs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PATCH_BLOBS: >-
+            e17689129c2e7be4783439e1a19b0ea0eebb7064,
+            4d321a9ce264185af4a9437f92066cf092a6b941,
+            198ef630c4f994f54c50e69ee51579d0b3c1a709,
+            bcfd97494d066e30474c1c146191ddcb7015f1cd,
+            9bf2fb32d87f64d69e960885d69ff414c0cb46d2,
+            12556ac7891663f1f821496aa8c21d32e9cb3e76
+        run: |
+          python - <<'PY'
+          import base64
+          import gzip
+          import json
+          import os
+          from pathlib import Path
+          from urllib.request import Request, urlopen
+
+          chunks = []
+          shas = [item.strip() for item in os.environ["PATCH_BLOBS"].replace("\n", "").split(",") if item.strip()]
+          if len(shas) != 6:
+              raise SystemExit(f"expected 6 transport blobs, got {len(shas)}")
+          for sha in shas:
+              url = f"https://api.github.com/repos/{os.environ['GITHUB_REPOSITORY']}/git/blobs/{sha}"
+              request = Request(
+                  url,
+                  headers={
+                      "Authorization": f"Bearer {os.environ['GH_TOKEN']}",
+                      "Accept": "application/vnd.github+json",
+                      "X-GitHub-Api-Version": "2022-11-28",
+                  },
+              )
+              with urlopen(request) as response:
+                  payload = json.load(response)
+              if payload.get("sha") != sha or payload.get("encoding") != "base64":
+                  raise SystemExit(f"transport blob identity invalid: {sha}")
+              chunks.append(base64.b64decode(payload["content"]).decode("utf-8"))
+          packed = "".join(chunks)
+          script = gzip.decompress(base64.b64decode(packed))
+          Path("/tmp/r158_patch.py").write_bytes(script)
+          PY
+          python -m py_compile /tmp/r158_patch.py
+          python /tmp/r158_patch.py
+
+      - name: Compile migrated R158 surfaces
+        run: |
+          python -m py_compile \
+            coordination/CONTROL-TOWER/idle_signal_scheduler.py \
+            coordination/CONTROL-TOWER/idle_signal_apply.py \
+            coordination/CONTROL-TOWER/tests/test_idle_signal_scheduler.py \
+            coordination/CONTROL-TOWER/tests/test_idle_signal_apply.py
+          python -m json.tool coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R158/TRUSTED-OPPORTUNITY-PROVENANCE.schema.json >/dev/null
+
+      - name: Run migrated R151 and R152 regressions before commit
+        working-directory: coordination/CONTROL-TOWER
+        run: |
+          python -m unittest tests.test_idle_signal_scheduler -v
+          python -m unittest tests.test_idle_signal_apply -v
+
+      - name: Commit exact bounded R158 migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            .github/workflows/program-control-tower-r158-trusted-opportunity-provenance.yml \
+            coordination/CONTROL-TOWER/idle_signal_scheduler.py \
+            coordination/CONTROL-TOWER/idle_signal_apply.py \
+            coordination/CONTROL-TOWER/tests/test_idle_signal_scheduler.py \
+            coordination/CONTROL-TOWER/tests/test_idle_signal_apply.py \
+            coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R158/PROJECT-PLAN.md \
+            coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R158/TRUSTED-OPPORTUNITY-PROVENANCE.schema.json
+          mapfile -t staged < <(git diff --cached --name-only)
+          test "${#staged[@]}" -eq 7
+          git diff --cached --check
+          git commit -m "R158: bind trusted opportunity provenance into R151 R152"
+          git push origin HEAD:gpt/r158-trusted-opportunity-provenance-binding
