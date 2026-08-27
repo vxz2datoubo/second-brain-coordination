@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "RANKING-CALIBRATION-REPORT.schema.json",
+  "title": "RankingCalibrationReport/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "policy_version",
+    "subject_ref",
+    "scenario_corpus_digest",
+    "status",
+    "total_scenarios",
+    "passed_scenarios",
+    "failed_scenarios",
+    "results",
+    "authority_boundary",
+    "report_digest"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "RankingCalibrationReport/v1"
+    },
+    "policy_version": {
+      "const": "R157/v1"
+    },
+    "subject_ref": {
+      "const": "coordination/CONTROL-TOWER/idle_signal_scheduler.py#_rank_key"
+    },
+    "scenario_corpus_digest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "status": {
+      "enum": ["PASS", "FAIL"]
+    },
+    "total_scenarios": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "passed_scenarios": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "failed_scenarios": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "results": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["scenario_id", "kind", "passed", "observed"],
+        "properties": {
+          "scenario_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "enum": [
+              "MONOTONIC_AXIS",
+              "AGE_CAP_PLATEAU",
+              "PRIORITY_DOMINANCE",
+              "LEXICAL_TIE_BREAK",
+              "PERMUTATION_INVARIANCE"
+            ]
+          },
+          "passed": {
+            "type": "boolean"
+          },
+          "observed": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "authority_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evaluation_only",
+        "selects_opportunity",
+        "releases_task",
+        "creates_issue",
+        "creates_route",
+        "creates_claim",
+        "creates_worker_slot",
+        "grants_execution_authority",
+        "grants_domain_write",
+        "grants_w3_write",
+        "grants_merge_authority",
+        "tunes_ranking_weights"
+      ],
+      "properties": {
+        "evaluation_only": {"const": true},
+        "selects_opportunity": {"const": false},
+        "releases_task": {"const": false},
+        "creates_issue": {"const": false},
+        "creates_route": {"const": false},
+        "creates_claim": {"const": false},
+        "creates_worker_slot": {"const": false},
+        "grants_execution_authority": {"const": false},
+        "grants_domain_write": {"const": false},
+        "grants_w3_write": {"const": false},
+        "grants_merge_authority": {"const": false},
+        "tunes_ranking_weights": {"const": false}
+      }
+    },
+    "report_digest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}
