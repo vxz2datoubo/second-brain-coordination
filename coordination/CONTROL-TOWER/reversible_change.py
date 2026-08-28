@@ -9,8 +9,8 @@ ASSESSMENT_SCHEMA="ChangeReversibilityAssessment/v1"
 CHECKPOINT_SCHEMA="KnownGoodCheckpoint/v1"
 REVERT_PLAN_SCHEMA="GovernedRevertPlan/v1"
 ROLLBACK_TRIGGER_PHRASE="做个滚回记号"
-MARKER_MESSAGE_HEADER="R159-KNOWN-GOOD-CHECKPOINT/v1"
-CHECKPOINT_TRUST="DURABLE_GIT_MARKER_COMMIT_REDERIVED_FROM_CANONICAL_STATE"
+CHECKPOINT_TRUST="DURABLE_CANONICAL_MAIN_COMMIT_REDERIVED_FROM_REMOTE_STATE"
+PUBLICATION_TRAILER="R159-Checkpoint-Digest:"
 EVIDENCE_SEMANTICS="BOUND_REFERENCES_NOT_ACCEPTANCE_AUTHORITY"
 SURFACE_KINDS={"CODE_CONFIG_ONLY","POLICY_BEHAVIOR","STATEFUL_DATA","EXTERNAL_SIDE_EFFECT","MIXED"}
 BLAST_RADII={"SMALL","MEDIUM","LARGE","CRITICAL"}
@@ -104,13 +104,6 @@ def _policy_versions(root:Path,commit:str,paths:Sequence[str])->dict[str,str]:
         if x is None: raise ReversibleChangeError(f"checkpoint:POLICY_SCHEMA_PATH_MISSING:{p}")
         out[p]=_sha40(x,f"policy_schema_versions[{p}]")
     return out
-def _marker_message(envelope:Mapping[str,Any])->str: return f"{MARKER_MESSAGE_HEADER}\n\n{_json(envelope)}\n"
-def _parse_marker(s:str)->dict[str,Any]:
-    prefix=MARKER_MESSAGE_HEADER+"\n\n"
-    if not s.startswith(prefix): raise ReversibleChangeError("checkpoint:MARKER_MESSAGE_HEADER_MISMATCH")
-    try: v=json.loads(s[len(prefix):].strip())
-    except json.JSONDecodeError as exc: raise ReversibleChangeError("checkpoint:MARKER_MESSAGE_JSON_INVALID") from exc
-    return dict(_mapping(v,"marker_payload"))
 
 def capture_known_good_checkpoint(repo_root:str|Path,*,expected_head:str,trigger_source:str,reason:str,policy_schema_paths:Sequence[str],ci_status:Mapping[str,Any],deterministic_verification_status:Mapping[str,Any],independent_review_status:Mapping[str,Any],remote_name:str="origin",canonical_branch:str="main",previous_checkpoint_digest:str|None=None,evidence_refs:Sequence[str]=(),repository:str|None=None)->dict[str,Any]:
     root=Path(repo_root).resolve(); expected=_sha40(expected_head,"expected_head")
@@ -121,12 +114,10 @@ def capture_known_good_checkpoint(repo_root:str|Path,*,expected_head:str,trigger
     if _git(root,"status","--porcelain","--untracked-files=all"): raise ReversibleChangeError("checkpoint:WORKTREE_DIRTY")
     tree=_sha40(_git(root,"rev-parse",f"{expected}^{{tree}}"),"tree_sha")
     prev=None if previous_checkpoint_digest is None else _sha256(previous_checkpoint_digest,"previous_checkpoint_digest")
-    semantic={"schema_version":CHECKPOINT_SCHEMA,"repository":ident["repository"],"source_ref":f"{ident['remote_name']}/{ident['canonical_branch']}","canonical_main_sha":expected,"tree_sha":tree,"trigger_source":_enum(trigger_source,"trigger_source",TRIGGER_SOURCES),"reason":_str(reason,"reason"),"qualification_level":"DESIGNATED_RECOVERY_ANCHOR","git_binding_verified":True,"trust_semantics":CHECKPOINT_TRUST,"policy_schema_versions":_policy_versions(root,expected,policy_schema_paths),"ci_status":_status(ci_status,"ci_status",{"PASS","NOT_APPLICABLE"}),"deterministic_verification_status":_status(deterministic_verification_status,"deterministic_verification_status",{"PASS"}),"independent_review_status":_status(independent_review_status,"independent_review_status",{"PASS","NOT_APPLICABLE"}),"recorded_at":datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00","Z"),"provenance":{"capture_tool":"R159/reversible_change.py","capture_mode":"GIT_COMMIT_TREE_MARKER","remote_name":ident["remote_name"],"canonical_branch":ident["canonical_branch"],"canonical_remote_ref":ident["canonical_remote_ref"]},"previous_checkpoint_digest":prev,"evidence_refs":_refs(evidence_refs,"evidence_ref"),"evidence_semantics":EVIDENCE_SEMANTICS,"authority":dict(AUTHORITY)}
-    d=_digest(semantic); envelope=dict(semantic); envelope["checkpoint_id"]=f"KGC-{d[:16]}"; envelope["checkpoint_digest"]=d
-    marker=_sha40(_git(root,"commit-tree",tree,"-p",expected,input_text=_marker_message(envelope)),"marker_commit")
-    result=dict(envelope); result["marker_commit"]=marker; return result
+    out={"schema_version":CHECKPOINT_SCHEMA,"repository":ident["repository"],"source_ref":f"{ident['remote_name']}/{ident['canonical_branch']}","canonical_main_sha":expected,"tree_sha":tree,"recovery_anchor_commit":expected,"trigger_source":_enum(trigger_source,"trigger_source",TRIGGER_SOURCES),"reason":_str(reason,"reason"),"qualification_level":"DESIGNATED_RECOVERY_ANCHOR","git_binding_verified":True,"trust_semantics":CHECKPOINT_TRUST,"policy_schema_versions":_policy_versions(root,expected,policy_schema_paths),"ci_status":_status(ci_status,"ci_status",{"PASS","NOT_APPLICABLE"}),"deterministic_verification_status":_status(deterministic_verification_status,"deterministic_verification_status",{"PASS"}),"independent_review_status":_status(independent_review_status,"independent_review_status",{"PASS","NOT_APPLICABLE"}),"recorded_at":datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00","Z"),"provenance":{"capture_tool":"R159/reversible_change.py","capture_mode":"CANONICAL_MAIN_COMMIT_ANCHOR","remote_name":ident["remote_name"],"canonical_branch":ident["canonical_branch"],"canonical_remote_ref":ident["canonical_remote_ref"]},"previous_checkpoint_digest":prev,"evidence_refs":_refs(evidence_refs,"evidence_ref"),"evidence_semantics":EVIDENCE_SEMANTICS,"authority":dict(AUTHORITY)}
+    d=_digest(out); out["checkpoint_id"]=f"KGC-{d[:16]}"; out["checkpoint_digest"]=d; return out
 
-CHECKPOINT_FIELDS={"schema_version","repository","source_ref","canonical_main_sha","tree_sha","marker_commit","trigger_source","reason","qualification_level","git_binding_verified","trust_semantics","policy_schema_versions","ci_status","deterministic_verification_status","independent_review_status","recorded_at","provenance","previous_checkpoint_digest","evidence_refs","evidence_semantics","authority","checkpoint_id","checkpoint_digest"}
+CHECKPOINT_FIELDS={"schema_version","repository","source_ref","canonical_main_sha","tree_sha","recovery_anchor_commit","trigger_source","reason","qualification_level","git_binding_verified","trust_semantics","policy_schema_versions","ci_status","deterministic_verification_status","independent_review_status","recorded_at","provenance","previous_checkpoint_digest","evidence_refs","evidence_semantics","authority","checkpoint_id","checkpoint_digest"}
 def _shape(value:Mapping[str,Any])->dict[str,Any]:
     c=dict(_mapping(value,"checkpoint"))
     if set(c)!=CHECKPOINT_FIELDS:
@@ -134,8 +125,9 @@ def _shape(value:Mapping[str,Any])->dict[str,Any]:
         raise ReversibleChangeError(f"checkpoint:FIELD_{'MISSING' if miss else 'UNRECOGNIZED'}:{(miss or extra)[0]}")
     if c["schema_version"]!=CHECKPOINT_SCHEMA: raise ReversibleChangeError("checkpoint:SCHEMA_MISMATCH")
     if not REPO.fullmatch(_str(c["repository"],"repository")): raise ReversibleChangeError("checkpoint:REPOSITORY_FORMAT_INVALID")
-    for k in ("canonical_main_sha","tree_sha","marker_commit"): _sha40(c[k],k)
+    for k in ("canonical_main_sha","tree_sha","recovery_anchor_commit"): _sha40(c[k],k)
     _enum(c["trigger_source"],"trigger_source",TRIGGER_SOURCES); _str(c["source_ref"],"source_ref"); _str(c["reason"],"reason")
+    if c["recovery_anchor_commit"]!=c["canonical_main_sha"]: raise ReversibleChangeError("checkpoint:RECOVERY_ANCHOR_NOT_CANONICAL_MAIN")
     if c["qualification_level"]!="DESIGNATED_RECOVERY_ANCHOR" or c["git_binding_verified"] is not True or c["trust_semantics"]!=CHECKPOINT_TRUST or c["evidence_semantics"]!=EVIDENCE_SEMANTICS or c["authority"]!=AUTHORITY: raise ReversibleChangeError("checkpoint:CONTRACT_INVARIANT_MISMATCH")
     pv=dict(_mapping(c["policy_schema_versions"],"policy_schema_versions"))
     if not pv: raise ReversibleChangeError("checkpoint:POLICY_SCHEMA_VERSION_REQUIRED")
@@ -143,36 +135,50 @@ def _shape(value:Mapping[str,Any])->dict[str,Any]:
     _status(c["ci_status"],"ci_status",{"PASS","NOT_APPLICABLE"}); _status(c["deterministic_verification_status"],"deterministic_verification_status",{"PASS"}); _status(c["independent_review_status"],"independent_review_status",{"PASS","NOT_APPLICABLE"})
     if not _str(c["recorded_at"],"recorded_at").endswith("Z"): raise ReversibleChangeError("checkpoint:RECORDED_AT_UTC_REQUIRED")
     pr=dict(_mapping(c["provenance"],"provenance"))
-    if set(pr)!={"capture_tool","capture_mode","remote_name","canonical_branch","canonical_remote_ref"} or pr["capture_tool"]!="R159/reversible_change.py" or pr["capture_mode"]!="GIT_COMMIT_TREE_MARKER": raise ReversibleChangeError("checkpoint:PROVENANCE_FIELDS_INVALID")
+    if set(pr)!={"capture_tool","capture_mode","remote_name","canonical_branch","canonical_remote_ref"} or pr["capture_tool"]!="R159/reversible_change.py" or pr["capture_mode"]!="CANONICAL_MAIN_COMMIT_ANCHOR": raise ReversibleChangeError("checkpoint:PROVENANCE_FIELDS_INVALID")
     if c["previous_checkpoint_digest"] is not None: _sha256(c["previous_checkpoint_digest"],"previous_checkpoint_digest")
     _refs(c["evidence_refs"],"evidence_ref")
-    d=_sha256(c["checkpoint_digest"],"checkpoint_digest")
-    body=dict(c); body.pop("marker_commit"); cid=body.pop("checkpoint_id"); body.pop("checkpoint_digest")
+    d=_sha256(c["checkpoint_digest"],"checkpoint_digest"); body=dict(c); cid=body.pop("checkpoint_id"); body.pop("checkpoint_digest")
     if _digest(body)!=d or cid!=f"KGC-{d[:16]}": raise ReversibleChangeError("checkpoint:DIGEST_OR_ID_MISMATCH")
     return c
 
-def validate_known_good_checkpoint(value:Mapping[str,Any],*,repo_root:str|Path,implementation_head:str|None=None)->dict[str,Any]:
+def _publication_binding(root:Path,c:Mapping[str,Any],implementation_head:str)->str:
+    base=c["recovery_anchor_commit"]; impl=_sha40(implementation_head,"implementation_head")
+    if _git_optional(root,"cat-file","-t",impl)!="commit": raise ReversibleChangeError("checkpoint:IMPLEMENTATION_HEAD_MISSING")
+    if impl==base or not _ancestor(root,base,impl): raise ReversibleChangeError("checkpoint:RECOVERY_ANCHOR_NOT_ANCESTOR_OF_IMPLEMENTATION")
+    chain=_git(root,"rev-list","--first-parent","--reverse",impl).splitlines()
+    try: idx=chain.index(base)
+    except ValueError as exc: raise ReversibleChangeError("checkpoint:RECOVERY_ANCHOR_NOT_FIRST_PARENT_ANCESTOR") from exc
+    if idx+1>=len(chain): raise ReversibleChangeError("checkpoint:IMPLEMENTATION_HEAD_NOT_STRICT_DESCENDANT")
+    binding=chain[idx+1]
+    parents=_git(root,"rev-list","--parents","-n","1",binding).split()
+    if len(parents)<2 or parents[1]!=base: raise ReversibleChangeError("checkpoint:PUBLICATION_BINDING_PARENT_MISMATCH")
+    needle=f"{PUBLICATION_TRAILER} {c['checkpoint_digest']}"
+    if needle not in {line.strip() for line in _git(root,"show","-s","--format=%B",binding).splitlines()}:
+        raise ReversibleChangeError("checkpoint:PUBLICATION_BINDING_MISSING")
+    return binding
+
+def checkpoint_publication_state(value:Mapping[str,Any],*,repo_root:str|Path,implementation_head:str|None=None)->dict[str,Any]:
     root=Path(repo_root).resolve(); c=_shape(value); pr=c["provenance"]
     ident=_remote_tip(root,pr["remote_name"],pr["canonical_branch"])
     if ident["repository"]!=c["repository"]: raise ReversibleChangeError("checkpoint:REPOSITORY_IDENTITY_MISMATCH")
     if ident["canonical_remote_ref"]!=pr["canonical_remote_ref"]: raise ReversibleChangeError("checkpoint:CANONICAL_REMOTE_REF_MISMATCH")
-    base=c["canonical_main_sha"]; tree=c["tree_sha"]; marker=c["marker_commit"]
-    if _git_optional(root,"cat-file","-t",base)!="commit" or _git_optional(root,"cat-file","-t",marker)!="commit": raise ReversibleChangeError("checkpoint:COMMIT_MISSING")
-    if _git(root,"rev-parse",f"{base}^{{tree}}")!=tree or _git(root,"rev-parse",f"{marker}^{{tree}}")!=tree: raise ReversibleChangeError("checkpoint:TREE_BINDING_MISMATCH")
-    parents=_git(root,"rev-list","--parents","-n","1",marker).split()
-    if len(parents)!=2 or parents[1]!=base: raise ReversibleChangeError("checkpoint:MARKER_PARENT_MISMATCH")
-    embedded=_parse_marker(_git(root,"show","-s","--format=%B",marker)); expected=dict(c); expected.pop("marker_commit")
-    if embedded!=expected: raise ReversibleChangeError("checkpoint:MARKER_PAYLOAD_MISMATCH")
-    if not _ancestor(root,base,ident["canonical_main_sha"]): raise ReversibleChangeError("checkpoint:CANONICAL_MAIN_ANCESTRY_MISMATCH")
+    base=c["canonical_main_sha"]; tree=c["tree_sha"]
+    if _git_optional(root,"cat-file","-t",base)!="commit": raise ReversibleChangeError("checkpoint:COMMIT_MISSING")
+    if _git(root,"rev-parse",f"{base}^{{tree}}")!=tree: raise ReversibleChangeError("checkpoint:TREE_BINDING_MISMATCH")
+    current=ident["canonical_main_sha"]
+    if _git_optional(root,"cat-file","-t",current)!="commit": raise ReversibleChangeError("checkpoint:CURRENT_CANONICAL_MAIN_MISSING")
+    if not _ancestor(root,base,current): raise ReversibleChangeError("checkpoint:CANONICAL_MAIN_ANCESTRY_MISMATCH")
     if _policy_versions(root,base,list(c["policy_schema_versions"]))!=c["policy_schema_versions"]: raise ReversibleChangeError("checkpoint:POLICY_SCHEMA_BINDING_MISMATCH")
     if implementation_head is None:
         if _git(root,"rev-parse","HEAD")!=base: raise ReversibleChangeError("checkpoint:PRECHANGE_HEAD_DRIFT")
-        if ident["canonical_main_sha"]!=base: raise ReversibleChangeError("checkpoint:PRECHANGE_CANONICAL_MAIN_DRIFT")
-    else:
-        impl=_sha40(implementation_head,"implementation_head")
-        if _git_optional(root,"cat-file","-t",impl)!="commit": raise ReversibleChangeError("checkpoint:IMPLEMENTATION_HEAD_MISSING")
-        if impl==marker or not _ancestor(root,marker,impl): raise ReversibleChangeError("checkpoint:MARKER_NOT_ANCESTOR_OF_IMPLEMENTATION")
-    return c
+        if current!=base: raise ReversibleChangeError("checkpoint:PRECHANGE_CANONICAL_MAIN_DRIFT")
+        return {"state":"CAPTURED_DURABLE_CANONICAL_ANCHOR","recovery_anchor_commit":base,"implementation_head":None,"publication_binding_commit":None,"authority":dict(AUTHORITY)}
+    impl=_sha40(implementation_head,"implementation_head"); binding=_publication_binding(root,c,impl)
+    return {"state":"PUBLISHED_IMPLEMENTATION_LINEAGE","recovery_anchor_commit":base,"implementation_head":impl,"publication_binding_commit":binding,"authority":dict(AUTHORITY)}
+
+def validate_known_good_checkpoint(value:Mapping[str,Any],*,repo_root:str|Path,implementation_head:str|None=None)->dict[str,Any]:
+    c=_shape(value); checkpoint_publication_state(c,repo_root=repo_root,implementation_head=implementation_head); return c
 def checkpoint_evidence(v:Mapping[str,Any])->dict[str,Any]: return json.loads(_json(_mapping(v,"checkpoint")))
 
 def trigger_from_user_text(text:str)->str:
@@ -219,15 +225,15 @@ def validate_assessment(v:Mapping[str,Any],*,checkpoint_value:Mapping[str,Any]|N
     expected=assess_change_intent(_intent(_mapping(a.get("normalized_input"),"normalized_input")),checkpoint_value,repo_root=repo_root,implementation_head=implementation_head)
     if a!=expected: raise ReversibleChangeError("assessment:SEMANTIC_REDERIVATION_MISMATCH")
     return a
-def _plan(c:Mapping[str,Any],a:Mapping[str,Any],reason:str,impl:str)->dict[str,Any]:
+def _plan(c:Mapping[str,Any],a:Mapping[str,Any],reason:str,impl:str,binding:str)->dict[str,Any]:
     if a["assessment_result"]!="PASS": raise ReversibleChangeError("revert_plan:ASSESSMENT_NOT_PASS")
     if a["normalized_input"]["rollback_checkpoint_ref"]!=c["checkpoint_digest"]: raise ReversibleChangeError("revert_plan:CHECKPOINT_BINDING_MISMATCH")
     cls=a["reversibility_class"]
     if cls not in STRATEGY: raise ReversibleChangeError("revert_plan:IRREVERSIBLE_CHANGE")
     blast=a["normalized_input"]["blast_radius"]
-    out={"schema_version":REVERT_PLAN_SCHEMA,"checkpoint_id":c["checkpoint_id"],"checkpoint_digest":c["checkpoint_digest"],"checkpoint_marker_commit":c["marker_commit"],"target_commit":c["canonical_main_sha"],"target_tree":c["tree_sha"],"implementation_head":_sha40(impl,"implementation_head"),"change_id":a["change_id"],"assessment_digest":a["assessment_digest"],"reversibility_class":cls,"strategy":STRATEGY[cls],"reason":_str(reason,"reason"),"preserve_history":True,"destructive_history_rewrite":False,"exact_head_reverification_required":True,"independent_review_required":blast in {"MEDIUM","LARGE","CRITICAL"},"user_approval_required":cls=="COMPENSATABLE_ONLY" or blast=="CRITICAL","authority":dict(AUTHORITY)}; out["plan_digest"]=_digest(out); return out
+    out={"schema_version":REVERT_PLAN_SCHEMA,"checkpoint_id":c["checkpoint_id"],"checkpoint_digest":c["checkpoint_digest"],"checkpoint_recovery_anchor_commit":c["recovery_anchor_commit"],"checkpoint_publication_binding_commit":_sha40(binding,"publication_binding_commit"),"target_commit":c["canonical_main_sha"],"target_tree":c["tree_sha"],"implementation_head":_sha40(impl,"implementation_head"),"change_id":a["change_id"],"assessment_digest":a["assessment_digest"],"reversibility_class":cls,"strategy":STRATEGY[cls],"reason":_str(reason,"reason"),"preserve_history":True,"destructive_history_rewrite":False,"exact_head_reverification_required":True,"independent_review_required":blast in {"MEDIUM","LARGE","CRITICAL"},"user_approval_required":cls=="COMPENSATABLE_ONLY" or blast=="CRITICAL","authority":dict(AUTHORITY)}; out["plan_digest"]=_digest(out); return out
 def build_governed_revert_plan(checkpoint_value:Mapping[str,Any],assessment_value:Mapping[str,Any],*,reason:str,repo_root:str|Path,implementation_head:str)->dict[str,Any]:
-    c=validate_known_good_checkpoint(checkpoint_value,repo_root=repo_root,implementation_head=implementation_head); a=validate_assessment(assessment_value,checkpoint_value=checkpoint_value,repo_root=repo_root,implementation_head=implementation_head); return _plan(c,a,reason,implementation_head)
+    root=Path(repo_root).resolve(); c=validate_known_good_checkpoint(checkpoint_value,repo_root=root,implementation_head=implementation_head); a=validate_assessment(assessment_value,checkpoint_value=checkpoint_value,repo_root=root,implementation_head=implementation_head); binding=_publication_binding(root,c,implementation_head); return _plan(c,a,reason,implementation_head,binding)
 def validate_governed_revert_plan(v:Mapping[str,Any],*,checkpoint_value:Mapping[str,Any],assessment_value:Mapping[str,Any],repo_root:str|Path,implementation_head:str)->dict[str,Any]:
     p=dict(_mapping(v,"revert_plan")); d=_sha256(p.get("plan_digest"),"plan_digest"); body=dict(p); body.pop("plan_digest")
     if p.get("schema_version")!=REVERT_PLAN_SCHEMA or _digest(body)!=d: raise ReversibleChangeError("revert_plan:DIGEST_OR_SCHEMA_MISMATCH")
@@ -235,7 +241,7 @@ def validate_governed_revert_plan(v:Mapping[str,Any],*,checkpoint_value:Mapping[
     if p.get("destructive_history_rewrite") is not False: raise ReversibleChangeError("revert_plan:DESTRUCTIVE_HISTORY_REWRITE_FORBIDDEN")
     if p.get("exact_head_reverification_required") is not True: raise ReversibleChangeError("revert_plan:EXACT_HEAD_REVERIFICATION_REQUIRED")
     if p.get("authority")!=AUTHORITY: raise ReversibleChangeError("revert_plan:AUTHORITY_BOUNDARY_MISMATCH")
-    c=validate_known_good_checkpoint(checkpoint_value,repo_root=repo_root,implementation_head=implementation_head); a=validate_assessment(assessment_value,checkpoint_value=checkpoint_value,repo_root=repo_root,implementation_head=implementation_head); expected=_plan(c,a,_str(p.get("reason"),"reason"),implementation_head)
+    root=Path(repo_root).resolve(); c=validate_known_good_checkpoint(checkpoint_value,repo_root=root,implementation_head=implementation_head); a=validate_assessment(assessment_value,checkpoint_value=checkpoint_value,repo_root=root,implementation_head=implementation_head); binding=_publication_binding(root,c,implementation_head); expected=_plan(c,a,_str(p.get("reason"),"reason"),implementation_head,binding)
     if p!=expected: raise ReversibleChangeError("revert_plan:SEMANTIC_REDERIVATION_MISMATCH")
     return p
 
