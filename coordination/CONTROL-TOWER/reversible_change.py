@@ -13,6 +13,7 @@ CHECKPOINT_TRUST="DURABLE_CANONICAL_MAIN_COMMIT_REDERIVED_FROM_REMOTE_STATE"
 PUBLICATION_TRAILER="R159-Checkpoint-Digest:"
 EVIDENCE_SEMANTICS="BOUND_REFERENCES_NOT_ACCEPTANCE_AUTHORITY"
 CANONICAL_GIT_PROVIDER_HOST="github.com"
+CHECKPOINT_TRANSPORT_TRUST="SANITIZED_GITHUB_HTTPS_SYSTEM_CA"
 SURFACE_KINDS={"CODE_CONFIG_ONLY","POLICY_BEHAVIOR","STATEFUL_DATA","EXTERNAL_SIDE_EFFECT","MIXED"}
 BLAST_RADII={"SMALL","MEDIUM","LARGE","CRITICAL"}
 ROLLBACK_MECHANISMS={"NONE","GIT_REVERT","FEATURE_FLAG_OR_VERSION_SWITCH","MIGRATION","SNAPSHOT","COMPENSATION"}
@@ -23,6 +24,7 @@ SHA40=re.compile(r"^[0-9a-f]{40}$"); SHA256=re.compile(r"^[0-9a-f]{64}$")
 REPO=re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 INTENT_FIELDS={"change_id","surface_kind","blast_radius","explicit_rollback_marker_requested","gpt_judged_large_change","persistent_state_mutation","external_irreversible_side_effect","rollback_mechanism","rollback_checkpoint_ref"}
 STRATEGY={"REVERSIBLE_GIT_ONLY":"FORWARD_REVERT_PR_OR_CORRECTIVE_COMMIT","REVERSIBLE_BY_VERSION_SWITCH":"VERSION_SWITCH_OR_FEATURE_FLAG","REVERSIBLE_WITH_MIGRATION":"FORWARD_REVERT_PLUS_DOWN_MIGRATION","REVERSIBLE_WITH_SNAPSHOT":"FORWARD_REVERT_PLUS_SNAPSHOT_RESTORE","COMPENSATABLE_ONLY":"COMPENSATING_ACTION_PLUS_FORWARD_REVERT"}
+_SAFE_PROCESS_ENV_KEYS={"PATH","SYSTEMROOT","WINDIR","COMSPEC","PATHEXT","TEMP","TMP","TMPDIR","LANG","LC_ALL","LC_CTYPE"}
 
 class ReversibleChangeError(ValueError): pass
 
@@ -50,7 +52,13 @@ def _sha256(v:Any,n:str)->str:
     if not SHA256.fullmatch(x): raise ReversibleChangeError(f"{n}:SHA256_REQUIRED")
     return x
 def _env()->dict[str,str]:
-    e=os.environ.copy(); e["GIT_NO_REPLACE_OBJECTS"]="1"; return e
+    e={k:v for k,v in os.environ.items() if k.upper() in _SAFE_PROCESS_ENV_KEYS and v}
+    e["GIT_NO_REPLACE_OBJECTS"]="1"
+    e["GIT_CONFIG_GLOBAL"]=os.devnull
+    e["GIT_CONFIG_SYSTEM"]=os.devnull
+    e["GIT_CONFIG_NOSYSTEM"]="1"
+    e["GIT_TERMINAL_PROMPT"]="0"
+    return e
 def _git(root:Path,*args:str,input_text:str|None=None)->str:
     try:
         return subprocess.check_output(["git","--no-replace-objects",*args],cwd=root,text=True,input=input_text,stderr=subprocess.STDOUT,env=_env()).strip()
@@ -86,7 +94,7 @@ def _require_checkpoint_https_transport(url:str)->None:
     if urlparse(u).scheme.lower()!="https":
         raise ReversibleChangeError("checkpoint:CANONICAL_REMOTE_HTTPS_REQUIRED")
 def _remote_rewrite_rules(root:Path)->list[tuple[str,str]]:
-    raw=_git_optional(root,"config","--get-regexp",r"^url\.")
+    raw=_git_optional(root,"config","--local","--get-regexp",r"^url\.")
     if not raw: return []
     out=[]
     for line in raw.splitlines():
@@ -102,9 +110,19 @@ def _reject_effective_remote_rewrite(root:Path,url:str)->None:
     target=_str(url,"remote_url")
     for kind,prefix in _remote_rewrite_rules(root):
         if target.startswith(prefix): raise ReversibleChangeError(f"checkpoint:EFFECTIVE_REMOTE_URL_REWRITE_FORBIDDEN:{kind}")
+def _reject_unsafe_https_transport_config(root:Path)->None:
+    raw=_git_optional(root,"config","--local","--get-regexp",r"^(http\.|include\.|includeif\.|remote\..*\.proxy$)")
+    if not raw: return
+    for line in raw.splitlines():
+        parts=line.split(None,1)
+        if len(parts)!=2: raise ReversibleChangeError("checkpoint:HTTPS_TRANSPORT_CONFIG_MALFORMED")
+        key,value=parts; low=key.lower(); header=value.strip()
+        if low.startswith("http.https://github.com/") and low.endswith(".extraheader") and re.fullmatch(r"(?i)authorization:[^\r\n]+",header):
+            continue
+        raise ReversibleChangeError(f"checkpoint:HTTPS_TRANSPORT_CONFIG_FORBIDDEN:{key}")
 def _remote_tip(root:Path,remote:str,branch:str)->dict[str,str]:
     r=_str(remote,"remote_name"); b=_str(branch,"canonical_branch")
-    url=_git(root,"config","--get",f"remote.{r}.url"); _require_checkpoint_https_transport(url); _reject_effective_remote_rewrite(root,url); repo=_remote_repo(url)
+    url=_git(root,"config","--local","--get",f"remote.{r}.url"); _require_checkpoint_https_transport(url); _reject_effective_remote_rewrite(root,url); _reject_unsafe_https_transport_config(root); repo=_remote_repo(url)
     out=_git(root,"ls-remote","--exit-code",url,f"refs/heads/{b}")
     rows=[x.split() for x in out.splitlines() if x.strip()]
     if len(rows)!=1: raise ReversibleChangeError("checkpoint:CANONICAL_REMOTE_REF_UNRESOLVED")
