@@ -70,7 +70,7 @@ def _remote_repo(url:str)->str:
     elif "://" in u:
         parsed=urlparse(u); scheme=parsed.scheme.lower(); host=(parsed.hostname or "").lower()
         canonical_port=443 if scheme=="https" else 22 if scheme=="ssh" else None
-        if host!=CANONICAL_GIT_PROVIDER_HOST or scheme not in {"https","ssh"} or parsed.query or parsed.fragment or (parsed.port is not None and parsed.port!=canonical_port) or (scheme=="ssh" and parsed.username!="git"):
+        if host!=CANONICAL_GIT_PROVIDER_HOST or scheme not in {"https","ssh"} or parsed.query or parsed.fragment or (parsed.port is not None and parsed.port!=canonical_port) or (scheme=="ssh" and parsed.username!="git") or (scheme=="https" and (parsed.username is not None or parsed.password is not None)):
             raise ReversibleChangeError("checkpoint:REMOTE_PROVIDER_HOST_NOT_BOUND")
         p=parsed.path
     else:
@@ -81,6 +81,10 @@ def _remote_repo(url:str)->str:
     repo="/".join(parts)
     if not REPO.fullmatch(repo): raise ReversibleChangeError("checkpoint:REMOTE_REPOSITORY_UNRESOLVED")
     return repo
+def _require_checkpoint_https_transport(url:str)->None:
+    u=_str(url,"remote_url")
+    if urlparse(u).scheme.lower()!="https":
+        raise ReversibleChangeError("checkpoint:CANONICAL_REMOTE_HTTPS_REQUIRED")
 def _remote_rewrite_rules(root:Path)->list[tuple[str,str]]:
     raw=_git_optional(root,"config","--get-regexp",r"^url\.")
     if not raw: return []
@@ -100,7 +104,7 @@ def _reject_effective_remote_rewrite(root:Path,url:str)->None:
         if target.startswith(prefix): raise ReversibleChangeError(f"checkpoint:EFFECTIVE_REMOTE_URL_REWRITE_FORBIDDEN:{kind}")
 def _remote_tip(root:Path,remote:str,branch:str)->dict[str,str]:
     r=_str(remote,"remote_name"); b=_str(branch,"canonical_branch")
-    url=_git(root,"config","--get",f"remote.{r}.url"); _reject_effective_remote_rewrite(root,url); repo=_remote_repo(url)
+    url=_git(root,"config","--get",f"remote.{r}.url"); _require_checkpoint_https_transport(url); _reject_effective_remote_rewrite(root,url); repo=_remote_repo(url)
     out=_git(root,"ls-remote","--exit-code",url,f"refs/heads/{b}")
     rows=[x.split() for x in out.splitlines() if x.strip()]
     if len(rows)!=1: raise ReversibleChangeError("checkpoint:CANONICAL_REMOTE_REF_UNRESOLVED")
