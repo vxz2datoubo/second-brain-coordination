@@ -72,9 +72,26 @@ def _remote_repo(url:str)->str:
     repo="/".join(parts[-2:])
     if not REPO.fullmatch(repo): raise ReversibleChangeError("checkpoint:REMOTE_REPOSITORY_UNRESOLVED")
     return repo
+def _remote_rewrite_rules(root:Path)->list[tuple[str,str]]:
+    raw=_git_optional(root,"config","--get-regexp",r"^url\.")
+    if not raw: return []
+    out=[]
+    for line in raw.splitlines():
+        parts=line.split(None,1)
+        if len(parts)!=2: raise ReversibleChangeError("checkpoint:URL_REWRITE_CONFIG_MALFORMED")
+        key,value=parts; low=key.lower()
+        if low.endswith(".insteadof"): kind="insteadOf"
+        elif low.endswith(".pushinsteadof"): kind="pushInsteadOf"
+        else: continue
+        out.append((kind,_str(value,"url_rewrite_prefix")))
+    return out
+def _reject_effective_remote_rewrite(root:Path,url:str)->None:
+    target=_str(url,"remote_url")
+    for kind,prefix in _remote_rewrite_rules(root):
+        if target.startswith(prefix): raise ReversibleChangeError(f"checkpoint:EFFECTIVE_REMOTE_URL_REWRITE_FORBIDDEN:{kind}")
 def _remote_tip(root:Path,remote:str,branch:str)->dict[str,str]:
     r=_str(remote,"remote_name"); b=_str(branch,"canonical_branch")
-    url=_git(root,"config","--get",f"remote.{r}.url"); repo=_remote_repo(url)
+    url=_git(root,"config","--get",f"remote.{r}.url"); _reject_effective_remote_rewrite(root,url); repo=_remote_repo(url)
     out=_git(root,"ls-remote","--exit-code",url,f"refs/heads/{b}")
     rows=[x.split() for x in out.splitlines() if x.strip()]
     if len(rows)!=1: raise ReversibleChangeError("checkpoint:CANONICAL_REMOTE_REF_UNRESOLVED")
