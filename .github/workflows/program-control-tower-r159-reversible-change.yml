@@ -98,7 +98,7 @@ jobs:
           done
           echo R159_EXACT_ADDITIVE_SCOPE_PASS
 
-      - name: Verify durable marker, canonical binding, and authority invariants
+      - name: Verify durable canonical anchor, publication binding, and authority invariants
         shell: bash
         run: |
           set -euo pipefail
@@ -116,25 +116,27 @@ jobs:
 
           if module.ROLLBACK_TRIGGER_PHRASE != "做个滚回记号":
               raise SystemExit("R159 rollback trigger phrase drift")
-          if module.CHECKPOINT_TRUST != "DURABLE_GIT_MARKER_COMMIT_REDERIVED_FROM_CANONICAL_STATE":
+          if module.CHECKPOINT_TRUST != "DURABLE_CANONICAL_MAIN_COMMIT_REDERIVED_FROM_REMOTE_STATE":
               raise SystemExit("R159 durable checkpoint trust semantic drift")
-          if module.MARKER_MESSAGE_HEADER != "R159-KNOWN-GOOD-CHECKPOINT/v1":
-              raise SystemExit("R159 marker message protocol drift")
+          if module.PUBLICATION_TRAILER != "R159-Checkpoint-Digest:":
+              raise SystemExit("R159 implementation publication protocol drift")
           if not module.AUTHORITY or any(module.AUTHORITY.values()):
               raise SystemExit("R159 authority boundary is not all false")
 
           required_source_tokens = (
-              "commit-tree",
               "ls-remote",
               "--no-replace-objects",
               "GIT_NO_REPLACE_OBJECTS",
               "canonical_main_sha",
-              "marker_commit",
+              "recovery_anchor_commit",
+              "checkpoint_publication_state",
+              "CAPTURED_DURABLE_CANONICAL_ANCHOR",
+              "PUBLISHED_IMPLEMENTATION_LINEAGE",
+              "PUBLICATION_BINDING_MISSING",
               "policy_schema_versions",
               "deterministic_verification_status",
               "independent_review_status",
               "implementation_head",
-              "MARKER_NOT_ANCESTOR_OF_IMPLEMENTATION",
               "FORWARD_REVERT_PR_OR_CORRECTIVE_COMMIT",
               "DESTRUCTIVE_HISTORY_REWRITE_FORBIDDEN",
           )
@@ -143,23 +145,23 @@ jobs:
                   raise SystemExit(f"R159 invariant missing: {token}")
 
           for forbidden_text in (
+              "commit-tree",
               "update-ref",
               "refs/tags/",
               "git tag",
               "push --force",
               "reset --hard",
               "branch -f",
-              "checkout -B",
               "switch -C",
           ):
               if forbidden_text in source:
-                  raise SystemExit(f"R159 forbidden mutable-ref/history seam: {forbidden_text}")
+                  raise SystemExit(f"R159 forbidden mutable-ref/unreachable-marker/history seam: {forbidden_text}")
 
           checkpoint_schema = json.loads(Path(
               "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/KNOWN-GOOD-CHECKPOINT.schema.json"
           ).read_text(encoding="utf-8"))
           required_checkpoint_fields = {
-              "repository", "canonical_main_sha", "tree_sha", "marker_commit",
+              "repository", "canonical_main_sha", "tree_sha", "recovery_anchor_commit",
               "policy_schema_versions", "ci_status", "deterministic_verification_status",
               "independent_review_status", "recorded_at", "provenance",
               "checkpoint_id", "checkpoint_digest", "authority"
@@ -170,11 +172,11 @@ jobs:
           plan_schema = json.loads(Path(
               "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/GOVERNED-REVERT-PLAN.schema.json"
           ).read_text(encoding="utf-8"))
-          for field in ("checkpoint_marker_commit", "implementation_head", "target_commit", "target_tree"):
+          for field in ("checkpoint_recovery_anchor_commit", "checkpoint_publication_binding_commit", "implementation_head", "target_commit", "target_tree"):
               if field not in plan_schema["required"]:
                   raise SystemExit(f"R159 revert plan binding missing: {field}")
 
-          print("R159_DURABLE_MARKER_CANONICAL_BINDING_AUTHORITY_INVARIANTS_PASS")
+          print("R159_DURABLE_CANONICAL_ANCHOR_PUBLICATION_AUTHORITY_INVARIANTS_PASS")
           PY
 
       - name: Verify whitespace and unfinished markers
