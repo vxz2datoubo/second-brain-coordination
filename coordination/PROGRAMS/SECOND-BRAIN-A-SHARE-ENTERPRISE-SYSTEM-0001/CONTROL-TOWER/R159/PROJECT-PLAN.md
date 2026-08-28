@@ -10,7 +10,7 @@ R159 covers `CEA-SIG-001..009` and A0/A1/A2 of `CEA-SIG-027` only.
 
 R159 is additive-only and may change exactly the seven paths released by Issue #479. It does not modify R149–R158 runtime, Signal truth/materializers, #453 Review Queue, #7 dispatcher, active claims, worker registry, W3/domain truth, repository settings, tags, databases, runtime snapshots, production services, secrets, accounts, orders, or funds.
 
-All task/route/write/review/merge/release/trading authority booleans remain false. A checkpoint, assessment, or revert plan is evidence/guard material, never execution authority.
+All task/route/write/review/merge/release/trading authority booleans remain false. A checkpoint, assessment, publication binding, or revert plan is evidence/guard material, never execution authority.
 
 ## Reversibility contract
 
@@ -45,25 +45,52 @@ Capture requires:
 - independent review status `PASS` or explicitly `NOT_APPLICABLE`, with evidence references for PASS;
 - UTC timestamp, trigger/reason, previous checkpoint digest when present, provenance, and bounded evidence refs.
 
-R159 binds these supplied evidence states and references into the marker. It does **not** become the D1 authority that independently discovers or validates every CI/review provider result. Automated provider verification remains a later D1 responsibility.
+R159 binds these supplied evidence states and references into the checkpoint. It does **not** become the D1 authority that independently discovers or validates every CI/review provider result. Automated provider verification remains a later D1 responsibility.
 
-### Durable marker commit
+### Durable recovery anchor
 
-The trust root is a Git commit object created with `git commit-tree`:
+The recovery anchor is **not a newly minted Git object**. It is the exact canonical `main` commit that was already reachable from the live remote canonical branch when capture occurred:
 
-`canonical remote main -> zero-tree-change checkpoint marker -> implementation descendants`
+`live remote canonical main == recovery_anchor_commit == canonical_main_sha`
 
-The marker:
+This removes the prior `commit-tree` pre-publication gap. The anchor is already reachable before material engineering begins, so local reflog expiry / `git gc --prune=now`, process exit, serialization, or a fresh clone cannot make the recovery target disappear while canonical history is preserved.
 
-- has exactly one parent: the captured canonical main SHA;
-- has exactly the canonical main tree, so it changes no tracked file;
-- embeds the canonical `KnownGoodCheckpoint/v1` envelope in its commit message;
-- is identified by `marker_commit` in serialized checkpoint evidence;
-- does not create or move a tag, branch, remote-tracking ref, repository setting, database record, snapshot, or second checkpoint registry.
+The serialized `KnownGoodCheckpoint/v1` binds:
 
-The capture operation itself does not move refs. Normal separately authorized engineering publication must make the material implementation lineage descend from the marker. If no implementation occurs after capture, there is nothing new to roll back.
+- repository identity derived from the configured remote;
+- canonical source ref;
+- exact canonical commit/tree;
+- `recovery_anchor_commit`, which must equal the captured canonical main;
+- policy/schema blob versions;
+- CI / deterministic-verification / independent-review evidence state and refs;
+- UTC capture provenance;
+- deterministic checkpoint ID/digest;
+- all-false authority.
 
-A serialized checkpoint can therefore be revalidated in a later process/clone once the marker is present in the implementation history. Trust is re-derived from Git rather than from a process-local secret.
+No tag, branch, remote-tracking ref, Git note, repository setting, database record, snapshot, second registry, or standalone marker object is created by checkpoint capture.
+
+### Implementation publication binding
+
+A durable recovery anchor alone says **where to recover to**. It does not by itself prove which later implementation was protected by that checkpoint.
+
+Therefore the first commit on the protected implementation's first-parent lineage immediately after the recovery anchor must contain the exact trailer:
+
+`R159-Checkpoint-Digest: <checkpoint_digest>`
+
+Post-change validation requires:
+
+1. the recovery anchor is a strict first-parent ancestor of the supplied implementation head;
+2. the first implementation commit after the anchor has the anchor as its first parent;
+3. that first commit contains the exact checkpoint digest trailer.
+
+A later second/third commit cannot retroactively add the binding. This prevents after-the-fact checkpoint laundering without introducing a separate marker commit or ref mutation.
+
+`checkpoint_publication_state()` exposes only evidence state:
+
+- `CAPTURED_DURABLE_CANONICAL_ANCHOR` before implementation publication;
+- `PUBLISHED_IMPLEMENTATION_LINEAGE` after the exact first commit binds the checkpoint digest.
+
+Neither state grants execution, write, review, merge, or release authority.
 
 ### Revalidation
 
@@ -71,23 +98,22 @@ A serialized checkpoint can therefore be revalidated in a later process/clone on
 
 - schema/digest/ID and all-false authority boundary;
 - current remote repository identity and canonical remote ref identity;
-- canonical base and marker commit existence;
-- exact base tree and zero-tree-change marker tree;
-- marker has exactly the canonical base as its sole parent;
-- marker commit message exactly reproduces the serialized checkpoint envelope;
-- canonical base remains an ancestor of current canonical main;
-- policy/schema blob bindings still match the captured base;
-- pre-change use requires HEAD and current remote canonical main still equal the captured base;
-- post-change use requires a supplied implementation head that is a **strict descendant** of the marker.
+- recovery anchor/base commit existence and exact tree;
+- recovery anchor equals the captured canonical main;
+- current canonical main remains descended from the captured anchor, so destructive history rewrite fails closed;
+- policy/schema blob bindings still match the captured anchor;
+- pre-change use requires HEAD and live remote canonical main still equal the captured anchor;
+- post-change use requires the supplied implementation head to be a strict descendant with the exact first-commit checkpoint publication binding.
 
-Git graph/object checks run with replacement objects disabled so local `git replace` state cannot launder parent/tree/ancestry evidence.
+Git graph/object checks run with replacement objects disabled so local `git replace` state cannot launder tree/ancestry evidence.
 
 ## GovernedRevertPlan/v1
 
 A governed plan binds:
 
 - checkpoint ID/digest;
-- checkpoint marker commit;
+- `checkpoint_recovery_anchor_commit`;
+- `checkpoint_publication_binding_commit`;
 - target canonical commit/tree;
 - exact implementation head being reverted;
 - semantically re-derived PASS assessment.
@@ -100,7 +126,7 @@ Recovery strategy is derived, not caller-selected:
 - snapshot -> `FORWARD_REVERT_PLUS_SNAPSHOT_RESTORE`
 - compensatable external effect -> `COMPENSATING_ACTION_PLUS_FORWARD_REVERT`
 
-Every plan preserves history, forbids destructive history rewrite, requires exact-head reverification, requires independent review for MEDIUM/LARGE/CRITICAL changes, and requires user approval for critical/compensatable recovery where derived. `validate_governed_revert_plan()` revalidates checkpoint + implementation ancestry, re-derives assessment and plan semantics, and rejects recomputed-digest laundering.
+Every plan preserves history, forbids destructive history rewrite, requires exact-head reverification, requires independent review for MEDIUM/LARGE/CRITICAL changes, and requires user approval for critical/compensatable recovery where derived. `validate_governed_revert_plan()` revalidates checkpoint + publication lineage, re-derives assessment and plan semantics, and rejects recomputed-digest laundering.
 
 ## User trigger
 
@@ -128,7 +154,17 @@ Found:
 1. invocation-local seal could not survive process/serialization boundaries and therefore was not a durable rollback marker;
 2. repository/canonical-main identity and the CEA-SIG-003 minimum evidence envelope were incomplete/caller-asserted.
 
-Current remediation replaces invocation-local trust with the durable zero-tree-change Git marker commit protocol, live remote repository/main re-derivation, policy/schema blob binding, CI/deterministic/review evidence envelope, UTC provenance, and strict marker->implementation ancestry. No tag/ref registry or D1 verification authority is introduced.
+Remediation added live remote repository/main re-derivation, policy/schema blob binding, CI/deterministic/review evidence envelope, UTC provenance, and cross-process Git validation.
+
+### Review 4 — `pullrequestreview-5052766026`
+
+Found: the zero-tree-change `git commit-tree` marker was an unreachable Git object until later implementation publication, so standard Git GC could prune the supposed rollback anchor during the exact pre-publication window it was meant to protect.
+
+The reviewer reproduced the mechanism in an unrelated temporary repository with `git fsck --unreachable --no-reflogs`, reflog expiry, and `git gc --prune=now`.
+
+Current remediation removes the standalone marker object entirely. The recovery target is the already-reachable canonical main commit. A separate first-implementation-commit trailer binds the exact checkpoint digest to the protected implementation lineage. This closes the GC window without tags/refs or a new durable authority.
+
+The review-4 non-blocking carry-forward remains: CI / deterministic-verification / independent-review references are bound evidence in R159, not provider-verified truth; D1 must validate providers before treating them as such.
 
 ## Adversarial regression matrix
 
@@ -139,21 +175,26 @@ The R159 suite covers at least:
 - policy version-switch and external compensation/irreversible surfaces;
 - digest-only marker spoofing;
 - serialized/deep-copied cross-process checkpoint revalidation;
-- JSON mutation + recomputed-digest forgery;
 - repository-label substitution and remote-identity substitution;
 - live remote-main drift at capture;
+- destructive canonical-history rewrite rejection;
 - dirty and untracked worktree rejection;
 - required policy/schema paths and missing-path failure;
 - CI FAIL and deterministic INCONCLUSIVE rejection;
 - PASS state without evidence refs rejection;
-- exact marker parent/tree/payload validation;
-- marker strict ancestry to implementation head;
-- unrelated implementation head and marker-as-head rejection;
+- canonical recovery anchor exact commit/tree binding;
+- recovery anchor survival across reflog expiry and `git gc --prune=now`;
+- serialized checkpoint survival across GC/restart boundary;
+- fresh clone validation after implementation publication;
+- exact first-commit publication trailer binding;
+- rejection of unbound descendants;
+- rejection of late second-commit checkpoint binding;
+- implementation head strict ancestry;
 - `git replace` laundering resistance;
 - assessment marker-bit/classification laundering;
 - revert strategy/review/history/authority laundering;
 - CLI checkpoint serialization and later reuse;
-- no mutable tag/ref seam;
+- no mutable tag/ref/standalone-commit-tree seam;
 - all authority booleans false.
 
 ## CI gate
@@ -166,8 +207,8 @@ Python 3.11 and 3.13 must both pass:
 - R159 adversarial suite;
 - complete retained Control Tower suite;
 - exact seven-file additive-only diff;
-- durable-marker/canonical-binding/all-false-authority static invariants;
-- no mutable tag/ref or destructive-history seam;
+- durable canonical-anchor/publication-binding/all-false-authority static invariants;
+- no mutable tag/ref, standalone `commit-tree`, or destructive-history seam;
 - `git diff --check` and unfinished-marker rejection.
 
 ## Stop gate
