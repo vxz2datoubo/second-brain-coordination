@@ -7,13 +7,20 @@
     "schema_version",
     "repository",
     "source_ref",
-    "canonical_commit",
+    "canonical_main_sha",
     "tree_sha",
+    "marker_commit",
     "trigger_source",
     "reason",
     "qualification_level",
     "git_binding_verified",
     "trust_semantics",
+    "policy_schema_versions",
+    "ci_status",
+    "deterministic_verification_status",
+    "independent_review_status",
+    "recorded_at",
+    "provenance",
     "previous_checkpoint_digest",
     "evidence_refs",
     "evidence_semantics",
@@ -22,119 +29,59 @@
     "checkpoint_digest"
   ],
   "properties": {
-    "schema_version": {
-      "const": "KnownGoodCheckpoint/v1"
-    },
-    "repository": {
-      "type": "string",
-      "minLength": 1
-    },
-    "source_ref": {
-      "type": "string",
-      "minLength": 1
-    },
-    "canonical_commit": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{40}$"
-    },
-    "tree_sha": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{40}$"
-    },
-    "trigger_source": {
-      "enum": [
-        "GPT_LARGE_CHANGE_JUDGMENT",
-        "MANUAL_OPERATION",
-        "PRE_MATERIAL_CHANGE_POLICY",
-        "USER_EXPLICIT_ROLLBACK_MARKER"
-      ]
-    },
-    "reason": {
-      "type": "string",
-      "minLength": 1
-    },
-    "qualification_level": {
-      "const": "DESIGNATED_RECOVERY_ANCHOR"
-    },
-    "git_binding_verified": {
-      "const": true
-    },
-    "trust_semantics": {
-      "const": "INVOCATION_LOCAL_SEAL_REQUIRED_FOR_AUTHORITY_BEARING_USE"
-    },
-    "previous_checkpoint_digest": {
-      "oneOf": [
-        {
-          "type": "null"
-        },
-        {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        }
-      ]
-    },
-    "evidence_refs": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "minLength": 1
-      },
-      "uniqueItems": true
-    },
-    "evidence_semantics": {
-      "const": "REFERENCES_ONLY_NOT_ACCEPTANCE_AUTHORITY"
-    },
-    "authority": {
+    "schema_version": {"const": "KnownGoodCheckpoint/v1"},
+    "repository": {"type": "string", "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"},
+    "source_ref": {"type": "string", "minLength": 1},
+    "canonical_main_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "tree_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "marker_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "trigger_source": {"enum": ["GPT_LARGE_CHANGE_JUDGMENT", "MANUAL_OPERATION", "PRE_MATERIAL_CHANGE_POLICY", "USER_EXPLICIT_ROLLBACK_MARKER"]},
+    "reason": {"type": "string", "minLength": 1},
+    "qualification_level": {"const": "DESIGNATED_RECOVERY_ANCHOR"},
+    "git_binding_verified": {"const": true},
+    "trust_semantics": {"const": "DURABLE_GIT_MARKER_COMMIT_REDERIVED_FROM_CANONICAL_STATE"},
+    "policy_schema_versions": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "string", "pattern": "^[0-9a-f]{40}$"}},
+    "ci_status": {"$ref": "#/$defs/evidenceStatus"},
+    "deterministic_verification_status": {"$ref": "#/$defs/evidenceStatus"},
+    "independent_review_status": {"$ref": "#/$defs/evidenceStatus"},
+    "recorded_at": {"type": "string", "minLength": 2},
+    "provenance": {
       "type": "object",
-      "required": [
-        "creates_task",
-        "creates_route",
-        "creates_work_claim",
-        "grants_execution",
-        "grants_write",
-        "grants_review_accept",
-        "grants_merge",
-        "grants_release",
-        "grants_trading"
-      ],
+      "required": ["capture_tool", "capture_mode", "remote_name", "canonical_branch", "canonical_remote_ref"],
       "properties": {
-        "creates_task": {
-          "const": false
-        },
-        "creates_route": {
-          "const": false
-        },
-        "creates_work_claim": {
-          "const": false
-        },
-        "grants_execution": {
-          "const": false
-        },
-        "grants_write": {
-          "const": false
-        },
-        "grants_review_accept": {
-          "const": false
-        },
-        "grants_merge": {
-          "const": false
-        },
-        "grants_release": {
-          "const": false
-        },
-        "grants_trading": {
-          "const": false
-        }
+        "capture_tool": {"const": "R159/reversible_change.py"},
+        "capture_mode": {"const": "GIT_COMMIT_TREE_MARKER"},
+        "remote_name": {"type": "string", "minLength": 1},
+        "canonical_branch": {"type": "string", "minLength": 1},
+        "canonical_remote_ref": {"type": "string", "minLength": 1}
       },
       "additionalProperties": false
     },
-    "checkpoint_id": {
-      "type": "string",
-      "pattern": "^KGC-[0-9a-f]{16}$"
+    "previous_checkpoint_digest": {"oneOf": [{"type": "null"}, {"type": "string", "pattern": "^[0-9a-f]{64}$"}]},
+    "evidence_refs": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "evidence_semantics": {"const": "BOUND_REFERENCES_NOT_ACCEPTANCE_AUTHORITY"},
+    "authority": {"$ref": "#/$defs/authority"},
+    "checkpoint_id": {"type": "string", "pattern": "^KGC-[0-9a-f]{16}$"},
+    "checkpoint_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "$defs": {
+    "evidenceStatus": {
+      "type": "object",
+      "required": ["state", "evidence_refs", "reason"],
+      "properties": {
+        "state": {"enum": ["PASS", "FAIL", "INCONCLUSIVE", "NOT_APPLICABLE"]},
+        "evidence_refs": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+        "reason": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
     },
-    "checkpoint_digest": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{64}$"
+    "authority": {
+      "type": "object",
+      "required": ["creates_task", "creates_route", "creates_work_claim", "grants_execution", "grants_write", "grants_review_accept", "grants_merge", "grants_release", "grants_trading"],
+      "properties": {
+        "creates_task": {"const": false}, "creates_route": {"const": false}, "creates_work_claim": {"const": false}, "grants_execution": {"const": false}, "grants_write": {"const": false}, "grants_review_accept": {"const": false}, "grants_merge": {"const": false}, "grants_release": {"const": false}, "grants_trading": {"const": false}
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": false
