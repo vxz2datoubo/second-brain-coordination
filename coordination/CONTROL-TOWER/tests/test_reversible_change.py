@@ -15,12 +15,19 @@ def redigest_checkpoint(x):
 
 class Repo:
     def __enter__(self):
-        self.tmp=tempfile.TemporaryDirectory(); base=Path(self.tmp.name); self.root=base/"work"; self.root.mkdir(); self.origin=base/"example"/"repo.git"; self.origin.parent.mkdir()
+        self.tmp=tempfile.TemporaryDirectory(); base=Path(self.tmp.name); self.root=base/"work"; self.root.mkdir(); self.origin=base/"example"/"repo.git"; self.origin.parent.mkdir(); self.canonical_url="https://github.com/example/repo.git"
         subprocess.check_call(["git","init","--bare",str(self.origin)],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
         subprocess.check_call(["git","init","-b","main"],cwd=self.root,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
         subprocess.check_call(["git","config","user.name","R159 Test"],cwd=self.root); subprocess.check_call(["git","config","user.email","r159@example.invalid"],cwd=self.root)
         (self.root/"tracked.txt").write_text("known-good\n"); subprocess.check_call(["git","add","."],cwd=self.root); subprocess.check_call(["git","commit","-m","known good"],cwd=self.root,stdout=subprocess.DEVNULL)
-        self.head=self.git("rev-parse","HEAD"); subprocess.check_call(["git","remote","add","origin",str(self.origin)],cwd=self.root); subprocess.check_call(["git","push","-u","origin","main"],cwd=self.root,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL); return self
+        self.head=self.git("rev-parse","HEAD"); subprocess.check_call(["git","remote","add","origin",self.canonical_url],cwd=self.root); subprocess.check_call(["git","push",str(self.origin),"main"],cwd=self.root,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+        self.original_rc_git=rc._git
+        def local_transport(root,*args,input_text=None):
+            a=list(args)
+            if len(a)>=4 and a[0]=="ls-remote" and a[2]==self.canonical_url: a[2]=str(self.origin)
+            return self.original_rc_git(root,*a,input_text=input_text)
+        rc._git=local_transport
+        return self
     def git(self,*a): return subprocess.check_output(["git",*a],cwd=self.root,text=True).strip()
     def refs(self): return self.git("for-each-ref","--format=%(refname):%(objectname)")
     def checkpoint(self,**kw):
@@ -35,9 +42,10 @@ class Repo:
     def install_target_looking_rewrite(self,kind="insteadOf"):
         evil=Path(self.tmp.name)/"evil"/"repo.git"; evil.parent.mkdir(); subprocess.check_call(["git","init","--bare",str(evil)],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
         subprocess.check_call(["git","--git-dir",str(evil),"fetch",str(self.root),f"{self.head}:refs/heads/main"],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
-        target="https://github.com/example/repo"; subprocess.check_call(["git","remote","set-url","origin",target],cwd=self.root)
+        target=self.canonical_url; subprocess.check_call(["git","remote","set-url","origin",target],cwd=self.root)
         subprocess.check_call(["git","config","--local",f"url.{evil.as_uri()}.{kind}",target],cwd=self.root); return target,evil
-    def __exit__(self,*_): self.tmp.cleanup()
+    def __exit__(self,*_):
+        rc._git=self.original_rc_git; self.tmp.cleanup()
 
 class T(unittest.TestCase):
     def test_01_small_pass(self): self.assertEqual(rc.assess_change_intent(intent())["assessment_result"],"PASS")
@@ -70,10 +78,10 @@ class T(unittest.TestCase):
     def test_13_remote_identity_change(self):
         with Repo() as r:
             c=r.checkpoint(); other=Path(r.tmp.name)/"other"/"repo.git"; other.parent.mkdir(); subprocess.check_call(["git","init","--bare",str(other)],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL); subprocess.check_call(["git","--git-dir",str(other),"fetch",str(r.root),f"{r.head}:refs/heads/main"],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL); subprocess.check_call(["git","remote","set-url","origin",str(other)],cwd=r.root)
-            with self.assertRaisesRegex(rc.ReversibleChangeError,"REPOSITORY_IDENTITY_MISMATCH"): rc.validate_known_good_checkpoint(c,repo_root=r.root)
+            with self.assertRaisesRegex(rc.ReversibleChangeError,"REMOTE_PROVIDER_HOST_NOT_BOUND"): rc.validate_known_good_checkpoint(c,repo_root=r.root)
     def test_14_remote_main_drift_capture(self):
         with Repo() as r:
-            later=r.later_main(); subprocess.check_call(["git","push","origin",f"{later}:refs/heads/main"],cwd=r.root,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL); subprocess.check_call(["git","reset","--hard",r.head],cwd=r.root,stdout=subprocess.DEVNULL)
+            later=r.later_main(); subprocess.check_call(["git","push",str(r.origin),f"{later}:refs/heads/main"],cwd=r.root,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL); subprocess.check_call(["git","reset","--hard",r.head],cwd=r.root,stdout=subprocess.DEVNULL)
             with self.assertRaisesRegex(rc.ReversibleChangeError,"CANONICAL_MAIN_DRIFT"): r.checkpoint()
     def test_15_dirty_rejected(self):
         with Repo() as r:
@@ -150,7 +158,21 @@ class T(unittest.TestCase):
             p=Path(d)/"i.json"; p.write_text(json.dumps(intent())); out=subprocess.check_output([sys.executable,str(Path(rc.__file__)),"assess","--input",str(p)],text=True); self.assertEqual(json.loads(out)["assessment_result"],"PASS")
     def test_38_cli_checkpoint_and_reuse(self):
         with Repo() as r, tempfile.TemporaryDirectory() as d:
-            out=subprocess.check_output([sys.executable,str(Path(rc.__file__)),"checkpoint","--repo-root",str(r.root),"--repository","example/repo","--expected-head",r.head,"--trigger-source","MANUAL_OPERATION","--reason","anchor","--policy-schema-path","tracked.txt","--ci-evidence-ref","ci://x","--deterministic-evidence-ref","det://x"],text=True); c=json.loads(out); cp=Path(d)/"c.json"; ip=Path(d)/"i.json"; cp.write_text(json.dumps(c)); ip.write_text(json.dumps(intent(blast_radius="LARGE",rollback_checkpoint_ref=c["checkpoint_digest"]))); out2=subprocess.check_output([sys.executable,str(Path(rc.__file__)),"assess","--input",str(ip),"--checkpoint",str(cp),"--repo-root",str(r.root)],text=True); self.assertEqual(json.loads(out2)["assessment_result"],"PASS")
+            wrapper=Path(d)/"r159_cli.py"
+            wrapper.write_text(
+                "import reversible_change as rc\n"
+                f"origin={str(r.origin)!r}\n"
+                f"target={r.canonical_url!r}\n"
+                "original=rc._git\n"
+                "def local_transport(root,*args,input_text=None):\n"
+                "    a=list(args)\n"
+                "    if len(a)>=4 and a[0]=='ls-remote' and a[2]==target: a[2]=origin\n"
+                "    return original(root,*a,input_text=input_text)\n"
+                "rc._git=local_transport\n"
+                "raise SystemExit(rc._cli())\n"
+            )
+            env={**dict(__import__('os').environ),"PYTHONPATH":str(Path(rc.__file__).parent)}
+            out=subprocess.check_output([sys.executable,str(wrapper),"checkpoint","--repo-root",str(r.root),"--repository","example/repo","--expected-head",r.head,"--trigger-source","MANUAL_OPERATION","--reason","anchor","--policy-schema-path","tracked.txt","--ci-evidence-ref","ci://x","--deterministic-evidence-ref","det://x"],text=True,env=env); c=json.loads(out); cp=Path(d)/"c.json"; ip=Path(d)/"i.json"; cp.write_text(json.dumps(c)); ip.write_text(json.dumps(intent(blast_radius="LARGE",rollback_checkpoint_ref=c["checkpoint_digest"]))); out2=subprocess.check_output([sys.executable,str(wrapper),"assess","--input",str(ip),"--checkpoint",str(cp),"--repo-root",str(r.root)],text=True,env=env); self.assertEqual(json.loads(out2)["assessment_result"],"PASS")
     def test_39_no_mutable_ref_seam(self):
         s=Path(rc.__file__).read_text()
         for token in ("update-ref","refs/tags/","git tag","git notes","symbolic-ref","reset --hard","push --force","commit-tree"): self.assertNotIn(token,s)
@@ -162,14 +184,14 @@ class T(unittest.TestCase):
             c=json.loads(json.dumps(r.checkpoint())); subprocess.check_call(["git","reflog","expire","--expire=now","--all"],cwd=r.root); subprocess.check_call(["git","gc","--prune=now"],cwd=r.root,stdout=subprocess.DEVNULL); rc.validate_known_good_checkpoint(c,repo_root=r.root)
     def test_43_fresh_clone_after_publication(self):
         with Repo() as r:
-            c=r.checkpoint(); h=r.impl(c); subprocess.check_call(["git","push","origin",f"{h}:refs/heads/work"],cwd=r.root,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL); fresh=Path(r.tmp.name)/"fresh"; subprocess.check_call(["git","clone","--branch","work",str(r.origin),str(fresh)],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL); got=rc.validate_known_good_checkpoint(json.loads(json.dumps(c)),repo_root=fresh,implementation_head=h); self.assertEqual(got["recovery_anchor_commit"],r.head)
+            c=r.checkpoint(); h=r.impl(c); subprocess.check_call(["git","push",str(r.origin),f"{h}:refs/heads/work"],cwd=r.root,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL); fresh=Path(r.tmp.name)/"fresh"; subprocess.check_call(["git","clone","--branch","work",str(r.origin),str(fresh)],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL); subprocess.check_call(["git","remote","set-url","origin",r.canonical_url],cwd=fresh); got=rc.validate_known_good_checkpoint(json.loads(json.dumps(c)),repo_root=fresh,implementation_head=h); self.assertEqual(got["recovery_anchor_commit"],r.head)
     def test_44_late_second_commit_binding_rejected(self):
         with Repo() as r:
             c=r.checkpoint(); subprocess.check_call(["git","checkout","-B","work",r.head],cwd=r.root,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL); (r.root/"tracked.txt").write_text("first\n"); subprocess.check_call(["git","add","."],cwd=r.root); subprocess.check_call(["git","commit","-m","first without binding"],cwd=r.root,stdout=subprocess.DEVNULL); (r.root/"tracked.txt").write_text("second\n"); subprocess.check_call(["git","add","."],cwd=r.root); subprocess.check_call(["git","commit","-m",f"second\n\n{rc.PUBLICATION_TRAILER} {c['checkpoint_digest']}"],cwd=r.root,stdout=subprocess.DEVNULL); h=r.git("rev-parse","HEAD")
             with self.assertRaisesRegex(rc.ReversibleChangeError,"PUBLICATION_BINDING_MISSING"): rc.validate_known_good_checkpoint(c,repo_root=r.root,implementation_head=h)
     def test_45_remote_history_rewrite_rejected(self):
         with Repo() as r:
-            c=r.checkpoint(); subprocess.check_call(["git","checkout","--orphan","rewritten"],cwd=r.root,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL); subprocess.check_call(["git","rm","-rf","."],cwd=r.root,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL); (r.root/"tracked.txt").write_text("rewritten\n"); subprocess.check_call(["git","add","."],cwd=r.root); subprocess.check_call(["git","commit","-m","rewritten"],cwd=r.root,stdout=subprocess.DEVNULL); other=r.git("rev-parse","HEAD"); subprocess.check_call(["git","push","origin",f"+{other}:refs/heads/main"],cwd=r.root,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL); subprocess.check_call(["git","checkout","main"],cwd=r.root,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+            c=r.checkpoint(); subprocess.check_call(["git","checkout","--orphan","rewritten"],cwd=r.root,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL); subprocess.check_call(["git","rm","-rf","."],cwd=r.root,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL); (r.root/"tracked.txt").write_text("rewritten\n"); subprocess.check_call(["git","add","."],cwd=r.root); subprocess.check_call(["git","commit","-m","rewritten"],cwd=r.root,stdout=subprocess.DEVNULL); other=r.git("rev-parse","HEAD"); subprocess.check_call(["git","push",str(r.origin),f"+{other}:refs/heads/main"],cwd=r.root,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL); subprocess.check_call(["git","checkout","main"],cwd=r.root,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
             with self.assertRaisesRegex(rc.ReversibleChangeError,"CANONICAL_MAIN_ANCESTRY_MISMATCH"): rc.validate_known_good_checkpoint(c,repo_root=r.root)
     def test_46_prechange_state_is_explicit(self):
         with Repo() as r:
@@ -189,6 +211,16 @@ class T(unittest.TestCase):
         with Repo() as r:
             target,evil=r.install_target_looking_rewrite("pushInsteadOf"); self.assertEqual(r.git("config","--get","remote.origin.url"),target); self.assertTrue(evil.exists())
             with self.assertRaisesRegex(rc.ReversibleChangeError,"EFFECTIVE_REMOTE_URL_REWRITE_FORBIDDEN"): r.checkpoint()
+    def test_51_foreign_https_same_repo_path_rejected(self):
+        with Repo() as r:
+            subprocess.check_call(["git","remote","set-url","origin","https://evil.example/example/repo.git"],cwd=r.root)
+            with self.assertRaisesRegex(rc.ReversibleChangeError,"REMOTE_PROVIDER_HOST_NOT_BOUND"): r.checkpoint()
+    def test_52_file_endpoint_same_repo_path_rejected(self):
+        with Repo() as r:
+            evil=Path(r.tmp.name)/"mirror"/"example"/"repo.git"; evil.parent.mkdir(parents=True); subprocess.check_call(["git","init","--bare",str(evil)],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL); subprocess.check_call(["git","--git-dir",str(evil),"fetch",str(r.root),f"{r.head}:refs/heads/main"],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL); subprocess.check_call(["git","remote","set-url","origin",evil.as_uri()],cwd=r.root)
+            with self.assertRaisesRegex(rc.ReversibleChangeError,"REMOTE_PROVIDER_HOST_NOT_BOUND"): r.checkpoint()
+    def test_53_canonical_github_https_and_ssh_forms(self):
+        self.assertEqual(rc._remote_repo("https://github.com/example/repo.git"),"example/repo"); self.assertEqual(rc._remote_repo("git@github.com:example/repo.git"),"example/repo"); self.assertEqual(rc._remote_repo("ssh://git@github.com/example/repo.git"),"example/repo")
 
 MATRIX=[
 ("small-none",{},("PASS","REVERSIBLE_GIT_ONLY")),
@@ -213,6 +245,6 @@ def _mk(case,kw,expected):
     def test(self):
         x=rc.assess_change_intent(intent(**kw)); self.assertEqual((x["assessment_result"],x["reversibility_class"]),expected,case)
     return test
-for i,row in enumerate(MATRIX,51): setattr(T,f"test_{i:02d}_matrix_{row[0].replace('-','_')}",_mk(*row))
+for i,row in enumerate(MATRIX,54): setattr(T,f"test_{i:02d}_matrix_{row[0].replace('-','_')}",_mk(*row))
 
 if __name__=="__main__": unittest.main()
