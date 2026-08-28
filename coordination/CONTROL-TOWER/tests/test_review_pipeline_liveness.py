@@ -2,14 +2,16 @@ from __future__ import annotations
 
 import importlib.util
 from pathlib import Path
+import sys
 
 import pytest
 
 
 MODULE = Path(__file__).resolve().parents[1] / "review_pipeline_liveness.py"
 spec = importlib.util.spec_from_file_location("review_pipeline_liveness", MODULE)
-mod = importlib.util.module_from_spec(spec)
 assert spec and spec.loader
+mod = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = mod
 spec.loader.exec_module(mod)
 
 LivenessEvidence = mod.LivenessEvidence
