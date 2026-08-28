@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import json
 import re
 import subprocess
+from collections.abc import Iterator, Mapping, Sequence
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from types import MappingProxyType
+from typing import Any
 
 ASSESSMENT_SCHEMA = "ChangeReversibilityAssessment/v1"
 CHECKPOINT_SCHEMA = "KnownGoodCheckpoint/v1"
@@ -62,7 +65,6 @@ AUTHORITY = {
 }
 SHA40 = re.compile(r"^[0-9a-f]{40}$")
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
-_MARKER_PREFIX = "refs/tags/r159-known-good/"
 _INTENT_FIELDS = {
     "change_id",
     "surface_kind",
@@ -81,6 +83,9 @@ _STRATEGY_BY_CLASS = {
     "REVERSIBLE_WITH_SNAPSHOT": "FORWARD_REVERT_PLUS_SNAPSHOT_RESTORE",
     "COMPENSATABLE_ONLY": "COMPENSATING_ACTION_PLUS_FORWARD_REVERT",
 }
+_CHECKPOINT_TRUST_SEMANTICS = (
+    "INVOCATION_LOCAL_SEAL_REQUIRED_FOR_AUTHORITY_BEARING_USE"
+)
 
 
 class ReversibleChangeError(ValueError):
@@ -89,7 +94,7 @@ class ReversibleChangeError(ValueError):
 
 def _canonical_json(value: Mapping[str, Any]) -> str:
     return json.dumps(
-        value,
+        dict(value),
         ensure_ascii=False,
         sort_keys=True,
         separators=(",", ":"),
@@ -169,9 +174,111 @@ def _git_optional(repo_root: Path, *args: str) -> str | None:
         return None
 
 
-def _marker_ref(checkpoint_digest: str) -> str:
-    digest = _require_sha256(checkpoint_digest, "checkpoint_digest")
-    return f"{_MARKER_PREFIX}{digest}"
+def _make_checkpoint_contract():
+    secret = object()
+
+    class TrustedKnownGoodCheckpoint(Mapping[str, Any]):
+        __slots__ = ("__payload",)
+
+        def __init__(self, payload: Mapping[str, Any], key: object):
+            if key is not secret:
+                raise ReversibleChangeError("checkpoint:TRUSTED_CAPTURE_REQUIRED")
+            self.__payload = MappingProxyType(copy.deepcopy(dict(payload)))
+
+        def __getitem__(self, key: str) -> Any:
+            return self.__payload[key]
+
+        def __iter__(self) -> Iterator[str]:
+            return iter(self.__payload)
+
+        def __len__(self) -> int:
+            return len(self.__payload)
+
+        def __copy__(self) -> dict[str, Any]:
+            return dict(self.__payload)
+
+        def __deepcopy__(self, memo: dict[int, Any]) -> dict[str, Any]:
+            return copy.deepcopy(dict(self.__payload), memo)
+
+        def evidence(self) -> dict[str, Any]:
+            return copy.deepcopy(dict(self.__payload))
+
+    def capture(
+        repo_root: str | Path,
+        *,
+        repository: str,
+        expected_head: str,
+        trigger_source: str,
+        reason: str,
+        required_branch: str = "main",
+        previous_checkpoint_digest: str | None = None,
+        evidence_refs: Sequence[str] = (),
+    ) -> Mapping[str, Any]:
+        root = Path(repo_root).resolve()
+        repository_name = _require_str(repository, "repository")
+        expected = _require_sha40(expected_head, "expected_head")
+        trigger = _require_enum(trigger_source, "trigger_source", TRIGGER_SOURCES)
+        reason_text = _require_str(reason, "reason")
+        branch_required = _require_str(required_branch, "required_branch")
+        if previous_checkpoint_digest is not None:
+            previous_checkpoint_digest = _require_sha256(
+                previous_checkpoint_digest,
+                "previous_checkpoint_digest",
+            )
+
+        head = _git(root, "rev-parse", "HEAD")
+        if head != expected:
+            raise ReversibleChangeError("checkpoint:HEAD_DRIFT")
+
+        tree = _git(root, "rev-parse", "HEAD^{tree}")
+        _require_sha40(tree, "tree_sha")
+        branch = _git(root, "symbolic-ref", "--short", "-q", "HEAD")
+        if branch != branch_required:
+            raise ReversibleChangeError("checkpoint:BRANCH_MISMATCH")
+
+        dirty = _git(root, "status", "--porcelain", "--untracked-files=all")
+        if dirty:
+            raise ReversibleChangeError("checkpoint:WORKTREE_DIRTY")
+
+        refs: list[str] = []
+        seen: set[str] = set()
+        for ref in evidence_refs:
+            item = _require_str(ref, "evidence_ref")
+            if item not in seen:
+                refs.append(item)
+                seen.add(item)
+
+        semantic = {
+            "schema_version": CHECKPOINT_SCHEMA,
+            "repository": repository_name,
+            "source_ref": branch,
+            "canonical_commit": head,
+            "tree_sha": tree,
+            "trigger_source": trigger,
+            "reason": reason_text,
+            "qualification_level": "DESIGNATED_RECOVERY_ANCHOR",
+            "git_binding_verified": True,
+            "trust_semantics": _CHECKPOINT_TRUST_SEMANTICS,
+            "previous_checkpoint_digest": previous_checkpoint_digest,
+            "evidence_refs": refs,
+            "evidence_semantics": "REFERENCES_ONLY_NOT_ACCEPTANCE_AUTHORITY",
+            "authority": dict(AUTHORITY),
+        }
+        digest = _digest(semantic)
+        result = dict(semantic)
+        result["checkpoint_id"] = f"KGC-{digest[:16]}"
+        result["checkpoint_digest"] = digest
+        return TrustedKnownGoodCheckpoint(result, secret)
+
+    def unwrap(value: Mapping[str, Any]) -> dict[str, Any]:
+        if type(value) is not TrustedKnownGoodCheckpoint:
+            raise ReversibleChangeError("checkpoint:TRUSTED_CAPTURE_REQUIRED")
+        return value.evidence()
+
+    return capture, unwrap
+
+
+capture_known_good_checkpoint, _UNWRAP_CAPTURED_CHECKPOINT = _make_checkpoint_contract()
 
 
 def trigger_from_user_text(text: str) -> str:
@@ -336,82 +443,8 @@ def _derive_assessment(
     return payload
 
 
-def capture_known_good_checkpoint(
-    repo_root: str | Path,
-    *,
-    repository: str,
-    expected_head: str,
-    trigger_source: str,
-    reason: str,
-    required_branch: str = "main",
-    previous_checkpoint_digest: str | None = None,
-    evidence_refs: Sequence[str] = (),
-) -> dict[str, Any]:
-    root = Path(repo_root).resolve()
-    repository_name = _require_str(repository, "repository")
-    expected = _require_sha40(expected_head, "expected_head")
-    trigger = _require_enum(trigger_source, "trigger_source", TRIGGER_SOURCES)
-    reason_text = _require_str(reason, "reason")
-    branch_required = _require_str(required_branch, "required_branch")
-    if previous_checkpoint_digest is not None:
-        previous_checkpoint_digest = _require_sha256(
-            previous_checkpoint_digest,
-            "previous_checkpoint_digest",
-        )
-
-    head = _git(root, "rev-parse", "HEAD")
-    if head != expected:
-        raise ReversibleChangeError("checkpoint:HEAD_DRIFT")
-
-    tree = _git(root, "rev-parse", "HEAD^{tree}")
-    _require_sha40(tree, "tree_sha")
-    branch = _git(root, "symbolic-ref", "--short", "-q", "HEAD")
-    if branch != branch_required:
-        raise ReversibleChangeError("checkpoint:BRANCH_MISMATCH")
-
-    dirty = _git(root, "status", "--porcelain", "--untracked-files=all")
-    if dirty:
-        raise ReversibleChangeError("checkpoint:WORKTREE_DIRTY")
-
-    refs: list[str] = []
-    seen: set[str] = set()
-    for ref in evidence_refs:
-        item = _require_str(ref, "evidence_ref")
-        if item not in seen:
-            refs.append(item)
-            seen.add(item)
-
-    semantic = {
-        "schema_version": CHECKPOINT_SCHEMA,
-        "repository": repository_name,
-        "source_ref": branch,
-        "canonical_commit": head,
-        "tree_sha": tree,
-        "trigger_source": trigger,
-        "reason": reason_text,
-        "qualification_level": "DESIGNATED_RECOVERY_ANCHOR",
-        "git_binding_verified": True,
-        "previous_checkpoint_digest": previous_checkpoint_digest,
-        "evidence_refs": refs,
-        "evidence_semantics": "REFERENCES_ONLY_NOT_ACCEPTANCE_AUTHORITY",
-        "authority": dict(AUTHORITY),
-    }
-    digest = _digest(semantic)
-    marker_ref = _marker_ref(digest)
-
-    existing = _git_optional(root, "rev-parse", "--verify", "-q", marker_ref)
-    if existing is None:
-        _git(root, "update-ref", marker_ref, head, "0" * 40)
-    elif existing != head:
-        raise ReversibleChangeError("checkpoint:GIT_MARKER_COLLISION")
-
-    if _git(root, "rev-parse", "--verify", marker_ref) != head:
-        raise ReversibleChangeError("checkpoint:GIT_MARKER_CREATE_FAILED")
-
-    result = dict(semantic)
-    result["checkpoint_id"] = f"KGC-{digest[:16]}"
-    result["checkpoint_digest"] = digest
-    return result
+def checkpoint_evidence(value: Mapping[str, Any]) -> dict[str, Any]:
+    return copy.deepcopy(dict(_require_mapping(value, "checkpoint")))
 
 
 def validate_known_good_checkpoint(
@@ -420,7 +453,7 @@ def validate_known_good_checkpoint(
     repo_root: str | Path,
 ) -> dict[str, Any]:
     root = Path(repo_root).resolve()
-    checkpoint = dict(_require_mapping(value, "checkpoint"))
+    checkpoint = _UNWRAP_CAPTURED_CHECKPOINT(value)
     if checkpoint.get("schema_version") != CHECKPOINT_SCHEMA:
         raise ReversibleChangeError("checkpoint:SCHEMA_MISMATCH")
 
@@ -449,6 +482,8 @@ def validate_known_good_checkpoint(
         raise ReversibleChangeError("checkpoint:QUALIFICATION_MISMATCH")
     if checkpoint.get("git_binding_verified") is not True:
         raise ReversibleChangeError("checkpoint:GIT_BINDING_REQUIRED")
+    if checkpoint.get("trust_semantics") != _CHECKPOINT_TRUST_SEMANTICS:
+        raise ReversibleChangeError("checkpoint:TRUST_SEMANTICS_MISMATCH")
     if (
         checkpoint.get("evidence_semantics")
         != "REFERENCES_ONLY_NOT_ACCEPTANCE_AUTHORITY"
@@ -460,17 +495,6 @@ def validate_known_good_checkpoint(
     previous = checkpoint.get("previous_checkpoint_digest")
     if previous is not None:
         _require_sha256(previous, "previous_checkpoint_digest")
-
-    marker_ref = _marker_ref(digest)
-    marker_commit = _git_optional(
-        root,
-        "rev-parse",
-        "--verify",
-        "-q",
-        f"{marker_ref}^{{commit}}",
-    )
-    if marker_commit != commit:
-        raise ReversibleChangeError("checkpoint:TRUSTED_GIT_MARKER_REQUIRED")
 
     actual_tree = _git_optional(root, "rev-parse", f"{commit}^{{tree}}")
     if actual_tree != tree:
@@ -552,6 +576,8 @@ def validate_assessment(
     if checkpoint_value is None:
         expected = assess_change_intent(normalized)
     else:
+        if repo_root is None:
+            raise ReversibleChangeError("assessment:CHECKPOINT_REPO_ROOT_REQUIRED")
         expected = assess_change_intent(
             normalized,
             checkpoint_value,
@@ -622,7 +648,7 @@ def build_governed_revert_plan(
     )
     assessment = validate_assessment(
         assessment_value,
-        checkpoint_value=checkpoint,
+        checkpoint_value=checkpoint_value,
         repo_root=repo_root,
     )
     return _derive_revert_plan(checkpoint, assessment, reason=reason)
@@ -664,7 +690,7 @@ def validate_governed_revert_plan(
     )
     assessment = validate_assessment(
         assessment_value,
-        checkpoint_value=checkpoint,
+        checkpoint_value=checkpoint_value,
         repo_root=repo_root,
     )
     expected = _derive_revert_plan(
@@ -683,7 +709,14 @@ def _load_json(path: str) -> Mapping[str, Any]:
 
 
 def _dump(value: Mapping[str, Any]) -> None:
-    print(json.dumps(value, ensure_ascii=False, sort_keys=True, indent=2))
+    print(
+        json.dumps(
+            dict(value),
+            ensure_ascii=False,
+            sort_keys=True,
+            indent=2,
+        )
+    )
 
 
 def _cli() -> int:
@@ -715,35 +748,27 @@ def _cli() -> int:
 
     args = parser.parse_args()
     if args.command == "assess":
-        checkpoint = _load_json(args.checkpoint) if args.checkpoint else None
-        if checkpoint is not None and not args.repo_root:
-            raise ReversibleChangeError("assessment:CHECKPOINT_REPO_ROOT_REQUIRED")
-        _dump(
-            assess_change_intent(
-                _load_json(args.input),
-                checkpoint,
-                repo_root=args.repo_root,
+        if args.checkpoint:
+            raise ReversibleChangeError(
+                "assessment:SERIALIZED_CHECKPOINT_EVIDENCE_ONLY"
             )
-        )
+        _dump(assess_change_intent(_load_json(args.input)))
     elif args.command == "checkpoint":
         _dump(
-            capture_known_good_checkpoint(
-                args.repo_root,
-                repository=args.repository,
-                expected_head=args.expected_head,
-                trigger_source=args.trigger_source,
-                reason=args.reason,
-                required_branch=args.required_branch,
+            checkpoint_evidence(
+                capture_known_good_checkpoint(
+                    args.repo_root,
+                    repository=args.repository,
+                    expected_head=args.expected_head,
+                    trigger_source=args.trigger_source,
+                    reason=args.reason,
+                    required_branch=args.required_branch,
+                )
             )
         )
     elif args.command == "plan":
-        _dump(
-            build_governed_revert_plan(
-                _load_json(args.checkpoint),
-                _load_json(args.assessment),
-                reason=args.reason,
-                repo_root=args.repo_root,
-            )
+        raise ReversibleChangeError(
+            "revert_plan:SERIALIZED_CHECKPOINT_EVIDENCE_ONLY"
         )
     return 0
 
