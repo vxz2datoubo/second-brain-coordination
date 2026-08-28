@@ -1,125 +1,61 @@
-name: R159 Reversible Change Bootstrap
+name: Program Control Tower R159 Reversible Change Foundation
 
 on:
-  push:
-    branches:
-      - gpt/r159-reversible-change-foundation
+  pull_request:
     paths:
-      - '.github/workflows/program-control-tower-r159-reversible-change.yml'
+      - ".github/workflows/program-control-tower-r159-reversible-change.yml"
+      - "coordination/CONTROL-TOWER/reversible_change.py"
+      - "coordination/CONTROL-TOWER/tests/test_reversible_change.py"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/CHANGE-REVERSIBILITY-ASSESSMENT.schema.json"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/KNOWN-GOOD-CHECKPOINT.schema.json"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/GOVERNED-REVERT-PLAN.schema.json"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/PROJECT-PLAN.md"
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  bootstrap:
+  r159:
+    name: R159 reversible change (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
-    env:
-      PYTHONDONTWRITEBYTECODE: '1'
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        python-version: ["3.11", "3.13"]
     steps:
-      - name: Checkout bootstrap head
+      - name: Checkout exact PR head
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
+
+      - name: Verify exact-head provenance and base
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+          test "${{ github.event.pull_request.base.ref }}" = "main"
+          git fetch --no-tags origin main
+          test "$(git rev-parse origin/main)" = "${{ github.event.pull_request.base.sha }}"
+          git merge-base --is-ancestor "${{ github.event.pull_request.base.sha }}" HEAD
 
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: ${{ matrix.python-version }}
 
-      - name: Install retained dependency
+      - name: Install retained Control Tower dependency
         run: python -m pip install --disable-pip-version-check PyYAML==6.0.2
 
-      - name: Reconstruct exact R159 candidate
-        env:
-          GH_TOKEN: ${{ github.token }}
-          CHUNK_0: 0d33fe57c00ac397c62db6dbedae38c2183f2f64
-          CHUNK_1: 13864b458e7242e3a3205217e5f032638821557c
-          CHUNK_2: 0759f1ebdb00ddae109479dd6e95d1a32f1a1c1f
-          CHUNK_3: c0a7f5480b63a740324cddb6b77c8586a0aa236e
-          EXPECTED_TAR_SHA256: ce5e6c6e2bf0b2d1f9fe438d5cd50e4748078b7514adbc82541aaf1e731e3ccc
-        run: |
-          python - <<'PY'
-          import base64, hashlib, io, json, os, tarfile
-          from pathlib import Path, PurePosixPath
-          from urllib.request import Request, urlopen
+      - name: Compile R159 surfaces
+        working-directory: coordination/CONTROL-TOWER
+        run: python -m py_compile reversible_change.py tests/test_reversible_change.py
 
-          allowed = {
-              '.github/workflows/program-control-tower-r159-reversible-change.yml',
-              'coordination/CONTROL-TOWER/reversible_change.py',
-              'coordination/CONTROL-TOWER/tests/test_reversible_change.py',
-              'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/CHANGE-REVERSIBILITY-ASSESSMENT.schema.json',
-              'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/KNOWN-GOOD-CHECKPOINT.schema.json',
-              'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/GOVERNED-REVERT-PLAN.schema.json',
-              'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/PROJECT-PLAN.md',
-          }
-          chunks = []
-          for key in ('CHUNK_0', 'CHUNK_1', 'CHUNK_2', 'CHUNK_3'):
-              sha = os.environ[key]
-              req = Request(
-                  f"https://api.github.com/repos/{os.environ['GITHUB_REPOSITORY']}/git/blobs/{sha}",
-                  headers={
-                      'Authorization': f"Bearer {os.environ['GH_TOKEN']}",
-                      'Accept': 'application/vnd.github+json',
-                      'X-GitHub-Api-Version': '2022-11-28',
-                  },
-              )
-              with urlopen(req) as response:
-                  payload = json.load(response)
-              if payload.get('sha') != sha or payload.get('encoding') != 'base64':
-                  raise SystemExit(f'R159_TRANSPORT_IDENTITY_FAIL:{key}')
-              chunks.append(base64.b64decode(payload['content']).decode('utf-8'))
-          archive = base64.b64decode(''.join(chunks), validate=True)
-          digest = hashlib.sha256(archive).hexdigest()
-          if digest != os.environ['EXPECTED_TAR_SHA256']:
-              raise SystemExit(f'R159_TRANSPORT_DIGEST_FAIL:{digest}')
-          with tarfile.open(fileobj=io.BytesIO(archive), mode='r:gz') as tf:
-              members = tf.getmembers()
-              names = [m.name for m in members]
-              if len(members) != 7 or set(names) != allowed:
-                  raise SystemExit(f'R159_TRANSPORT_SCOPE_FAIL:{names}')
-              for member in members:
-                  p = PurePosixPath(member.name)
-                  if not member.isfile() or member.name.startswith('/') or '..' in p.parts:
-                      raise SystemExit(f'R159_TRANSPORT_MEMBER_FAIL:{member.name}')
-                  source = tf.extractfile(member)
-                  if source is None:
-                      raise SystemExit(f'R159_TRANSPORT_READ_FAIL:{member.name}')
-                  target = Path(member.name)
-                  target.parent.mkdir(parents=True, exist_ok=True)
-                  target.write_bytes(source.read())
-          print('R159_TRANSPORT_RECONSTRUCTION_PASS')
-          PY
-
-      - name: Validate candidate syntax and schemas
+      - name: Validate R159 JSON schemas
         run: |
-          python -m py_compile coordination/CONTROL-TOWER/reversible_change.py coordination/CONTROL-TOWER/tests/test_reversible_change.py
           python -m json.tool coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/CHANGE-REVERSIBILITY-ASSESSMENT.schema.json >/dev/null
           python -m json.tool coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/KNOWN-GOOD-CHECKPOINT.schema.json >/dev/null
           python -m json.tool coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/GOVERNED-REVERT-PLAN.schema.json >/dev/null
-          python - <<'PY'
-          from pathlib import Path
-          import yaml
-          value = yaml.safe_load(Path('.github/workflows/program-control-tower-r159-reversible-change.yml').read_text(encoding='utf-8'))
-          if not isinstance(value, dict):
-              raise SystemExit('R159_FINAL_WORKFLOW_YAML_FAIL')
-          print('R159_FINAL_WORKFLOW_YAML_PASS')
-          PY
-
-      - name: Create clean local-only candidate commit
-        run: |
-          set -euo pipefail
-          find . -type d -name __pycache__ -prune -exec rm -rf {} +
-          git config user.name 'r159-preflight'
-          git config user.email 'r159-preflight@invalid.local'
-          git add .github/workflows/program-control-tower-r159-reversible-change.yml \
-            coordination/CONTROL-TOWER/reversible_change.py \
-            coordination/CONTROL-TOWER/tests/test_reversible_change.py \
-            coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159
-          mapfile -t staged < <(git diff --cached --name-only)
-          test "${#staged[@]}" -eq 7
-          git commit -m 'R159 local-only verification candidate'
-          test -z "$(git status --porcelain)"
-          echo R159_LOCAL_CLEAN_COMMIT_PASS
 
       - name: Run R159 adversarial regressions
         working-directory: coordination/CONTROL-TOWER
@@ -129,69 +65,93 @@ jobs:
         working-directory: coordination/CONTROL-TOWER
         run: python run_all_tests.py
 
-      - name: Verify exact additive seven-file scope
+      - name: Verify exact seven-file additive-only scope
+        shell: bash
         run: |
           set -euo pipefail
-          BASE='a65488b9be4d60ac5198201fdd7872df1e2f4957'
-          mapfile -t changed < <(git diff --name-only "$BASE" HEAD)
+          BASE="${{ github.event.pull_request.base.sha }}"
           expected=(
-            '.github/workflows/program-control-tower-r159-reversible-change.yml'
-            'coordination/CONTROL-TOWER/reversible_change.py'
-            'coordination/CONTROL-TOWER/tests/test_reversible_change.py'
-            'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/CHANGE-REVERSIBILITY-ASSESSMENT.schema.json'
-            'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/GOVERNED-REVERT-PLAN.schema.json'
-            'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/KNOWN-GOOD-CHECKPOINT.schema.json'
-            'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/PROJECT-PLAN.md'
+            ".github/workflows/program-control-tower-r159-reversible-change.yml"
+            "coordination/CONTROL-TOWER/reversible_change.py"
+            "coordination/CONTROL-TOWER/tests/test_reversible_change.py"
+            "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/CHANGE-REVERSIBILITY-ASSESSMENT.schema.json"
+            "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/KNOWN-GOOD-CHECKPOINT.schema.json"
+            "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/GOVERNED-REVERT-PLAN.schema.json"
+            "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/PROJECT-PLAN.md"
           )
+          mapfile -t changed < <(git diff --name-only "$BASE" HEAD)
           test "${#changed[@]}" -eq 7
           for path in "${changed[@]}"; do
-            printf '%s\n' "${expected[@]}" | grep -Fxq "$path" || { echo "R159_SCOPE_FAIL:$path" >&2; exit 1; }
-          done
-          for path in "${expected[@]}"; do
-            if git cat-file -e "${BASE}:${path}" 2>/dev/null; then
-              echo "R159_ADDITIVE_ONLY_FAIL:$path" >&2
+            printf '%s\n' "${expected[@]}" | grep -Fxq "$path" || {
+              echo "R159 out-of-scope path: $path" >&2
               exit 1
-            fi
+            }
           done
-          git diff --check "$BASE" HEAD
-          echo R159_EXACT_SEVEN_FILE_ADDITIVE_SCOPE_PASS
+          mapfile -t statuses < <(git diff --name-status "$BASE" HEAD)
+          test "${#statuses[@]}" -eq 7
+          for row in "${statuses[@]}"; do
+            status="${row%%$'\t'*}"
+            test "$status" = "A" || {
+              echo "R159 is additive-only but found status: $row" >&2
+              exit 1
+            }
+          done
+          echo R159_EXACT_ADDITIVE_SCOPE_PASS
 
-      - name: Publish exact tested blobs without moving branch ref
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Verify rollback and authority invariants
+        shell: bash
         run: |
+          set -euo pipefail
           python - <<'PY'
-          import base64, json, os
+          import ast
+          import importlib.util
           from pathlib import Path
-          from urllib.request import Request, urlopen
-          paths = [
-              '.github/workflows/program-control-tower-r159-reversible-change.yml',
-              'coordination/CONTROL-TOWER/reversible_change.py',
-              'coordination/CONTROL-TOWER/tests/test_reversible_change.py',
-              'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/CHANGE-REVERSIBILITY-ASSESSMENT.schema.json',
-              'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/GOVERNED-REVERT-PLAN.schema.json',
-              'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/KNOWN-GOOD-CHECKPOINT.schema.json',
-              'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/PROJECT-PLAN.md',
-          ]
-          for path in paths:
-              raw = Path(path).read_bytes()
-              data = json.dumps({'content': base64.b64encode(raw).decode('ascii'), 'encoding': 'base64'}).encode()
-              req = Request(
-                  f"https://api.github.com/repos/{os.environ['GITHUB_REPOSITORY']}/git/blobs",
-                  data=data,
-                  method='POST',
-                  headers={
-                      'Authorization': f"Bearer {os.environ['GH_TOKEN']}",
-                      'Accept': 'application/vnd.github+json',
-                      'Content-Type': 'application/json',
-                      'X-GitHub-Api-Version': '2022-11-28',
-                  },
-              )
-              with urlopen(req) as response:
-                  payload = json.load(response)
-              sha = payload.get('sha')
-              if not isinstance(sha, str) or len(sha) != 40:
-                  raise SystemExit(f'R159_BLOB_PUBLISH_FAIL:{path}')
-              print(f'R159_TESTED_BLOB {path} {sha}')
-          print('R159_TESTED_BLOBS_PUBLISHED_WITHOUT_REF_UPDATE')
+
+          path = Path("coordination/CONTROL-TOWER/reversible_change.py")
+          source = path.read_text(encoding="utf-8")
+          tree = ast.parse(source)
+
+          required = (
+              'ROLLBACK_TRIGGER_PHRASE = "做个滚回记号"',
+              '"REVERSIBLE_GIT_ONLY"',
+              '"REVERSIBLE_WITH_MIGRATION"',
+              '"REVERSIBLE_WITH_SNAPSHOT"',
+              '"COMPENSATABLE_ONLY"',
+              '"IRREVERSIBLE_OR_HIGH_RISK"',
+              '"FORWARD_REVERT_PR_OR_CORRECTIVE_COMMIT"',
+              '"rollback_checkpoint_binding_verified"',
+              "DESTRUCTIVE_HISTORY_REWRITE_FORBIDDEN",
+          )
+          for token in required:
+              if token not in source:
+                  raise SystemExit(f"R159 invariant missing: {token}")
+
+          spec = importlib.util.spec_from_file_location("r159", path)
+          module = importlib.util.module_from_spec(spec)
+          assert spec and spec.loader
+          spec.loader.exec_module(module)
+          if not module.AUTHORITY or any(module.AUTHORITY.values()):
+              raise SystemExit("R159 authority boundary is not all false")
+
+          forbidden_calls = {"os.system", "subprocess.call", "subprocess.run", "subprocess.Popen"}
+          for node in ast.walk(tree):
+              if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
+                  if isinstance(node.func.value, ast.Name):
+                      name = f"{node.func.value.id}.{node.func.attr}"
+                      if name in forbidden_calls:
+                          raise SystemExit(f"R159 forbidden execution seam: {name}")
+
+          print("R159_ROLLBACK_AUTHORITY_INVARIANTS_PASS")
           PY
+
+      - name: Verify whitespace and unfinished markers
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check "${{ github.event.pull_request.base.sha }}" HEAD
+          if grep -R -n -E 'TODO|FIXME|NotImplementedError' \
+            coordination/CONTROL-TOWER/reversible_change.py \
+            coordination/CONTROL-TOWER/tests/test_reversible_change.py \
+            coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159; then
+            exit 1
+          fi

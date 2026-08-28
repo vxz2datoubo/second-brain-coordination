@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.second-brain.local/control-tower/r159/known-good-checkpoint/1.0.0",
+  "title": "KnownGoodCheckpoint/v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "repository",
+    "source_ref",
+    "canonical_commit",
+    "tree_sha",
+    "trigger_source",
+    "reason",
+    "qualification_level",
+    "git_binding_verified",
+    "previous_checkpoint_digest",
+    "evidence_refs",
+    "evidence_semantics",
+    "authority",
+    "checkpoint_id",
+    "checkpoint_digest"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "KnownGoodCheckpoint/v1"
+    },
+    "repository": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "canonical_commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "tree_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "trigger_source": {
+      "enum": [
+        "GPT_LARGE_CHANGE_JUDGMENT",
+        "MANUAL_OPERATION",
+        "PRE_MATERIAL_CHANGE_POLICY",
+        "USER_EXPLICIT_ROLLBACK_MARKER"
+      ]
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1
+    },
+    "qualification_level": {
+      "const": "DESIGNATED_RECOVERY_ANCHOR"
+    },
+    "git_binding_verified": {
+      "const": true
+    },
+    "previous_checkpoint_digest": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      ]
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "evidence_semantics": {
+      "const": "REFERENCES_ONLY_NOT_ACCEPTANCE_AUTHORITY"
+    },
+    "authority": {
+      "type": "object",
+      "required": [
+        "creates_task",
+        "creates_route",
+        "creates_work_claim",
+        "grants_execution",
+        "grants_write",
+        "grants_review_accept",
+        "grants_merge",
+        "grants_release",
+        "grants_trading"
+      ],
+      "properties": {
+        "creates_task": {
+          "const": false
+        },
+        "creates_route": {
+          "const": false
+        },
+        "creates_work_claim": {
+          "const": false
+        },
+        "grants_execution": {
+          "const": false
+        },
+        "grants_write": {
+          "const": false
+        },
+        "grants_review_accept": {
+          "const": false
+        },
+        "grants_merge": {
+          "const": false
+        },
+        "grants_release": {
+          "const": false
+        },
+        "grants_trading": {
+          "const": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "checkpoint_id": {
+      "type": "string",
+      "pattern": "^KGC-[0-9a-f]{16}$"
+    },
+    "checkpoint_digest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "additionalProperties": false
+}
