@@ -29,6 +29,7 @@ For ordinary code/config changes, Git already supplies the durable content histo
 
 R159 reuses:
 - Git commit/tree as code-state provenance and recovery substrate;
+- a deterministic Git marker ref derived from the checkpoint digest as the trust-bearing proof that the rollback marker was actually minted;
 - existing Phase-1 reversible/irreversible semantics as historical foundation;
 - existing Phase-3 evidence that Git branch rollback and runtime snapshot rollback are separate concerns;
 - Issue #453 as the only Independent Review Queue;
@@ -65,9 +66,11 @@ Outputs distinguish:
 - `COMPENSATABLE_ONLY`
 - `IRREVERSIBLE_OR_HIGH_RISK`
 
-A large/stateful/explicitly-marked change without a **validated checkpoint object** fails closed to `REQUIRES_ROLLBACK_MARKER`. A caller-supplied 64-hex digest alone cannot satisfy the marker requirement.
+A large/stateful/explicitly-marked change without a **Git-verified checkpoint object** fails closed to `REQUIRES_ROLLBACK_MARKER`. A caller-supplied 64-hex digest alone cannot satisfy the marker requirement, and a caller-recomputed full JSON checkpoint cannot satisfy it unless the corresponding deterministic Git marker ref actually exists and binds the exact checkpoint commit/tree lineage.
 
 A stateful change cannot become Git-only merely because source code is versioned.
+
+`validate_assessment()` is a semantic trust gate, not a checksum gate. It re-normalizes the embedded input and deterministically re-derives classification, marker requirements, checkpoint-binding semantics and final assessment result. A caller cannot alter those decisions and restore validity merely by recomputing SHA-256.
 
 ### KnownGoodCheckpoint/v1
 
@@ -78,16 +81,20 @@ A checkpoint:
 - rejects expected-head drift;
 - binds the trigger source and reason;
 - has a deterministic semantic digest;
+- mints `refs/tags/r159-known-good/<checkpoint_digest>` as the Git-native rollback-marker proof;
+- re-verifies that marker ref -> exact commit, commit -> exact tree, and source branch still contains the checkpoint commit before trusted use;
 - carries evidence references only as references, never as acceptance authority;
 - grants no execution/review/merge/release authority.
+
+The Git marker is deliberately not a second source-history store. It is only a tiny trust-bearing pointer into existing Git history. Re-validation requires repository state, so a serialized checkpoint mapping by itself is evidence, not authority.
 
 `DESIGNATED_RECOVERY_ANCHOR` means the user/GPT selected this exact code state as the recovery target. It does not claim that referenced CI/review evidence was independently revalidated by R159.
 
 ### GovernedRevertPlan/v1
 
 A revert plan can be created only from:
-- a valid checkpoint;
-- a valid PASS assessment;
+- a currently Git-verified checkpoint;
+- a semantically re-derived valid PASS assessment;
 - exact checkpoint-digest binding.
 
 Recovery strategy is derived from the reversibility class:
@@ -103,6 +110,25 @@ Every plan:
 - requires exact-head re-verification;
 - requires independent review for MEDIUM/LARGE/CRITICAL blast radius;
 - cannot grant merge/release authority.
+
+`validate_governed_revert_plan()` re-verifies the checkpoint, re-derives the assessment, and reconstructs the canonical strategy/review/approval semantics from those trusted inputs. Recomputed-digest changes to strategy, independent-review requirement, user-approval requirement, history preservation or authority boundaries are rejected.
+
+## Independent review remediation — exact head predecessor `e99456e7...`
+
+Independent review `pullrequestreview-5050614237` returned `CHANGES_REQUIRED` with two P1 blockers:
+
+1. a full caller-forged `KnownGoodCheckpoint/v1` could previously recompute digest/id and set `git_binding_verified: true` without any trust-bearing Git provenance;
+2. assessments and revert plans could previously alter semantic decisions and recompute ordinary digests without deterministic re-derivation.
+
+Bounded remediation keeps the same seven-file slice and closes those failure classes by:
+- requiring a real deterministic Git marker ref for trusted checkpoint use;
+- re-reading commit/tree/source-ref lineage from Git;
+- requiring repository context whenever a checkpoint is used to satisfy a trust gate;
+- semantic re-derivation for assessment validators;
+- semantic re-derivation for governed revert-plan validators;
+- adversarial regressions for complete checkpoint forgery, stateful->Git-only/PASS laundering, marker bypass, strategy laundering, independent-review suppression, user-approval suppression, history-rewrite laundering and authority escalation.
+
+No second checkpoint authority, signature authority, review authority or merge authority is introduced.
 
 ## User phrase
 
@@ -120,7 +146,7 @@ The phrase detector is a convenience signal only. The resulting checkpoint must 
 6. `coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/PROJECT-PLAN.md`
 7. `.github/workflows/program-control-tower-r159-reversible-change.yml`
 
-All are additive. No existing Control Tower runtime or authority file is modified.
+All are additive relative to the canonical base. No pre-R159 Control Tower runtime or authority file is modified.
 
 ## Test matrix
 
@@ -129,14 +155,23 @@ R159 unit/adversarial tests cover:
 - explicit phrase and GPT large-change marker triggers;
 - large change checkpoint requirement;
 - invalid/missing checkpoint reference;
+- full caller-recomputed checkpoint mapping without real Git marker;
+- moved/deleted marker ref;
+- commit/tree/source-ref binding;
 - stateful Git-only false-reversibility rejection;
 - migration and snapshot classes;
 - policy version-switch class;
 - compensation versus irreversible external effect;
-- unknown enum rejection;
+- unknown field/enum rejection;
 - clean Git checkpoint capture;
 - dirty/untracked/head/branch drift rejection;
-- checkpoint/assessment/plan digest tamper rejection;
+- ordinary digest tamper rejection;
+- recomputed-digest assessment semantic laundering;
+- recomputed-digest revert strategy laundering;
+- independent-review suppression laundering;
+- user-approval suppression laundering;
+- history-rewrite laundering;
+- authority escalation laundering;
 - checkpoint-to-assessment exact binding;
 - history-preserving recovery strategies;
 - exact-head re-verification requirement;
@@ -162,7 +197,7 @@ Engineering stops after:
 - Draft PR;
 - exact-head CI green;
 - engineering handoff;
-- `REVIEW_REQUEST/v1` in Issue #453.
+- new exact-head `REVIEW_REQUEST/v1` in Issue #453.
 
 No self-review, Ready transition, or merge before a matching independent exact-head ACCEPT.
 
