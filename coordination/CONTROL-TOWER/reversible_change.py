@@ -12,6 +12,7 @@ ROLLBACK_TRIGGER_PHRASE="做个滚回记号"
 CHECKPOINT_TRUST="DURABLE_CANONICAL_MAIN_COMMIT_REDERIVED_FROM_REMOTE_STATE"
 PUBLICATION_TRAILER="R159-Checkpoint-Digest:"
 EVIDENCE_SEMANTICS="BOUND_REFERENCES_NOT_ACCEPTANCE_AUTHORITY"
+CANONICAL_GIT_PROVIDER_HOST="github.com"
 SURFACE_KINDS={"CODE_CONFIG_ONLY","POLICY_BEHAVIOR","STATEFUL_DATA","EXTERNAL_SIDE_EFFECT","MIXED"}
 BLAST_RADII={"SMALL","MEDIUM","LARGE","CRITICAL"}
 ROLLBACK_MECHANISMS={"NONE","GIT_REVERT","FEATURE_FLAG_OR_VERSION_SWITCH","MIGRATION","SNAPSHOT","COMPENSATION"}
@@ -62,14 +63,22 @@ def _ancestor(root:Path,a:str,b:str)->bool:
         subprocess.check_call(["git","--no-replace-objects","merge-base","--is-ancestor",a,b],cwd=root,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,env=_env()); return True
     except (OSError,subprocess.CalledProcessError): return False
 def _remote_repo(url:str)->str:
-    u=_str(url,"remote_url")
-    if u.startswith("git@") and ":" in u: p=u.split(":",1)[1]
-    elif "://" in u: p=urlparse(u).path
-    else: p=u
+    u=_str(url,"remote_url"); p=None
+    scp=re.fullmatch(r"git@github\.com:(.+)",u,re.IGNORECASE)
+    if scp:
+        p=scp.group(1)
+    elif "://" in u:
+        parsed=urlparse(u); scheme=parsed.scheme.lower(); host=(parsed.hostname or "").lower()
+        canonical_port=443 if scheme=="https" else 22 if scheme=="ssh" else None
+        if host!=CANONICAL_GIT_PROVIDER_HOST or scheme not in {"https","ssh"} or parsed.query or parsed.fragment or (parsed.port is not None and parsed.port!=canonical_port) or (scheme=="ssh" and parsed.username!="git"):
+            raise ReversibleChangeError("checkpoint:REMOTE_PROVIDER_HOST_NOT_BOUND")
+        p=parsed.path
+    else:
+        raise ReversibleChangeError("checkpoint:REMOTE_PROVIDER_HOST_NOT_BOUND")
     parts=[x for x in p.replace("\\","/").strip("/").split("/") if x]
-    if parts and parts[-1].endswith(".git"): parts[-1]=parts[-1][:-4]
-    if len(parts)<2: raise ReversibleChangeError("checkpoint:REMOTE_REPOSITORY_UNRESOLVED")
-    repo="/".join(parts[-2:])
+    if parts and parts[-1].lower().endswith(".git"): parts[-1]=parts[-1][:-4]
+    if len(parts)!=2: raise ReversibleChangeError("checkpoint:REMOTE_REPOSITORY_UNRESOLVED")
+    repo="/".join(parts)
     if not REPO.fullmatch(repo): raise ReversibleChangeError("checkpoint:REMOTE_REPOSITORY_UNRESOLVED")
     return repo
 def _remote_rewrite_rules(root:Path)->list[tuple[str,str]]:
@@ -197,7 +206,6 @@ def checkpoint_publication_state(value:Mapping[str,Any],*,repo_root:str|Path,imp
 def validate_known_good_checkpoint(value:Mapping[str,Any],*,repo_root:str|Path,implementation_head:str|None=None)->dict[str,Any]:
     c=_shape(value); checkpoint_publication_state(c,repo_root=repo_root,implementation_head=implementation_head); return c
 def checkpoint_evidence(v:Mapping[str,Any])->dict[str,Any]: return json.loads(_json(_mapping(v,"checkpoint")))
-
 def trigger_from_user_text(text:str)->str:
     if not isinstance(text,str): raise ReversibleChangeError("user_text:STRING_REQUIRED")
     return "USER_EXPLICIT_ROLLBACK_MARKER" if ROLLBACK_TRIGGER_PHRASE in text else "NONE"
