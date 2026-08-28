@@ -1,5 +1,5 @@
 from __future__ import annotations
-import argparse, hashlib, json, os, re, subprocess
+import argparse, hashlib, json, os, re, shutil, subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping, Sequence
@@ -24,9 +24,22 @@ SHA40=re.compile(r"^[0-9a-f]{40}$"); SHA256=re.compile(r"^[0-9a-f]{64}$")
 REPO=re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 INTENT_FIELDS={"change_id","surface_kind","blast_radius","explicit_rollback_marker_requested","gpt_judged_large_change","persistent_state_mutation","external_irreversible_side_effect","rollback_mechanism","rollback_checkpoint_ref"}
 STRATEGY={"REVERSIBLE_GIT_ONLY":"FORWARD_REVERT_PR_OR_CORRECTIVE_COMMIT","REVERSIBLE_BY_VERSION_SWITCH":"VERSION_SWITCH_OR_FEATURE_FLAG","REVERSIBLE_WITH_MIGRATION":"FORWARD_REVERT_PLUS_DOWN_MIGRATION","REVERSIBLE_WITH_SNAPSHOT":"FORWARD_REVERT_PLUS_SNAPSHOT_RESTORE","COMPENSATABLE_ONLY":"COMPENSATING_ACTION_PLUS_FORWARD_REVERT"}
-_SAFE_PROCESS_ENV_KEYS={"PATH","SYSTEMROOT","WINDIR","COMSPEC","PATHEXT","TEMP","TMP","TMPDIR","LANG","LC_ALL","LC_CTYPE"}
+_SAFE_PROCESS_ENV_KEYS={"SYSTEMROOT","WINDIR","COMSPEC","TEMP","TMP","TMPDIR","LANG","LC_ALL","LC_CTYPE"}
 
 class ReversibleChangeError(ValueError): pass
+
+def _bind_trusted_git_executable()->str:
+    candidate=shutil.which("git",path=os.defpath)
+    if candidate is None:
+        for fixed in ("/usr/bin/git","/usr/local/bin/git"):
+            if Path(fixed).is_file(): candidate=fixed; break
+    if candidate is None: raise ReversibleChangeError("git:TRUSTED_EXECUTABLE_UNAVAILABLE")
+    try: resolved=Path(candidate).resolve(strict=True)
+    except OSError as exc: raise ReversibleChangeError("git:TRUSTED_EXECUTABLE_UNRESOLVED") from exc
+    if not resolved.is_absolute() or not resolved.is_file(): raise ReversibleChangeError("git:TRUSTED_EXECUTABLE_INVALID")
+    return str(resolved)
+
+_GIT_EXECUTABLE=_bind_trusted_git_executable()
 
 def _json(v:Mapping[str,Any])->str: return json.dumps(dict(v),ensure_ascii=False,sort_keys=True,separators=(",",":"))
 def _digest(v:Mapping[str,Any])->str: return hashlib.sha256(_json(v).encode()).hexdigest()
@@ -61,14 +74,14 @@ def _env()->dict[str,str]:
     return e
 def _git(root:Path,*args:str,input_text:str|None=None)->str:
     try:
-        return subprocess.check_output(["git","--no-replace-objects",*args],cwd=root,text=True,input=input_text,stderr=subprocess.STDOUT,env=_env()).strip()
+        return subprocess.check_output([_GIT_EXECUTABLE,"--no-replace-objects",*args],cwd=root,text=True,input=input_text,stderr=subprocess.STDOUT,env=_env()).strip()
     except (OSError,subprocess.CalledProcessError) as exc: raise ReversibleChangeError(f"git:{' '.join(args)}:FAILED") from exc
 def _git_optional(root:Path,*args:str)->str|None:
-    try: return subprocess.check_output(["git","--no-replace-objects",*args],cwd=root,text=True,stderr=subprocess.STDOUT,env=_env()).strip()
+    try: return subprocess.check_output([_GIT_EXECUTABLE,"--no-replace-objects",*args],cwd=root,text=True,stderr=subprocess.STDOUT,env=_env()).strip()
     except (OSError,subprocess.CalledProcessError): return None
 def _ancestor(root:Path,a:str,b:str)->bool:
     try:
-        subprocess.check_call(["git","--no-replace-objects","merge-base","--is-ancestor",a,b],cwd=root,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,env=_env()); return True
+        subprocess.check_call([_GIT_EXECUTABLE,"--no-replace-objects","merge-base","--is-ancestor",a,b],cwd=root,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,env=_env()); return True
     except (OSError,subprocess.CalledProcessError): return False
 def _remote_repo(url:str)->str:
     u=_str(url,"remote_url"); p=None
