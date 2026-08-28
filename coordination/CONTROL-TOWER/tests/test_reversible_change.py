@@ -32,6 +32,11 @@ class Repo:
         subprocess.check_call(["git","commit","-m",msg],cwd=self.root,stdout=subprocess.DEVNULL); return self.git("rev-parse","HEAD")
     def later_main(self):
         (self.root/"tracked.txt").write_text("later\n"); subprocess.check_call(["git","add","."],cwd=self.root); subprocess.check_call(["git","commit","-m","later"],cwd=self.root,stdout=subprocess.DEVNULL); return self.git("rev-parse","HEAD")
+    def install_target_looking_rewrite(self,kind="insteadOf"):
+        evil=Path(self.tmp.name)/"evil"/"repo.git"; evil.parent.mkdir(); subprocess.check_call(["git","init","--bare",str(evil)],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+        subprocess.check_call(["git","--git-dir",str(evil),"fetch",str(self.root),f"{self.head}:refs/heads/main"],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+        target="https://github.com/example/repo"; subprocess.check_call(["git","remote","set-url","origin",target],cwd=self.root)
+        subprocess.check_call(["git","config","--local",f"url.{evil.as_uri()}.{kind}",target],cwd=self.root); return target,evil
     def __exit__(self,*_): self.tmp.cleanup()
 
 class T(unittest.TestCase):
@@ -172,6 +177,18 @@ class T(unittest.TestCase):
     def test_47_first_publication_commit_binds_digest(self):
         with Repo() as r:
             c=r.checkpoint(); h=r.impl(c); parents=r.git("rev-list","--parents","-n","1",h).split(); self.assertEqual(parents[1],r.head); self.assertIn(f"{rc.PUBLICATION_TRAILER} {c['checkpoint_digest']}",r.git("show","-s","--format=%B",h))
+    def test_48_target_looking_insteadof_capture_rejected(self):
+        with Repo() as r:
+            target,evil=r.install_target_looking_rewrite("insteadOf"); self.assertEqual(r.git("config","--get","remote.origin.url"),target); self.assertTrue(evil.exists())
+            with self.assertRaisesRegex(rc.ReversibleChangeError,"EFFECTIVE_REMOTE_URL_REWRITE_FORBIDDEN"): r.checkpoint()
+    def test_49_target_looking_insteadof_validation_rejected(self):
+        with Repo() as r:
+            c=r.checkpoint(); target,evil=r.install_target_looking_rewrite("insteadOf"); self.assertEqual(r.git("config","--get","remote.origin.url"),target); self.assertTrue(evil.exists())
+            with self.assertRaisesRegex(rc.ReversibleChangeError,"EFFECTIVE_REMOTE_URL_REWRITE_FORBIDDEN"): rc.validate_known_good_checkpoint(c,repo_root=r.root)
+    def test_50_target_looking_pushinsteadof_rejected(self):
+        with Repo() as r:
+            target,evil=r.install_target_looking_rewrite("pushInsteadOf"); self.assertEqual(r.git("config","--get","remote.origin.url"),target); self.assertTrue(evil.exists())
+            with self.assertRaisesRegex(rc.ReversibleChangeError,"EFFECTIVE_REMOTE_URL_REWRITE_FORBIDDEN"): r.checkpoint()
 
 MATRIX=[
 ("small-none",{},("PASS","REVERSIBLE_GIT_ONLY")),
@@ -196,6 +213,6 @@ def _mk(case,kw,expected):
     def test(self):
         x=rc.assess_change_intent(intent(**kw)); self.assertEqual((x["assessment_result"],x["reversibility_class"]),expected,case)
     return test
-for i,row in enumerate(MATRIX,48): setattr(T,f"test_{i:02d}_matrix_{row[0].replace('-','_')}",_mk(*row))
+for i,row in enumerate(MATRIX,51): setattr(T,f"test_{i:02d}_matrix_{row[0].replace('-','_')}",_mk(*row))
 
 if __name__=="__main__": unittest.main()
