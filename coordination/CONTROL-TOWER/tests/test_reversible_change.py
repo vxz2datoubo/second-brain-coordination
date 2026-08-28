@@ -236,6 +236,21 @@ class T(unittest.TestCase):
             finally:
                 if old is None: os.environ.pop("GIT_SSH_COMMAND",None)
                 else: os.environ["GIT_SSH_COMMAND"]=old
+    def test_55_poison_path_fake_git_cannot_enter_trust_path(self):
+        with Repo() as r:
+            fake_dir=Path(r.tmp.name)/"poison-bin"; fake_dir.mkdir(); marker=Path(r.tmp.name)/"fake-git-was-invoked"; fake=fake_dir/"git"
+            fake.write_text(f"#!/bin/sh\nprintf invoked > {str(marker)!r}\nexit 99\n"); fake.chmod(0o755)
+            old=os.environ.get("PATH"); os.environ["PATH"]=str(fake_dir)
+            try:
+                c=r.checkpoint()
+                self.assertEqual(c["canonical_main_sha"],r.head)
+                self.assertFalse(marker.exists())
+                self.assertNotIn("PATH",rc._env())
+                self.assertTrue(Path(rc._GIT_EXECUTABLE).is_absolute())
+                self.assertNotEqual(Path(rc._GIT_EXECUTABLE),fake)
+            finally:
+                if old is None: os.environ.pop("PATH",None)
+                else: os.environ["PATH"]=old
 
 MATRIX=[
 ("small-none",{},("PASS","REVERSIBLE_GIT_ONLY")),
@@ -260,6 +275,6 @@ def _mk(case,kw,expected):
     def test(self):
         x=rc.assess_change_intent(intent(**kw)); self.assertEqual((x["assessment_result"],x["reversibility_class"]),expected,case)
     return test
-for i,row in enumerate(MATRIX,55): setattr(T,f"test_{i:02d}_matrix_{row[0].replace('-','_')}",_mk(*row))
+for i,row in enumerate(MATRIX,56): setattr(T,f"test_{i:02d}_matrix_{row[0].replace('-','_')}",_mk(*row))
 
 if __name__=="__main__": unittest.main()
