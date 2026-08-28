@@ -98,7 +98,7 @@ jobs:
           done
           echo R159_EXACT_ADDITIVE_SCOPE_PASS
 
-      - name: Verify rollback and authority invariants
+      - name: Verify rollback, trust, and authority invariants
         shell: bash
         run: |
           set -euo pipefail
@@ -121,10 +121,24 @@ jobs:
               '"FORWARD_REVERT_PR_OR_CORRECTIVE_COMMIT"',
               '"rollback_checkpoint_binding_verified"',
               "DESTRUCTIVE_HISTORY_REWRITE_FORBIDDEN",
+              "INVOCATION_LOCAL_SEAL_REQUIRED_FOR_AUTHORITY_BEARING_USE",
+              "TRUSTED_CAPTURE_REQUIRED",
           )
           for token in required:
               if token not in source:
                   raise SystemExit(f"R159 invariant missing: {token}")
+
+          for forbidden_text in (
+              "update-ref",
+              "refs/tags/",
+              "git tag",
+              "push --force",
+              "reset --hard",
+          ):
+              if forbidden_text in source:
+                  raise SystemExit(
+                      f"R159 forbidden repository mutation seam: {forbidden_text}"
+                  )
 
           spec = importlib.util.spec_from_file_location("r159", path)
           module = importlib.util.module_from_spec(spec)
@@ -132,8 +146,22 @@ jobs:
           spec.loader.exec_module(module)
           if not module.AUTHORITY or any(module.AUTHORITY.values()):
               raise SystemExit("R159 authority boundary is not all false")
+          for exported_seal in (
+              "_SEAL_CAPTURED_CHECKPOINT",
+              "seal_checkpoint",
+              "mint_trusted_checkpoint",
+          ):
+              if hasattr(module, exported_seal):
+                  raise SystemExit(
+                      f"R159 caller-visible seal/mint seam exists: {exported_seal}"
+                  )
 
-          forbidden_calls = {"os.system", "subprocess.call", "subprocess.run", "subprocess.Popen"}
+          forbidden_calls = {
+              "os.system",
+              "subprocess.call",
+              "subprocess.run",
+              "subprocess.Popen",
+          }
           for node in ast.walk(tree):
               if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
                   if isinstance(node.func.value, ast.Name):
@@ -141,7 +169,7 @@ jobs:
                       if name in forbidden_calls:
                           raise SystemExit(f"R159 forbidden execution seam: {name}")
 
-          print("R159_ROLLBACK_AUTHORITY_INVARIANTS_PASS")
+          print("R159_ROLLBACK_TRUST_AUTHORITY_INVARIANTS_PASS")
           PY
 
       - name: Verify whitespace and unfinished markers
