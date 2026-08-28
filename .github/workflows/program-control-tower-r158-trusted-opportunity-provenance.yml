@@ -30,7 +30,7 @@ jobs:
       - name: Fetch and apply content-addressed successor patch
         env:
           GH_TOKEN: ${{ github.token }}
-          SCRIPT_BLOB: e011a6c99cb0f117092ec506a22f83fa538df6c7
+          SCRIPT_BLOB: 75d96de957bbdcb33547a6d945fe81c368ea420c
         run: |
           python - <<'PY'
           import base64, json, os
@@ -76,8 +76,6 @@ jobs:
         run: |
           set -euo pipefail
           git fetch --no-tags origin '+refs/heads/main:refs/remotes/origin/main'
-          mapfile -t changed < <(git diff --name-only refs/remotes/origin/main...HEAD -- . ':!')
-          # Include working-tree remediation on top of the bootstrap head.
           mapfile -t effective < <({ git diff --name-only refs/remotes/origin/main...HEAD; git diff --name-only; } | sort -u)
           expected=(
             '.github/workflows/program-control-tower-r151-idle-signal-auto-release.yml'
