@@ -1,164 +1,135 @@
-name: R158 Bootstrap Trusted Opportunity Provenance
+name: Program Control Tower R158 Trusted Opportunity Provenance
 
 on:
-  push:
-    branches:
-      - gpt/r158-trusted-opportunity-provenance-binding
+  pull_request:
     paths:
       - ".github/workflows/program-control-tower-r158-trusted-opportunity-provenance.yml"
+      - "coordination/CONTROL-TOWER/idle_signal_scheduler.py"
+      - "coordination/CONTROL-TOWER/idle_signal_apply.py"
+      - "coordination/CONTROL-TOWER/tests/test_idle_signal_scheduler.py"
+      - "coordination/CONTROL-TOWER/tests/test_idle_signal_apply.py"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R158/**"
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  bootstrap:
-    if: github.actor != 'github-actions[bot]'
+  r158:
+    name: R158 provenance binding (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        python-version: ["3.11", "3.13"]
     steps:
-      - name: Checkout exact bootstrap head
+      - name: Checkout exact PR head
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
-
+      - name: Verify exact-head provenance and base
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+          test "${{ github.event.pull_request.base.ref }}" = "main"
+          git fetch --no-tags origin main
+          test "$(git rev-parse origin/main)" = "${{ github.event.pull_request.base.sha }}"
+          git merge-base --is-ancestor "${{ github.event.pull_request.base.sha }}" HEAD
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-
-      - name: Install retained test dependency
+          python-version: ${{ matrix.python-version }}
+      - name: Install retained Control Tower dependency
         run: python -m pip install --disable-pip-version-check PyYAML==6.0.2
-
-      - name: Rebuild one-time migration from content-addressed transport blobs
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PATCH_BLOBS: >-
-            e17689129c2e7be4783439e1a19b0ea0eebb7064,
-            4d321a9ce264185af4a9437f92066cf092a6b941,
-            198ef630c4f994f54c50e69ee51579d0b3c1a709,
-            bcfd97494d066e30474c1c146191ddcb7015f1cd,
-            9bf2fb32d87f64d69e960885d69ff414c0cb46d2,
-            12556ac7891663f1f821496aa8c21d32e9cb3e76
-        run: |
-          python - <<'PY'
-          import base64
-          import gzip
-          import json
-          import os
-          from pathlib import Path
-          from urllib.request import Request, urlopen
-
-          chunks = []
-          shas = [item.strip() for item in os.environ["PATCH_BLOBS"].replace("\n", "").split(",") if item.strip()]
-          if len(shas) != 6:
-              raise SystemExit(f"expected 6 transport blobs, got {len(shas)}")
-          for sha in shas:
-              url = f"https://api.github.com/repos/{os.environ['GITHUB_REPOSITORY']}/git/blobs/{sha}"
-              request = Request(url, headers={
-                  "Authorization": f"Bearer {os.environ['GH_TOKEN']}",
-                  "Accept": "application/vnd.github+json",
-                  "X-GitHub-Api-Version": "2022-11-28",
-              })
-              with urlopen(request) as response:
-                  payload = json.load(response)
-              if payload.get("sha") != sha or payload.get("encoding") != "base64":
-                  raise SystemExit(f"transport blob identity invalid: {sha}")
-              chunks.append(base64.b64decode(payload["content"]).decode("utf-8"))
-          script = gzip.decompress(base64.b64decode("".join(chunks)))
-          Path("/tmp/r158_patch.py").write_bytes(script)
-          PY
-          python -m py_compile /tmp/r158_patch.py
-          python /tmp/r158_patch.py
-
-      - name: Harden presented authorization to fresh opportunity binding
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          path = Path("coordination/CONTROL-TOWER/idle_signal_apply.py")
-          source = path.read_text(encoding="utf-8")
-          anchor = (
-              "    fresh, opportunity, fresh_batch = _fresh_authorization(\n"
-              "        root,\n"
-              "        materialization_requests,\n"
-              "        priority_hints,\n"
-              "        expected_current_main=expected_current_main,\n"
-              "    )\n"
-          )
-          replacement = anchor + (
-              "    if presented.get(\"opportunity_id\") != opportunity[\"opportunity_id\"]:\n"
-              "        raise IdleSignalApplyError(\"AUTHORIZATION_OPPORTUNITY_ID_MISMATCH\")\n"
-              "    if presented.get(\"opportunity_digest\") != opportunity[\"opportunity_digest\"]:\n"
-              "        raise IdleSignalApplyError(\"AUTHORIZATION_OPPORTUNITY_DIGEST_MISMATCH\")\n"
-              "    if presented.get(\"signal_ref\") != opportunity[\"signal_ref\"]:\n"
-              "        raise IdleSignalApplyError(\"AUTHORIZATION_SIGNAL_MISMATCH\")\n"
-          )
-          if source.count(anchor) != 1:
-              raise SystemExit(f"R158 fresh binding anchor cardinality invalid: {source.count(anchor)}")
-          path.write_text(source.replace(anchor, replacement, 1), encoding="utf-8")
-          PY
-
-      - name: Compile migrated R158 surfaces
-        run: |
-          python -m py_compile \
-            coordination/CONTROL-TOWER/idle_signal_scheduler.py \
-            coordination/CONTROL-TOWER/idle_signal_apply.py \
-            coordination/CONTROL-TOWER/tests/test_idle_signal_scheduler.py \
-            coordination/CONTROL-TOWER/tests/test_idle_signal_apply.py
-          python -m json.tool coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R158/TRUSTED-OPPORTUNITY-PROVENANCE.schema.json >/dev/null
-
-      - name: Run migrated R151 and R152 regressions before publication
+      - name: Compile R158 surfaces
+        working-directory: coordination/CONTROL-TOWER
+        run: python -m py_compile idle_signal_scheduler.py idle_signal_apply.py tests/test_idle_signal_scheduler.py tests/test_idle_signal_apply.py
+      - name: Validate R158 schema
+        run: python -m json.tool coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R158/TRUSTED-OPPORTUNITY-PROVENANCE.schema.json >/dev/null
+      - name: Run R158 scheduler/apply adversarial regressions
         working-directory: coordination/CONTROL-TOWER
         run: |
           python -m unittest tests.test_idle_signal_scheduler -v
           python -m unittest tests.test_idle_signal_apply -v
-
-      - name: Verify exact seven-file staged migration
+      - name: Retain R157 through R149 regressions
+        working-directory: coordination/CONTROL-TOWER
+        run: |
+          python -m unittest tests.test_r157_ranking_calibration -v
+          python -m unittest tests.test_signal_priority_classification -v
+          python -m unittest tests.test_signal_user_value -v
+          python -m unittest tests.test_signal_opportunity_ranking -v
+          python -m unittest tests.test_signal_opportunity_materializer -v
+          python -m unittest tests.test_trusted_task_release -v
+          python -m unittest tests.test_task_release_impact -v
+      - name: Run full Control Tower suite
+        working-directory: coordination/CONTROL-TOWER
+        run: python run_all_tests.py
+      - name: Verify exact seven-file bounded scope
         shell: bash
         run: |
           set -euo pipefail
-          git add \
-            .github/workflows/program-control-tower-r158-trusted-opportunity-provenance.yml \
+          BASE="${{ github.event.pull_request.base.sha }}"
+          mapfile -t changed < <(git diff --name-only "$BASE" HEAD)
+          allowed() {
+            case "$1" in
+              .github/workflows/program-control-tower-r158-trusted-opportunity-provenance.yml) return 0 ;;
+              coordination/CONTROL-TOWER/idle_signal_scheduler.py) return 0 ;;
+              coordination/CONTROL-TOWER/idle_signal_apply.py) return 0 ;;
+              coordination/CONTROL-TOWER/tests/test_idle_signal_scheduler.py) return 0 ;;
+              coordination/CONTROL-TOWER/tests/test_idle_signal_apply.py) return 0 ;;
+              coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R158/PROJECT-PLAN.md) return 0 ;;
+              coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R158/TRUSTED-OPPORTUNITY-PROVENANCE.schema.json) return 0 ;;
+              *) return 1 ;;
+            esac
+          }
+          for path in "${changed[@]}"; do allowed "$path" || { echo "R158 out-of-scope: $path" >&2; exit 1; }; done
+          test "${#changed[@]}" -eq 7
+          echo R158_SCOPE_PASS
+      - name: Verify provenance and authority boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          scheduler = Path('coordination/CONTROL-TOWER/idle_signal_scheduler.py').read_text()
+          apply = Path('coordination/CONTROL-TOWER/idle_signal_apply.py').read_text()
+          if 'AUTHORIZATION_SCHEMA = "IdleSignalAutoReleaseAuthorization/v2"' not in scheduler:
+              raise SystemExit('R158 authorization v2 missing')
+          required = (
+              'signal_opportunity_materializer_current',
+              'TrustedSignalOpportunityBatch/v1',
+              'trusted_opportunity_batch_digest',
+              'materialization_decision_digest',
+              'caller_can_supply_opportunity_truth',
+              'apply_requires_fresh_rematerialization',
+          )
+          for needle in required:
+              if needle not in scheduler + apply:
+                  raise SystemExit(f'R158 provenance binding missing: {needle}')
+          tree = ast.parse(apply)
+          fn = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == 'prepare_apply_transaction')
+          names = [a.arg for a in fn.args.args + fn.args.kwonlyargs]
+          if 'opportunity_value' in names or 'opportunity' in names:
+              raise SystemExit(f'R152 caller opportunity truth seam still present: {names}')
+          if 'materialization_requests' not in names:
+              raise SystemExit(f'R152 materialization request input missing: {names}')
+          for token in ('owner_observer=', 'materializer=', 'observer='):
+              if token in scheduler:
+                  raise SystemExit(f'R151 production injection seam present: {token}')
+          print('R158_AUTHORITY_BOUNDARY_PASS')
+          PY
+      - name: Verify whitespace and unfinished markers
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check "${{ github.event.pull_request.base.sha }}" HEAD
+          if grep -R -n -E 'TODO|FIXME|NotImplementedError' \
             coordination/CONTROL-TOWER/idle_signal_scheduler.py \
             coordination/CONTROL-TOWER/idle_signal_apply.py \
             coordination/CONTROL-TOWER/tests/test_idle_signal_scheduler.py \
             coordination/CONTROL-TOWER/tests/test_idle_signal_apply.py \
-            coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R158/PROJECT-PLAN.md \
-            coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R158/TRUSTED-OPPORTUNITY-PROVENANCE.schema.json
-          mapfile -t staged < <(git diff --cached --name-only)
-          printf 'R158_STAGED %s\n' "${staged[@]}"
-          test "${#staged[@]}" -eq 7
-          git diff --cached --check
-
-      - name: Publish tested final blobs without updating refs
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          python - <<'PY'
-          import base64
-          import json
-          import os
-          from pathlib import Path
-          from urllib.request import Request, urlopen
-
-          paths = [
-              ".github/workflows/program-control-tower-r158-trusted-opportunity-provenance.yml",
-              "coordination/CONTROL-TOWER/idle_signal_scheduler.py",
-              "coordination/CONTROL-TOWER/idle_signal_apply.py",
-              "coordination/CONTROL-TOWER/tests/test_idle_signal_scheduler.py",
-              "coordination/CONTROL-TOWER/tests/test_idle_signal_apply.py",
-              "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R158/PROJECT-PLAN.md",
-              "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R158/TRUSTED-OPPORTUNITY-PROVENANCE.schema.json",
-          ]
-          url = f"https://api.github.com/repos/{os.environ['GITHUB_REPOSITORY']}/git/blobs"
-          for path in paths:
-              raw = Path(path).read_bytes()
-              body = json.dumps({"content": base64.b64encode(raw).decode("ascii"), "encoding": "base64"}).encode()
-              request = Request(url, data=body, method="POST", headers={
-                  "Authorization": f"Bearer {os.environ['GH_TOKEN']}",
-                  "Accept": "application/vnd.github+json",
-                  "Content-Type": "application/json",
-                  "X-GitHub-Api-Version": "2022-11-28",
-              })
-              with urlopen(request) as response:
-                  payload = json.load(response)
-              print(f"R158_FINAL_BLOB {path} {payload['sha']}")
-          PY
+            coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R158; then
+            exit 1
+          fi

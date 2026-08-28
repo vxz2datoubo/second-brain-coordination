@@ -17,8 +17,12 @@ from idle_signal_scheduler import (
     P4,
     PRIORITY_OBSERVATION_SCHEMA,
     IdleSignalSchedulerError,
+    MATERIALIZATION_REQUEST_SCHEMA,
+    MATERIALIZER_DECISION_SCHEMA,
+    _digest,
     _trusted_review_queue_blockers,
     evaluate_idle_signal_startup,
+    materialize_trusted_opportunity_batch,
     validate_opportunity,
 )
 from trusted_task_release import TRUSTED_RECEIPT_SCHEMA, TrustedReleaseError
@@ -189,6 +193,56 @@ def r150_receipt(current_head: str, disposition: str = "RELEASE_AS_EXTENSION") -
     }
 
 
+def _fixture_materializer_decision(raw: dict) -> dict:
+    try:
+        normalized = validate_opportunity(copy.deepcopy(raw))
+    except IdleSignalSchedulerError:
+        value = {
+            "schema_version": MATERIALIZER_DECISION_SCHEMA,
+            "signal_ref": str(raw.get("signal_ref") or "signal:invalid"),
+            "disposition": "INELIGIBLE_SIGNAL_STATE",
+            "reason": "FIXTURE_INELIGIBLE",
+            "evidence_refs": ["fixture://materializer"],
+            "owner_binding_digest": None,
+            "opportunity": None,
+            "authority_boundary": {"creates_signal_truth": False},
+        }
+    else:
+        value = {
+            "schema_version": MATERIALIZER_DECISION_SCHEMA,
+            "signal_ref": normalized["signal_ref"],
+            "disposition": "MATERIALIZED_FOR_R151",
+            "reason": "FIXTURE_CURRENT_MATERIALIZER",
+            "evidence_refs": ["fixture://materializer"],
+            "owner_binding_digest": "f" * 64,
+            "opportunity": normalized,
+            "authority_boundary": {"creates_signal_truth": False},
+        }
+    value["decision_digest"] = _digest(value)
+    return value
+
+
+def trusted_batch(items: list[dict], current: str):
+    def fake_materializer(_root, _ledger, draft_value, **_kwargs):
+        return _fixture_materializer_decision(draft_value["fixture_opportunity"])
+    requests = [
+        {
+            "schema_version": MATERIALIZATION_REQUEST_SCHEMA,
+            "ledger": object(),
+            "draft_value": {"fixture_opportunity": copy.deepcopy(item)},
+            "domain_authority_descriptors": [],
+            "domain_authority_observations": [],
+            "authority_exact_read_proofs": [],
+            "authority_live_observation_proof": None,
+        }
+        for item in items
+    ]
+    with patch("idle_signal_scheduler._load_current_materializer", return_value=fake_materializer):
+        return materialize_trusted_opportunity_batch(
+            REPO_ROOT, requests, expected_coordinator_main=current
+        )
+
+
 class IdleSignalSchedulerTests(unittest.TestCase):
     def evaluate(
         self,
@@ -204,6 +258,7 @@ class IdleSignalSchedulerTests(unittest.TestCase):
         if r150 is None:
             r150 = r150_receipt(current)
         trusted_review_blockers = list(trusted_review_blockers or [])
+        batch = trusted_batch(list(items), current)
         with (
             patch(
                 "idle_signal_scheduler._canonical_idle_blockers",
@@ -224,7 +279,7 @@ class IdleSignalSchedulerTests(unittest.TestCase):
         ):
             return evaluate_idle_signal_startup(
                 REPO_ROOT,
-                items,
+                batch,
                 expected_coordinator_main=current,
                 priority_observation_value=scan,
             )
@@ -261,7 +316,7 @@ class IdleSignalSchedulerTests(unittest.TestCase):
             ]
         )
         self.assertEqual(result["status"], "NO_IDLE_RELEASE")
-        self.assertEqual(result["reason"], "NO_ELIGIBLE_DIGESTED_SIGNAL_OPPORTUNITY")
+        self.assertEqual(result["reason"], "NO_ELIGIBLE_TRUSTED_SIGNAL_OPPORTUNITY")
 
     def test_06_unknown_or_needs_revalidation_cannot_release(self) -> None:
         result = self.evaluate(
@@ -323,7 +378,7 @@ class IdleSignalSchedulerTests(unittest.TestCase):
         ):
             result = evaluate_idle_signal_startup(
                 REPO_ROOT,
-                [opportunity()],
+                trusted_batch([opportunity()], head()),
                 expected_coordinator_main=head(),
                 priority_observation_value=priority_observation(),
             )
@@ -361,6 +416,10 @@ class IdleSignalSchedulerTests(unittest.TestCase):
         self.assertFalse(auth["authority"]["can_deploy_production"])
         self.assertTrue(auth["independent_exact_head_review_required"])
         self.assertTrue(auth["apply_requires_fresh_recheck"])
+        self.assertTrue(auth["apply_requires_fresh_rematerialization"])
+        self.assertFalse(auth["authority"]["caller_can_supply_opportunity_truth"])
+        self.assertEqual(len(auth["trusted_opportunity_batch_digest"]), 64)
+        self.assertEqual(len(auth["materialization_decision_digest"]), 64)
 
     def test_15_signal_proposal_binding_is_mandatory(self) -> None:
         bad = opportunity()
@@ -375,7 +434,7 @@ class IdleSignalSchedulerTests(unittest.TestCase):
         with self.assertRaises(IdleSignalSchedulerError) as caught:
             evaluate_idle_signal_startup(
                 REPO_ROOT,
-                [opportunity()],
+                trusted_batch([opportunity()], head()),
                 expected_coordinator_main=head(),
                 priority_observation_value=scan,
             )
@@ -568,12 +627,54 @@ class IdleSignalSchedulerTests(unittest.TestCase):
         ):
             result = evaluate_idle_signal_startup(
                 REPO_ROOT,
-                [opportunity()],
+                trusted_batch([opportunity()], head()),
                 expected_coordinator_main=head(),
                 priority_observation_value=priority_observation(),
             )
         self.assertEqual(result["status"], "NO_IDLE_RELEASE")
         self.assertIn("TRUSTED_PRIORITY_FAIL_CLOSED", result["reason"])
+
+
+    def test_22_raw_opportunity_sequence_cannot_enter_r151(self) -> None:
+        with self.assertRaisesRegex(IdleSignalSchedulerError, "TRUSTED_OPPORTUNITY_BATCH_REQUIRED"):
+            evaluate_idle_signal_startup(
+                REPO_ROOT,
+                [opportunity()],
+                expected_coordinator_main=head(),
+                priority_observation_value=priority_observation(),
+            )
+
+    def test_23_fake_mapping_cannot_forge_trusted_batch(self) -> None:
+        fake = {"schema_version": "TrustedSignalOpportunityBatch/v1", "batch_digest": "0" * 64}
+        with self.assertRaisesRegex(IdleSignalSchedulerError, "TRUSTED_OPPORTUNITY_BATCH_REQUIRED"):
+            evaluate_idle_signal_startup(
+                REPO_ROOT, fake, expected_coordinator_main=head(), priority_observation_value=priority_observation()
+            )
+
+    def test_24_materialization_decision_digest_tamper_fails_closed(self) -> None:
+        raw = opportunity()
+        def fake(_root, _ledger, _draft, **_kwargs):
+            value = _fixture_materializer_decision(raw)
+            value["decision_digest"] = "0" * 64
+            return value
+        request = {
+            "schema_version": MATERIALIZATION_REQUEST_SCHEMA,
+            "ledger": object(),
+            "draft_value": {"fixture_opportunity": raw},
+            "domain_authority_descriptors": [],
+            "domain_authority_observations": [],
+            "authority_exact_read_proofs": [],
+            "authority_live_observation_proof": None,
+        }
+        with patch("idle_signal_scheduler._load_current_materializer", return_value=fake):
+            with self.assertRaisesRegex(IdleSignalSchedulerError, "DECISION_DIGEST_MISMATCH"):
+                materialize_trusted_opportunity_batch(REPO_ROOT, [request], expected_coordinator_main=head())
+
+    def test_25_non_materialized_decision_never_enters_batch(self) -> None:
+        raw = opportunity(epistemic="UNKNOWN")
+        result = self.evaluate([raw])
+        self.assertEqual(result["status"], "NO_IDLE_RELEASE")
+        self.assertEqual(result["reason"], "NO_ELIGIBLE_TRUSTED_SIGNAL_OPPORTUNITY")
 
 
 if __name__ == "__main__":

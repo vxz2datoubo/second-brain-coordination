@@ -38,8 +38,13 @@ from idle_signal_apply import (
     validate_bootstrap_evidence,
     verify_applied_state,
 )
-from idle_signal_scheduler import AUTHORIZATION_SCHEMA, OPPORTUNITY_SCHEMA
-from idle_signal_scheduler import validate_opportunity
+from idle_signal_scheduler import (
+    AUTHORIZATION_SCHEMA,
+    CURRENT_MATERIALIZER_REF,
+    MATERIALIZATION_REQUEST_SCHEMA,
+    OPPORTUNITY_SCHEMA,
+    validate_opportunity,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -181,6 +186,8 @@ def authorization(raw_opportunity: dict, main: str = MAIN) -> dict:
         "signal_ref": normalized["signal_ref"],
         "opportunity_id": normalized["opportunity_id"],
         "opportunity_digest": normalized["opportunity_digest"],
+        "trusted_opportunity_batch_digest": "d" * 64,
+        "materialization_decision_digest": "e" * 64,
         "canonical_main": main,
         "priority_observation_digest": "b" * 64,
         "r150_receipt_digest": "c" * 64,
@@ -188,6 +195,7 @@ def authorization(raw_opportunity: dict, main: str = MAIN) -> dict:
         "standing_user_policy_ref": "issue://461#user-direction-2026-08-26",
         "priority_semantics_ref": "fixture://priority",
         "priority_provider_ref": "fixture://provider",
+        "opportunity_materializer_ref": CURRENT_MATERIALIZER_REF,
         "release_gate_refs": [
             "coordination/CONTROL-TOWER/task_release_impact.py",
             "coordination/CONTROL-TOWER/trusted_task_release.py",
@@ -197,6 +205,7 @@ def authorization(raw_opportunity: dict, main: str = MAIN) -> dict:
             "creates_signal_truth": False,
             "signal_self_authorizes": False,
             "caller_can_attest_priority_completeness": False,
+            "caller_can_supply_opportunity_truth": False,
             "can_create_issue": True,
             "can_create_route": True,
             "can_create_work_claim": True,
@@ -210,11 +219,24 @@ def authorization(raw_opportunity: dict, main: str = MAIN) -> dict:
         },
         "independent_exact_head_review_required": True,
         "apply_requires_fresh_recheck": True,
+        "apply_requires_fresh_rematerialization": True,
     }
     value["authorization_id"] = f"r151-auto-release:{_digest(value)[:24]}"
     value["authorization_digest"] = _digest(value)
     return value
 
+
+
+def materialization_requests(raw_opportunity: dict) -> list[dict]:
+    return [{
+        "schema_version": MATERIALIZATION_REQUEST_SCHEMA,
+        "ledger": object(),
+        "draft_value": {"fixture_opportunity": copy.deepcopy(raw_opportunity)},
+        "domain_authority_descriptors": [],
+        "domain_authority_observations": [],
+        "authority_exact_read_proofs": [],
+        "authority_live_observation_proof": None,
+    }]
 
 def intent(raw_opportunity: dict, lane_id: str = "LANE-A-HARNESS-INTEGRATION") -> dict:
     return {
@@ -335,35 +357,38 @@ class IdleSignalApplyTests(unittest.TestCase):
         bootstrap: dict | None = None,
         fresh_error: IdleSignalApplyError | None = None,
         next_epoch: int = 152,
+        fresh_opportunity: dict | None = None,
     ) -> dict:
         raw_opportunity = copy.deepcopy(raw_opportunity or opportunity())
         auth = copy.deepcopy(auth or authorization(raw_opportunity))
         apply_intent = copy.deepcopy(apply_intent or intent(raw_opportunity))
+        normalized_fresh = validate_opportunity(copy.deepcopy(fresh_opportunity or raw_opportunity))
+        batch_payload = {
+            "batch_digest": auth["trusted_opportunity_batch_digest"],
+            "items": [{
+                "opportunity_digest": normalized_fresh["opportunity_digest"],
+                "materialization_decision_digest": auth["materialization_decision_digest"],
+            }],
+        }
+        fresh_value = (auth, normalized_fresh, batch_payload)
         fresh_patch = (
             patch("idle_signal_apply._fresh_authorization", side_effect=fresh_error)
             if fresh_error
-            else patch("idle_signal_apply._fresh_authorization", return_value=auth)
+            else patch("idle_signal_apply._fresh_authorization", return_value=fresh_value)
         )
         bootstrap_manifest = None
         if bootstrap is not None:
-            bootstrap_manifest = {
-                "identity": _authorization_identity(auth, next_epoch)
-            }
-        trusted_bootstrap_value = (
-            trusted_bootstrap(bootstrap_manifest) if bootstrap_manifest else None
-        )
+            bootstrap_manifest = {"identity": _authorization_identity(auth, next_epoch)}
+        trusted_bootstrap_value = trusted_bootstrap(bootstrap_manifest) if bootstrap_manifest else None
         with (
             patch("idle_signal_apply._git_head", return_value=MAIN),
             patch("idle_signal_apply._next_route_epoch", return_value=next_epoch),
             fresh_patch,
-            patch(
-                "idle_signal_apply._trusted_bootstrap_observation",
-                return_value=trusted_bootstrap_value,
-            ),
+            patch("idle_signal_apply._trusted_bootstrap_observation", return_value=trusted_bootstrap_value),
         ):
             return prepare_apply_transaction(
                 REPO_ROOT,
-                raw_opportunity,
+                materialization_requests(raw_opportunity),
                 hints(),
                 auth,
                 apply_intent,
@@ -384,7 +409,7 @@ class IdleSignalApplyTests(unittest.TestCase):
             with self.assertRaisesRegex(IdleSignalApplyError, "CURRENT_MAIN_DRIFT"):
                 prepare_apply_transaction(
                     REPO_ROOT,
-                    raw,
+                    materialization_requests(raw),
                     hints(),
                     auth,
                     intent(raw),
@@ -508,7 +533,7 @@ class IdleSignalApplyTests(unittest.TestCase):
         with (
             patch("idle_signal_apply._git_head", return_value=MAIN),
             patch("idle_signal_apply._next_route_epoch", return_value=152),
-            patch("idle_signal_apply._fresh_authorization", return_value=auth),
+            patch("idle_signal_apply._fresh_authorization", return_value=(auth, validate_opportunity(raw), {"batch_digest": auth["trusted_opportunity_batch_digest"], "items": [{"opportunity_digest": validate_opportunity(raw)["opportunity_digest"], "materialization_decision_digest": auth["materialization_decision_digest"]}]})),
             patch(
                 "idle_signal_apply._assert_no_existing_live_control_state",
                 side_effect=IdleSignalApplyError("EXISTING_ACTIVE_OR_RESERVED_CLAIM"),
@@ -517,7 +542,7 @@ class IdleSignalApplyTests(unittest.TestCase):
             with self.assertRaisesRegex(IdleSignalApplyError, "EXISTING_ACTIVE"):
                 prepare_apply_transaction(
                     REPO_ROOT,
-                    raw,
+                    materialization_requests(raw),
                     hints(),
                     auth,
                     intent(raw),
@@ -883,6 +908,32 @@ class IdleSignalApplyTests(unittest.TestCase):
         self.assertFalse(receipt["authority_boundary"]["grants_secrets_or_permission_expansion"])
         self.assertFalse(receipt["authority_boundary"]["grants_trading_order_or_fund_access"])
         self.assertFalse(receipt["authority_boundary"]["grants_destructive_history_rewrite"])
+
+
+    def test_35_old_v1_authorization_is_rejected(self) -> None:
+        raw = opportunity()
+        old = authorization(raw)
+        old["schema_version"] = "IdleSignalAutoReleaseAuthorization/v1"
+        old.pop("authorization_digest", None)
+        id_basis = dict(old)
+        id_basis.pop("authorization_id", None)
+        old["authorization_id"] = f"r151-auto-release:{_digest(id_basis)[:24]}"
+        old["authorization_digest"] = _digest(old)
+        with self.assertRaisesRegex(IdleSignalApplyError, "AUTHORIZATION_SCHEMA_INVALID"):
+            self.prepare(raw, auth=old)
+
+    def test_36_fresh_rematerialization_opportunity_drift_fails(self) -> None:
+        raw = opportunity()
+        other = opportunity("OTHER-FRESH")
+        with self.assertRaisesRegex(IdleSignalApplyError, "FRESH_AUTHORIZATION_MISMATCH|OPPORTUNITY_ID_MISMATCH"):
+            self.prepare(raw, fresh_opportunity=other)
+
+    def test_37_public_apply_api_has_no_caller_opportunity_parameter(self) -> None:
+        import inspect
+        names = list(inspect.signature(prepare_apply_transaction).parameters)
+        self.assertNotIn("opportunity_value", names)
+        self.assertNotIn("opportunity", names)
+        self.assertIn("materialization_requests", names)
 
 
 if __name__ == "__main__":
