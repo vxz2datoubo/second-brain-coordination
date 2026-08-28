@@ -2,19 +2,19 @@
 
 ## Mission
 
-Implement the reversible-change foundation from Issues #477/#478/#479 before Continuous Engineering Verification D1.
+Implement the must-do / very-high-value reversible-change foundation from Issues #477/#478/#479 before Continuous Engineering Verification D1.
 
-R159 covers `CEA-SIG-001..009` and A0/A1/A2 of `CEA-SIG-027`.
+R159 covers `CEA-SIG-001..009` and A0/A1/A2 of `CEA-SIG-027` only.
 
-## Authority and scope boundary
+## Authority and exact scope
 
-R159 is additive-only and may change exactly seven released paths. It does **not** modify R149-R158 runtime, Signal truth, Review Queue, dispatcher, claims, worker registry, W3, domain truth, repository settings, Git tags/refs, databases, runtime snapshots, production services, secrets, accounts, orders, or funds.
+R159 is additive-only and may change exactly the seven paths released by Issue #479. It does not modify R149–R158 runtime, Signal truth/materializers, #453 Review Queue, #7 dispatcher, active claims, worker registry, W3/domain truth, repository settings, tags, databases, runtime snapshots, production services, secrets, accounts, orders, or funds.
 
-All R159 authority booleans are false.
+All task/route/write/review/merge/release/trading authority booleans remain false. A checkpoint, assessment, or revert plan is evidence/guard material, never execution authority.
 
 ## Reversibility contract
 
-`ChangeReversibilityAssessment/v1` deterministically derives one of:
+`ChangeReversibilityAssessment/v1` deterministically derives:
 
 - `REVERSIBLE_GIT_ONLY`
 - `REVERSIBLE_BY_VERSION_SWITCH`
@@ -23,160 +23,157 @@ All R159 authority booleans are false.
 - `COMPENSATABLE_ONLY`
 - `IRREVERSIBLE_OR_HIGH_RISK`
 
-A large/critical, stateful/mixed, GPT-judged-large, or explicitly marked change requires a valid checkpoint before a normal PASS can be produced.
+Large/critical, stateful/mixed, GPT-judged-large, or explicitly marked changes require a mechanically validated rollback checkpoint before normal PASS. Stateful changes cannot become Git-only merely because source code is versioned. Irreversible external side effects cannot mint ordinary reversible status.
 
-Stateful changes cannot become Git-only merely because source code is versioned. External irreversible side effects cannot mint a normal reversible result.
+`validate_assessment()` re-normalizes authoritative input and re-derives classification, marker requirement, checkpoint binding, result, and authority boundary. Recomputing a digest after editing semantics cannot restore validity.
 
-`validate_assessment()` is a semantic trust gate. It re-normalizes the embedded input and re-derives classification, marker requirement, checkpoint-binding state and result. Recomputing SHA-256 after changing those semantics does not restore validity.
+## Durable KnownGoodCheckpoint/v1
 
-## KnownGoodCheckpoint/v1
+### Canonical identity binding
 
-Checkpoint capture:
+Capture reads the configured Git remote and canonical branch. It derives repository identity from the remote URL and reads the live canonical branch tip with `git ls-remote`; it does not trust a caller-supplied repository label or a stale local `origin/main` projection.
 
-- reads exact `HEAD` and `HEAD^{tree}` from Git;
-- requires the expected exact head;
-- requires the configured source branch, default `main`;
-- requires a clean worktree including untracked files;
-- binds trigger source, reason, optional prior checkpoint digest and evidence references;
-- computes a deterministic semantic digest;
-- grants no execution/review/merge/release authority;
-- performs **no repository mutation**.
+Capture requires:
 
-### Trust model
+- local `HEAD == expected canonical main`;
+- live remote canonical main equals that same SHA;
+- a clean worktree including untracked files;
+- exact canonical tree SHA;
+- at least one relevant policy/schema path, each bound to its canonical blob SHA;
+- CI status `PASS` or explicitly `NOT_APPLICABLE`, with evidence references for PASS;
+- deterministic verification status `PASS`, with evidence references;
+- independent review status `PASS` or explicitly `NOT_APPLICABLE`, with evidence references for PASS;
+- UTC timestamp, trigger/reason, previous checkpoint digest when present, provenance, and bounded evidence refs.
 
-Issue #479 explicitly forbids tag mutation in this slice. Therefore R159 does not create tags, refs, branches, commits, settings, durable registries, snapshots or any second checkpoint authority.
+R159 binds these supplied evidence states and references into the marker. It does **not** become the D1 authority that independently discovers or validates every CI/review provider result. Automated provider verification remains a later D1 responsibility.
 
-A freshly captured checkpoint is wrapped in an invocation-local sealed mapping created by a private closure. Authority-bearing use requires that sealed object plus fresh Git revalidation of:
+### Durable marker commit
 
-- checkpoint commit existence;
-- commit -> exact tree;
-- source branch existence;
-- checkpoint commit ancestry under the source branch.
+The trust root is a Git commit object created with `git commit-tree`:
 
-`checkpoint_evidence()` or JSON serialization intentionally strips the invocation-local seal. The resulting `KnownGoodCheckpoint/v1` JSON remains deterministic evidence, but it cannot by itself satisfy a rollback-marker trust gate.
+`canonical remote main -> zero-tree-change checkpoint marker -> implementation descendants`
 
-This is fail-closed by design. Durable cross-process checkpoint attestation is deferred to a separately authorized future slice; R159 does not smuggle in a tag/registry/signature authority to obtain persistence.
+The marker:
+
+- has exactly one parent: the captured canonical main SHA;
+- has exactly the canonical main tree, so it changes no tracked file;
+- embeds the canonical `KnownGoodCheckpoint/v1` envelope in its commit message;
+- is identified by `marker_commit` in serialized checkpoint evidence;
+- does not create or move a tag, branch, remote-tracking ref, repository setting, database record, snapshot, or second checkpoint registry.
+
+The capture operation itself does not move refs. Normal separately authorized engineering publication must make the material implementation lineage descend from the marker. If no implementation occurs after capture, there is nothing new to roll back.
+
+A serialized checkpoint can therefore be revalidated in a later process/clone once the marker is present in the implementation history. Trust is re-derived from Git rather than from a process-local secret.
+
+### Revalidation
+
+`validate_known_good_checkpoint()` mechanically checks:
+
+- schema/digest/ID and all-false authority boundary;
+- current remote repository identity and canonical remote ref identity;
+- canonical base and marker commit existence;
+- exact base tree and zero-tree-change marker tree;
+- marker has exactly the canonical base as its sole parent;
+- marker commit message exactly reproduces the serialized checkpoint envelope;
+- canonical base remains an ancestor of current canonical main;
+- policy/schema blob bindings still match the captured base;
+- pre-change use requires HEAD and current remote canonical main still equal the captured base;
+- post-change use requires a supplied implementation head that is a **strict descendant** of the marker.
+
+Git graph/object checks run with replacement objects disabled so local `git replace` state cannot launder parent/tree/ancestry evidence.
 
 ## GovernedRevertPlan/v1
 
-A governed plan requires:
+A governed plan binds:
 
-- a currently sealed and Git-revalidated checkpoint;
-- a semantically re-derived PASS assessment;
-- exact checkpoint digest binding.
+- checkpoint ID/digest;
+- checkpoint marker commit;
+- target canonical commit/tree;
+- exact implementation head being reverted;
+- semantically re-derived PASS assessment.
 
-Recovery strategy is derived, never caller-selected:
+Recovery strategy is derived, not caller-selected:
 
 - Git-only -> `FORWARD_REVERT_PR_OR_CORRECTIVE_COMMIT`
-- policy/behavior -> version switch or feature flag
-- migration -> forward source revert plus down migration
-- snapshot -> forward source revert plus snapshot restore
-- compensatable external effect -> compensating action plus forward source revert
+- policy/behavior -> `VERSION_SWITCH_OR_FEATURE_FLAG`
+- migration -> `FORWARD_REVERT_PLUS_DOWN_MIGRATION`
+- snapshot -> `FORWARD_REVERT_PLUS_SNAPSHOT_RESTORE`
+- compensatable external effect -> `COMPENSATING_ACTION_PLUS_FORWARD_REVERT`
 
-Every plan preserves history, forbids destructive history rewrite, requires exact-head reverification, requires independent review for MEDIUM/LARGE/CRITICAL changes, and grants no merge/release authority.
-
-`validate_governed_revert_plan()` revalidates the sealed checkpoint, re-derives the assessment, reconstructs canonical strategy/review/approval semantics, and rejects recomputed-digest laundering.
-
-## Review remediation history
-
-### Review 1 — `pullrequestreview-5050614237`
-
-Closed:
-1. full caller-forged checkpoint object could self-mint trust;
-2. assessment/revert-plan semantic fields could be changed and re-digested.
-
-The semantic re-derivation closure is retained.
-
-### Review 2 — `pullrequestreview-5050837907`
-
-Finding:
-- the first anti-forgery repair created `refs/tags/r159-known-good/...`, violating Issue #479's explicit `No modification of ... tags` boundary.
-
-Current bounded remediation:
-- removes all tag/ref creation and `git update-ref`;
-- keeps fresh Git commit/tree/source-ref ancestry revalidation;
-- replaces durable tag proof with invocation-local sealed checkpoint identity;
-- makes serialized/plain/deep-copied checkpoint mappings evidence-only;
-- adds source and workflow guards proving no tag/ref mutation API is present.
-
-No scope amendment or new authority is claimed.
+Every plan preserves history, forbids destructive history rewrite, requires exact-head reverification, requires independent review for MEDIUM/LARGE/CRITICAL changes, and requires user approval for critical/compensatable recovery where derived. `validate_governed_revert_plan()` revalidates checkpoint + implementation ancestry, re-derives assessment and plan semantics, and rejects recomputed-digest laundering.
 
 ## User trigger
 
-The literal phrase `做个滚回记号` maps to `USER_EXPLICIT_ROLLBACK_MARKER`.
+Literal phrase `做个滚回记号` maps to `USER_EXPLICIT_ROLLBACK_MARKER`. The phrase creates a requirement; it does not itself grant write/merge/release authority.
 
-The phrase is only a trigger. It does not itself mint a checkpoint or grant authority.
+## Independent review remediation history
 
-## Exact seven-file scope
+### Review 1 — `pullrequestreview-5050614237`
 
-1. `coordination/CONTROL-TOWER/reversible_change.py`
-2. `coordination/CONTROL-TOWER/tests/test_reversible_change.py`
-3. `coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/CHANGE-REVERSIBILITY-ASSESSMENT.schema.json`
-4. `coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/KNOWN-GOOD-CHECKPOINT.schema.json`
-5. `coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/GOVERNED-REVERT-PLAN.schema.json`
-6. `coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/PROJECT-PLAN.md`
-7. `.github/workflows/program-control-tower-r159-reversible-change.yml`
+Found and remediated:
+1. full caller-forged checkpoint mappings could self-mint trust;
+2. assessment/revert-plan semantics could be changed and re-digested.
+
+Semantic re-derivation remains mandatory.
+
+### Review 2 — `pullrequestreview-5050837907`
+
+Found: first anti-forgery repair created `refs/tags/r159-known-good/...` using `git update-ref`, violating the explicit no-tag boundary.
+
+Remediation removed tag/ref mutation and retained semantic re-derivation.
+
+### Review 3 — `pullrequestreview-5051429387`
+
+Found:
+1. invocation-local seal could not survive process/serialization boundaries and therefore was not a durable rollback marker;
+2. repository/canonical-main identity and the CEA-SIG-003 minimum evidence envelope were incomplete/caller-asserted.
+
+Current remediation replaces invocation-local trust with the durable zero-tree-change Git marker commit protocol, live remote repository/main re-derivation, policy/schema blob binding, CI/deterministic/review evidence envelope, UTC provenance, and strict marker->implementation ancestry. No tag/ref registry or D1 verification authority is introduced.
 
 ## Adversarial regression matrix
 
 The R159 suite covers at least:
 
-- small code-only change without heavyweight marker;
-- literal user trigger;
-- large/GPT-judged-large marker requirement;
-- digest string alone cannot satisfy marker;
-- checkpoint capture changes no refs/tags;
-- plain serialized checkpoint cannot regain trusted status;
-- deep-copy loses trusted status;
-- full forged mapping cannot satisfy large-change gate;
-- valid sealed checkpoint satisfies the gate;
-- checkpoint remains valid after descendant HEAD advance;
-- commit/tree/source-ref ancestry is re-read from Git;
-- dirty/untracked/head/branch drift fails closed;
-- stateful Git-only false reversibility;
-- migration/snapshot/version-switch/compensation classes;
-- external irreversible effect user gate;
-- ordinary digest tamper;
-- recomputed-digest stateful->Git-only laundering;
-- recomputed marker bypass;
-- forged checkpoint-verified bit;
-- assessment authority escalation;
-- strategy laundering;
-- independent-review suppression;
-- user-approval suppression;
-- destructive-history-rewrite laundering;
-- plan authority escalation;
-- plain checkpoint cannot build revert plan;
-- unknown intent fields fail closed;
-- CLI checkpoint emits evidence without Git mutation;
-- CLI serialized checkpoint cannot be promoted back into trust;
-- module source contains no `update-ref`, `refs/tags/`, or `git tag`;
-- no exported seal/mint helper exists;
-- all authority booleans remain false.
+- small/medium/large/critical and GPT/user-trigger marker matrix;
+- stateful snapshot/migration/Git-only and mixed surfaces;
+- policy version-switch and external compensation/irreversible surfaces;
+- digest-only marker spoofing;
+- serialized/deep-copied cross-process checkpoint revalidation;
+- JSON mutation + recomputed-digest forgery;
+- repository-label substitution and remote-identity substitution;
+- live remote-main drift at capture;
+- dirty and untracked worktree rejection;
+- required policy/schema paths and missing-path failure;
+- CI FAIL and deterministic INCONCLUSIVE rejection;
+- PASS state without evidence refs rejection;
+- exact marker parent/tree/payload validation;
+- marker strict ancestry to implementation head;
+- unrelated implementation head and marker-as-head rejection;
+- `git replace` laundering resistance;
+- assessment marker-bit/classification laundering;
+- revert strategy/review/history/authority laundering;
+- CLI checkpoint serialization and later reuse;
+- no mutable tag/ref seam;
+- all authority booleans false.
 
 ## CI gate
 
-Python 3.11 and 3.13:
+Python 3.11 and 3.13 must both pass:
 
-- exact PR head + current base verification;
+- exact PR head + current base provenance;
 - compile module/tests;
-- parse all schemas;
-- run R159 adversarial suite;
-- run complete retained Control Tower suite;
+- all three schemas parse;
+- R159 adversarial suite;
+- complete retained Control Tower suite;
 - exact seven-file additive-only diff;
-- static authority boundary checks;
-- static no-tag/no-ref-mutation checks;
-- `git diff --check`;
-- unfinished-marker rejection.
+- durable-marker/canonical-binding/all-false-authority static invariants;
+- no mutable tag/ref or destructive-history seam;
+- `git diff --check` and unfinished-marker rejection.
 
 ## Stop gate
 
-Engineering stops after a final exact head has green CI, an engineering handoff, and a new exact-head `REVIEW_REQUEST/v1` in Issue #453.
-
-No self-review, Ready transition, or merge before a matching independent exact-head ACCEPT.
+Engineering stops after a final exact head has green CI, an engineering handoff, and a new exact-head `REVIEW_REQUEST/v1` in Issue #453. No self-review, Ready transition, or merge before a matching independent exact-head ACCEPT.
 
 ## Next slice
 
-Only after governed R159 merge and post-merge reconciliation may Issue #478 D1 begin:
-
-`Deterministic Evidence + Verification MVP`
+Only after governed R159 merge and fresh post-merge priority reconciliation may another implementation slice start. #478 D1 remains the intended Continuous Engineering Verification successor unless a higher-priority canonical issue (currently #308 P0 is a candidate) wins the fresh priority scan.
