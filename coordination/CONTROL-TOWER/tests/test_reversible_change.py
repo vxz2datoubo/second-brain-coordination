@@ -1,5 +1,5 @@
 from __future__ import annotations
-import copy, json, subprocess, sys, tempfile, unittest
+import copy, json, os, subprocess, sys, tempfile, unittest
 from pathlib import Path
 import reversible_change as rc
 
@@ -78,7 +78,7 @@ class T(unittest.TestCase):
     def test_13_remote_identity_change(self):
         with Repo() as r:
             c=r.checkpoint(); other=Path(r.tmp.name)/"other"/"repo.git"; other.parent.mkdir(); subprocess.check_call(["git","init","--bare",str(other)],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL); subprocess.check_call(["git","--git-dir",str(other),"fetch",str(r.root),f"{r.head}:refs/heads/main"],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL); subprocess.check_call(["git","remote","set-url","origin",str(other)],cwd=r.root)
-            with self.assertRaisesRegex(rc.ReversibleChangeError,"REMOTE_PROVIDER_HOST_NOT_BOUND"): rc.validate_known_good_checkpoint(c,repo_root=r.root)
+            with self.assertRaisesRegex(rc.ReversibleChangeError,"CANONICAL_REMOTE_HTTPS_REQUIRED"): rc.validate_known_good_checkpoint(c,repo_root=r.root)
     def test_14_remote_main_drift_capture(self):
         with Repo() as r:
             later=r.later_main(); subprocess.check_call(["git","push",str(r.origin),f"{later}:refs/heads/main"],cwd=r.root,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL); subprocess.check_call(["git","reset","--hard",r.head],cwd=r.root,stdout=subprocess.DEVNULL)
@@ -218,9 +218,24 @@ class T(unittest.TestCase):
     def test_52_file_endpoint_same_repo_path_rejected(self):
         with Repo() as r:
             evil=Path(r.tmp.name)/"mirror"/"example"/"repo.git"; evil.parent.mkdir(parents=True); subprocess.check_call(["git","init","--bare",str(evil)],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL); subprocess.check_call(["git","--git-dir",str(evil),"fetch",str(r.root),f"{r.head}:refs/heads/main"],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL); subprocess.check_call(["git","remote","set-url","origin",evil.as_uri()],cwd=r.root)
-            with self.assertRaisesRegex(rc.ReversibleChangeError,"REMOTE_PROVIDER_HOST_NOT_BOUND"): r.checkpoint()
-    def test_53_canonical_github_https_and_ssh_forms(self):
+            with self.assertRaisesRegex(rc.ReversibleChangeError,"CANONICAL_REMOTE_HTTPS_REQUIRED"): r.checkpoint()
+    def test_53_canonical_github_url_parser_forms(self):
         self.assertEqual(rc._remote_repo("https://github.com/example/repo.git"),"example/repo"); self.assertEqual(rc._remote_repo("git@github.com:example/repo.git"),"example/repo"); self.assertEqual(rc._remote_repo("ssh://git@github.com/example/repo.git"),"example/repo")
+    def test_54_ssh_transport_substitution_rejected_before_transport(self):
+        with Repo() as r:
+            marker=Path(r.tmp.name)/"ssh-transport-was-invoked"; poison=Path(r.tmp.name)/"poison_ssh.py"
+            poison.write_text(f"#!/usr/bin/env python3\nfrom pathlib import Path\nPath({str(marker)!r}).touch()\nraise SystemExit(1)\n"); poison.chmod(0o755)
+            subprocess.check_call(["git","config","core.sshCommand",str(poison)],cwd=r.root)
+            old=os.environ.get("GIT_SSH_COMMAND"); os.environ["GIT_SSH_COMMAND"]=str(poison)
+            try:
+                for remote in ("git@github.com:example/repo.git","ssh://git@github.com/example/repo.git"):
+                    with self.subTest(remote=remote):
+                        subprocess.check_call(["git","remote","set-url","origin",remote],cwd=r.root)
+                        with self.assertRaisesRegex(rc.ReversibleChangeError,"CANONICAL_REMOTE_HTTPS_REQUIRED"): r.checkpoint()
+                        self.assertFalse(marker.exists())
+            finally:
+                if old is None: os.environ.pop("GIT_SSH_COMMAND",None)
+                else: os.environ["GIT_SSH_COMMAND"]=old
 
 MATRIX=[
 ("small-none",{},("PASS","REVERSIBLE_GIT_ONLY")),
@@ -245,6 +260,6 @@ def _mk(case,kw,expected):
     def test(self):
         x=rc.assess_change_intent(intent(**kw)); self.assertEqual((x["assessment_result"],x["reversibility_class"]),expected,case)
     return test
-for i,row in enumerate(MATRIX,54): setattr(T,f"test_{i:02d}_matrix_{row[0].replace('-','_')}",_mk(*row))
+for i,row in enumerate(MATRIX,55): setattr(T,f"test_{i:02d}_matrix_{row[0].replace('-','_')}",_mk(*row))
 
 if __name__=="__main__": unittest.main()
