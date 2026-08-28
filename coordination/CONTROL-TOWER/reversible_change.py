@@ -1,777 +1,254 @@
 from __future__ import annotations
-
-import argparse
-import copy
-import hashlib
-import json
-import re
-import subprocess
-from collections.abc import Iterator, Mapping, Sequence
+import argparse, hashlib, json, os, re, subprocess
+from datetime import datetime, timezone
 from pathlib import Path
-from types import MappingProxyType
-from typing import Any
+from typing import Any, Mapping, Sequence
+from urllib.parse import urlparse
 
-ASSESSMENT_SCHEMA = "ChangeReversibilityAssessment/v1"
-CHECKPOINT_SCHEMA = "KnownGoodCheckpoint/v1"
-REVERT_PLAN_SCHEMA = "GovernedRevertPlan/v1"
-ROLLBACK_TRIGGER_PHRASE = "做个滚回记号"
+ASSESSMENT_SCHEMA="ChangeReversibilityAssessment/v1"
+CHECKPOINT_SCHEMA="KnownGoodCheckpoint/v1"
+REVERT_PLAN_SCHEMA="GovernedRevertPlan/v1"
+ROLLBACK_TRIGGER_PHRASE="做个滚回记号"
+MARKER_MESSAGE_HEADER="R159-KNOWN-GOOD-CHECKPOINT/v1"
+CHECKPOINT_TRUST="DURABLE_GIT_MARKER_COMMIT_REDERIVED_FROM_CANONICAL_STATE"
+EVIDENCE_SEMANTICS="BOUND_REFERENCES_NOT_ACCEPTANCE_AUTHORITY"
+SURFACE_KINDS={"CODE_CONFIG_ONLY","POLICY_BEHAVIOR","STATEFUL_DATA","EXTERNAL_SIDE_EFFECT","MIXED"}
+BLAST_RADII={"SMALL","MEDIUM","LARGE","CRITICAL"}
+ROLLBACK_MECHANISMS={"NONE","GIT_REVERT","FEATURE_FLAG_OR_VERSION_SWITCH","MIGRATION","SNAPSHOT","COMPENSATION"}
+TRIGGER_SOURCES={"USER_EXPLICIT_ROLLBACK_MARKER","GPT_LARGE_CHANGE_JUDGMENT","PRE_MATERIAL_CHANGE_POLICY","MANUAL_OPERATION"}
+EVIDENCE_STATES={"PASS","FAIL","INCONCLUSIVE","NOT_APPLICABLE"}
+AUTHORITY={k:False for k in ("creates_task","creates_route","creates_work_claim","grants_execution","grants_write","grants_review_accept","grants_merge","grants_release","grants_trading")}
+SHA40=re.compile(r"^[0-9a-f]{40}$"); SHA256=re.compile(r"^[0-9a-f]{64}$")
+REPO=re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
+INTENT_FIELDS={"change_id","surface_kind","blast_radius","explicit_rollback_marker_requested","gpt_judged_large_change","persistent_state_mutation","external_irreversible_side_effect","rollback_mechanism","rollback_checkpoint_ref"}
+STRATEGY={"REVERSIBLE_GIT_ONLY":"FORWARD_REVERT_PR_OR_CORRECTIVE_COMMIT","REVERSIBLE_BY_VERSION_SWITCH":"VERSION_SWITCH_OR_FEATURE_FLAG","REVERSIBLE_WITH_MIGRATION":"FORWARD_REVERT_PLUS_DOWN_MIGRATION","REVERSIBLE_WITH_SNAPSHOT":"FORWARD_REVERT_PLUS_SNAPSHOT_RESTORE","COMPENSATABLE_ONLY":"COMPENSATING_ACTION_PLUS_FORWARD_REVERT"}
 
-SURFACE_KINDS = {
-    "CODE_CONFIG_ONLY",
-    "POLICY_BEHAVIOR",
-    "STATEFUL_DATA",
-    "EXTERNAL_SIDE_EFFECT",
-    "MIXED",
-}
-BLAST_RADII = {"SMALL", "MEDIUM", "LARGE", "CRITICAL"}
-ROLLBACK_MECHANISMS = {
-    "NONE",
-    "GIT_REVERT",
-    "FEATURE_FLAG_OR_VERSION_SWITCH",
-    "MIGRATION",
-    "SNAPSHOT",
-    "COMPENSATION",
-}
-REVERSIBILITY_CLASSES = {
-    "REVERSIBLE_GIT_ONLY",
-    "REVERSIBLE_BY_VERSION_SWITCH",
-    "REVERSIBLE_WITH_MIGRATION",
-    "REVERSIBLE_WITH_SNAPSHOT",
-    "COMPENSATABLE_ONLY",
-    "IRREVERSIBLE_OR_HIGH_RISK",
-}
-TRIGGER_SOURCES = {
-    "USER_EXPLICIT_ROLLBACK_MARKER",
-    "GPT_LARGE_CHANGE_JUDGMENT",
-    "PRE_MATERIAL_CHANGE_POLICY",
-    "MANUAL_OPERATION",
-}
-ASSESSMENT_RESULTS = {
-    "PASS",
-    "REQUIRES_ROLLBACK_MARKER",
-    "BLOCKED_ROLLBACK_PLAN_INCOMPLETE",
-    "USER_APPROVAL_REQUIRED",
-}
-AUTHORITY = {
-    "creates_task": False,
-    "creates_route": False,
-    "creates_work_claim": False,
-    "grants_execution": False,
-    "grants_write": False,
-    "grants_review_accept": False,
-    "grants_merge": False,
-    "grants_release": False,
-    "grants_trading": False,
-}
-SHA40 = re.compile(r"^[0-9a-f]{40}$")
-SHA256 = re.compile(r"^[0-9a-f]{64}$")
-_INTENT_FIELDS = {
-    "change_id",
-    "surface_kind",
-    "blast_radius",
-    "explicit_rollback_marker_requested",
-    "gpt_judged_large_change",
-    "persistent_state_mutation",
-    "external_irreversible_side_effect",
-    "rollback_mechanism",
-    "rollback_checkpoint_ref",
-}
-_STRATEGY_BY_CLASS = {
-    "REVERSIBLE_GIT_ONLY": "FORWARD_REVERT_PR_OR_CORRECTIVE_COMMIT",
-    "REVERSIBLE_BY_VERSION_SWITCH": "VERSION_SWITCH_OR_FEATURE_FLAG",
-    "REVERSIBLE_WITH_MIGRATION": "FORWARD_REVERT_PLUS_DOWN_MIGRATION",
-    "REVERSIBLE_WITH_SNAPSHOT": "FORWARD_REVERT_PLUS_SNAPSHOT_RESTORE",
-    "COMPENSATABLE_ONLY": "COMPENSATING_ACTION_PLUS_FORWARD_REVERT",
-}
-_CHECKPOINT_TRUST_SEMANTICS = (
-    "INVOCATION_LOCAL_SEAL_REQUIRED_FOR_AUTHORITY_BEARING_USE"
-)
+class ReversibleChangeError(ValueError): pass
 
-
-class ReversibleChangeError(ValueError):
-    pass
-
-
-def _canonical_json(value: Mapping[str, Any]) -> str:
-    return json.dumps(
-        dict(value),
-        ensure_ascii=False,
-        sort_keys=True,
-        separators=(",", ":"),
-    )
-
-
-def _digest(value: Mapping[str, Any]) -> str:
-    return hashlib.sha256(_canonical_json(value).encode("utf-8")).hexdigest()
-
-
-def _require_mapping(value: Any, name: str) -> Mapping[str, Any]:
-    if not isinstance(value, Mapping):
-        raise ReversibleChangeError(f"{name}:MAPPING_REQUIRED")
-    return value
-
-
-def _require_str(value: Any, name: str) -> str:
-    if not isinstance(value, str) or not value.strip():
-        raise ReversibleChangeError(f"{name}:NONEMPTY_STRING_REQUIRED")
-    return value.strip()
-
-
-def _require_bool(value: Any, name: str) -> bool:
-    if type(value) is not bool:
-        raise ReversibleChangeError(f"{name}:BOOLEAN_REQUIRED")
-    return value
-
-
-def _require_enum(value: Any, name: str, allowed: set[str]) -> str:
-    text = _require_str(value, name)
-    if text not in allowed:
-        raise ReversibleChangeError(f"{name}:UNSUPPORTED:{text}")
-    return text
-
-
-def _require_sha40(value: Any, name: str) -> str:
-    text = _require_str(value, name)
-    if not SHA40.fullmatch(text):
-        raise ReversibleChangeError(f"{name}:SHA40_REQUIRED")
-    return text
-
-
-def _require_sha256(value: Any, name: str) -> str:
-    text = _require_str(value, name)
-    if not SHA256.fullmatch(text):
-        raise ReversibleChangeError(f"{name}:SHA256_REQUIRED")
-    return text
-
-
-def _normalize_optional_checkpoint_ref(value: Any) -> str | None:
-    if value is None or value == "":
-        return None
-    return _require_sha256(value, "rollback_checkpoint_ref")
-
-
-def _git(repo_root: Path, *args: str) -> str:
+def _json(v:Mapping[str,Any])->str: return json.dumps(dict(v),ensure_ascii=False,sort_keys=True,separators=(",",":"))
+def _digest(v:Mapping[str,Any])->str: return hashlib.sha256(_json(v).encode()).hexdigest()
+def _mapping(v:Any,n:str)->Mapping[str,Any]:
+    if not isinstance(v,Mapping): raise ReversibleChangeError(f"{n}:MAPPING_REQUIRED")
+    return v
+def _str(v:Any,n:str)->str:
+    if not isinstance(v,str) or not v.strip(): raise ReversibleChangeError(f"{n}:NONEMPTY_STRING_REQUIRED")
+    return v.strip()
+def _bool(v:Any,n:str)->bool:
+    if type(v) is not bool: raise ReversibleChangeError(f"{n}:BOOLEAN_REQUIRED")
+    return v
+def _enum(v:Any,n:str,a:set[str])->str:
+    x=_str(v,n)
+    if x not in a: raise ReversibleChangeError(f"{n}:UNSUPPORTED:{x}")
+    return x
+def _sha40(v:Any,n:str)->str:
+    x=_str(v,n)
+    if not SHA40.fullmatch(x): raise ReversibleChangeError(f"{n}:SHA40_REQUIRED")
+    return x
+def _sha256(v:Any,n:str)->str:
+    x=_str(v,n)
+    if not SHA256.fullmatch(x): raise ReversibleChangeError(f"{n}:SHA256_REQUIRED")
+    return x
+def _env()->dict[str,str]:
+    e=os.environ.copy(); e["GIT_NO_REPLACE_OBJECTS"]="1"; return e
+def _git(root:Path,*args:str,input_text:str|None=None)->str:
     try:
-        return subprocess.check_output(
-            ["git", *args],
-            cwd=repo_root,
-            stderr=subprocess.STDOUT,
-            text=True,
-        ).strip()
-    except (OSError, subprocess.CalledProcessError) as exc:
-        raise ReversibleChangeError(f"git:{' '.join(args)}:FAILED") from exc
-
-
-def _git_optional(repo_root: Path, *args: str) -> str | None:
+        return subprocess.check_output(["git","--no-replace-objects",*args],cwd=root,text=True,input=input_text,stderr=subprocess.STDOUT,env=_env()).strip()
+    except (OSError,subprocess.CalledProcessError) as exc: raise ReversibleChangeError(f"git:{' '.join(args)}:FAILED") from exc
+def _git_optional(root:Path,*args:str)->str|None:
+    try: return subprocess.check_output(["git","--no-replace-objects",*args],cwd=root,text=True,stderr=subprocess.STDOUT,env=_env()).strip()
+    except (OSError,subprocess.CalledProcessError): return None
+def _ancestor(root:Path,a:str,b:str)->bool:
     try:
-        return subprocess.check_output(
-            ["git", *args],
-            cwd=repo_root,
-            stderr=subprocess.STDOUT,
-            text=True,
-        ).strip()
-    except (OSError, subprocess.CalledProcessError):
-        return None
+        subprocess.check_call(["git","--no-replace-objects","merge-base","--is-ancestor",a,b],cwd=root,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,env=_env()); return True
+    except (OSError,subprocess.CalledProcessError): return False
+def _remote_repo(url:str)->str:
+    u=_str(url,"remote_url")
+    if u.startswith("git@") and ":" in u: p=u.split(":",1)[1]
+    elif "://" in u: p=urlparse(u).path
+    else: p=u
+    parts=[x for x in p.replace("\\","/").strip("/").split("/") if x]
+    if parts and parts[-1].endswith(".git"): parts[-1]=parts[-1][:-4]
+    if len(parts)<2: raise ReversibleChangeError("checkpoint:REMOTE_REPOSITORY_UNRESOLVED")
+    repo="/".join(parts[-2:])
+    if not REPO.fullmatch(repo): raise ReversibleChangeError("checkpoint:REMOTE_REPOSITORY_UNRESOLVED")
+    return repo
+def _remote_tip(root:Path,remote:str,branch:str)->dict[str,str]:
+    r=_str(remote,"remote_name"); b=_str(branch,"canonical_branch")
+    url=_git(root,"config","--get",f"remote.{r}.url"); repo=_remote_repo(url)
+    out=_git(root,"ls-remote","--exit-code",url,f"refs/heads/{b}")
+    rows=[x.split() for x in out.splitlines() if x.strip()]
+    if len(rows)!=1: raise ReversibleChangeError("checkpoint:CANONICAL_REMOTE_REF_UNRESOLVED")
+    return {"repository":repo,"remote_name":r,"canonical_branch":b,"canonical_remote_ref":f"refs/heads/{b}","canonical_main_sha":_sha40(rows[0][0],"canonical_main_sha")}
+def _refs(xs:Sequence[str],n:str)->list[str]:
+    if isinstance(xs,(str,bytes)): raise ReversibleChangeError(f"{n}:SEQUENCE_REQUIRED")
+    out=[]
+    for x in xs:
+        y=_str(x,n)
+        if y not in out: out.append(y)
+    return out
+def _status(v:Mapping[str,Any],n:str,allowed:set[str])->dict[str,Any]:
+    d=dict(_mapping(v,n))
+    if set(d)!={"state","evidence_refs","reason"}: raise ReversibleChangeError(f"{n}:FIELDS_INVALID")
+    s=_enum(d["state"],f"{n}.state",EVIDENCE_STATES)
+    if s not in allowed: raise ReversibleChangeError(f"{n}:STATE_NOT_KNOWN_GOOD:{s}")
+    refs=_refs(d["evidence_refs"],f"{n}.evidence_ref")
+    if s=="PASS" and not refs: raise ReversibleChangeError(f"{n}:PASS_EVIDENCE_REQUIRED")
+    return {"state":s,"evidence_refs":refs,"reason":_str(d["reason"],f"{n}.reason")}
+def _policy_versions(root:Path,commit:str,paths:Sequence[str])->dict[str,str]:
+    ps=_refs(paths,"policy_schema_path")
+    if not ps: raise ReversibleChangeError("checkpoint:POLICY_SCHEMA_PATH_REQUIRED")
+    out={}
+    for p in ps:
+        if p.startswith("/") or p==".." or p.startswith("../") or "/../" in p: raise ReversibleChangeError("checkpoint:POLICY_SCHEMA_PATH_INVALID")
+        x=_git_optional(root,"rev-parse","--verify",f"{commit}:{p}")
+        if x is None: raise ReversibleChangeError(f"checkpoint:POLICY_SCHEMA_PATH_MISSING:{p}")
+        out[p]=_sha40(x,f"policy_schema_versions[{p}]")
+    return out
+def _marker_message(envelope:Mapping[str,Any])->str: return f"{MARKER_MESSAGE_HEADER}\n\n{_json(envelope)}\n"
+def _parse_marker(s:str)->dict[str,Any]:
+    prefix=MARKER_MESSAGE_HEADER+"\n\n"
+    if not s.startswith(prefix): raise ReversibleChangeError("checkpoint:MARKER_MESSAGE_HEADER_MISMATCH")
+    try: v=json.loads(s[len(prefix):].strip())
+    except json.JSONDecodeError as exc: raise ReversibleChangeError("checkpoint:MARKER_MESSAGE_JSON_INVALID") from exc
+    return dict(_mapping(v,"marker_payload"))
 
+def capture_known_good_checkpoint(repo_root:str|Path,*,expected_head:str,trigger_source:str,reason:str,policy_schema_paths:Sequence[str],ci_status:Mapping[str,Any],deterministic_verification_status:Mapping[str,Any],independent_review_status:Mapping[str,Any],remote_name:str="origin",canonical_branch:str="main",previous_checkpoint_digest:str|None=None,evidence_refs:Sequence[str]=(),repository:str|None=None)->dict[str,Any]:
+    root=Path(repo_root).resolve(); expected=_sha40(expected_head,"expected_head")
+    ident=_remote_tip(root,remote_name,canonical_branch)
+    if repository is not None and _str(repository,"repository")!=ident["repository"]: raise ReversibleChangeError("checkpoint:REPOSITORY_LABEL_SUBSTITUTION")
+    if ident["canonical_main_sha"]!=expected: raise ReversibleChangeError("checkpoint:CANONICAL_MAIN_DRIFT")
+    if _git(root,"rev-parse","HEAD")!=expected: raise ReversibleChangeError("checkpoint:HEAD_DRIFT")
+    if _git(root,"status","--porcelain","--untracked-files=all"): raise ReversibleChangeError("checkpoint:WORKTREE_DIRTY")
+    tree=_sha40(_git(root,"rev-parse",f"{expected}^{{tree}}"),"tree_sha")
+    prev=None if previous_checkpoint_digest is None else _sha256(previous_checkpoint_digest,"previous_checkpoint_digest")
+    semantic={"schema_version":CHECKPOINT_SCHEMA,"repository":ident["repository"],"source_ref":f"{ident['remote_name']}/{ident['canonical_branch']}","canonical_main_sha":expected,"tree_sha":tree,"trigger_source":_enum(trigger_source,"trigger_source",TRIGGER_SOURCES),"reason":_str(reason,"reason"),"qualification_level":"DESIGNATED_RECOVERY_ANCHOR","git_binding_verified":True,"trust_semantics":CHECKPOINT_TRUST,"policy_schema_versions":_policy_versions(root,expected,policy_schema_paths),"ci_status":_status(ci_status,"ci_status",{"PASS","NOT_APPLICABLE"}),"deterministic_verification_status":_status(deterministic_verification_status,"deterministic_verification_status",{"PASS"}),"independent_review_status":_status(independent_review_status,"independent_review_status",{"PASS","NOT_APPLICABLE"}),"recorded_at":datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00","Z"),"provenance":{"capture_tool":"R159/reversible_change.py","capture_mode":"GIT_COMMIT_TREE_MARKER","remote_name":ident["remote_name"],"canonical_branch":ident["canonical_branch"],"canonical_remote_ref":ident["canonical_remote_ref"]},"previous_checkpoint_digest":prev,"evidence_refs":_refs(evidence_refs,"evidence_ref"),"evidence_semantics":EVIDENCE_SEMANTICS,"authority":dict(AUTHORITY)}
+    d=_digest(semantic); envelope=dict(semantic); envelope["checkpoint_id"]=f"KGC-{d[:16]}"; envelope["checkpoint_digest"]=d
+    marker=_sha40(_git(root,"commit-tree",tree,"-p",expected,input_text=_marker_message(envelope)),"marker_commit")
+    result=dict(envelope); result["marker_commit"]=marker; return result
 
-def _make_checkpoint_contract():
-    secret = object()
+CHECKPOINT_FIELDS={"schema_version","repository","source_ref","canonical_main_sha","tree_sha","marker_commit","trigger_source","reason","qualification_level","git_binding_verified","trust_semantics","policy_schema_versions","ci_status","deterministic_verification_status","independent_review_status","recorded_at","provenance","previous_checkpoint_digest","evidence_refs","evidence_semantics","authority","checkpoint_id","checkpoint_digest"}
+def _shape(value:Mapping[str,Any])->dict[str,Any]:
+    c=dict(_mapping(value,"checkpoint"))
+    if set(c)!=CHECKPOINT_FIELDS:
+        miss=sorted(CHECKPOINT_FIELDS-set(c)); extra=sorted(set(c)-CHECKPOINT_FIELDS)
+        raise ReversibleChangeError(f"checkpoint:FIELD_{'MISSING' if miss else 'UNRECOGNIZED'}:{(miss or extra)[0]}")
+    if c["schema_version"]!=CHECKPOINT_SCHEMA: raise ReversibleChangeError("checkpoint:SCHEMA_MISMATCH")
+    if not REPO.fullmatch(_str(c["repository"],"repository")): raise ReversibleChangeError("checkpoint:REPOSITORY_FORMAT_INVALID")
+    for k in ("canonical_main_sha","tree_sha","marker_commit"): _sha40(c[k],k)
+    _enum(c["trigger_source"],"trigger_source",TRIGGER_SOURCES); _str(c["source_ref"],"source_ref"); _str(c["reason"],"reason")
+    if c["qualification_level"]!="DESIGNATED_RECOVERY_ANCHOR" or c["git_binding_verified"] is not True or c["trust_semantics"]!=CHECKPOINT_TRUST or c["evidence_semantics"]!=EVIDENCE_SEMANTICS or c["authority"]!=AUTHORITY: raise ReversibleChangeError("checkpoint:CONTRACT_INVARIANT_MISMATCH")
+    pv=dict(_mapping(c["policy_schema_versions"],"policy_schema_versions"))
+    if not pv: raise ReversibleChangeError("checkpoint:POLICY_SCHEMA_VERSION_REQUIRED")
+    for p,b in pv.items(): _str(p,"policy_schema_path"); _sha40(b,f"policy_schema_versions[{p}]")
+    _status(c["ci_status"],"ci_status",{"PASS","NOT_APPLICABLE"}); _status(c["deterministic_verification_status"],"deterministic_verification_status",{"PASS"}); _status(c["independent_review_status"],"independent_review_status",{"PASS","NOT_APPLICABLE"})
+    if not _str(c["recorded_at"],"recorded_at").endswith("Z"): raise ReversibleChangeError("checkpoint:RECORDED_AT_UTC_REQUIRED")
+    pr=dict(_mapping(c["provenance"],"provenance"))
+    if set(pr)!={"capture_tool","capture_mode","remote_name","canonical_branch","canonical_remote_ref"} or pr["capture_tool"]!="R159/reversible_change.py" or pr["capture_mode"]!="GIT_COMMIT_TREE_MARKER": raise ReversibleChangeError("checkpoint:PROVENANCE_FIELDS_INVALID")
+    if c["previous_checkpoint_digest"] is not None: _sha256(c["previous_checkpoint_digest"],"previous_checkpoint_digest")
+    _refs(c["evidence_refs"],"evidence_ref")
+    d=_sha256(c["checkpoint_digest"],"checkpoint_digest")
+    body=dict(c); body.pop("marker_commit"); cid=body.pop("checkpoint_id"); body.pop("checkpoint_digest")
+    if _digest(body)!=d or cid!=f"KGC-{d[:16]}": raise ReversibleChangeError("checkpoint:DIGEST_OR_ID_MISMATCH")
+    return c
 
-    class TrustedKnownGoodCheckpoint(Mapping[str, Any]):
-        __slots__ = ("__payload",)
-
-        def __init__(self, payload: Mapping[str, Any], key: object):
-            if key is not secret:
-                raise ReversibleChangeError("checkpoint:TRUSTED_CAPTURE_REQUIRED")
-            self.__payload = MappingProxyType(copy.deepcopy(dict(payload)))
-
-        def __getitem__(self, key: str) -> Any:
-            return self.__payload[key]
-
-        def __iter__(self) -> Iterator[str]:
-            return iter(self.__payload)
-
-        def __len__(self) -> int:
-            return len(self.__payload)
-
-        def __copy__(self) -> dict[str, Any]:
-            return dict(self.__payload)
-
-        def __deepcopy__(self, memo: dict[int, Any]) -> dict[str, Any]:
-            return copy.deepcopy(dict(self.__payload), memo)
-
-        def evidence(self) -> dict[str, Any]:
-            return copy.deepcopy(dict(self.__payload))
-
-    def capture(
-        repo_root: str | Path,
-        *,
-        repository: str,
-        expected_head: str,
-        trigger_source: str,
-        reason: str,
-        required_branch: str = "main",
-        previous_checkpoint_digest: str | None = None,
-        evidence_refs: Sequence[str] = (),
-    ) -> Mapping[str, Any]:
-        root = Path(repo_root).resolve()
-        repository_name = _require_str(repository, "repository")
-        expected = _require_sha40(expected_head, "expected_head")
-        trigger = _require_enum(trigger_source, "trigger_source", TRIGGER_SOURCES)
-        reason_text = _require_str(reason, "reason")
-        branch_required = _require_str(required_branch, "required_branch")
-        if previous_checkpoint_digest is not None:
-            previous_checkpoint_digest = _require_sha256(
-                previous_checkpoint_digest,
-                "previous_checkpoint_digest",
-            )
-
-        head = _git(root, "rev-parse", "HEAD")
-        if head != expected:
-            raise ReversibleChangeError("checkpoint:HEAD_DRIFT")
-
-        tree = _git(root, "rev-parse", "HEAD^{tree}")
-        _require_sha40(tree, "tree_sha")
-        branch = _git(root, "symbolic-ref", "--short", "-q", "HEAD")
-        if branch != branch_required:
-            raise ReversibleChangeError("checkpoint:BRANCH_MISMATCH")
-
-        dirty = _git(root, "status", "--porcelain", "--untracked-files=all")
-        if dirty:
-            raise ReversibleChangeError("checkpoint:WORKTREE_DIRTY")
-
-        refs: list[str] = []
-        seen: set[str] = set()
-        for ref in evidence_refs:
-            item = _require_str(ref, "evidence_ref")
-            if item not in seen:
-                refs.append(item)
-                seen.add(item)
-
-        semantic = {
-            "schema_version": CHECKPOINT_SCHEMA,
-            "repository": repository_name,
-            "source_ref": branch,
-            "canonical_commit": head,
-            "tree_sha": tree,
-            "trigger_source": trigger,
-            "reason": reason_text,
-            "qualification_level": "DESIGNATED_RECOVERY_ANCHOR",
-            "git_binding_verified": True,
-            "trust_semantics": _CHECKPOINT_TRUST_SEMANTICS,
-            "previous_checkpoint_digest": previous_checkpoint_digest,
-            "evidence_refs": refs,
-            "evidence_semantics": "REFERENCES_ONLY_NOT_ACCEPTANCE_AUTHORITY",
-            "authority": dict(AUTHORITY),
-        }
-        digest = _digest(semantic)
-        result = dict(semantic)
-        result["checkpoint_id"] = f"KGC-{digest[:16]}"
-        result["checkpoint_digest"] = digest
-        return TrustedKnownGoodCheckpoint(result, secret)
-
-    def unwrap(value: Mapping[str, Any]) -> dict[str, Any]:
-        if type(value) is not TrustedKnownGoodCheckpoint:
-            raise ReversibleChangeError("checkpoint:TRUSTED_CAPTURE_REQUIRED")
-        return value.evidence()
-
-    return capture, unwrap
-
-
-capture_known_good_checkpoint, _UNWRAP_CAPTURED_CHECKPOINT = _make_checkpoint_contract()
-
-
-def trigger_from_user_text(text: str) -> str:
-    if not isinstance(text, str):
-        raise ReversibleChangeError("user_text:STRING_REQUIRED")
-    if ROLLBACK_TRIGGER_PHRASE in text:
-        return "USER_EXPLICIT_ROLLBACK_MARKER"
-    return "NONE"
-
-
-def _classification(
-    *,
-    surface_kind: str,
-    persistent_state_mutation: bool,
-    external_irreversible_side_effect: bool,
-    rollback_mechanism: str,
-) -> tuple[str, list[str]]:
-    if external_irreversible_side_effect:
-        return "IRREVERSIBLE_OR_HIGH_RISK", ["EXTERNAL_IRREVERSIBLE_SIDE_EFFECT"]
-
-    if surface_kind == "EXTERNAL_SIDE_EFFECT":
-        if rollback_mechanism == "COMPENSATION":
-            return "COMPENSATABLE_ONLY", [
-                "EXTERNAL_SIDE_EFFECT_REQUIRES_COMPENSATION"
-            ]
-        return "IRREVERSIBLE_OR_HIGH_RISK", [
-            "EXTERNAL_SIDE_EFFECT_WITHOUT_COMPENSATION"
-        ]
-
-    if persistent_state_mutation or surface_kind in {"STATEFUL_DATA", "MIXED"}:
-        if rollback_mechanism == "SNAPSHOT":
-            return "REVERSIBLE_WITH_SNAPSHOT", ["STATEFUL_CHANGE_BOUND_TO_SNAPSHOT"]
-        if rollback_mechanism == "MIGRATION":
-            return "REVERSIBLE_WITH_MIGRATION", ["STATEFUL_CHANGE_BOUND_TO_MIGRATION"]
-        return "IRREVERSIBLE_OR_HIGH_RISK", [
-            "STATEFUL_CHANGE_CANNOT_USE_GIT_ONLY_RECOVERY"
-        ]
-
-    if (
-        surface_kind == "POLICY_BEHAVIOR"
-        and rollback_mechanism == "FEATURE_FLAG_OR_VERSION_SWITCH"
-    ):
-        return "REVERSIBLE_BY_VERSION_SWITCH", [
-            "POLICY_EFFECT_RECOVERY_BY_VERSION_SWITCH"
-        ]
-
-    if rollback_mechanism in {
-        "NONE",
-        "GIT_REVERT",
-        "FEATURE_FLAG_OR_VERSION_SWITCH",
-    }:
-        if rollback_mechanism == "FEATURE_FLAG_OR_VERSION_SWITCH":
-            return "REVERSIBLE_BY_VERSION_SWITCH", ["VERSION_SWITCH_AVAILABLE"]
-        return "REVERSIBLE_GIT_ONLY", ["CODE_CONFIG_RECOVERABLE_BY_GIT_HISTORY"]
-
-    return "IRREVERSIBLE_OR_HIGH_RISK", ["ROLLBACK_MECHANISM_SURFACE_MISMATCH"]
-
-
-def _normalize_intent(intent_value: Mapping[str, Any]) -> dict[str, Any]:
-    intent = dict(_require_mapping(intent_value, "intent"))
-    missing = sorted(_INTENT_FIELDS - set(intent))
-    extra = sorted(set(intent) - _INTENT_FIELDS)
-    if missing:
-        raise ReversibleChangeError(f"intent:FIELD_MISSING:{missing[0]}")
-    if extra:
-        raise ReversibleChangeError(f"intent:FIELD_UNRECOGNIZED:{extra[0]}")
-
-    return {
-        "change_id": _require_str(intent.get("change_id"), "change_id"),
-        "surface_kind": _require_enum(
-            intent.get("surface_kind"), "surface_kind", SURFACE_KINDS
-        ),
-        "blast_radius": _require_enum(
-            intent.get("blast_radius"), "blast_radius", BLAST_RADII
-        ),
-        "explicit_rollback_marker_requested": _require_bool(
-            intent.get("explicit_rollback_marker_requested"),
-            "explicit_rollback_marker_requested",
-        ),
-        "gpt_judged_large_change": _require_bool(
-            intent.get("gpt_judged_large_change"),
-            "gpt_judged_large_change",
-        ),
-        "persistent_state_mutation": _require_bool(
-            intent.get("persistent_state_mutation"),
-            "persistent_state_mutation",
-        ),
-        "external_irreversible_side_effect": _require_bool(
-            intent.get("external_irreversible_side_effect"),
-            "external_irreversible_side_effect",
-        ),
-        "rollback_mechanism": _require_enum(
-            intent.get("rollback_mechanism"),
-            "rollback_mechanism",
-            ROLLBACK_MECHANISMS,
-        ),
-        "rollback_checkpoint_ref": _normalize_optional_checkpoint_ref(
-            intent.get("rollback_checkpoint_ref")
-        ),
-    }
-
-
-def _derive_assessment(
-    normalized: Mapping[str, Any],
-    checkpoint_binding_verified: bool,
-) -> dict[str, Any]:
-    classification, classification_reasons = _classification(
-        surface_kind=str(normalized["surface_kind"]),
-        persistent_state_mutation=bool(normalized["persistent_state_mutation"]),
-        external_irreversible_side_effect=bool(
-            normalized["external_irreversible_side_effect"]
-        ),
-        rollback_mechanism=str(normalized["rollback_mechanism"]),
-    )
-
-    marker_required = (
-        bool(normalized["explicit_rollback_marker_requested"])
-        or bool(normalized["gpt_judged_large_change"])
-        or normalized["blast_radius"] in {"LARGE", "CRITICAL"}
-        or bool(normalized["persistent_state_mutation"])
-        or normalized["surface_kind"]
-        in {"STATEFUL_DATA", "MIXED", "EXTERNAL_SIDE_EFFECT"}
-    )
-
-    marker_reasons: list[str] = []
-    if normalized["explicit_rollback_marker_requested"]:
-        marker_reasons.append("USER_EXPLICIT_ROLLBACK_MARKER")
-    if normalized["gpt_judged_large_change"]:
-        marker_reasons.append("GPT_LARGE_CHANGE_JUDGMENT")
-    if normalized["blast_radius"] in {"LARGE", "CRITICAL"}:
-        marker_reasons.append(f"BLAST_RADIUS_{normalized['blast_radius']}")
-    if normalized["persistent_state_mutation"] or normalized["surface_kind"] in {
-        "STATEFUL_DATA",
-        "MIXED",
-        "EXTERNAL_SIDE_EFFECT",
-    }:
-        marker_reasons.append("STATEFUL_OR_MIXED_CHANGE")
-
-    if classification == "IRREVERSIBLE_OR_HIGH_RISK":
-        if normalized["external_irreversible_side_effect"]:
-            result = "USER_APPROVAL_REQUIRED"
-        else:
-            result = "BLOCKED_ROLLBACK_PLAN_INCOMPLETE"
-    elif marker_required and not checkpoint_binding_verified:
-        result = "REQUIRES_ROLLBACK_MARKER"
+def validate_known_good_checkpoint(value:Mapping[str,Any],*,repo_root:str|Path,implementation_head:str|None=None)->dict[str,Any]:
+    root=Path(repo_root).resolve(); c=_shape(value); pr=c["provenance"]
+    ident=_remote_tip(root,pr["remote_name"],pr["canonical_branch"])
+    if ident["repository"]!=c["repository"]: raise ReversibleChangeError("checkpoint:REPOSITORY_IDENTITY_MISMATCH")
+    if ident["canonical_remote_ref"]!=pr["canonical_remote_ref"]: raise ReversibleChangeError("checkpoint:CANONICAL_REMOTE_REF_MISMATCH")
+    base=c["canonical_main_sha"]; tree=c["tree_sha"]; marker=c["marker_commit"]
+    if _git_optional(root,"cat-file","-t",base)!="commit" or _git_optional(root,"cat-file","-t",marker)!="commit": raise ReversibleChangeError("checkpoint:COMMIT_MISSING")
+    if _git(root,"rev-parse",f"{base}^{{tree}}")!=tree or _git(root,"rev-parse",f"{marker}^{{tree}}")!=tree: raise ReversibleChangeError("checkpoint:TREE_BINDING_MISMATCH")
+    parents=_git(root,"rev-list","--parents","-n","1",marker).split()
+    if len(parents)!=2 or parents[1]!=base: raise ReversibleChangeError("checkpoint:MARKER_PARENT_MISMATCH")
+    embedded=_parse_marker(_git(root,"show","-s","--format=%B",marker)); expected=dict(c); expected.pop("marker_commit")
+    if embedded!=expected: raise ReversibleChangeError("checkpoint:MARKER_PAYLOAD_MISMATCH")
+    if not _ancestor(root,base,ident["canonical_main_sha"]): raise ReversibleChangeError("checkpoint:CANONICAL_MAIN_ANCESTRY_MISMATCH")
+    if _policy_versions(root,base,list(c["policy_schema_versions"]))!=c["policy_schema_versions"]: raise ReversibleChangeError("checkpoint:POLICY_SCHEMA_BINDING_MISMATCH")
+    if implementation_head is None:
+        if _git(root,"rev-parse","HEAD")!=base: raise ReversibleChangeError("checkpoint:PRECHANGE_HEAD_DRIFT")
+        if ident["canonical_main_sha"]!=base: raise ReversibleChangeError("checkpoint:PRECHANGE_CANONICAL_MAIN_DRIFT")
     else:
-        result = "PASS"
+        impl=_sha40(implementation_head,"implementation_head")
+        if _git_optional(root,"cat-file","-t",impl)!="commit": raise ReversibleChangeError("checkpoint:IMPLEMENTATION_HEAD_MISSING")
+        if impl==marker or not _ancestor(root,marker,impl): raise ReversibleChangeError("checkpoint:MARKER_NOT_ANCESTOR_OF_IMPLEMENTATION")
+    return c
+def checkpoint_evidence(v:Mapping[str,Any])->dict[str,Any]: return json.loads(_json(_mapping(v,"checkpoint")))
 
-    payload = {
-        "schema_version": ASSESSMENT_SCHEMA,
-        "change_id": normalized["change_id"],
-        "normalized_input": dict(normalized),
-        "reversibility_class": classification,
-        "assessment_result": result,
-        "rollback_marker_required": marker_required,
-        "rollback_marker_reasons": marker_reasons,
-        "rollback_checkpoint_binding_verified": checkpoint_binding_verified,
-        "classification_reasons": classification_reasons,
-        "authority": dict(AUTHORITY),
-    }
-    payload["assessment_digest"] = _digest(payload)
-    return payload
-
-
-def checkpoint_evidence(value: Mapping[str, Any]) -> dict[str, Any]:
-    return copy.deepcopy(dict(_require_mapping(value, "checkpoint")))
-
-
-def validate_known_good_checkpoint(
-    value: Mapping[str, Any],
-    *,
-    repo_root: str | Path,
-) -> dict[str, Any]:
-    root = Path(repo_root).resolve()
-    checkpoint = _UNWRAP_CAPTURED_CHECKPOINT(value)
-    if checkpoint.get("schema_version") != CHECKPOINT_SCHEMA:
-        raise ReversibleChangeError("checkpoint:SCHEMA_MISMATCH")
-
-    digest = _require_sha256(
-        checkpoint.get("checkpoint_digest"), "checkpoint_digest"
-    )
-    checkpoint_id = _require_str(checkpoint.get("checkpoint_id"), "checkpoint_id")
-    body = dict(checkpoint)
-    body.pop("checkpoint_id", None)
-    body.pop("checkpoint_digest", None)
-    if _digest(body) != digest:
-        raise ReversibleChangeError("checkpoint:DIGEST_MISMATCH")
-    if checkpoint_id != f"KGC-{digest[:16]}":
-        raise ReversibleChangeError("checkpoint:ID_MISMATCH")
-
-    commit = _require_sha40(checkpoint.get("canonical_commit"), "canonical_commit")
-    tree = _require_sha40(checkpoint.get("tree_sha"), "tree_sha")
-    source_ref = _require_str(checkpoint.get("source_ref"), "source_ref")
-    _require_enum(
-        checkpoint.get("trigger_source"), "trigger_source", TRIGGER_SOURCES
-    )
-    _require_str(checkpoint.get("repository"), "repository")
-    _require_str(checkpoint.get("reason"), "reason")
-
-    if checkpoint.get("qualification_level") != "DESIGNATED_RECOVERY_ANCHOR":
-        raise ReversibleChangeError("checkpoint:QUALIFICATION_MISMATCH")
-    if checkpoint.get("git_binding_verified") is not True:
-        raise ReversibleChangeError("checkpoint:GIT_BINDING_REQUIRED")
-    if checkpoint.get("trust_semantics") != _CHECKPOINT_TRUST_SEMANTICS:
-        raise ReversibleChangeError("checkpoint:TRUST_SEMANTICS_MISMATCH")
-    if (
-        checkpoint.get("evidence_semantics")
-        != "REFERENCES_ONLY_NOT_ACCEPTANCE_AUTHORITY"
-    ):
-        raise ReversibleChangeError("checkpoint:EVIDENCE_SEMANTICS_MISMATCH")
-    if checkpoint.get("authority") != AUTHORITY:
-        raise ReversibleChangeError("checkpoint:AUTHORITY_BOUNDARY_MISMATCH")
-
-    previous = checkpoint.get("previous_checkpoint_digest")
-    if previous is not None:
-        _require_sha256(previous, "previous_checkpoint_digest")
-
-    actual_tree = _git_optional(root, "rev-parse", f"{commit}^{{tree}}")
-    if actual_tree != tree:
-        raise ReversibleChangeError("checkpoint:TREE_BINDING_MISMATCH")
-
-    branch_tip = _git_optional(
-        root,
-        "rev-parse",
-        "--verify",
-        f"refs/heads/{source_ref}",
-    )
-    if branch_tip is None:
-        raise ReversibleChangeError("checkpoint:SOURCE_REF_MISSING")
-
-    try:
-        subprocess.check_call(
-            ["git", "merge-base", "--is-ancestor", commit, branch_tip],
-            cwd=root,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
-    except (OSError, subprocess.CalledProcessError) as exc:
-        raise ReversibleChangeError(
-            "checkpoint:SOURCE_REF_ANCESTRY_MISMATCH"
-        ) from exc
-
-    return checkpoint
-
-
-def assess_change_intent(
-    intent_value: Mapping[str, Any],
-    checkpoint_value: Mapping[str, Any] | None = None,
-    *,
-    repo_root: str | Path | None = None,
-) -> dict[str, Any]:
-    normalized = _normalize_intent(intent_value)
-    checkpoint_verified = False
-
+def trigger_from_user_text(text:str)->str:
+    if not isinstance(text,str): raise ReversibleChangeError("user_text:STRING_REQUIRED")
+    return "USER_EXPLICIT_ROLLBACK_MARKER" if ROLLBACK_TRIGGER_PHRASE in text else "NONE"
+def _classify(n:Mapping[str,Any])->tuple[str,list[str]]:
+    if n["external_irreversible_side_effect"]: return "IRREVERSIBLE_OR_HIGH_RISK",["EXTERNAL_IRREVERSIBLE_SIDE_EFFECT"]
+    if n["surface_kind"]=="EXTERNAL_SIDE_EFFECT": return ("COMPENSATABLE_ONLY",["EXTERNAL_SIDE_EFFECT_REQUIRES_COMPENSATION"]) if n["rollback_mechanism"]=="COMPENSATION" else ("IRREVERSIBLE_OR_HIGH_RISK",["EXTERNAL_SIDE_EFFECT_WITHOUT_COMPENSATION"])
+    if n["persistent_state_mutation"] or n["surface_kind"] in {"STATEFUL_DATA","MIXED"}:
+        if n["rollback_mechanism"]=="SNAPSHOT": return "REVERSIBLE_WITH_SNAPSHOT",["STATEFUL_CHANGE_BOUND_TO_SNAPSHOT"]
+        if n["rollback_mechanism"]=="MIGRATION": return "REVERSIBLE_WITH_MIGRATION",["STATEFUL_CHANGE_BOUND_TO_MIGRATION"]
+        return "IRREVERSIBLE_OR_HIGH_RISK",["STATEFUL_CHANGE_CANNOT_USE_GIT_ONLY_RECOVERY"]
+    if n["rollback_mechanism"]=="FEATURE_FLAG_OR_VERSION_SWITCH": return "REVERSIBLE_BY_VERSION_SWITCH",["VERSION_SWITCH_AVAILABLE"]
+    if n["rollback_mechanism"] in {"NONE","GIT_REVERT"}: return "REVERSIBLE_GIT_ONLY",["CODE_CONFIG_RECOVERABLE_BY_GIT_HISTORY"]
+    return "IRREVERSIBLE_OR_HIGH_RISK",["ROLLBACK_MECHANISM_SURFACE_MISMATCH"]
+def _intent(v:Mapping[str,Any])->dict[str,Any]:
+    x=dict(_mapping(v,"intent"))
+    if set(x)!=INTENT_FIELDS:
+        miss=sorted(INTENT_FIELDS-set(x)); extra=sorted(set(x)-INTENT_FIELDS); raise ReversibleChangeError(f"intent:FIELD_{'MISSING' if miss else 'UNRECOGNIZED'}:{(miss or extra)[0]}")
+    ref=x["rollback_checkpoint_ref"]
+    return {"change_id":_str(x["change_id"],"change_id"),"surface_kind":_enum(x["surface_kind"],"surface_kind",SURFACE_KINDS),"blast_radius":_enum(x["blast_radius"],"blast_radius",BLAST_RADII),"explicit_rollback_marker_requested":_bool(x["explicit_rollback_marker_requested"],"explicit_rollback_marker_requested"),"gpt_judged_large_change":_bool(x["gpt_judged_large_change"],"gpt_judged_large_change"),"persistent_state_mutation":_bool(x["persistent_state_mutation"],"persistent_state_mutation"),"external_irreversible_side_effect":_bool(x["external_irreversible_side_effect"],"external_irreversible_side_effect"),"rollback_mechanism":_enum(x["rollback_mechanism"],"rollback_mechanism",ROLLBACK_MECHANISMS),"rollback_checkpoint_ref":None if ref in (None,"") else _sha256(ref,"rollback_checkpoint_ref")}
+def _assessment(n:Mapping[str,Any],verified:bool)->dict[str,Any]:
+    cls,reasons=_classify(n); marker=bool(n["explicit_rollback_marker_requested"] or n["gpt_judged_large_change"] or n["blast_radius"] in {"LARGE","CRITICAL"} or n["persistent_state_mutation"] or n["surface_kind"] in {"STATEFUL_DATA","MIXED","EXTERNAL_SIDE_EFFECT"})
+    mr=[]
+    if n["explicit_rollback_marker_requested"]: mr.append("USER_EXPLICIT_ROLLBACK_MARKER")
+    if n["gpt_judged_large_change"]: mr.append("GPT_LARGE_CHANGE_JUDGMENT")
+    if n["blast_radius"] in {"LARGE","CRITICAL"}: mr.append("BLAST_RADIUS_"+n["blast_radius"])
+    if n["persistent_state_mutation"] or n["surface_kind"] in {"STATEFUL_DATA","MIXED","EXTERNAL_SIDE_EFFECT"}: mr.append("STATEFUL_OR_MIXED_CHANGE")
+    result="USER_APPROVAL_REQUIRED" if cls=="IRREVERSIBLE_OR_HIGH_RISK" and n["external_irreversible_side_effect"] else "BLOCKED_ROLLBACK_PLAN_INCOMPLETE" if cls=="IRREVERSIBLE_OR_HIGH_RISK" else "REQUIRES_ROLLBACK_MARKER" if marker and not verified else "PASS"
+    out={"schema_version":ASSESSMENT_SCHEMA,"change_id":n["change_id"],"normalized_input":dict(n),"reversibility_class":cls,"assessment_result":result,"rollback_marker_required":marker,"rollback_marker_reasons":mr,"rollback_checkpoint_binding_verified":verified,"classification_reasons":reasons,"authority":dict(AUTHORITY)}; out["assessment_digest"]=_digest(out); return out
+def assess_change_intent(intent_value:Mapping[str,Any],checkpoint_value:Mapping[str,Any]|None=None,*,repo_root:str|Path|None=None,implementation_head:str|None=None)->dict[str,Any]:
+    n=_intent(intent_value); verified=False
     if checkpoint_value is not None:
-        if repo_root is None:
-            raise ReversibleChangeError("assessment:CHECKPOINT_REPO_ROOT_REQUIRED")
-        checkpoint = validate_known_good_checkpoint(
-            checkpoint_value,
-            repo_root=repo_root,
-        )
-        actual_ref = checkpoint["checkpoint_digest"]
-        if (
-            normalized["rollback_checkpoint_ref"] is not None
-            and normalized["rollback_checkpoint_ref"] != actual_ref
-        ):
-            raise ReversibleChangeError("assessment:CHECKPOINT_BINDING_MISMATCH")
-        normalized["rollback_checkpoint_ref"] = actual_ref
-        checkpoint_verified = True
+        if repo_root is None: raise ReversibleChangeError("assessment:CHECKPOINT_REPO_ROOT_REQUIRED")
+        c=validate_known_good_checkpoint(checkpoint_value,repo_root=repo_root,implementation_head=implementation_head); d=c["checkpoint_digest"]
+        if n["rollback_checkpoint_ref"] not in {None,d}: raise ReversibleChangeError("assessment:CHECKPOINT_BINDING_MISMATCH")
+        n["rollback_checkpoint_ref"]=d; verified=True
+    return _assessment(n,verified)
+def validate_assessment(v:Mapping[str,Any],*,checkpoint_value:Mapping[str,Any]|None=None,repo_root:str|Path|None=None,implementation_head:str|None=None)->dict[str,Any]:
+    a=dict(_mapping(v,"assessment"))
+    if a.get("schema_version")!=ASSESSMENT_SCHEMA: raise ReversibleChangeError("assessment:SCHEMA_MISMATCH")
+    d=_sha256(a.get("assessment_digest"),"assessment_digest"); body=dict(a); body.pop("assessment_digest")
+    if _digest(body)!=d: raise ReversibleChangeError("assessment:DIGEST_MISMATCH")
+    expected=assess_change_intent(_intent(_mapping(a.get("normalized_input"),"normalized_input")),checkpoint_value,repo_root=repo_root,implementation_head=implementation_head)
+    if a!=expected: raise ReversibleChangeError("assessment:SEMANTIC_REDERIVATION_MISMATCH")
+    return a
+def _plan(c:Mapping[str,Any],a:Mapping[str,Any],reason:str,impl:str)->dict[str,Any]:
+    if a["assessment_result"]!="PASS": raise ReversibleChangeError("revert_plan:ASSESSMENT_NOT_PASS")
+    if a["normalized_input"]["rollback_checkpoint_ref"]!=c["checkpoint_digest"]: raise ReversibleChangeError("revert_plan:CHECKPOINT_BINDING_MISMATCH")
+    cls=a["reversibility_class"]
+    if cls not in STRATEGY: raise ReversibleChangeError("revert_plan:IRREVERSIBLE_CHANGE")
+    blast=a["normalized_input"]["blast_radius"]
+    out={"schema_version":REVERT_PLAN_SCHEMA,"checkpoint_id":c["checkpoint_id"],"checkpoint_digest":c["checkpoint_digest"],"checkpoint_marker_commit":c["marker_commit"],"target_commit":c["canonical_main_sha"],"target_tree":c["tree_sha"],"implementation_head":_sha40(impl,"implementation_head"),"change_id":a["change_id"],"assessment_digest":a["assessment_digest"],"reversibility_class":cls,"strategy":STRATEGY[cls],"reason":_str(reason,"reason"),"preserve_history":True,"destructive_history_rewrite":False,"exact_head_reverification_required":True,"independent_review_required":blast in {"MEDIUM","LARGE","CRITICAL"},"user_approval_required":cls=="COMPENSATABLE_ONLY" or blast=="CRITICAL","authority":dict(AUTHORITY)}; out["plan_digest"]=_digest(out); return out
+def build_governed_revert_plan(checkpoint_value:Mapping[str,Any],assessment_value:Mapping[str,Any],*,reason:str,repo_root:str|Path,implementation_head:str)->dict[str,Any]:
+    c=validate_known_good_checkpoint(checkpoint_value,repo_root=repo_root,implementation_head=implementation_head); a=validate_assessment(assessment_value,checkpoint_value=checkpoint_value,repo_root=repo_root,implementation_head=implementation_head); return _plan(c,a,reason,implementation_head)
+def validate_governed_revert_plan(v:Mapping[str,Any],*,checkpoint_value:Mapping[str,Any],assessment_value:Mapping[str,Any],repo_root:str|Path,implementation_head:str)->dict[str,Any]:
+    p=dict(_mapping(v,"revert_plan")); d=_sha256(p.get("plan_digest"),"plan_digest"); body=dict(p); body.pop("plan_digest")
+    if p.get("schema_version")!=REVERT_PLAN_SCHEMA or _digest(body)!=d: raise ReversibleChangeError("revert_plan:DIGEST_OR_SCHEMA_MISMATCH")
+    if p.get("preserve_history") is not True: raise ReversibleChangeError("revert_plan:HISTORY_PRESERVATION_REQUIRED")
+    if p.get("destructive_history_rewrite") is not False: raise ReversibleChangeError("revert_plan:DESTRUCTIVE_HISTORY_REWRITE_FORBIDDEN")
+    if p.get("exact_head_reverification_required") is not True: raise ReversibleChangeError("revert_plan:EXACT_HEAD_REVERIFICATION_REQUIRED")
+    if p.get("authority")!=AUTHORITY: raise ReversibleChangeError("revert_plan:AUTHORITY_BOUNDARY_MISMATCH")
+    c=validate_known_good_checkpoint(checkpoint_value,repo_root=repo_root,implementation_head=implementation_head); a=validate_assessment(assessment_value,checkpoint_value=checkpoint_value,repo_root=repo_root,implementation_head=implementation_head); expected=_plan(c,a,_str(p.get("reason"),"reason"),implementation_head)
+    if p!=expected: raise ReversibleChangeError("revert_plan:SEMANTIC_REDERIVATION_MISMATCH")
+    return p
 
-    return _derive_assessment(normalized, checkpoint_verified)
-
-
-def validate_assessment(
-    value: Mapping[str, Any],
-    *,
-    checkpoint_value: Mapping[str, Any] | None = None,
-    repo_root: str | Path | None = None,
-) -> dict[str, Any]:
-    assessment = dict(_require_mapping(value, "assessment"))
-    if assessment.get("schema_version") != ASSESSMENT_SCHEMA:
-        raise ReversibleChangeError("assessment:SCHEMA_MISMATCH")
-
-    digest = _require_sha256(
-        assessment.get("assessment_digest"), "assessment_digest"
-    )
-    body = dict(assessment)
-    body.pop("assessment_digest", None)
-    if _digest(body) != digest:
-        raise ReversibleChangeError("assessment:DIGEST_MISMATCH")
-
-    normalized = _normalize_intent(
-        _require_mapping(assessment.get("normalized_input"), "normalized_input")
-    )
-    if checkpoint_value is None:
-        expected = assess_change_intent(normalized)
-    else:
-        if repo_root is None:
-            raise ReversibleChangeError("assessment:CHECKPOINT_REPO_ROOT_REQUIRED")
-        expected = assess_change_intent(
-            normalized,
-            checkpoint_value,
-            repo_root=repo_root,
-        )
-
-    if assessment != expected:
-        raise ReversibleChangeError("assessment:SEMANTIC_REDERIVATION_MISMATCH")
-    return assessment
-
-
-def _derive_revert_plan(
-    checkpoint: Mapping[str, Any],
-    assessment: Mapping[str, Any],
-    *,
-    reason: str,
-) -> dict[str, Any]:
-    if assessment["assessment_result"] != "PASS":
-        raise ReversibleChangeError("revert_plan:ASSESSMENT_NOT_PASS")
-
-    if (
-        assessment["normalized_input"].get("rollback_checkpoint_ref")
-        != checkpoint["checkpoint_digest"]
-    ):
-        raise ReversibleChangeError("revert_plan:CHECKPOINT_BINDING_MISMATCH")
-
-    classification = assessment["reversibility_class"]
-    if classification == "IRREVERSIBLE_OR_HIGH_RISK":
-        raise ReversibleChangeError("revert_plan:IRREVERSIBLE_CHANGE")
-    if classification not in _STRATEGY_BY_CLASS:
-        raise ReversibleChangeError("revert_plan:STRATEGY_UNAVAILABLE")
-
-    blast_radius = assessment["normalized_input"]["blast_radius"]
-    plan = {
-        "schema_version": REVERT_PLAN_SCHEMA,
-        "checkpoint_id": checkpoint["checkpoint_id"],
-        "checkpoint_digest": checkpoint["checkpoint_digest"],
-        "target_commit": checkpoint["canonical_commit"],
-        "target_tree": checkpoint["tree_sha"],
-        "change_id": assessment["change_id"],
-        "assessment_digest": assessment["assessment_digest"],
-        "reversibility_class": classification,
-        "strategy": _STRATEGY_BY_CLASS[classification],
-        "reason": _require_str(reason, "reason"),
-        "preserve_history": True,
-        "destructive_history_rewrite": False,
-        "exact_head_reverification_required": True,
-        "independent_review_required": blast_radius
-        in {"MEDIUM", "LARGE", "CRITICAL"},
-        "user_approval_required": classification == "COMPENSATABLE_ONLY"
-        or blast_radius == "CRITICAL",
-        "authority": dict(AUTHORITY),
-    }
-    plan["plan_digest"] = _digest(plan)
-    return plan
-
-
-def build_governed_revert_plan(
-    checkpoint_value: Mapping[str, Any],
-    assessment_value: Mapping[str, Any],
-    *,
-    reason: str,
-    repo_root: str | Path,
-) -> dict[str, Any]:
-    checkpoint = validate_known_good_checkpoint(
-        checkpoint_value,
-        repo_root=repo_root,
-    )
-    assessment = validate_assessment(
-        assessment_value,
-        checkpoint_value=checkpoint_value,
-        repo_root=repo_root,
-    )
-    return _derive_revert_plan(checkpoint, assessment, reason=reason)
-
-
-def validate_governed_revert_plan(
-    value: Mapping[str, Any],
-    *,
-    checkpoint_value: Mapping[str, Any],
-    assessment_value: Mapping[str, Any],
-    repo_root: str | Path,
-) -> dict[str, Any]:
-    plan = dict(_require_mapping(value, "revert_plan"))
-    if plan.get("schema_version") != REVERT_PLAN_SCHEMA:
-        raise ReversibleChangeError("revert_plan:SCHEMA_MISMATCH")
-
-    digest = _require_sha256(plan.get("plan_digest"), "plan_digest")
-    body = dict(plan)
-    body.pop("plan_digest", None)
-    if _digest(body) != digest:
-        raise ReversibleChangeError("revert_plan:DIGEST_MISMATCH")
-
-    if plan.get("preserve_history") is not True:
-        raise ReversibleChangeError("revert_plan:HISTORY_PRESERVATION_REQUIRED")
-    if plan.get("destructive_history_rewrite") is not False:
-        raise ReversibleChangeError(
-            "revert_plan:DESTRUCTIVE_HISTORY_REWRITE_FORBIDDEN"
-        )
-    if plan.get("exact_head_reverification_required") is not True:
-        raise ReversibleChangeError(
-            "revert_plan:EXACT_HEAD_REVERIFICATION_REQUIRED"
-        )
-    if plan.get("authority") != AUTHORITY:
-        raise ReversibleChangeError("revert_plan:AUTHORITY_BOUNDARY_MISMATCH")
-
-    checkpoint = validate_known_good_checkpoint(
-        checkpoint_value,
-        repo_root=repo_root,
-    )
-    assessment = validate_assessment(
-        assessment_value,
-        checkpoint_value=checkpoint_value,
-        repo_root=repo_root,
-    )
-    expected = _derive_revert_plan(
-        checkpoint,
-        assessment,
-        reason=_require_str(plan.get("reason"), "reason"),
-    )
-    if plan != expected:
-        raise ReversibleChangeError("revert_plan:SEMANTIC_REDERIVATION_MISMATCH")
-    return plan
-
-
-def _load_json(path: str) -> Mapping[str, Any]:
-    value = json.loads(Path(path).read_text(encoding="utf-8"))
-    return _require_mapping(value, path)
-
-
-def _dump(value: Mapping[str, Any]) -> None:
-    print(
-        json.dumps(
-            dict(value),
-            ensure_ascii=False,
-            sort_keys=True,
-            indent=2,
-        )
-    )
-
-
-def _cli() -> int:
-    parser = argparse.ArgumentParser(description="R159 reversible change foundation")
-    sub = parser.add_subparsers(dest="command", required=True)
-
-    assess_parser = sub.add_parser("assess")
-    assess_parser.add_argument("--input", required=True)
-    assess_parser.add_argument("--checkpoint")
-    assess_parser.add_argument("--repo-root")
-
-    checkpoint_parser = sub.add_parser("checkpoint")
-    checkpoint_parser.add_argument("--repo-root", required=True)
-    checkpoint_parser.add_argument("--repository", required=True)
-    checkpoint_parser.add_argument("--expected-head", required=True)
-    checkpoint_parser.add_argument(
-        "--trigger-source",
-        required=True,
-        choices=sorted(TRIGGER_SOURCES),
-    )
-    checkpoint_parser.add_argument("--reason", required=True)
-    checkpoint_parser.add_argument("--required-branch", default="main")
-
-    plan_parser = sub.add_parser("plan")
-    plan_parser.add_argument("--checkpoint", required=True)
-    plan_parser.add_argument("--assessment", required=True)
-    plan_parser.add_argument("--reason", required=True)
-    plan_parser.add_argument("--repo-root", required=True)
-
-    args = parser.parse_args()
-    if args.command == "assess":
-        if args.checkpoint:
-            raise ReversibleChangeError(
-                "assessment:SERIALIZED_CHECKPOINT_EVIDENCE_ONLY"
-            )
-        _dump(assess_change_intent(_load_json(args.input)))
-    elif args.command == "checkpoint":
-        _dump(
-            checkpoint_evidence(
-                capture_known_good_checkpoint(
-                    args.repo_root,
-                    repository=args.repository,
-                    expected_head=args.expected_head,
-                    trigger_source=args.trigger_source,
-                    reason=args.reason,
-                    required_branch=args.required_branch,
-                )
-            )
-        )
-    elif args.command == "plan":
-        raise ReversibleChangeError(
-            "revert_plan:SERIALIZED_CHECKPOINT_EVIDENCE_ONLY"
-        )
+def _load(p:str)->Mapping[str,Any]: return _mapping(json.loads(Path(p).read_text(encoding="utf-8")),p)
+def _dump(v:Mapping[str,Any])->None: print(json.dumps(dict(v),ensure_ascii=False,sort_keys=True,indent=2))
+def _cli()->int:
+    ap=argparse.ArgumentParser(); sub=ap.add_subparsers(dest="cmd",required=True)
+    a=sub.add_parser("assess"); a.add_argument("--input",required=True); a.add_argument("--checkpoint"); a.add_argument("--repo-root"); a.add_argument("--implementation-head")
+    c=sub.add_parser("checkpoint"); c.add_argument("--repo-root",required=True); c.add_argument("--expected-head",required=True); c.add_argument("--repository"); c.add_argument("--trigger-source",required=True,choices=sorted(TRIGGER_SOURCES)); c.add_argument("--reason",required=True); c.add_argument("--remote-name",default="origin"); c.add_argument("--canonical-branch",default="main"); c.add_argument("--policy-schema-path",action="append",required=True); c.add_argument("--ci-evidence-ref",action="append",required=True); c.add_argument("--deterministic-evidence-ref",action="append",required=True); c.add_argument("--independent-review-state",choices=["PASS","NOT_APPLICABLE"],default="NOT_APPLICABLE"); c.add_argument("--independent-review-evidence-ref",action="append",default=[]); c.add_argument("--evidence-ref",action="append",default=[])
+    p=sub.add_parser("plan"); p.add_argument("--checkpoint",required=True); p.add_argument("--assessment",required=True); p.add_argument("--reason",required=True); p.add_argument("--repo-root",required=True); p.add_argument("--implementation-head",required=True)
+    x=ap.parse_args()
+    if x.cmd=="assess": _dump(assess_change_intent(_load(x.input),_load(x.checkpoint) if x.checkpoint else None,repo_root=x.repo_root,implementation_head=x.implementation_head))
+    elif x.cmd=="checkpoint": _dump(capture_known_good_checkpoint(x.repo_root,expected_head=x.expected_head,repository=x.repository,trigger_source=x.trigger_source,reason=x.reason,remote_name=x.remote_name,canonical_branch=x.canonical_branch,policy_schema_paths=x.policy_schema_path,ci_status={"state":"PASS","evidence_refs":x.ci_evidence_ref,"reason":"bound CI evidence"},deterministic_verification_status={"state":"PASS","evidence_refs":x.deterministic_evidence_ref,"reason":"bound deterministic verification evidence"},independent_review_status={"state":x.independent_review_state,"evidence_refs":x.independent_review_evidence_ref,"reason":"bound independent review status"},evidence_refs=x.evidence_ref))
+    else: _dump(build_governed_revert_plan(_load(x.checkpoint),_load(x.assessment),reason=x.reason,repo_root=x.repo_root,implementation_head=x.implementation_head))
     return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(_cli())
+if __name__=="__main__": raise SystemExit(_cli())
