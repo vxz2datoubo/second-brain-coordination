@@ -23,10 +23,13 @@ from trusted_task_release import (
 
 
 OPPORTUNITY_SCHEMA = "DigestedSignalOpportunity/v1"
+MATERIALIZATION_REQUEST_SCHEMA = "SignalOpportunityMaterializationRequest/v1"
+TRUSTED_OPPORTUNITY_BATCH_SCHEMA = "TrustedSignalOpportunityBatch/v1"
 PRIORITY_OBSERVATION_SCHEMA = "StartupPriorityHints/v1"
 TRUSTED_PRIORITY_SCHEMA = "TrustedStartupPriorityObservation/v1"
 DECISION_SCHEMA = "IdleSignalStartupDecision/v1"
-AUTHORIZATION_SCHEMA = "IdleSignalAutoReleaseAuthorization/v1"
+AUTHORIZATION_SCHEMA = "IdleSignalAutoReleaseAuthorization/v2"
+MATERIALIZER_DECISION_SCHEMA = "SignalOpportunityMaterializationDecision/v1"
 
 P0 = "P0_USER_OR_HIGH_RISK"
 P1 = "P1_EXACT_HEAD_REVIEW"
@@ -92,6 +95,7 @@ IAGL_PRIORITY_REF = (
 )
 R149_REF = "coordination/CONTROL-TOWER/task_release_impact.py"
 R150_REF = "coordination/CONTROL-TOWER/trusted_task_release.py"
+CURRENT_MATERIALIZER_REF = "coordination/CONTROL-TOWER/signal_opportunity_materializer_current.py"
 R137_PROVIDER_SRC = (
     "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/"
     "GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src"
@@ -358,6 +362,241 @@ def validate_opportunity(value: Mapping[str, Any], *, index: int = 0) -> dict[st
         )
     out["opportunity_digest"] = _digest(out)
     return out
+
+
+def _load_current_materializer() -> Any:
+    try:
+        module = importlib.import_module("signal_opportunity_materializer_current")
+    except (ImportError, OSError) as exc:
+        raise IdleSignalSchedulerError("CURRENT_MATERIALIZER_LOAD_FAILED") from exc
+    materialize = getattr(module, "materialize_signal_opportunity", None)
+    if not callable(materialize):
+        raise IdleSignalSchedulerError("CURRENT_MATERIALIZER_API_INCOMPLETE")
+    return materialize
+
+
+def _validate_materialization_request(value: Mapping[str, Any], *, index: int) -> dict[str, Any]:
+    path = f"/materialization_requests/{index}"
+    if not isinstance(value, Mapping):
+        raise IdleSignalSchedulerError("MATERIALIZATION_REQUEST_NOT_OBJECT", path)
+    required = {
+        "schema_version",
+        "ledger",
+        "draft_value",
+        "domain_authority_descriptors",
+        "domain_authority_observations",
+        "authority_exact_read_proofs",
+        "authority_live_observation_proof",
+    }
+    if set(value) != required:
+        raise IdleSignalSchedulerError("MATERIALIZATION_REQUEST_FIELDS_INVALID", path)
+    if value.get("schema_version") != MATERIALIZATION_REQUEST_SCHEMA:
+        raise IdleSignalSchedulerError("MATERIALIZATION_REQUEST_SCHEMA_INVALID", path)
+    if not isinstance(value.get("draft_value"), Mapping):
+        raise IdleSignalSchedulerError("MATERIALIZATION_DRAFT_NOT_OBJECT", f"{path}/draft_value")
+    descriptors = value.get("domain_authority_descriptors")
+    observations = value.get("domain_authority_observations")
+    proofs = value.get("authority_exact_read_proofs")
+    if not isinstance(descriptors, Sequence) or isinstance(descriptors, (str, bytes)):
+        raise IdleSignalSchedulerError("MATERIALIZATION_DESCRIPTORS_INVALID", path)
+    if not isinstance(observations, Sequence) or isinstance(observations, (str, bytes)):
+        raise IdleSignalSchedulerError("MATERIALIZATION_OBSERVATIONS_INVALID", path)
+    if not isinstance(proofs, Sequence) or isinstance(proofs, (str, bytes)):
+        raise IdleSignalSchedulerError("MATERIALIZATION_EXACT_READ_PROOFS_INVALID", path)
+    return dict(value)
+
+
+def _validate_materializer_decision(value: Mapping[str, Any], *, index: int) -> dict[str, Any] | None:
+    path = f"/materialization_decisions/{index}"
+    if not isinstance(value, Mapping):
+        raise IdleSignalSchedulerError("MATERIALIZATION_DECISION_NOT_OBJECT", path)
+    if value.get("schema_version") != MATERIALIZER_DECISION_SCHEMA:
+        raise IdleSignalSchedulerError("MATERIALIZATION_DECISION_SCHEMA_INVALID", path)
+    supplied_digest = value.get("decision_digest")
+    if not isinstance(supplied_digest, str) or len(supplied_digest) != 64:
+        raise IdleSignalSchedulerError("MATERIALIZATION_DECISION_DIGEST_INVALID", path)
+    basis = dict(_copy(value))
+    basis.pop("decision_digest", None)
+    if _digest(basis) != supplied_digest:
+        raise IdleSignalSchedulerError("MATERIALIZATION_DECISION_DIGEST_MISMATCH", path)
+    signal_ref = value.get("signal_ref")
+    _nonempty_string(signal_ref, f"{path}/signal_ref")
+    if value.get("disposition") != "MATERIALIZED_FOR_R151":
+        return None
+    opportunity_raw = value.get("opportunity")
+    if not isinstance(opportunity_raw, Mapping):
+        raise IdleSignalSchedulerError("MATERIALIZED_OPPORTUNITY_MISSING", path)
+    supplied_opportunity_digest = opportunity_raw.get("opportunity_digest")
+    if not isinstance(supplied_opportunity_digest, str) or len(supplied_opportunity_digest) != 64:
+        raise IdleSignalSchedulerError("MATERIALIZED_OPPORTUNITY_DIGEST_INVALID", path)
+    opportunity_input = dict(opportunity_raw)
+    opportunity_input.pop("opportunity_digest", None)
+    opportunity = validate_opportunity(opportunity_input, index=index)
+    if opportunity["opportunity_digest"] != supplied_opportunity_digest:
+        raise IdleSignalSchedulerError("MATERIALIZED_OPPORTUNITY_DIGEST_MISMATCH", path)
+    if opportunity["signal_ref"] != signal_ref:
+        raise IdleSignalSchedulerError("MATERIALIZATION_SIGNAL_BINDING_MISMATCH", path)
+    return {
+        "signal_ref": signal_ref,
+        "opportunity_id": opportunity["opportunity_id"],
+        "opportunity_digest": opportunity["opportunity_digest"],
+        "materialization_decision_digest": supplied_digest,
+        "opportunity": opportunity,
+    }
+
+
+def _make_trusted_batch_api() -> tuple[Any, Any, type[Any]]:
+    seal = object()
+
+    class _TrustedOpportunityBatch:
+        __slots__ = ("_payload_json",)
+
+        def __init__(self, payload: Mapping[str, Any], token: object) -> None:
+            if token is not seal:
+                raise IdleSignalSchedulerError("TRUSTED_BATCH_CONSTRUCTION_FORBIDDEN")
+            object.__setattr__(self, "_payload_json", _canonical(payload))
+
+        def __setattr__(self, name: str, value: Any) -> None:
+            raise AttributeError("trusted opportunity batch is immutable")
+
+        def _open(self, token: object) -> dict[str, Any]:
+            if token is not seal:
+                raise IdleSignalSchedulerError("TRUSTED_BATCH_SEAL_INVALID")
+            return json.loads(self._payload_json)
+
+    def mint(payload: Mapping[str, Any]) -> Any:
+        return _TrustedOpportunityBatch(payload, seal)
+
+    def open_batch(value: Any) -> dict[str, Any]:
+        if type(value) is not _TrustedOpportunityBatch:
+            raise IdleSignalSchedulerError("TRUSTED_OPPORTUNITY_BATCH_REQUIRED")
+        payload = value._open(seal)
+        if payload.get("schema_version") != TRUSTED_OPPORTUNITY_BATCH_SCHEMA:
+            raise IdleSignalSchedulerError("TRUSTED_OPPORTUNITY_BATCH_SCHEMA_INVALID")
+        batch_digest = payload.get("batch_digest")
+        if not isinstance(batch_digest, str) or len(batch_digest) != 64:
+            raise IdleSignalSchedulerError("TRUSTED_OPPORTUNITY_BATCH_DIGEST_INVALID")
+        basis = dict(payload)
+        basis.pop("batch_digest", None)
+        if _digest(basis) != batch_digest:
+            raise IdleSignalSchedulerError("TRUSTED_OPPORTUNITY_BATCH_DIGEST_MISMATCH")
+        return payload
+
+    return mint, open_batch, _TrustedOpportunityBatch
+
+
+_mint_trusted_batch, _open_trusted_batch, _TRUSTED_BATCH_TYPE = _make_trusted_batch_api()
+
+
+def materialize_trusted_opportunity_batch(
+    repo_root: str | Path,
+    materialization_requests: Sequence[Mapping[str, Any]],
+    *,
+    expected_coordinator_main: str,
+) -> Any:
+    """Mint an invocation-local batch only from the canonical current materializer."""
+    if not isinstance(materialization_requests, Sequence) or isinstance(
+        materialization_requests, (str, bytes)
+    ):
+        raise IdleSignalSchedulerError("MATERIALIZATION_REQUESTS_INVALID")
+    root = Path(repo_root).resolve()
+    materialize = _load_current_materializer()
+    items: list[dict[str, Any]] = []
+    for index, raw in enumerate(materialization_requests):
+        request = _validate_materialization_request(raw, index=index)
+        try:
+            decision = materialize(
+                root,
+                request["ledger"],
+                request["draft_value"],
+                expected_coordinator_main=expected_coordinator_main,
+                domain_authority_descriptors=request["domain_authority_descriptors"],
+                domain_authority_observations=request["domain_authority_observations"],
+                authority_exact_read_proofs=request["authority_exact_read_proofs"],
+                authority_live_observation_proof=request["authority_live_observation_proof"],
+            )
+        except Exception as exc:
+            code = getattr(exc, "code", type(exc).__name__)
+            raise IdleSignalSchedulerError(
+                f"CURRENT_MATERIALIZER_FAILED:{code}", f"/materialization_requests/{index}"
+            ) from exc
+        item = _validate_materializer_decision(decision, index=index)
+        if item is not None:
+            items.append(item)
+    payload: dict[str, Any] = {
+        "schema_version": TRUSTED_OPPORTUNITY_BATCH_SCHEMA,
+        "canonical_main": expected_coordinator_main,
+        "materializer_ref": CURRENT_MATERIALIZER_REF,
+        "items": items,
+        "authority_boundary": {
+            "creates_signal_truth": False,
+            "creates_task": False,
+            "selects_opportunity": False,
+            "releases_task": False,
+            "grants_execution_authority": False,
+            "grants_domain_write": False,
+            "grants_w3_write": False,
+            "grants_merge_authority": False,
+        },
+    }
+    payload["batch_digest"] = _digest(payload)
+    return _mint_trusted_batch(payload)
+
+
+def trusted_batch_opportunities(value: Any, *, expected_coordinator_main: str) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    payload = _open_trusted_batch(value)
+    if payload.get("canonical_main") != expected_coordinator_main:
+        raise IdleSignalSchedulerError("TRUSTED_OPPORTUNITY_BATCH_MAIN_MISMATCH")
+    if payload.get("materializer_ref") != CURRENT_MATERIALIZER_REF:
+        raise IdleSignalSchedulerError("TRUSTED_OPPORTUNITY_BATCH_MATERIALIZER_MISMATCH")
+    expected_boundary = {
+        "creates_signal_truth": False,
+        "creates_task": False,
+        "selects_opportunity": False,
+        "releases_task": False,
+        "grants_execution_authority": False,
+        "grants_domain_write": False,
+        "grants_w3_write": False,
+        "grants_merge_authority": False,
+    }
+    if payload.get("authority_boundary") != expected_boundary:
+        raise IdleSignalSchedulerError("TRUSTED_OPPORTUNITY_BATCH_AUTHORITY_BOUNDARY_INVALID")
+    items = payload.get("items")
+    if not isinstance(items, list):
+        raise IdleSignalSchedulerError("TRUSTED_OPPORTUNITY_BATCH_ITEMS_INVALID")
+    opportunities: list[dict[str, Any]] = []
+    seen_opportunity_digests: set[str] = set()
+    expected_item_fields = {
+        "signal_ref",
+        "opportunity_id",
+        "opportunity_digest",
+        "materialization_decision_digest",
+        "opportunity",
+    }
+    for index, item in enumerate(items):
+        if not isinstance(item, Mapping) or set(item) != expected_item_fields:
+            raise IdleSignalSchedulerError("TRUSTED_OPPORTUNITY_BATCH_ITEM_INVALID")
+        opportunity_raw = item.get("opportunity")
+        if not isinstance(opportunity_raw, Mapping):
+            raise IdleSignalSchedulerError("TRUSTED_OPPORTUNITY_BATCH_OPPORTUNITY_MISSING")
+        supplied = opportunity_raw.get("opportunity_digest")
+        opportunity_input = dict(opportunity_raw)
+        opportunity_input.pop("opportunity_digest", None)
+        opportunity = validate_opportunity(opportunity_input, index=index)
+        if supplied != opportunity["opportunity_digest"] or supplied != item.get("opportunity_digest"):
+            raise IdleSignalSchedulerError("TRUSTED_OPPORTUNITY_BATCH_OPPORTUNITY_DRIFT")
+        if opportunity["signal_ref"] != item.get("signal_ref"):
+            raise IdleSignalSchedulerError("TRUSTED_OPPORTUNITY_BATCH_SIGNAL_DRIFT")
+        if item.get("opportunity_id") != opportunity["opportunity_id"]:
+            raise IdleSignalSchedulerError("TRUSTED_OPPORTUNITY_BATCH_ID_DRIFT")
+        decision_digest = item.get("materialization_decision_digest")
+        if not isinstance(decision_digest, str) or len(decision_digest) != 64:
+            raise IdleSignalSchedulerError("TRUSTED_OPPORTUNITY_BATCH_DECISION_DIGEST_INVALID")
+        if opportunity["opportunity_digest"] in seen_opportunity_digests:
+            raise IdleSignalSchedulerError("TRUSTED_OPPORTUNITY_BATCH_DUPLICATE_OPPORTUNITY")
+        seen_opportunity_digests.add(opportunity["opportunity_digest"])
+        opportunities.append(opportunity)
+    return opportunities, payload
 
 
 def _canonical_idle_blockers(root: Path) -> list[dict[str, Any]]:
@@ -657,6 +896,8 @@ def _authorization(
     current_main: str,
     priority_observation: Mapping[str, Any],
     r150_receipt: Mapping[str, Any],
+    trusted_batch: Mapping[str, Any],
+    materialization_decision_digest: str,
 ) -> dict[str, Any]:
     if r150_receipt.get("schema_version") != TRUSTED_RECEIPT_SCHEMA:
         raise IdleSignalSchedulerError("R150_TRUSTED_RECEIPT_REQUIRED")
@@ -688,12 +929,19 @@ def _authorization(
         if isinstance(item, Mapping)
     ):
         raise IdleSignalSchedulerError("TRUSTED_PRIORITY_BLOCKER_PRESENT")
+    batch_digest = trusted_batch.get("batch_digest")
+    if not isinstance(batch_digest, str) or len(batch_digest) != 64:
+        raise IdleSignalSchedulerError("TRUSTED_BATCH_DIGEST_REQUIRED")
+    if not isinstance(materialization_decision_digest, str) or len(materialization_decision_digest) != 64:
+        raise IdleSignalSchedulerError("MATERIALIZATION_DECISION_DIGEST_REQUIRED")
 
     payload = {
         "schema_version": AUTHORIZATION_SCHEMA,
         "signal_ref": selected["signal_ref"],
         "opportunity_id": selected["opportunity_id"],
         "opportunity_digest": selected["opportunity_digest"],
+        "trusted_opportunity_batch_digest": batch_digest,
+        "materialization_decision_digest": materialization_decision_digest,
         "canonical_main": current_main,
         "priority_observation_digest": priority_observation["observation_digest"],
         "r150_receipt_digest": receipt_digest,
@@ -701,6 +949,7 @@ def _authorization(
         "standing_user_policy_ref": STANDING_POLICY_REF,
         "priority_semantics_ref": IAGL_PRIORITY_REF,
         "priority_provider_ref": R137_PROVIDER_REF,
+        "opportunity_materializer_ref": CURRENT_MATERIALIZER_REF,
         "release_gate_refs": [R149_REF, R150_REF],
         "side_effect_plan": [
             "create_issue",
@@ -713,6 +962,7 @@ def _authorization(
             "creates_signal_truth": False,
             "signal_self_authorizes": False,
             "caller_can_attest_priority_completeness": False,
+            "caller_can_supply_opportunity_truth": False,
             "can_create_issue": True,
             "can_create_route": True,
             "can_create_work_claim": True,
@@ -726,6 +976,7 @@ def _authorization(
         },
         "independent_exact_head_review_required": True,
         "apply_requires_fresh_recheck": True,
+        "apply_requires_fresh_rematerialization": True,
     }
     payload["authorization_id"] = f"r151-auto-release:{_digest(payload)[:24]}"
     payload["authorization_digest"] = _digest(payload)
@@ -734,19 +985,18 @@ def _authorization(
 
 def evaluate_idle_signal_startup(
     repo_root: str | Path,
-    opportunities: Sequence[Mapping[str, Any]],
+    trusted_opportunity_batch: Any,
     *,
     expected_coordinator_main: str,
     priority_observation_value: Mapping[str, Any],
 ) -> dict[str, Any]:
-    """Select at most one idle opportunity using trusted priority completeness.
-
-    Caller priority input is additive hints only. Review Queue completeness and
-    canonical active claims/worker slots are re-derived inside this function.
-    The function remains evaluation-only and performs no side effects.
-    """
+    """Select at most one current-materializer-proven idle opportunity."""
     root = Path(repo_root).resolve()
     caller_hints = validate_priority_observation(priority_observation_value)
+    opportunities, batch_payload = trusted_batch_opportunities(
+        trusted_opportunity_batch,
+        expected_coordinator_main=expected_coordinator_main,
+    )
 
     try:
         priority_observation = _trusted_priority_observation(root, caller_hints)
@@ -771,11 +1021,7 @@ def evaluate_idle_signal_startup(
 
     valid: list[dict[str, Any]] = []
     user_gate: list[dict[str, Any]] = []
-    for index, raw in enumerate(opportunities):
-        try:
-            candidate = validate_opportunity(raw, index=index)
-        except IdleSignalSchedulerError:
-            continue
+    for candidate in opportunities:
         hits = _exclusion_hits(_requested_side_effect_surface(candidate))
         if hits:
             user_gate.append(
@@ -797,11 +1043,19 @@ def evaluate_idle_signal_startup(
             )
         return _decision(
             "NO_IDLE_RELEASE",
-            reason="NO_ELIGIBLE_DIGESTED_SIGNAL_OPPORTUNITY",
+            reason="NO_ELIGIBLE_TRUSTED_SIGNAL_OPPORTUNITY",
             priority_observation=priority_observation,
         )
 
     selected = min(valid, key=_rank_key)
+    selected_items = [
+        item
+        for item in batch_payload["items"]
+        if item["opportunity_digest"] == selected["opportunity_digest"]
+    ]
+    if len(selected_items) != 1:
+        raise IdleSignalSchedulerError("SELECTED_OPPORTUNITY_PROVENANCE_CARDINALITY_INVALID")
+    selected_item = selected_items[0]
     try:
         r150_receipt = evaluate_trusted_release_proposal(
             root,
@@ -832,12 +1086,14 @@ def evaluate_idle_signal_startup(
         current_main=expected_coordinator_main,
         priority_observation=priority_observation,
         r150_receipt=r150_receipt,
+        trusted_batch=batch_payload,
+        materialization_decision_digest=selected_item["materialization_decision_digest"],
     )
     return _decision(
         "AUTO_RELEASE_AUTHORIZED",
         reason=(
-            "IDLE_SIGNAL_OPPORTUNITY_PASSED_TRUSTED_PRIORITY_R149_R150_"
-            "AND_STANDING_POLICY"
+            "IDLE_SIGNAL_OPPORTUNITY_PASSED_CURRENT_MATERIALIZER_TRUSTED_PRIORITY_"
+            "R149_R150_AND_STANDING_POLICY"
         ),
         selected=selected,
         priority_observation=priority_observation,

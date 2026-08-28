@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:second-brain:r158:trusted-opportunity-provenance:v1",
+  "title": "R158 Trusted Opportunity Provenance Evidence",
+  "type": "object",
+  "required": ["schema_version", "canonical_main", "materializer_ref", "items", "batch_digest", "authority_boundary"],
+  "properties": {
+    "schema_version": {"const": "TrustedSignalOpportunityBatch/v1"},
+    "canonical_main": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "materializer_ref": {"const": "coordination/CONTROL-TOWER/signal_opportunity_materializer_current.py"},
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["signal_ref", "opportunity_id", "opportunity_digest", "materialization_decision_digest", "opportunity"],
+        "additionalProperties": false
+      }
+    },
+    "batch_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "authority_boundary": {"type": "object"}
+  },
+  "additionalProperties": false,
+  "$comment": "Serializable evidence payload only. Runtime acceptance additionally requires the invocation-local sealed capability minted by retained R151. A digest or JSON object alone never grants authority."
+}

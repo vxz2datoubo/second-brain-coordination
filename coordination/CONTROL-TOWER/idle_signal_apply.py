@@ -6,22 +6,23 @@ import json
 from pathlib import Path
 import re
 import subprocess
-from typing import Any, Mapping
+from typing import Any, Mapping, Sequence
 
 import yaml
 
 from control_tower import load_yaml
 from idle_signal_scheduler import (
     AUTHORIZATION_SCHEMA,
+    CURRENT_MATERIALIZER_REF,
     MAX_REVIEW_QUEUE_PAGES,
-    OPPORTUNITY_SCHEMA,
     REVIEW_QUEUE_ISSUE,
     _exclusion_hits,
     _load_r137_provider,
     _queue_field,
     _requested_side_effect_surface,
     evaluate_idle_signal_startup,
-    validate_opportunity,
+    materialize_trusted_opportunity_batch,
+    trusted_batch_opportunities,
 )
 from lane_claims import (
     ACTIVE_IMPLEMENTATION,
@@ -213,6 +214,16 @@ def _validate_authorization(value: Mapping[str, Any]) -> dict[str, Any]:
         raise IdleSignalApplyError("R151_FRESH_RECHECK_REQUIRED")
     if value.get("independent_exact_head_review_required") is not True:
         raise IdleSignalApplyError("R151_INDEPENDENT_REVIEW_REQUIRED")
+    for field in ("trusted_opportunity_batch_digest", "materialization_decision_digest"):
+        digest = value.get(field)
+        if not isinstance(digest, str) or len(digest) != 64:
+            raise IdleSignalApplyError("R151_PROVENANCE_DIGEST_INVALID", f"/{field}")
+    if value.get("opportunity_materializer_ref") != CURRENT_MATERIALIZER_REF:
+        raise IdleSignalApplyError("R151_MATERIALIZER_REF_INVALID")
+    if authority.get("caller_can_supply_opportunity_truth") is not False:
+        raise IdleSignalApplyError("R151_CALLER_OPPORTUNITY_AUTHORITY_PRESENT")
+    if value.get("apply_requires_fresh_rematerialization") is not True:
+        raise IdleSignalApplyError("R151_FRESH_REMATERIALIZATION_REQUIRED")
     return _copy(value)
 
 
@@ -434,17 +445,31 @@ def _assert_no_existing_live_control_state(root: Path) -> None:
 
 def _fresh_authorization(
     root: Path,
-    opportunity: Mapping[str, Any],
+    materialization_requests: Sequence[Mapping[str, Any]],
     priority_hints: Mapping[str, Any],
     *,
     expected_current_main: str,
-) -> dict[str, Any]:
-    result = evaluate_idle_signal_startup(
-        root,
-        [opportunity],
-        expected_coordinator_main=expected_current_main,
-        priority_observation_value=priority_hints,
-    )
+) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
+    try:
+        batch = materialize_trusted_opportunity_batch(
+            root,
+            materialization_requests,
+            expected_coordinator_main=expected_current_main,
+        )
+        opportunities, batch_payload = trusted_batch_opportunities(
+            batch, expected_coordinator_main=expected_current_main
+        )
+        result = evaluate_idle_signal_startup(
+            root,
+            batch,
+            expected_coordinator_main=expected_current_main,
+            priority_observation_value=priority_hints,
+        )
+    except Exception as exc:
+        if isinstance(exc, IdleSignalApplyError):
+            raise
+        code = getattr(exc, "code", type(exc).__name__)
+        raise IdleSignalApplyError(f"R151_FRESH_REMATERIALIZATION_FAILED:{code}") from exc
     if not isinstance(result, Mapping):
         raise IdleSignalApplyError("R151_FRESH_REPLAY_INVALID")
     if result.get("status") != "AUTO_RELEASE_AUTHORIZED":
@@ -454,8 +479,27 @@ def _fresh_authorization(
     authorization = result.get("authorization")
     if not isinstance(authorization, Mapping):
         raise IdleSignalApplyError("R151_FRESH_AUTHORIZATION_MISSING")
-    return _validate_authorization(authorization)
-
+    auth = _validate_authorization(authorization)
+    matches = [
+        item for item in opportunities
+        if item.get("opportunity_id") == auth.get("opportunity_id")
+        and item.get("opportunity_digest") == auth.get("opportunity_digest")
+        and item.get("signal_ref") == auth.get("signal_ref")
+    ]
+    if len(matches) != 1:
+        raise IdleSignalApplyError("R151_FRESH_OPPORTUNITY_PROVENANCE_CARDINALITY_INVALID")
+    batch_items = [
+        item for item in batch_payload.get("items", [])
+        if isinstance(item, Mapping)
+        and item.get("opportunity_digest") == auth.get("opportunity_digest")
+    ]
+    if len(batch_items) != 1:
+        raise IdleSignalApplyError("R151_FRESH_MATERIALIZATION_PROVENANCE_CARDINALITY_INVALID")
+    if auth.get("trusted_opportunity_batch_digest") != batch_payload.get("batch_digest"):
+        raise IdleSignalApplyError("R151_FRESH_BATCH_DIGEST_MISMATCH")
+    if auth.get("materialization_decision_digest") != batch_items[0].get("materialization_decision_digest"):
+        raise IdleSignalApplyError("R151_FRESH_DECISION_DIGEST_MISMATCH")
+    return auth, matches[0], batch_payload
 
 def _make_apply_observer(root: Path) -> tuple[Any, type[BaseException]]:
     """Reuse R137 public GitHub observer; extend only fixed coordinator reads."""
@@ -861,7 +905,7 @@ def _activation_manifest(
 
 def prepare_apply_transaction(
     repo_root: str | Path,
-    opportunity_value: Mapping[str, Any],
+    materialization_requests: Sequence[Mapping[str, Any]],
     priority_hints: Mapping[str, Any],
     presented_authorization: Mapping[str, Any],
     apply_intent: Mapping[str, Any],
@@ -869,20 +913,41 @@ def prepare_apply_transaction(
     expected_current_main: str,
     bootstrap_evidence: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Prepare R151 apply without performing GitHub/control-plane side effects."""
+    """Prepare R151 apply from fresh current-materializer provenance only."""
     root = Path(repo_root).resolve()
     if _git_head(root) != expected_current_main:
         raise IdleSignalApplyError("CURRENT_MAIN_DRIFT")
     presented = _validate_authorization(presented_authorization)
     if presented.get("canonical_main") != expected_current_main:
         raise IdleSignalApplyError("R151_AUTHORIZATION_MAIN_STALE")
-    opportunity = validate_opportunity(opportunity_value)
+
+    fresh, opportunity, fresh_batch = _fresh_authorization(
+        root,
+        materialization_requests,
+        priority_hints,
+        expected_current_main=expected_current_main,
+    )
     if presented.get("opportunity_id") != opportunity["opportunity_id"]:
         raise IdleSignalApplyError("AUTHORIZATION_OPPORTUNITY_ID_MISMATCH")
     if presented.get("opportunity_digest") != opportunity["opportunity_digest"]:
         raise IdleSignalApplyError("AUTHORIZATION_OPPORTUNITY_DIGEST_MISMATCH")
     if presented.get("signal_ref") != opportunity["signal_ref"]:
         raise IdleSignalApplyError("AUTHORIZATION_SIGNAL_MISMATCH")
+    if fresh["authorization_digest"] != presented["authorization_digest"]:
+        raise IdleSignalApplyError("R151_FRESH_AUTHORIZATION_MISMATCH")
+    for field, code in (
+        ("priority_observation_digest", "R151_PRIORITY_OBSERVATION_DRIFT"),
+        ("r150_receipt_digest", "R150_RECEIPT_DRIFT"),
+        ("trusted_opportunity_batch_digest", "R151_TRUSTED_BATCH_DRIFT"),
+        ("materialization_decision_digest", "R151_MATERIALIZATION_DECISION_DRIFT"),
+        ("opportunity_digest", "AUTHORIZATION_OPPORTUNITY_DIGEST_MISMATCH"),
+        ("opportunity_id", "AUTHORIZATION_OPPORTUNITY_ID_MISMATCH"),
+        ("signal_ref", "AUTHORIZATION_SIGNAL_MISMATCH"),
+    ):
+        if fresh.get(field) != presented.get(field):
+            raise IdleSignalApplyError(code)
+    if fresh_batch.get("batch_digest") != presented.get("trusted_opportunity_batch_digest"):
+        raise IdleSignalApplyError("R151_FRESH_BATCH_DIGEST_MISMATCH")
 
     intent = validate_apply_intent(apply_intent)
     proposal_surface = _normalized_surface(
@@ -893,19 +958,6 @@ def prepare_apply_transaction(
         raise IdleSignalApplyError("CALLER_APPLY_SURFACE_EXPANSION_OR_DRIFT")
     if _exclusion_hits(_requested_side_effect_surface(opportunity)):
         raise IdleSignalApplyError("EXCLUDED_SIDE_EFFECT_REQUESTED")
-
-    fresh = _fresh_authorization(
-        root,
-        opportunity_value,
-        priority_hints,
-        expected_current_main=expected_current_main,
-    )
-    if fresh["authorization_digest"] != presented["authorization_digest"]:
-        raise IdleSignalApplyError("R151_FRESH_AUTHORIZATION_MISMATCH")
-    if fresh["priority_observation_digest"] != presented["priority_observation_digest"]:
-        raise IdleSignalApplyError("R151_PRIORITY_OBSERVATION_DRIFT")
-    if fresh["r150_receipt_digest"] != presented["r150_receipt_digest"]:
-        raise IdleSignalApplyError("R150_RECEIPT_DRIFT")
 
     _assert_no_existing_live_control_state(root)
     next_epoch = _next_route_epoch(root)
@@ -934,7 +986,6 @@ def prepare_apply_transaction(
         bootstrap,
         current_main=expected_current_main,
     )
-
 
 def _blob_yaml_mapping(
     observer: Any,
