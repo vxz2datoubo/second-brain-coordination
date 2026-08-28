@@ -52,7 +52,7 @@ jobs:
           python -m py_compile /tmp/r158_successor_patch.py
           python /tmp/r158_successor_patch.py
 
-      - name: Validate successor workflows and full retained suite
+      - name: Validate patched workflow YAML
         run: |
           python - <<'PY'
           import yaml
@@ -65,7 +65,38 @@ jobs:
               value = yaml.safe_load(Path(path).read_text(encoding='utf-8'))
               if not isinstance(value, dict):
                   raise SystemExit(f'invalid workflow YAML: {path}')
+          print('R158_PATCHED_WORKFLOW_YAML_PASS')
           PY
+
+      - name: Create clean local-only preflight commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            .github/workflows/program-control-tower-r151-idle-signal-auto-release.yml \
+            .github/workflows/program-control-tower-r152-idle-signal-apply.yml \
+            .github/workflows/program-control-tower-r158-trusted-opportunity-provenance.yml \
+            coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R158/PROJECT-PLAN.md
+          mapfile -t staged < <(git diff --cached --name-only)
+          expected=(
+            '.github/workflows/program-control-tower-r151-idle-signal-auto-release.yml'
+            '.github/workflows/program-control-tower-r152-idle-signal-apply.yml'
+            '.github/workflows/program-control-tower-r158-trusted-opportunity-provenance.yml'
+            'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R158/PROJECT-PLAN.md'
+          )
+          test "${#staged[@]}" -eq 4
+          for path in "${staged[@]}"; do
+            printf '%s\n' "${expected[@]}" | grep -Fxq "$path"
+          done
+          git diff --cached --check
+          git commit -m 'R158 local-only successor compatibility preflight'
+          test -z "$(git status --porcelain --untracked-files=no)"
+          echo R158_LOCAL_CLEAN_PREFLIGHT_COMMIT_PASS
+
+      - name: Validate successor workflows and full retained suite on clean tree
+        run: |
           cd coordination/CONTROL-TOWER
           python -m unittest tests.test_idle_signal_scheduler -v
           python -m unittest tests.test_idle_signal_apply -v
@@ -76,7 +107,7 @@ jobs:
         run: |
           set -euo pipefail
           git fetch --no-tags origin '+refs/heads/main:refs/remotes/origin/main'
-          mapfile -t effective < <({ git diff --name-only refs/remotes/origin/main...HEAD; git diff --name-only; } | sort -u)
+          mapfile -t effective < <(git diff --name-only refs/remotes/origin/main...HEAD)
           expected=(
             '.github/workflows/program-control-tower-r151-idle-signal-auto-release.yml'
             '.github/workflows/program-control-tower-r152-idle-signal-apply.yml'
@@ -96,7 +127,7 @@ jobs:
           grep -Fq 'R152_R158_SUCCESSOR_SCOPE_PASS' .github/workflows/program-control-tower-r152-idle-signal-apply.yml
           grep -Fq 'IdleSignalAutoReleaseAuthorization/v1' .github/workflows/program-control-tower-r151-idle-signal-auto-release.yml
           grep -Fq 'IdleSignalAutoReleaseAuthorization/v2' .github/workflows/program-control-tower-r151-idle-signal-auto-release.yml
-          git diff --check
+          git diff --check refs/remotes/origin/main...HEAD
           echo R158_NINE_FILE_SUCCESSOR_PREFLIGHT_PASS
 
       - name: Publish exact tested remediation blobs
