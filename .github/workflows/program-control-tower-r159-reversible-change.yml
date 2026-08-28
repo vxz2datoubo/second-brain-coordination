@@ -61,6 +61,118 @@ jobs:
         working-directory: coordination/CONTROL-TOWER
         run: python -m unittest tests.test_reversible_change -v
 
+      - name: Verify sanitized HTTPS checkpoint transport trust
+        working-directory: coordination/CONTROL-TOWER
+        run: |
+          python - <<'PY'
+          import os
+          import subprocess
+          import reversible_change as rc
+          from tests.test_reversible_change import Repo
+
+          poison = {
+              "HTTPS_PROXY": "http://127.0.0.1:9",
+              "https_proxy": "http://127.0.0.1:9",
+              "HTTP_PROXY": "http://127.0.0.1:9",
+              "ALL_PROXY": "http://127.0.0.1:9",
+              "GIT_SSL_NO_VERIFY": "1",
+              "GIT_SSL_CAINFO": "/definitely/poison-ca.pem",
+              "GIT_EXEC_PATH": "/definitely/poison-git-exec",
+              "GIT_CONFIG_COUNT": "1",
+              "GIT_CONFIG_KEY_0": "http.sslVerify",
+              "GIT_CONFIG_VALUE_0": "false",
+              "GIT_CONFIG_GLOBAL": "/definitely/poison-global-config",
+              "GIT_CONFIG_SYSTEM": "/definitely/poison-system-config",
+              "GIT_CONFIG_NOSYSTEM": "0",
+              "CURL_CA_BUNDLE": "/definitely/poison-curl-ca.pem",
+              "SSL_CERT_FILE": "/definitely/poison-ssl-cert.pem",
+          }
+          stripped = {
+              "HTTPS_PROXY", "https_proxy", "HTTP_PROXY", "ALL_PROXY",
+              "GIT_SSL_NO_VERIFY", "GIT_SSL_CAINFO", "GIT_EXEC_PATH",
+              "GIT_CONFIG_COUNT", "GIT_CONFIG_KEY_0", "GIT_CONFIG_VALUE_0",
+              "CURL_CA_BUNDLE", "SSL_CERT_FILE",
+          }
+
+          with Repo() as r:
+              saved = {key: os.environ.get(key) for key in poison}
+              os.environ.update(poison)
+              observed = []
+              prior = rc._git
+
+              def witness(root, *args, input_text=None):
+                  if args and args[0] == "ls-remote":
+                      observed.append(rc._env())
+                  return prior(root, *args, input_text=input_text)
+
+              rc._git = witness
+              try:
+                  checkpoint = r.checkpoint()
+                  if checkpoint["canonical_main_sha"] != r.head:
+                      raise SystemExit("poison environment changed canonical main")
+                  if not observed:
+                      raise SystemExit("transport observation was not exercised")
+                  secure_env = observed[-1]
+                  leaked = sorted(key for key in stripped if key in secure_env)
+                  if leaked:
+                      raise SystemExit(f"unsafe HTTPS environment leaked into git: {leaked}")
+                  if secure_env.get("GIT_CONFIG_GLOBAL") != os.devnull:
+                      raise SystemExit("global Git config was not neutralized")
+                  if secure_env.get("GIT_CONFIG_SYSTEM") != os.devnull:
+                      raise SystemExit("system Git config was not neutralized")
+                  if secure_env.get("GIT_CONFIG_NOSYSTEM") != "1":
+                      raise SystemExit("system Git config disablement missing")
+                  if secure_env.get("GIT_TERMINAL_PROMPT") != "0":
+                      raise SystemExit("interactive credential prompt was not disabled")
+              finally:
+                  for key, value in saved.items():
+                      if value is None:
+                          os.environ.pop(key, None)
+                      else:
+                          os.environ[key] = value
+
+          with Repo() as r:
+              invoked = []
+              prior = rc._git
+
+              def witness(root, *args, input_text=None):
+                  if args and args[0] == "ls-remote":
+                      invoked.append(True)
+                  return prior(root, *args, input_text=input_text)
+
+              rc._git = witness
+              subprocess.check_call(["git", "config", "--local", "http.sslVerify", "false"], cwd=r.root)
+              try:
+                  r.checkpoint()
+              except rc.ReversibleChangeError as exc:
+                  if "HTTPS_TRANSPORT_CONFIG_FORBIDDEN" not in str(exc):
+                      raise
+              else:
+                  raise SystemExit("unsafe local TLS config was accepted")
+              if invoked:
+                  raise SystemExit("unsafe local TLS config reached ls-remote")
+
+          with Repo() as r:
+              subprocess.check_call([
+                  "git", "config", "--local", "--add",
+                  "http.https://github.com/.extraheader", "AUTHORIZATION: basic test"
+              ], cwd=r.root)
+              r.checkpoint()
+              subprocess.check_call([
+                  "git", "config", "--local", "--add",
+                  "http.https://github.com/.extraheader", "Host: evil.example"
+              ], cwd=r.root)
+              try:
+                  r.checkpoint()
+              except rc.ReversibleChangeError as exc:
+                  if "HTTPS_TRANSPORT_CONFIG_FORBIDDEN" not in str(exc):
+                      raise
+              else:
+                  raise SystemExit("non-authorization HTTPS extraheader was accepted")
+
+          print("R159_SANITIZED_HTTPS_TRANSPORT_TRUST_PASS")
+          PY
+
       - name: Run full retained Control Tower suite
         working-directory: coordination/CONTROL-TOWER
         run: python run_all_tests.py
@@ -118,6 +230,8 @@ jobs:
               raise SystemExit("R159 rollback trigger phrase drift")
           if module.CHECKPOINT_TRUST != "DURABLE_CANONICAL_MAIN_COMMIT_REDERIVED_FROM_REMOTE_STATE":
               raise SystemExit("R159 durable checkpoint trust semantic drift")
+          if module.CHECKPOINT_TRANSPORT_TRUST != "SANITIZED_GITHUB_HTTPS_SYSTEM_CA":
+              raise SystemExit("R159 checkpoint transport trust semantic drift")
           if module.PUBLICATION_TRAILER != "R159-Checkpoint-Digest:":
               raise SystemExit("R159 implementation publication protocol drift")
           if not module.AUTHORITY or any(module.AUTHORITY.values()):
@@ -127,6 +241,12 @@ jobs:
               "ls-remote",
               "--no-replace-objects",
               "GIT_NO_REPLACE_OBJECTS",
+              "GIT_CONFIG_GLOBAL",
+              "GIT_CONFIG_SYSTEM",
+              "GIT_CONFIG_NOSYSTEM",
+              "GIT_TERMINAL_PROMPT",
+              "HTTPS_TRANSPORT_CONFIG_FORBIDDEN",
+              "CANONICAL_REMOTE_HTTPS_REQUIRED",
               "canonical_main_sha",
               "recovery_anchor_commit",
               "checkpoint_publication_state",
