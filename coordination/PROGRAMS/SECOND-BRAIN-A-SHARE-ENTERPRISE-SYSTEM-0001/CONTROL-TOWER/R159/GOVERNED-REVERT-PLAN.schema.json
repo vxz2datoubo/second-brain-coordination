@@ -7,8 +7,10 @@
     "schema_version",
     "checkpoint_id",
     "checkpoint_digest",
+    "checkpoint_marker_commit",
     "target_commit",
     "target_tree",
+    "implementation_head",
     "change_id",
     "assessment_digest",
     "reversibility_class",
@@ -23,33 +25,15 @@
     "plan_digest"
   ],
   "properties": {
-    "schema_version": {
-      "const": "GovernedRevertPlan/v1"
-    },
-    "checkpoint_id": {
-      "type": "string",
-      "pattern": "^KGC-[0-9a-f]{16}$"
-    },
-    "checkpoint_digest": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{64}$"
-    },
-    "target_commit": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{40}$"
-    },
-    "target_tree": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{40}$"
-    },
-    "change_id": {
-      "type": "string",
-      "minLength": 1
-    },
-    "assessment_digest": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{64}$"
-    },
+    "schema_version": {"const": "GovernedRevertPlan/v1"},
+    "checkpoint_id": {"type": "string", "pattern": "^KGC-[0-9a-f]{16}$"},
+    "checkpoint_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "checkpoint_marker_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "target_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "target_tree": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "implementation_head": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "change_id": {"type": "string", "minLength": 1},
+    "assessment_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "reversibility_class": {
       "enum": [
         "COMPENSATABLE_ONLY",
@@ -68,25 +52,12 @@
         "VERSION_SWITCH_OR_FEATURE_FLAG"
       ]
     },
-    "reason": {
-      "type": "string",
-      "minLength": 1
-    },
-    "preserve_history": {
-      "const": true
-    },
-    "destructive_history_rewrite": {
-      "const": false
-    },
-    "exact_head_reverification_required": {
-      "const": true
-    },
-    "independent_review_required": {
-      "type": "boolean"
-    },
-    "user_approval_required": {
-      "type": "boolean"
-    },
+    "reason": {"type": "string", "minLength": 1},
+    "preserve_history": {"const": true},
+    "destructive_history_rewrite": {"const": false},
+    "exact_head_reverification_required": {"const": true},
+    "independent_review_required": {"type": "boolean"},
+    "user_approval_required": {"type": "boolean"},
     "authority": {
       "type": "object",
       "required": [
@@ -101,40 +72,19 @@
         "grants_trading"
       ],
       "properties": {
-        "creates_task": {
-          "const": false
-        },
-        "creates_route": {
-          "const": false
-        },
-        "creates_work_claim": {
-          "const": false
-        },
-        "grants_execution": {
-          "const": false
-        },
-        "grants_write": {
-          "const": false
-        },
-        "grants_review_accept": {
-          "const": false
-        },
-        "grants_merge": {
-          "const": false
-        },
-        "grants_release": {
-          "const": false
-        },
-        "grants_trading": {
-          "const": false
-        }
+        "creates_task": {"const": false},
+        "creates_route": {"const": false},
+        "creates_work_claim": {"const": false},
+        "grants_execution": {"const": false},
+        "grants_write": {"const": false},
+        "grants_review_accept": {"const": false},
+        "grants_merge": {"const": false},
+        "grants_release": {"const": false},
+        "grants_trading": {"const": false}
       },
       "additionalProperties": false
     },
-    "plan_digest": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{64}$"
-    }
+    "plan_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
   },
   "additionalProperties": false
 }
