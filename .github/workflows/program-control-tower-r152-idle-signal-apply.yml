@@ -211,23 +211,47 @@ jobs:
           set -euo pipefail
           BASE="${{ github.event.pull_request.base.sha }}"
           mapfile -t changed < <(git diff --name-only "$BASE" HEAD)
-          allowed() {
-            case "$1" in
-              .github/workflows/program-control-tower-r152-idle-signal-apply.yml) return 0 ;;
-              coordination/CONTROL-TOWER/idle_signal_apply.py) return 0 ;;
-              coordination/CONTROL-TOWER/tests/test_idle_signal_apply.py) return 0 ;;
-              coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R152/PROJECT-PLAN.md) return 0 ;;
-              coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R152/IDLE-SIGNAL-APPLY-CONTRACT.schema.json) return 0 ;;
-              *) return 1 ;;
-            esac
-          }
-          for path in "${changed[@]}"; do
-            if ! allowed "$path"; then
-              echo "R152 out-of-scope path: $path" >&2
-              exit 1
-            fi
-          done
-          test "${#changed[@]}" -eq 5
+          r158_marker='coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R158/TRUSTED-OPPORTUNITY-PROVENANCE.schema.json'
+          if printf '%s\n' "${changed[@]}" | grep -Fxq "$r158_marker"; then
+            expected=(
+              '.github/workflows/program-control-tower-r151-idle-signal-auto-release.yml'
+              '.github/workflows/program-control-tower-r152-idle-signal-apply.yml'
+              '.github/workflows/program-control-tower-r158-trusted-opportunity-provenance.yml'
+              'coordination/CONTROL-TOWER/idle_signal_scheduler.py'
+              'coordination/CONTROL-TOWER/idle_signal_apply.py'
+              'coordination/CONTROL-TOWER/tests/test_idle_signal_scheduler.py'
+              'coordination/CONTROL-TOWER/tests/test_idle_signal_apply.py'
+              'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R158/PROJECT-PLAN.md'
+              "$r158_marker"
+            )
+            test "${#changed[@]}" -eq 9
+            for path in "${changed[@]}"; do
+              printf '%s\n' "${expected[@]}" | grep -Fxq "$path" || {
+                echo "R152 R158-successor out-of-scope path: $path" >&2
+                exit 1
+              }
+            done
+            echo 'R152_R158_SUCCESSOR_SCOPE_PASS'
+          else
+            allowed() {
+              case "$1" in
+                .github/workflows/program-control-tower-r152-idle-signal-apply.yml) return 0 ;;
+                coordination/CONTROL-TOWER/idle_signal_apply.py) return 0 ;;
+                coordination/CONTROL-TOWER/tests/test_idle_signal_apply.py) return 0 ;;
+                coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R152/PROJECT-PLAN.md) return 0 ;;
+                coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R152/IDLE-SIGNAL-APPLY-CONTRACT.schema.json) return 0 ;;
+                *) return 1 ;;
+              esac
+            }
+            for path in "${changed[@]}"; do
+              if ! allowed "$path"; then
+                echo "R152 out-of-scope path: $path" >&2
+                exit 1
+              fi
+            done
+            test "${#changed[@]}" -eq 5
+            echo 'R152_SCOPE_PASS'
+          fi
 
       - name: Verify implementation PR does not mutate live authority surfaces
         shell: bash

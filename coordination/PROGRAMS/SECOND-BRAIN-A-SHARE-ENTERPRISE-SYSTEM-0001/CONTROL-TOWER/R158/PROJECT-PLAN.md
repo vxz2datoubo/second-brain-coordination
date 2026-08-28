@@ -31,4 +31,4 @@ R158 closes the caller-trust seam between canonical S0C → R153 → R154 → R1
 Retained R151/R152 tests are migrated to v2 without deleting prior behavioral coverage, with additional adversarial cases for raw opportunity injection, fake batch construction, digest tamper, v1 authorization, and fresh rematerialization drift. CI reruns R157→R149 and the full Control Tower suite on Python 3.11 and 3.13.
 
 ## Exact bounded scope
-Exactly the seven paths authorized by Issue #475 are changed. No S0C or R153/R154/R155/R156 implementation file is modified.
+Exactly the nine paths authorized by Issue #475 are changed. The two additional paths are the retained R151 and R152 workflows, modified only to preserve their historical strict modes while adding one exact R158 successor mode. No generic successor wildcard is allowed. No S0C or R153/R154/R155/R156 implementation file is modified.

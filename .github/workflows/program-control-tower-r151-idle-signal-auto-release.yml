@@ -83,15 +83,31 @@ jobs:
         env:
           PYTHONPATH: '.:../PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src'
           PYTHONDONTWRITEBYTECODE: '1'
+          R151_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           python - <<'PY'
           import json
+          import os
           from pathlib import Path
+          import subprocess
           import idle_signal_scheduler as r151
 
           schema_path = Path('../PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R151/IDLE-SIGNAL-AUTO-RELEASE-AUTHORIZATION.schema.json')
           schema = json.loads(schema_path.read_text(encoding='utf-8'))
-          assert schema['properties']['schema_version']['const'] == r151.AUTHORIZATION_SCHEMA
+          changed = subprocess.check_output(
+              ['git', 'diff', '--name-only', f"{os.environ['R151_BASE_SHA']}...HEAD"],
+              text=True,
+              cwd='../..',
+          ).splitlines()
+          r158_marker = 'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R158/TRUSTED-OPPORTUNITY-PROVENANCE.schema.json'
+          historical_const = schema['properties']['schema_version']['const']
+          if r158_marker in changed:
+              assert historical_const == 'IdleSignalAutoReleaseAuthorization/v1'
+              assert r151.AUTHORIZATION_SCHEMA == 'IdleSignalAutoReleaseAuthorization/v2'
+              print('R151_R158_SUCCESSOR_SCHEMA_PASS')
+          else:
+              assert historical_const == r151.AUTHORIZATION_SCHEMA
+              print('R151_AUTHORIZATION_SCHEMA_PASS')
           authority = schema['properties']['authority']['properties']
           assert authority['signal_self_authorizes']['const'] is False
           assert authority['can_create_issue']['const'] is True
@@ -101,7 +117,6 @@ jobs:
           assert authority['can_expand_permissions_or_secrets']['const'] is False
           assert authority['can_touch_trading_orders_or_funds']['const'] is False
           assert authority['can_perform_destructive_history_rewrite']['const'] is False
-          print('R151_AUTHORIZATION_SCHEMA_PASS')
           print('SIGNAL_SELF_AUTHORITY=false')
           print('INDEPENDENT_REVIEW_REQUIRED=true')
           PY
@@ -115,15 +130,33 @@ jobs:
           import os, subprocess
           base = os.environ['BASE']
           changed = subprocess.check_output(['git', 'diff', '--name-only', f'{base}...HEAD'], text=True).splitlines()
-          allowed_exact = {
-              'coordination/CONTROL-TOWER/idle_signal_scheduler.py',
-              'coordination/CONTROL-TOWER/tests/test_idle_signal_scheduler.py',
+          r158_marker = 'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R158/TRUSTED-OPPORTUNITY-PROVENANCE.schema.json'
+          r158_exact = {
               '.github/workflows/program-control-tower-r151-idle-signal-auto-release.yml',
+              '.github/workflows/program-control-tower-r152-idle-signal-apply.yml',
+              '.github/workflows/program-control-tower-r158-trusted-opportunity-provenance.yml',
+              'coordination/CONTROL-TOWER/idle_signal_scheduler.py',
+              'coordination/CONTROL-TOWER/idle_signal_apply.py',
+              'coordination/CONTROL-TOWER/tests/test_idle_signal_scheduler.py',
+              'coordination/CONTROL-TOWER/tests/test_idle_signal_apply.py',
+              'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R158/PROJECT-PLAN.md',
+              r158_marker,
           }
-          allowed_prefix = 'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R151/'
-          outside = [path for path in changed if path not in allowed_exact and not path.startswith(allowed_prefix)]
-          if outside:
-              raise SystemExit(f'R151_SCOPE_FAIL:{outside}')
+          if r158_marker in changed:
+              if len(changed) != 9 or set(changed) != r158_exact:
+                  raise SystemExit(f'R151_R158_SUCCESSOR_SCOPE_FAIL:{changed}')
+              print('R151_R158_SUCCESSOR_SCOPE_PASS')
+          else:
+              allowed_exact = {
+                  'coordination/CONTROL-TOWER/idle_signal_scheduler.py',
+                  'coordination/CONTROL-TOWER/tests/test_idle_signal_scheduler.py',
+                  '.github/workflows/program-control-tower-r151-idle-signal-auto-release.yml',
+              }
+              allowed_prefix = 'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R151/'
+              outside = [path for path in changed if path not in allowed_exact and not path.startswith(allowed_prefix)]
+              if outside:
+                  raise SystemExit(f'R151_SCOPE_FAIL:{outside}')
+              print('R151_SCOPE_PASS')
           forbidden_prefixes = (
               'coordination/ACTIVE-',
               'coordination/ROUTES/',
@@ -132,7 +165,6 @@ jobs:
           forbidden = [path for path in changed if path.startswith(forbidden_prefixes)]
           if forbidden:
               raise SystemExit(f'R151_AUTHORITY_BOUNDARY_FAIL:{forbidden}')
-          print('R151_SCOPE_PASS')
           print('NO_ACTIVE_ROUTE_CLAIM_WORKER_MUTATION=true')
           print('NO_SIGNAL_TOWER_RUNTIME_MUTATION=true')
           print('NO_SECOND_TASK_OR_SIGNAL_AUTHORITY=true')
