@@ -1,15 +1,16 @@
-schema_version: "3.23"
+schema_version: "3.24"
 registry_id: "AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001"
 control_tower_issue: 310
 owner: "USER"
 architecture_owner: "GPT"
 status: "ACTIVE_CANDIDATE_CONTROL_VIEW"
-as_of: "2026-08-29T22:56:00Z"
+as_of: "2026-08-29T23:00:00Z"
 boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 
 authority_role: >-
-  This registry is authoritative for Program Lane identity, mission, desired state, cross-lane relationships, overlap declarations and
-  portfolio-level gates. Per-agent ACTIVE routes/leases remain execution truth.
+  This registry is authoritative for Program Lane identity, mission, desired state, cross-lane relationships, overlap declarations
+  and portfolio-level gates. Per-agent ACTIVE routes/leases remain execution truth. Frozen candidates never regain execution authority
+  through this projection.
 
 source_precedence:
   - "USER_CURRENT_EXPLICIT_DIRECTION"
@@ -32,12 +33,14 @@ portfolio_capacity_policy:
   nested_parallelism: "FORBIDDEN"
 
 current_user_release_policy:
-  decision_at: "2026-08-29T22:56:00Z"
-  decision: "R165_CODEX_CLEAN_NONRETROACTIVE_INTERACTIVE_FILM_SUCCESSOR / SNAPSHOT_BEFORE_SUBSTANTIVE_WRITE"
+  decision_at: "2026-08-29T23:00:00Z"
+  decision: "R165_CODEX_CLEAN_SUCCESSOR + R166_W5_GPT_CLEAN_SUCCESSOR_PREWRITE / O0_PARALLEL"
   rationale: >-
-    Independent governance result 5465273392 / review 5059352209 found PR #495 technically acceptable but invalid for acceptance due
-    stale/missing pre-write authority, and explicitly permits a clean CODEX successor after fresh governed release. The old R163 GPT
-    execution slot is frozen with execution_allowed=false. R165 is a new executor identity from clean canonical baseline 0665cc0.
+    R165 is the clean CODEX successor for the provenance-invalid interactive-film remediation and has its own route, lease, claim,
+    reservation, witness, activation scan and Issue #499 pre-write snapshot. R166 is a distinct light GPT Engineering Worker W5
+    successor created because R164 canonical route/claim remained hard-bound to PR #487 and could not authorize PR #497. R166
+    writes only the exact W5 seven-file surface; R165 writes creative_runtime/apps/cli/tests and R165 task-local surfaces. The
+    surfaces are O0 with no shared canonical writer.
   auxiliary_bounded_releases:
     - task_id: "CODEX-R163-CLEAN-SUCCESSOR-R165"
       route_epoch: 165
@@ -47,11 +50,22 @@ current_user_release_policy:
       route: "coordination/ROUTES/CODEX-R163-CLEAN-SUCCESSOR-R165.yaml"
       implementation_baseline: "0665cc0147fe7efae7e9498c36f9a87566ad036c"
       branch: "codex/r165-r163-clean-successor"
+      status: "ACTIVE_GOVERNED_POST_SNAPSHOT"
+      execution_allowed: true
+      snapshot: "Issue #499 comment 5465363074"
+      source_pr_495: "UNACCEPTED_EVIDENCE_ONLY / NO_IMPORT"
+    - task_id: "GPT-W5-EVENT-COVERAGE-CLEAN-SUCCESSOR-R166"
+      route_epoch: 166
+      issue: 501
+      agent_type: "GPT_ENGINEERING_WORKER"
+      worker_slot_id: "GPT-WORKER-R166-W5-EVENT-COVERAGE-2"
+      route: "coordination/ROUTES/GPT-W5-EVENT-COVERAGE-CLEAN-SUCCESSOR-R166.yaml"
+      branch: "gpt/w5-event-coverage-r166-clean-successor"
       status: "ACTIVE_GOVERNED_PREWRITE"
       execution_allowed: true
-      substantive_write_gate: "ISSUE_499_EFFECTIVE_SPEC_SNAPSHOT_REQUIRED"
-      source_pr_495: "43785fd2f24e0c9e640bdc7d26d09351c836d8c9 / UNACCEPTED_EVIDENCE_ONLY / NO_IMPORT"
-      source_pr_493: "REFERENCE_ONLY_UNACCEPTED_CANDIDATE"
+      substantive_write_gate: "ISSUE_501_EFFECTIVE_SPEC_SNAPSHOT_REQUIRED"
+      source_pr_487: "FROZEN_REFERENCE_ONLY"
+      source_pr_497: "FROZEN_TECHNICAL_EVIDENCE_ONLY / NO_IMPORT"
   release_owner: "USER_CURRENT_EXPLICIT_DIRECTION + GPT_GOVERNANCE_COORDINATOR"
   standing_routine_engineering_merge_authorization: false
   standing_authorization_exclusions:
@@ -60,45 +74,25 @@ current_user_release_policy:
     - "PERMISSION_VISIBILITY_EXPANSION"
     - "DESTRUCTIVE_DELETION"
     - "MAJOR_ARCHITECTURE_OUTSIDE_APPROVED_SCOPE"
-    - "PR495_RETROACTIVE_AUTHORIZATION"
-  r165_issue: 499
-  r165_parent_issue: 494
-  r165_route_epoch: 165
-  r165_task_id: "CODEX-R163-CLEAN-SUCCESSOR-R165"
-  r165_worker_slot_id: "CODEX-R165-INTERACTIVE-FILM-CLEAN-SUCCESSOR-1"
-  r165_branch: "codex/r165-r163-clean-successor"
-  r165_spec_snapshot_gate: 5463716847
-  r165_status: "GOVERNANCE_RELEASED / IMPLEMENTATION_BLOCKED_UNTIL_EFFECTIVE_SPEC_SNAPSHOT"
+    - "RETROACTIVE_EXECUTION_PROVENANCE_REPAIR"
 
 historical_execution_refs:
+  r164:
+    issue: 486
+    route_epoch: 164
+    status: "FROZEN_SUPERSEDED_ROUTE_BRANCH_BINDING"
+    pr: 487
+    successor_evidence_pr: 497
+    successor_evidence_disposition: "REFERENCE_ONLY_TECHNICAL_EVIDENCE"
+    successor: "R166 CLEAN GPT ENGINEERING WORKER"
   r163:
     issue: 494
     route_epoch: 163
-    status: "FROZEN_PROVENANCE_INVALID_POST_REVIEW_REMEDIATION / EXECUTION_LEASE_RETIRED"
+    status: "FROZEN_PROVENANCE_INVALID_POST_REVIEW_REMEDIATION"
     pr: 495
     invalid_head: "43785fd2f24e0c9e640bdc7d26d09351c836d8c9"
     independent_governance_result: 5465273392
     successor: "R165 CLEAN CODEX ONLY"
-  r145:
-    issue: 415
-    route_epoch: 145
-    status: "IMPLEMENTATION_ACCEPTED_MERGED / EXECUTION_LEASE_RELEASED"
-    merge: "935840769ca9ac032807066b3e0d3d1b780a55b4"
-  r144:
-    issue: 406
-    route_epoch: 144
-    status: "IMPLEMENTATION_ACCEPTED_MERGED / EXECUTION_LEASE_RELEASED"
-    merge: "d9734f2db3f039167f0e3e32933392ae5571de13"
-  r143:
-    issue: 404
-    route_epoch: 143
-    status: "IMPLEMENTATION_ACCEPTED_MERGED / EXECUTION_LEASE_RELEASED"
-    merge: "4423349b6154986b74b6f172d7e01643f8bd46f9"
-  r142:
-    issue: 393
-    route_epoch: 142
-    status: "IMPLEMENTATION_ACCEPTED_MERGED / EXECUTION_LEASE_RELEASED"
-    merge: "341fefa057d891103ef9de91af719e1050e4a0ab"
 
 observed_agent_state:
   CODEX:
@@ -106,15 +100,16 @@ observed_agent_state:
     observed_task_id: "CODEX-R163-CLEAN-SUCCESSOR-R165"
     observed_route_epoch: 165
     observed_issue: 499
-    observed_status: "ACTIVE_GOVERNED_PREWRITE"
     execution_allowed: true
-    observation_status: "R165_RESERVED / SUBSTANTIVE_WRITE_REQUIRES_EFFECTIVE_SPEC_SNAPSHOT"
+    observation_status: "R165_GOVERNED_POST_SNAPSHOT / BRANCH_EXISTS"
   GPT_ENGINEERING_WORKER:
     source: "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
-    observed_status: "R163_FROZEN + R164_ACTIVE_W5"
-    r163_execution_allowed: false
-    r164_execution_allowed: true
-    r164_write_overlap_with_r165: "NONE"
+    observed_status: "R163_FROZEN + R164_FROZEN + R166_ACTIVE_PREWRITE"
+    active_execution_slots: 1
+    active_slot_max: 2
+    r166_execution_allowed: true
+    r166_substantive_write_allowed_now: false
+    r166_next_gate: "ISSUE_501_EFFECTIVE_SPEC_SNAPSHOT"
   QCLAW:
     source: "coordination/ACTIVE-QCLAW-TASK.yaml"
     observed_status: "DONE_HISTORICAL"
@@ -143,19 +138,26 @@ program_lanes:
     observed_state: "NO_ACTIVE_LANE_IMPLEMENTATION"
     active_execution_route: null
     heavy_execution_authorized: false
+
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
     mission: "Repair A-share research deficiencies while preserving NO_TRADE."
     desired_state: "ACTIVE"
-    observed_state: "R164_BOUNDED_W5_GPT_WORKER_ACTIVE_PREWRITE"
-    active_execution_route: "coordination/ROUTES/GPT-W5-EVENT-COVERAGE-P0-REMEDIATION-R164.yaml"
-    write_surface: ".github/workflows/w5-event-coverage-p0-vs1.yml + coordination/.../W5-EVENT-COVERAGE/**"
+    observed_state: "R166_W5_GPT_WORKER_ACTIVE_PREWRITE"
+    current_phase: "ISSUE_501_CANONICAL_BINDINGS_BEFORE_SNAPSHOT"
+    active_execution_route: "coordination/ROUTES/GPT-W5-EVENT-COVERAGE-CLEAN-SUCCESSOR-R166.yaml"
+    implementation_owner: "GPT_ENGINEERING_WORKER"
+    worker_slot_id: "GPT-WORKER-R166-W5-EVENT-COVERAGE-2"
+    write_surface: "exact W5 Event Coverage seven-file surface only"
+    next_gate: "CONTROL_TOWER_SCAN_THEN_ISSUE_501_EFFECTIVE_SPEC_SNAPSHOT"
+    trading_authorized: false
+
   - lane_id: "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"
     mission: "Bounded clean interactive-film remediation without W3 canonical write authority."
     desired_state: "ACTIVE"
-    observed_state: "R165_CODEX_CLEAN_SUCCESSOR_ACTIVE_PREWRITE"
-    current_phase: "ISSUE_499_R165_GOVERNANCE_RELEASE"
+    observed_state: "R165_CODEX_CLEAN_SUCCESSOR_ACTIVE_POST_SNAPSHOT"
+    current_phase: "ISSUE_499_R165_IMPLEMENTATION"
     active_execution_route: "coordination/ROUTES/CODEX-R163-CLEAN-SUCCESSOR-R165.yaml"
-    next_gate: "EFFECTIVE_SPEC_SNAPSHOT_THEN_ONE_SHOT_IMPLEMENTATION"
+    next_gate: "CODEX_IMPLEMENTATION_HANDOFF_THEN_INDEPENDENT_REVIEW"
     implementation_owner: "CODEX"
     worker_slot_id: "CODEX-R165-INTERACTIVE-FILM-CLEAN-SUCCESSOR-1"
     canonical_knowledge_write_authorized: false
@@ -167,8 +169,12 @@ cross_lane_overlap_matrix:
     overlap_level: "O1_READ_ONLY_COEXISTENCE"
   - pair: ["LANE-B-A-SHARE-REMEDIATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
     overlap_level: "O0_NO_MATERIAL_WRITE_OVERLAP"
-    rule: "R164 writes W5 coordination/workflow only; R165 writes creative_runtime/apps/cli/tests/task-local R165/workflow only."
+    rule: >-
+      R166 writes only the W5 Event Coverage seven-file surface. R165 writes creative_runtime/apps/cli/tests, R165 task-local
+      governance and its dedicated workflow. Neither route grants W3/domain/trading authority, and same canonical object writers
+      remain one.
 
 reconciliation_rule: >-
-  R165 execution truth is ACTIVE-CODEX-TASK + R165 route + lease/claim/reservation + authorization witness + source-selection provenance +
-  fresh Control Tower scan + Issue #499 pre-write snapshot. PR #493 and PR #495 remain immutable unaccepted evidence surfaces.
+  R165 execution truth remains its CODEX route + lease/claim/reservation + witness + scan + Issue #499 snapshot. R166 execution truth
+  is its GPT route + claim + witness + lease/reservation + canonical worker slot + fresh activation scan + Issue #501 snapshot.
+  Historical PRs #487/#497/#495 are evidence only and cannot become successor execution provenance.
