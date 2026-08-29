@@ -1,0 +1,33 @@
+schema: CreativeSourceProvenanceRegistry/v1
+task_id: CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001
+policy: >-
+  A locator, user statement, or local path is not reusable GitHub provenance. Reuse
+  requires a GPT auditable import or source-registration decision before any content
+  is copied, adapted, or represented as task input.
+records:
+  - source_id: route-160
+    classification: GITHUB_VERIFIED
+    source_location: coordination/ROUTES/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001.yaml
+    source_owner: GPT_GITHUB_INTEGRATOR
+    allowed_target_scope: task governance and implementation constraints only
+    status: canonical_control_plane
+  - source_id: issue-490
+    classification: GITHUB_VERIFIED
+    source_location: github issue 490
+    source_owner: GPT_GITHUB_INTEGRATOR
+    allowed_target_scope: task requirements only
+    status: canonical_task_assignment
+  - source_id: reported-local-film-assets
+    classification: LOCAL_UNVERIFIED
+    source_location: reported local or WorkBuddy material; not inspected or copied by this task
+    source_owner: UNKNOWN
+    privacy_classification: UNKNOWN
+    allowed_target_scope: none
+    status: reuse_rejected_pending_gpt_registration
+  - source_id: external-ai-film-reference
+    classification: REGISTERED_REFERENCE
+    source_location: github://vxz2datoubo/eustia-ai-film@44c383afd2207a97caf45b1b0da6ee1dece43a76
+    source_owner: AI_FILM_SYSTEM
+    privacy_classification: PUBLIC_SAFE_REFERENCE
+    allowed_target_scope: no copy or adaptation under this task without GPT registration
+    status: reference_only

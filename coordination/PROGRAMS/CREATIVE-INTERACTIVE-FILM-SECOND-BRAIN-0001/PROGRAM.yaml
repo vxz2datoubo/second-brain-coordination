@@ -1,0 +1,31 @@
+schema: CreativeProgram/v1
+agent_id: CODEX
+task_id: CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001
+route_epoch: 160
+product_goal: Offline-first, deterministic, private interactive-film creative runtime with review-only knowledge packets.
+phase: READY_FOR_GPT_INDEPENDENT_REVIEW
+architecture:
+  contracts: creative_runtime.contracts
+  event_ledger: creative_runtime.ledger
+  interactive_cli: apps/cli/creativectl.py
+  director: creative_runtime.director
+  knowledge_bridge: creative_runtime.knowledge
+  generation: creative_runtime.generation
+  provenance_gate: creative_runtime.provenance
+authority:
+  generation: offline_simulated_only
+  knowledge: review_packet_only
+  external_sources: GPT_AUDITABLE_IMPORT_REQUIRED
+  public_release: forbidden
+  production: forbidden
+  trade: forbidden
+  credentials: forbidden
+acceptance_summary:
+  S00: executor_verified
+  S01: executor_verified
+  S02: executor_verified
+  S03: executor_verified
+  S04: executor_verified
+  S05: executor_verified
+  S06: executor_verified
+interface_version: CreativeEvent/v1

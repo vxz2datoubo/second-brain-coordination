@@ -1,0 +1,27 @@
+schema: DependencyAndUnknownRegistry/v1
+task_id: CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001
+dependencies:
+  - dependency_id: frozen-branch
+    status: SATISFIED
+    evidence: 963acf85f0e38890c8eea8a0469980246ce3f1ce
+  - dependency_id: gpt-route-160
+    status: SATISFIED
+    evidence: a2cdd33cd3c60dc78a13b6bdec9b8edd3e378536
+  - dependency_id: independent-gpt-review
+    status: PENDING_LATER_GATE
+    owner: GPT_INDEPENDENT_REVIEWER
+unknowns:
+  - unknown_id: source-import-decision
+    severity: S3_FOR_REUSE_PATH
+    statement: No local or WorkBuddy film/second-brain asset is approved for reuse.
+    affected_scope: outside-source reuse only
+    unaffected_scope: synthetic offline implementation and all governance controls
+    owner: GPT_GITHUB_INTEGRATOR
+    closure_condition: auditable source-registration or import record
+  - unknown_id: external-provider-configuration
+    severity: S0
+    statement: Provider configuration is intentionally unavailable to this task.
+    affected_scope: real external generation
+    unaffected_scope: offline/mock adapter contract
+    owner: user and GPT gate
+    closure_condition: separate governed authorization; not required here

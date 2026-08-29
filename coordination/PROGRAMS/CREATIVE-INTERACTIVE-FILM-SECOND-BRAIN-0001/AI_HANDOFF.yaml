@@ -1,0 +1,68 @@
+schema: CreativeAIHandoff/v1
+agent_id: CODEX
+source_agent: CODEX
+target_agent: GPT_GITHUB_INTEGRATOR
+reviewer: GPT_INDEPENDENT_REVIEWER
+task:
+  id: CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001
+  issue: 490
+  route_epoch: 160
+  branch: codex/creative-interactive-film-second-brain-0001
+  baseline: 963acf85f0e38890c8eea8a0469980246ce3f1ce
+  remote_main_at_claim: a2cdd33cd3c60dc78a13b6bdec9b8edd3e378536
+  head_ref: refs/heads/codex/creative-interactive-film-second-brain-0001
+  head_sha_at_last_record: 7c4c8f16c07f7ed8edf53d2506913e95e1163966
+progress:
+  current_slice: S06_END_TO_END_REPLAY_AND_HANDOFF_ACCEPTANCE
+  completed_slices:
+    - S00_COLLABORATION_AND_HANDOFF_FOUNDATION
+    - S01_CREATIVE_CONTRACTS_AND_EVENT_LEDGER
+    - S02_CLI_INTERACTIVE_SCENE
+    - S03_AI_DIRECTOR_COMPILATION_AND_GATES
+    - S04_SECOND_BRAIN_KNOWLEDGE_REVIEW_BRIDGE
+    - S05_OFFLINE_FIRST_GENERATION_ADAPTERS
+    - S06_END_TO_END_REPLAY_AND_HANDOFF_ACCEPTANCE
+  completion_ratio: 1.0
+  independent_review_readiness: READY_FOR_GPT
+facts:
+  verified:
+    - Route 160 is READY and authorizes the exact branch/root.
+    - Local/WorkBuddy material is not approved for reuse.
+    - S01 contracts and ledger replay identically from the same explicit event records.
+    - S02 uses a synthetic adult-only, non-explicit private scene and has no model or provider call path.
+    - S03 blocks generation when asset, adult identity, spatial axis, knowledge, content, duration, or shot-change gates fail.
+    - S04 only stores evidence-backed candidate packets and requires a named non-executor reviewer before a candidate is marked reusable.
+    - S05 has a deterministic offline adapter and external-provider guards that never read environment variables or issue calls.
+    - S06 completes the synthetic end-to-end chain and rejects local/unregistered reuse before runtime entry.
+  inferences: []
+  unknowns:
+    - source-import-decision
+    - external-provider-configuration
+provenance:
+  registry: SOURCE-PROVENANCE-REGISTRY.yaml
+  workbuddy_local_unverified_assets_encountered: true
+  reuse_attempted: false
+authority:
+  knowledge_write: review_packet_only
+  generation_execution: mock_or_dry_run_only
+  NO_SELF_REVIEW: true
+  NO_SELF_MERGE: true
+tests:
+  commands:
+    - python -m json.tool coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/AUTHORIZED-PATH-MANIFEST.json
+    - python -m unittest discover -s tests -p test_creative_s00_governance.py -v
+    - python -m unittest discover -s tests -p test_creative_s*.py -v
+    - git diff --check
+    - git merge-base HEAD 963acf85f0e38890c8eea8a0469980246ce3f1ce
+    - git diff --check 963acf85f0e38890c8eea8a0469980246ce3f1ce...HEAD
+  status: EXECUTOR_VERIFIED_ONLY
+changed_contracts:
+  - CreativeEvent/v1
+  - CreativeSession/v1
+  - CreativeKnowledgeReview/v1
+failed_attempts:
+  - Earlier empty local worktree was based on an obsolete SHA; it was not used and a new exact-baseline worktree was created.
+  - python -m pytest -q is unavailable because pytest is not installed; the dependency-free unittest suite is the supported verification command for this task branch.
+rollback:
+  method: preserve draft branch and evidence; route a clean successor without history rewrite
+exact_next_action: GPT independently reconcile remote main, Issue #490, PR #491, baseline ancestry, source provenance, and RUNBOOK.md results; publish a separate review receipt before any merge decision.
