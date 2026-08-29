@@ -1,0 +1,54 @@
+name: PR Metadata Fallback V1
+
+on:
+  pull_request:
+    paths:
+      - 'coordination/CONTROL-TOWER/pr_metadata_fallback.py'
+      - 'coordination/CONTROL-TOWER/tests/test_pr_metadata_fallback.py'
+      - 'coordination/CONTROL-TOWER/tests/fixtures/pr_metadata_fallback_receipt_example.json'
+      - 'coordination/CONTROL-TOWER/PR-METADATA-FALLBACK-V1.md'
+      - 'coordination/CONTROL-TOWER/PR-METADATA-FALLBACK-PLAN.md'
+      - 'coordination/CONTROL-TOWER/PR-METADATA-FALLBACK-INCIDENT-2026-08-29.md'
+      - 'coordination/CONTROL-TOWER/PR-METADATA-FALLBACK-INCIDENTS.json'
+      - '.github/workflows/pr-metadata-fallback-v1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.13']
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Compile
+        run: python -m py_compile coordination/CONTROL-TOWER/pr_metadata_fallback.py
+      - name: Focused adversarial suite
+        run: python coordination/CONTROL-TOWER/tests/test_pr_metadata_fallback.py
+      - name: Static authority and operation fence
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('coordination/CONTROL-TOWER/pr_metadata_fallback.py').read_text()
+          required = [
+              'choices=["mark_ready_for_review"]',
+              'INCIDENT_REGISTRY_PATH = "coordination/CONTROL-TOWER/PR-METADATA-FALLBACK-INCIDENTS.json"',
+              '?ref=main',
+              '"grants_code_write": False',
+              '"grants_branch_write": False',
+              '"grants_review_accept": False',
+              '"grants_merge": False',
+              '"grants_release": False',
+          ]
+          missing = [x for x in required if x not in p]
+          if missing:
+              raise SystemExit(f'missing fences: {missing}')
+          print('PR_METADATA_FALLBACK_V1_FENCES_PASS')
+          PY
