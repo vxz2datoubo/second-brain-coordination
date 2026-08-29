@@ -1,4 +1,4 @@
-"""Offline interactive creative CLI with fail-closed legacy-session migration."""
+"""Offline interactive creative CLI with fail-closed migration and timeline truth."""
 
 from __future__ import annotations
 
@@ -19,6 +19,7 @@ from creative_runtime.ledger import CreativeLedger, LedgerViolation
 from creative_runtime.knowledge import KnowledgeBridgeViolation, KnowledgeReviewBridge
 from creative_runtime.saves import SaveSlotViolation, SaveStore, migrate_session
 from creative_runtime.scene_graph import SceneGraph, SceneGraphViolation, synthetic_three_scene_manifest
+from creative_runtime.timeline import TimelineViolation, build_prefix_timeline
 
 
 DEFAULT_WORKSPACE = Path(".creative-runtime")
@@ -60,8 +61,20 @@ def _migrate_legacy_default(workspace: Path) -> tuple[CreativeLedger, tuple[str,
         migrated, migrations = migrate_session(legacy_record, graph.manifest_hash, graph)
         ledger = CreativeLedger.from_records(migrated["events"])
         graph.beat_for(ledger.replay())
+        # A migrated ledger must also be able to narrate its exact event prefixes.
+        build_prefix_timeline(ledger, graph)
         _store(workspace).save_record(DEFAULT_SLOT, migrated, graph.manifest_hash)
-    except (UnicodeDecodeError, json.JSONDecodeError, KeyError, LedgerViolation, SaveSlotViolation, SceneGraphViolation, TypeError, ValueError) as error:
+    except (
+        UnicodeDecodeError,
+        json.JSONDecodeError,
+        KeyError,
+        LedgerViolation,
+        SaveSlotViolation,
+        SceneGraphViolation,
+        TimelineViolation,
+        TypeError,
+        ValueError,
+    ) as error:
         if not default_existed_before and session_path(workspace).exists():
             session_path(workspace).unlink(missing_ok=True)
         if legacy_path.read_bytes() != original_bytes:
@@ -82,8 +95,9 @@ def _load_session(workspace: Path, slot: str = DEFAULT_SLOT) -> CreativeLedger:
     try:
         loaded = _store(workspace).load(slot, graph.manifest_hash, graph)
         graph.beat_for(loaded.ledger.replay())
+        build_prefix_timeline(loaded.ledger, graph)
         return loaded.ledger
-    except (SaveSlotViolation, SceneGraphViolation) as error:
+    except (SaveSlotViolation, SceneGraphViolation, TimelineViolation) as error:
         raise LedgerViolation("No compatible session exists; run init first") from error
 
 
@@ -106,6 +120,10 @@ def _write_knowledge(workspace: Path, bridge: KnowledgeReviewBridge) -> None:
     )
 
 
+def _timeline(ledger: CreativeLedger) -> list[dict[str, Any]]:
+    return [entry.to_dict() for entry in build_prefix_timeline(ledger, _graph())]
+
+
 def _view(ledger: CreativeLedger) -> dict[str, Any]:
     graph = _graph()
     state = ledger.replay()
@@ -118,6 +136,7 @@ def _view(ledger: CreativeLedger) -> dict[str, Any]:
         "text": beat.text,
         "options": [{"id": action.action_id, "label": action.label} for action in beat.actions],
         "logical_turn": len(ledger.events) - 1,
+        "timeline": _timeline(ledger),
     }
 
 
@@ -160,6 +179,8 @@ def choose(workspace: Path, action_id: str, source_text: str | None = None) -> d
         },
         f"2030-01-01T00:{len(ledger.events):02d}:00Z",
     )
+    # Refuse to persist a transition whose exact prefix history cannot be explained.
+    build_prefix_timeline(ledger, graph)
     _write_session(workspace, ledger)
     return {**_view(ledger), "status": "chosen", "action_id": action_id}
 
@@ -198,8 +219,24 @@ def say(workspace: Path, text: str) -> dict[str, Any]:
     return choose(workspace, action, source_text=text)
 
 
-def terminal_loop(workspace: Path, input_stream: io.TextIOBase | None = None, output_stream: io.TextIOBase | None = None) -> dict[str, Any]:
-    """Minimal A-slice loop: legacy detection is fail-closed; richer S08 timeline follows in B."""
+def _plain_timeline(ledger: CreativeLedger) -> str:
+    lines = ["Exact consequence timeline:"]
+    for entry in build_prefix_timeline(ledger, _graph()):
+        state = entry.state
+        action = f" action={entry.action_id}" if entry.action_id else ""
+        lines.append(
+            f"  turn={entry.turn} {state.scene_id}/{state.beat_id} risk={state.risk_level}"
+            f" relationships={dict(state.relationships)} facts={list(state.known_facts)} flags={dict(state.flags)}{action}"
+        )
+    return "\n".join(lines)
+
+
+def terminal_loop(
+    workspace: Path,
+    input_stream: io.TextIOBase | None = None,
+    output_stream: io.TextIOBase | None = None,
+) -> dict[str, Any]:
+    """Offline terminal loop with deterministic turn timing and exact prefix history."""
 
     source = input_stream or sys.stdin
     output = output_stream or sys.stdout
@@ -235,7 +272,10 @@ def terminal_loop(workspace: Path, input_stream: io.TextIOBase | None = None, ou
         if command.casefold() in {"quit", "exit"}:
             return {"status": "quit", "logical_turn": view["logical_turn"]}
         if command.casefold() == "help":
-            output.write("Commands: <choice>, choose <choice>, say <clear intent>, quit.\n")
+            output.write("Commands: <choice>, choose <choice>, say <clear intent>, timeline, quit.\n")
+            continue
+        if command.casefold() == "timeline":
+            output.write(_plain_timeline(ledger) + "\n")
             continue
         verb, _, remainder = command.partition(" ")
         if verb.casefold() == "say" and remainder:
@@ -260,6 +300,7 @@ def run(argv: list[str]) -> dict[str, Any]:
     say_parser.add_argument("text")
     subparsers.add_parser("resume")
     subparsers.add_parser("replay")
+    subparsers.add_parser("timeline")
     subparsers.add_parser("interactive")
     slot_parser = subparsers.add_parser("slot")
     slot_subparsers = slot_parser.add_subparsers(dest="slot_command", required=True)
@@ -296,6 +337,13 @@ def run(argv: list[str]) -> dict[str, Any]:
     if args.command == "replay":
         ledger = _load_session(args.workspace)
         return {**_view(ledger), "status": "replayed", "event_count": len(ledger.events)}
+    if args.command == "timeline":
+        ledger = _load_session(args.workspace)
+        return {
+            "status": "timeline",
+            "manifest_hash": _graph().manifest_hash,
+            "entries": _timeline(ledger),
+        }
     if args.command == "interactive":
         return {"status": "interactive_ready", "workspace": str(args.workspace), "offline": True}
     if args.command == "slot":
@@ -314,7 +362,11 @@ def run(argv: list[str]) -> dict[str, Any]:
         if args.knowledge_command == "search":
             return {"status": "searched", "candidates": [item.to_dict() for item in bridge.search(args.query)]}
         if args.knowledge_command == "correct":
-            candidate = bridge.correct(args.assertion, source_event_ids=args.source_event_id, source_artifact_ids=args.source_artifact_id)
+            candidate = bridge.correct(
+                args.assertion,
+                source_event_ids=args.source_event_id,
+                source_artifact_ids=args.source_artifact_id,
+            )
             _write_knowledge(args.workspace, bridge)
             return {"status": "pending_human_review", "candidate": candidate.to_dict()}
         if args.knowledge_command == "review":
@@ -331,7 +383,16 @@ def main() -> int:
             terminal_loop(Path(result["workspace"]))
         else:
             print(json.dumps(result, ensure_ascii=False, sort_keys=True, indent=2))
-    except (LedgerViolation, SaveSlotViolation, SceneGraphViolation, KnowledgeBridgeViolation, KeyError, UnicodeDecodeError, json.JSONDecodeError) as error:
+    except (
+        LedgerViolation,
+        SaveSlotViolation,
+        SceneGraphViolation,
+        TimelineViolation,
+        KnowledgeBridgeViolation,
+        KeyError,
+        UnicodeDecodeError,
+        json.JSONDecodeError,
+    ) as error:
         print(json.dumps({"status": "error", "message": str(error)}, ensure_ascii=False, sort_keys=True))
         return 2
     return 0
