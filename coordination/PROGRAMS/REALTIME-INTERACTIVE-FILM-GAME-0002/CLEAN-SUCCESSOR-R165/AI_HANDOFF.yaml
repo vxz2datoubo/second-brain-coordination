@@ -1,0 +1,35 @@
+schema: AI_HANDOFF/v1
+task_id: CODEX-R163-CLEAN-SUCCESSOR-R165
+source_agent: CODEX
+target_agent: GPT_INDEPENDENT_REVIEWER
+reviewer: GPT_INDEPENDENT_REVIEWER
+executor_status: EXECUTOR_VERIFIED_ONLY_PENDING_EXACT_HEAD_CI_AND_INDEPENDENT_REVIEW
+base_sha: 0665cc0147fe7efae7e9498c36f9a87566ad036c
+implementation_commit: 41bd859aa3d8c9d598bec8456c95e30853a562bc
+branch: codex/r165-r163-clean-successor
+changed_contracts:
+  - CreativeSession/v2 storage boundary
+  - state_patch is integrity-only and rejected as a caller authority
+  - source-bound legacy-resolution migration bridge
+  - SceneGraph transition validation
+  - prefix timeline, director sequence, and review packet validation surfaces
+tests:
+  local_python: "3.13"
+  command: python -m unittest discover -s tests -v
+  result: "29 passed"
+  compile_command: python -m compileall -q creative_runtime apps/cli tests
+  compile_result: PASS
+  local_pytest: NOT_AVAILABLE
+  required_ci: Python 3.11 and 3.13 exact-head workflow
+provenance:
+  no_pr495_commit_import: true
+  no_pr493_mutation: true
+  no_self_review: true
+  no_self_accept: true
+  no_merge: true
+known_risks:
+  - GitHub exact-head CI must validate the final pushed branch tip on Python 3.11 and 3.13.
+  - This local Windows environment has no Python 3.11 or pytest installation.
+next_action: >-
+  Push the branch, create a Draft PR, collect exact-head CI evidence, append the engineering handoff and a new
+  REVIEW_REQUEST/v1 to Issue #453, then wait for an uninvolved GPT_INDEPENDENT_REVIEWER.
