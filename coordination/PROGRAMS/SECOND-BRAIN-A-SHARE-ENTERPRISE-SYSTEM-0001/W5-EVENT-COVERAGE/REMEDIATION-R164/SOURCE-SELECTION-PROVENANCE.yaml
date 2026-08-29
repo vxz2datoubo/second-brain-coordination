@@ -1,0 +1,42 @@
+schema: SourceSelectionProvenance/v1
+project: SECOND_BRAIN
+task_id: GPT-W5-EVENT-COVERAGE-P0-REMEDIATION-R164
+route_epoch: 164
+source_issue: 486
+source_candidate:
+  repository: vxz2datoubo/second-brain-coordination
+  pr: 487
+  prior_reviewed_head: a98ff40e8731ef89efb6ced4808b9ffb2aff410a
+  prior_independent_review: 5057457615
+  prior_verdict: CHANGES_REQUIRED
+  current_prelease_head: 863e838b38ac7cd85f8da90cea8e8c786a144054
+  disposition: REFERENCE_ONLY_PRELEASE_REMEDIATION_CANDIDATE
+  accepted: false
+  canonical: false
+  retroactive_provenance_repair_forbidden: true
+binding_findings:
+  - CALLER_SUPPLIED_SOURCE_REGISTRY_CAN_MINT_COVERAGE_AUTHORITY
+  - CALLER_BOOLEAN_CAN_MINT_CAUSAL_OR_PARTICIPANT_EVIDENCE
+prelease_commits_may_be_reused_only_if:
+  - freshly inspected after R164 lease activation
+  - targeted tests re-run under governed worker identity
+  - each binding finding is mechanically demonstrated closed
+  - exact current branch ancestry and diff are preserved
+known_positive_observations_before_r164:
+  - 23 targeted W5 tests passed at prelease head
+  - schemas parsed
+  - downstream authority static gate passed
+known_unresolved_observation_before_r164:
+  - prior integration workflow failed on an older Control Tower projection; current main must be tested fresh
+forbidden_reuse:
+  - declaring prelease commits governed merely because they predate the R164 slot
+  - treating caller-supplied source metadata as canonical W5 authority
+  - treating causal or participant booleans as evidence authority
+  - fabricating an instance source registry that canonical W5 does not yet contain
+verification_plan:
+  - compare a98ff40 to current candidate
+  - inspect runtime public API and test-only seams
+  - rerun targeted adversarial tests under R164
+  - test current-main integration
+  - write only remaining bounded remediation/workflow/evidence deltas
+status: REGISTERED_BEFORE_R164_SUBSTANTIVE_REUSE
