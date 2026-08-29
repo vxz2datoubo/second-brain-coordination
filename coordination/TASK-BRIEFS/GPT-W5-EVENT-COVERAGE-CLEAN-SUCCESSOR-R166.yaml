@@ -1,0 +1,105 @@
+schema_version: "1.0"
+task_id: "GPT-W5-EVENT-COVERAGE-CLEAN-SUCCESSOR-R166"
+repository: "vxz2datoubo/second-brain-coordination"
+source_issue: 501
+parent_issue: 486
+route_epoch: 166
+mode: "bounded_remediation"
+mode_label: "R166 clean non-retroactive W5 Event Coverage successor"
+target_agent: "GPT_ENGINEERING_WORKER"
+worker_slot_id: "GPT-WORKER-R166-W5-EVENT-COVERAGE-2"
+implementation_branch: "gpt/w5-event-coverage-r166-clean-successor"
+pull_request: null
+status: "GOVERNED_PREWRITE / CODE_WRITE_BLOCKED_UNTIL_EFFECTIVE_SPEC_SNAPSHOT"
+
+purpose: >-
+  Reimplement the bounded W5 Event Coverage P0-VS1 slice from fresh canonical state only after the R166 execution identity and
+  exact branch are canonical and a post-binding pre-write snapshot is published. Historical PR #487 and PR #497 are evidence
+  locators only and may not supply execution provenance.
+
+binding_findings:
+  - id: "CALLER_SUPPLIED_SOURCE_REGISTRY_CAN_MINT_COVERAGE_AUTHORITY"
+    required_disposition: "CLOSED_MECHANICALLY"
+  - id: "CALLER_BOOLEAN_CAN_MINT_CAUSAL_OR_PARTICIPANT_EVIDENCE"
+    required_disposition: "CLOSED_MECHANICALLY"
+  - id: "FREE_TEXT_PARTICIPANT_INTENT_SEMANTIC_BYPASS"
+    required_disposition: "CLOSED_MECHANICALLY"
+  - id: "INVALID_REVIEW_TICKET_SPEC_SNAPSHOT_STALE"
+    required_disposition: "SUPERSEDED_BY_VALID_R166_PREWRITE_PROVENANCE"
+  - id: "R164_ROUTE_CLAIM_BOUND_TO_OLD_PR_BRANCH"
+    required_disposition: "CLOSED_BY_R166_EXACT_BRANCH_BINDING_BEFORE_SNAPSHOT"
+
+required_behavior:
+  source_authority:
+    - "caller registry is evidence metadata only"
+    - "caller source grade/class/coverage roles/enabled cannot satisfy canonical coverage"
+    - "canonical source-instance authority absent => observed mandatory source roles cannot become complete"
+    - "forged scanned source ids fail closed"
+  claim_authority:
+    - "caller causal/participant authority booleans are rejected"
+    - "explicit unique-causal wording blocks without canonical causal authority"
+    - "explicit recognized participant-intent wording blocks without canonical participant authority"
+    - "all other untyped caller free text is non-authoritative and at most DOWNGRADE while typed semantic authority is absent"
+    - "caller relabel across OBSERVED_FACT/SOURCE_CLAIM/MODEL_INFERENCE/UNKNOWN cannot mint participant intent authority"
+  event_semantics:
+    - "future information is excluded"
+    - "outside-window and irrelevant events do not become evidence"
+    - "syndicated copies deduplicate by source chain"
+    - "no-news anomaly retains unresolved/backfill state"
+    - "Data Grade C cannot emit strong microstructure claims"
+    - "proxy/source gaps remain explicit"
+  authority:
+    - "all task/route/work/write/review/merge/domain/knowledge/trading authority fields remain false in runtime outputs"
+
+ci_contract:
+  candidate_owned_tests: "MUST_PASS"
+  python_versions: ["3.11", "3.13"]
+  phase3_required: true
+  baseline_comparison:
+    main_sha_pinned_once_per_proof: true
+    candidate_head_pinned_once_per_proof: true
+    main_and_candidate_rechecked_after_proof: true
+    drift_disposition: "TEST_ENVIRONMENT_INVALID"
+    baseline_global_green_required: false
+    candidate_introduced_failure: "BLOCK"
+    candidate_modified_baseline_failure: "BLOCK"
+    baseline_improvement: "ALLOW_AND_RECORD"
+    volatile_worktree_tmp_path_normalization: true
+  exact_scope_required: true
+  whitespace_gate_required: true
+
+exact_runtime_write_allowlist:
+  - ".github/workflows/w5-event-coverage-p0-vs1.yml"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/CLAIM-EVIDENCE-LEDGER.schema.json"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/EVENT-COVERAGE-REPORT.schema.json"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/PROJECT-PLAN.md"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/SOURCE-REGISTRY.schema.json"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/event_coverage.py"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/tests/test_event_coverage.py"
+
+source_fences:
+  pr_487: "FROZEN_REFERENCE_ONLY_NO_MUTATION"
+  pr_497: "FROZEN_REFERENCE_ONLY_NO_MUTATION_NO_COMMIT_IMPORT"
+  implementation_method: "REIMPLEMENT_FROM_CANONICAL_BASE_AFTER_SNAPSHOT"
+
+parallelism:
+  allowed_with_codex_r165: true
+  overlap: "O0_NO_MATERIAL_WRITE_OVERLAP"
+  resource_class: "LIGHT_IMPLEMENTATION"
+  nested_parallelism: "FORBIDDEN"
+
+stop_conditions:
+  - "canonical R166 route/claim/witness/slot mismatch"
+  - "branch exists before required snapshot"
+  - "current main changes before snapshot without fresh rebinding"
+  - "write path outside exact allowlist"
+  - "second source/causal/participant authority would be required"
+  - "credential/network/production/domain-write/trading authority would be required"
+  - "candidate head or main drifts during exact integration proof"
+  - "independent reviewer returns CHANGES_REQUIRED or BLOCKED after handoff"
+
+completion:
+  signal: "R166_W5_EVENT_COVERAGE_CLEAN_SUCCESSOR_READY_FOR_INDEPENDENT_REVIEW"
+  next_gate: "ISSUE_453_EXACT_HEAD_REVIEW_REQUEST"
+  ready_transition_authorized: false
+  merge_authorized: false
