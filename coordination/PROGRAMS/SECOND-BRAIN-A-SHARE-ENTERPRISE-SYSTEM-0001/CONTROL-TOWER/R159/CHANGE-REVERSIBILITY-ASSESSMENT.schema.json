@@ -1,0 +1,213 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.second-brain.local/control-tower/r159/change-reversibility-assessment/1.0.0",
+  "title": "ChangeReversibilityAssessment/v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "change_id",
+    "normalized_input",
+    "reversibility_class",
+    "assessment_result",
+    "rollback_marker_required",
+    "rollback_marker_reasons",
+    "rollback_checkpoint_binding_verified",
+    "classification_reasons",
+    "authority",
+    "assessment_digest"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "ChangeReversibilityAssessment/v1"
+    },
+    "change_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "normalized_input": {
+      "type": "object",
+      "required": [
+        "change_id",
+        "surface_kind",
+        "blast_radius",
+        "explicit_rollback_marker_requested",
+        "gpt_judged_large_change",
+        "persistent_state_mutation",
+        "external_irreversible_side_effect",
+        "rollback_mechanism",
+        "rollback_checkpoint_ref"
+      ],
+      "properties": {
+        "change_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "surface_kind": {
+          "enum": [
+            "CODE_CONFIG_ONLY",
+            "EXTERNAL_SIDE_EFFECT",
+            "MIXED",
+            "POLICY_BEHAVIOR",
+            "STATEFUL_DATA"
+          ]
+        },
+        "blast_radius": {
+          "enum": [
+            "CRITICAL",
+            "LARGE",
+            "MEDIUM",
+            "SMALL"
+          ]
+        },
+        "explicit_rollback_marker_requested": {
+          "type": "boolean"
+        },
+        "gpt_judged_large_change": {
+          "type": "boolean"
+        },
+        "persistent_state_mutation": {
+          "type": "boolean"
+        },
+        "external_irreversible_side_effect": {
+          "type": "boolean"
+        },
+        "rollback_mechanism": {
+          "enum": [
+            "COMPENSATION",
+            "FEATURE_FLAG_OR_VERSION_SWITCH",
+            "GIT_REVERT",
+            "MIGRATION",
+            "NONE",
+            "SNAPSHOT"
+          ]
+        },
+        "rollback_checkpoint_ref": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "reversibility_class": {
+      "enum": [
+        "COMPENSATABLE_ONLY",
+        "IRREVERSIBLE_OR_HIGH_RISK",
+        "REVERSIBLE_BY_VERSION_SWITCH",
+        "REVERSIBLE_GIT_ONLY",
+        "REVERSIBLE_WITH_MIGRATION",
+        "REVERSIBLE_WITH_SNAPSHOT"
+      ]
+    },
+    "assessment_result": {
+      "enum": [
+        "BLOCKED_ROLLBACK_PLAN_INCOMPLETE",
+        "PASS",
+        "REQUIRES_ROLLBACK_MARKER",
+        "USER_APPROVAL_REQUIRED"
+      ]
+    },
+    "rollback_marker_required": {
+      "type": "boolean"
+    },
+    "rollback_marker_reasons": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "classification_reasons": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "authority": {
+      "type": "object",
+      "required": [
+        "creates_task",
+        "creates_route",
+        "creates_work_claim",
+        "grants_execution",
+        "grants_write",
+        "grants_review_accept",
+        "grants_merge",
+        "grants_release",
+        "grants_trading"
+      ],
+      "properties": {
+        "creates_task": {
+          "const": false
+        },
+        "creates_route": {
+          "const": false
+        },
+        "creates_work_claim": {
+          "const": false
+        },
+        "grants_execution": {
+          "const": false
+        },
+        "grants_write": {
+          "const": false
+        },
+        "grants_review_accept": {
+          "const": false
+        },
+        "grants_merge": {
+          "const": false
+        },
+        "grants_release": {
+          "const": false
+        },
+        "grants_trading": {
+          "const": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "assessment_digest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "rollback_checkpoint_binding_verified": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "rollback_marker_required": {
+            "const": true
+          },
+          "assessment_result": {
+            "const": "PASS"
+          }
+        },
+        "required": [
+          "rollback_marker_required",
+          "assessment_result"
+        ]
+      },
+      "then": {
+        "properties": {
+          "rollback_checkpoint_binding_verified": {
+            "const": true
+          }
+        }
+      }
+    }
+  ]
+}

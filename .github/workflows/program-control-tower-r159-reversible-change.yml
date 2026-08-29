@@ -1,0 +1,312 @@
+name: Program Control Tower R159 Reversible Change Foundation
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/program-control-tower-r159-reversible-change.yml"
+      - "coordination/CONTROL-TOWER/reversible_change.py"
+      - "coordination/CONTROL-TOWER/tests/test_reversible_change.py"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/CHANGE-REVERSIBILITY-ASSESSMENT.schema.json"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/KNOWN-GOOD-CHECKPOINT.schema.json"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/GOVERNED-REVERT-PLAN.schema.json"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/PROJECT-PLAN.md"
+
+permissions:
+  contents: read
+
+jobs:
+  r159:
+    name: R159 reversible change (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Verify exact-head provenance and base
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+          test "${{ github.event.pull_request.base.ref }}" = "main"
+          git fetch --no-tags origin main
+          test "$(git rev-parse origin/main)" = "${{ github.event.pull_request.base.sha }}"
+          git merge-base --is-ancestor "${{ github.event.pull_request.base.sha }}" HEAD
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install retained Control Tower dependency
+        run: python -m pip install --disable-pip-version-check PyYAML==6.0.2
+
+      - name: Compile R159 surfaces
+        working-directory: coordination/CONTROL-TOWER
+        run: python -m py_compile reversible_change.py tests/test_reversible_change.py
+
+      - name: Validate R159 JSON schemas
+        run: |
+          python -m json.tool coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/CHANGE-REVERSIBILITY-ASSESSMENT.schema.json >/dev/null
+          python -m json.tool coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/KNOWN-GOOD-CHECKPOINT.schema.json >/dev/null
+          python -m json.tool coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/GOVERNED-REVERT-PLAN.schema.json >/dev/null
+
+      - name: Run R159 adversarial regressions
+        working-directory: coordination/CONTROL-TOWER
+        run: python -m unittest tests.test_reversible_change -v
+
+      - name: Verify sanitized HTTPS checkpoint transport trust
+        working-directory: coordination/CONTROL-TOWER
+        run: |
+          python - <<'PY'
+          import os
+          import subprocess
+          import reversible_change as rc
+          from tests.test_reversible_change import Repo
+
+          poison = {
+              "HTTPS_PROXY": "http://127.0.0.1:9",
+              "https_proxy": "http://127.0.0.1:9",
+              "HTTP_PROXY": "http://127.0.0.1:9",
+              "ALL_PROXY": "http://127.0.0.1:9",
+              "GIT_SSL_NO_VERIFY": "1",
+              "GIT_SSL_CAINFO": "/definitely/poison-ca.pem",
+              "GIT_EXEC_PATH": "/definitely/poison-git-exec",
+              "GIT_CONFIG_COUNT": "1",
+              "GIT_CONFIG_KEY_0": "http.sslVerify",
+              "GIT_CONFIG_VALUE_0": "false",
+              "GIT_CONFIG_GLOBAL": "/definitely/poison-global-config",
+              "GIT_CONFIG_SYSTEM": "/definitely/poison-system-config",
+              "GIT_CONFIG_NOSYSTEM": "0",
+              "CURL_CA_BUNDLE": "/definitely/poison-curl-ca.pem",
+              "SSL_CERT_FILE": "/definitely/poison-ssl-cert.pem",
+          }
+          stripped = {
+              "HTTPS_PROXY", "https_proxy", "HTTP_PROXY", "ALL_PROXY",
+              "GIT_SSL_NO_VERIFY", "GIT_SSL_CAINFO", "GIT_EXEC_PATH",
+              "GIT_CONFIG_COUNT", "GIT_CONFIG_KEY_0", "GIT_CONFIG_VALUE_0",
+              "CURL_CA_BUNDLE", "SSL_CERT_FILE",
+          }
+
+          with Repo() as r:
+              saved = {key: os.environ.get(key) for key in poison}
+              os.environ.update(poison)
+              observed = []
+              prior = rc._git
+
+              def witness(root, *args, input_text=None):
+                  if args and args[0] == "ls-remote":
+                      observed.append(rc._env())
+                  return prior(root, *args, input_text=input_text)
+
+              rc._git = witness
+              try:
+                  checkpoint = r.checkpoint()
+                  if checkpoint["canonical_main_sha"] != r.head:
+                      raise SystemExit("poison environment changed canonical main")
+                  if not observed:
+                      raise SystemExit("transport observation was not exercised")
+                  secure_env = observed[-1]
+                  leaked = sorted(key for key in stripped if key in secure_env)
+                  if leaked:
+                      raise SystemExit(f"unsafe HTTPS environment leaked into git: {leaked}")
+                  if secure_env.get("GIT_CONFIG_GLOBAL") != os.devnull:
+                      raise SystemExit("global Git config was not neutralized")
+                  if secure_env.get("GIT_CONFIG_SYSTEM") != os.devnull:
+                      raise SystemExit("system Git config was not neutralized")
+                  if secure_env.get("GIT_CONFIG_NOSYSTEM") != "1":
+                      raise SystemExit("system Git config disablement missing")
+                  if secure_env.get("GIT_TERMINAL_PROMPT") != "0":
+                      raise SystemExit("interactive credential prompt was not disabled")
+              finally:
+                  for key, value in saved.items():
+                      if value is None:
+                          os.environ.pop(key, None)
+                      else:
+                          os.environ[key] = value
+
+          with Repo() as r:
+              invoked = []
+              prior = rc._git
+
+              def witness(root, *args, input_text=None):
+                  if args and args[0] == "ls-remote":
+                      invoked.append(True)
+                  return prior(root, *args, input_text=input_text)
+
+              rc._git = witness
+              subprocess.check_call(["git", "config", "--local", "http.sslVerify", "false"], cwd=r.root)
+              try:
+                  r.checkpoint()
+              except rc.ReversibleChangeError as exc:
+                  if "HTTPS_TRANSPORT_CONFIG_FORBIDDEN" not in str(exc):
+                      raise
+              else:
+                  raise SystemExit("unsafe local TLS config was accepted")
+              if invoked:
+                  raise SystemExit("unsafe local TLS config reached ls-remote")
+
+          with Repo() as r:
+              subprocess.check_call([
+                  "git", "config", "--local", "--add",
+                  "http.https://github.com/.extraheader", "AUTHORIZATION: basic test"
+              ], cwd=r.root)
+              r.checkpoint()
+              subprocess.check_call([
+                  "git", "config", "--local", "--add",
+                  "http.https://github.com/.extraheader", "Host: evil.example"
+              ], cwd=r.root)
+              try:
+                  r.checkpoint()
+              except rc.ReversibleChangeError as exc:
+                  if "HTTPS_TRANSPORT_CONFIG_FORBIDDEN" not in str(exc):
+                      raise
+              else:
+                  raise SystemExit("non-authorization HTTPS extraheader was accepted")
+
+          print("R159_SANITIZED_HTTPS_TRANSPORT_TRUST_PASS")
+          PY
+
+      - name: Run full retained Control Tower suite
+        working-directory: coordination/CONTROL-TOWER
+        run: python run_all_tests.py
+
+      - name: Verify exact seven-file additive-only scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="${{ github.event.pull_request.base.sha }}"
+          expected=(
+            ".github/workflows/program-control-tower-r159-reversible-change.yml"
+            "coordination/CONTROL-TOWER/reversible_change.py"
+            "coordination/CONTROL-TOWER/tests/test_reversible_change.py"
+            "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/CHANGE-REVERSIBILITY-ASSESSMENT.schema.json"
+            "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/KNOWN-GOOD-CHECKPOINT.schema.json"
+            "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/GOVERNED-REVERT-PLAN.schema.json"
+            "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/PROJECT-PLAN.md"
+          )
+          mapfile -t changed < <(git diff --name-only "$BASE" HEAD)
+          test "${#changed[@]}" -eq 7
+          for path in "${changed[@]}"; do
+            printf '%s\n' "${expected[@]}" | grep -Fxq "$path" || {
+              echo "R159 out-of-scope path: $path" >&2
+              exit 1
+            }
+          done
+          mapfile -t statuses < <(git diff --name-status "$BASE" HEAD)
+          test "${#statuses[@]}" -eq 7
+          for row in "${statuses[@]}"; do
+            status="${row%%$'\t'*}"
+            test "$status" = "A" || {
+              echo "R159 is additive-only but found status: $row" >&2
+              exit 1
+            }
+          done
+          echo R159_EXACT_ADDITIVE_SCOPE_PASS
+
+      - name: Verify durable canonical anchor, publication binding, and authority invariants
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import importlib.util
+          import json
+          from pathlib import Path
+
+          module_path = Path("coordination/CONTROL-TOWER/reversible_change.py")
+          source = module_path.read_text(encoding="utf-8")
+          spec = importlib.util.spec_from_file_location("r159", module_path)
+          module = importlib.util.module_from_spec(spec)
+          assert spec and spec.loader
+          spec.loader.exec_module(module)
+
+          if module.ROLLBACK_TRIGGER_PHRASE != "做个滚回记号":
+              raise SystemExit("R159 rollback trigger phrase drift")
+          if module.CHECKPOINT_TRUST != "DURABLE_CANONICAL_MAIN_COMMIT_REDERIVED_FROM_REMOTE_STATE":
+              raise SystemExit("R159 durable checkpoint trust semantic drift")
+          if module.CHECKPOINT_TRANSPORT_TRUST != "SANITIZED_GITHUB_HTTPS_SYSTEM_CA":
+              raise SystemExit("R159 checkpoint transport trust semantic drift")
+          if module.PUBLICATION_TRAILER != "R159-Checkpoint-Digest:":
+              raise SystemExit("R159 implementation publication protocol drift")
+          if not module.AUTHORITY or any(module.AUTHORITY.values()):
+              raise SystemExit("R159 authority boundary is not all false")
+
+          required_source_tokens = (
+              "ls-remote",
+              "--no-replace-objects",
+              "GIT_NO_REPLACE_OBJECTS",
+              "GIT_CONFIG_GLOBAL",
+              "GIT_CONFIG_SYSTEM",
+              "GIT_CONFIG_NOSYSTEM",
+              "GIT_TERMINAL_PROMPT",
+              "HTTPS_TRANSPORT_CONFIG_FORBIDDEN",
+              "CANONICAL_REMOTE_HTTPS_REQUIRED",
+              "canonical_main_sha",
+              "recovery_anchor_commit",
+              "checkpoint_publication_state",
+              "CAPTURED_DURABLE_CANONICAL_ANCHOR",
+              "PUBLISHED_IMPLEMENTATION_LINEAGE",
+              "PUBLICATION_BINDING_MISSING",
+              "policy_schema_versions",
+              "deterministic_verification_status",
+              "independent_review_status",
+              "implementation_head",
+              "FORWARD_REVERT_PR_OR_CORRECTIVE_COMMIT",
+              "DESTRUCTIVE_HISTORY_REWRITE_FORBIDDEN",
+          )
+          for token in required_source_tokens:
+              if token not in source:
+                  raise SystemExit(f"R159 invariant missing: {token}")
+
+          for forbidden_text in (
+              "commit-tree",
+              "update-ref",
+              "refs/tags/",
+              "git tag",
+              "push --force",
+              "reset --hard",
+              "branch -f",
+              "switch -C",
+          ):
+              if forbidden_text in source:
+                  raise SystemExit(f"R159 forbidden mutable-ref/unreachable-marker/history seam: {forbidden_text}")
+
+          checkpoint_schema = json.loads(Path(
+              "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/KNOWN-GOOD-CHECKPOINT.schema.json"
+          ).read_text(encoding="utf-8"))
+          required_checkpoint_fields = {
+              "repository", "canonical_main_sha", "tree_sha", "recovery_anchor_commit",
+              "policy_schema_versions", "ci_status", "deterministic_verification_status",
+              "independent_review_status", "recorded_at", "provenance",
+              "checkpoint_id", "checkpoint_digest", "authority"
+          }
+          if not required_checkpoint_fields.issubset(set(checkpoint_schema["required"])):
+              raise SystemExit("R159 KnownGoodCheckpoint minimum CEA-SIG-003 envelope incomplete")
+
+          plan_schema = json.loads(Path(
+              "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159/GOVERNED-REVERT-PLAN.schema.json"
+          ).read_text(encoding="utf-8"))
+          for field in ("checkpoint_recovery_anchor_commit", "checkpoint_publication_binding_commit", "implementation_head", "target_commit", "target_tree"):
+              if field not in plan_schema["required"]:
+                  raise SystemExit(f"R159 revert plan binding missing: {field}")
+
+          print("R159_DURABLE_CANONICAL_ANCHOR_PUBLICATION_AUTHORITY_INVARIANTS_PASS")
+          PY
+
+      - name: Verify whitespace and unfinished markers
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check "${{ github.event.pull_request.base.sha }}" HEAD
+          if grep -R -n -E 'TODO|FIXME|NotImplementedError' \
+            coordination/CONTROL-TOWER/reversible_change.py \
+            coordination/CONTROL-TOWER/tests/test_reversible_change.py \
+            coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R159; then
+            exit 1
+          fi

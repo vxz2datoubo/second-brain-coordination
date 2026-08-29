@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.second-brain.local/control-tower/r159/known-good-checkpoint/1.0.0",
+  "title": "KnownGoodCheckpoint/v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "repository",
+    "source_ref",
+    "canonical_main_sha",
+    "tree_sha",
+    "recovery_anchor_commit",
+    "trigger_source",
+    "reason",
+    "qualification_level",
+    "git_binding_verified",
+    "trust_semantics",
+    "policy_schema_versions",
+    "ci_status",
+    "deterministic_verification_status",
+    "independent_review_status",
+    "recorded_at",
+    "provenance",
+    "previous_checkpoint_digest",
+    "evidence_refs",
+    "evidence_semantics",
+    "authority",
+    "checkpoint_id",
+    "checkpoint_digest"
+  ],
+  "properties": {
+    "schema_version": {"const": "KnownGoodCheckpoint/v1"},
+    "repository": {"type": "string", "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"},
+    "source_ref": {"type": "string", "minLength": 1},
+    "canonical_main_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "tree_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "recovery_anchor_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "trigger_source": {"enum": ["GPT_LARGE_CHANGE_JUDGMENT", "MANUAL_OPERATION", "PRE_MATERIAL_CHANGE_POLICY", "USER_EXPLICIT_ROLLBACK_MARKER"]},
+    "reason": {"type": "string", "minLength": 1},
+    "qualification_level": {"const": "DESIGNATED_RECOVERY_ANCHOR"},
+    "git_binding_verified": {"const": true},
+    "trust_semantics": {"const": "DURABLE_CANONICAL_MAIN_COMMIT_REDERIVED_FROM_REMOTE_STATE"},
+    "policy_schema_versions": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "string", "pattern": "^[0-9a-f]{40}$"}},
+    "ci_status": {"$ref": "#/$defs/evidenceStatus"},
+    "deterministic_verification_status": {"$ref": "#/$defs/evidenceStatus"},
+    "independent_review_status": {"$ref": "#/$defs/evidenceStatus"},
+    "recorded_at": {"type": "string", "minLength": 2},
+    "provenance": {
+      "type": "object",
+      "required": ["capture_tool", "capture_mode", "remote_name", "canonical_branch", "canonical_remote_ref"],
+      "properties": {
+        "capture_tool": {"const": "R159/reversible_change.py"},
+        "capture_mode": {"const": "CANONICAL_MAIN_COMMIT_ANCHOR"},
+        "remote_name": {"type": "string", "minLength": 1},
+        "canonical_branch": {"type": "string", "minLength": 1},
+        "canonical_remote_ref": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "previous_checkpoint_digest": {"oneOf": [{"type": "null"}, {"type": "string", "pattern": "^[0-9a-f]{64}$"}]},
+    "evidence_refs": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "evidence_semantics": {"const": "BOUND_REFERENCES_NOT_ACCEPTANCE_AUTHORITY"},
+    "authority": {"$ref": "#/$defs/authority"},
+    "checkpoint_id": {"type": "string", "pattern": "^KGC-[0-9a-f]{16}$"},
+    "checkpoint_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "$defs": {
+    "evidenceStatus": {
+      "type": "object",
+      "required": ["state", "evidence_refs", "reason"],
+      "properties": {
+        "state": {"enum": ["PASS", "FAIL", "INCONCLUSIVE", "NOT_APPLICABLE"]},
+        "evidence_refs": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+        "reason": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "authority": {
+      "type": "object",
+      "required": ["creates_task", "creates_route", "creates_work_claim", "grants_execution", "grants_write", "grants_review_accept", "grants_merge", "grants_release", "grants_trading"],
+      "properties": {
+        "creates_task": {"const": false}, "creates_route": {"const": false}, "creates_work_claim": {"const": false}, "grants_execution": {"const": false}, "grants_write": {"const": false}, "grants_review_accept": {"const": false}, "grants_merge": {"const": false}, "grants_release": {"const": false}, "grants_trading": {"const": false}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
