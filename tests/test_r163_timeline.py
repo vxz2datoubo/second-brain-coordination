@@ -59,7 +59,10 @@ class R163TimelineTruthTests(unittest.TestCase):
         self.assertEqual(states[1]["known_facts"], ["a witness is inside"])
         self.assertEqual(states[2]["known_facts"], ["a witness is inside"])
         self.assertEqual(states[3]["known_facts"], ["a witness is inside"])
-        self.assertEqual([item["flags"] for item in states], [{}, {}, {}, {}])
+        self.assertEqual(
+            [item["flags"] for item in states],
+            [{}, {}, {"clue": "heard"}, {"clue": "heard"}],
+        )
         self.assertEqual(
             [entry.action_id for entry in timeline],
             [None, "listen", "knock", "promise"],
@@ -68,7 +71,12 @@ class R163TimelineTruthTests(unittest.TestCase):
             [entry.transition_id for entry in timeline],
             [None, "gate_listen", "echo_knock", "threshold_promise"],
         )
-        # The original B04 defect would have repeated the final state on earlier actions.
+        self.assertEqual(states[1]["risk_level"], 1)
+        self.assertEqual(states[1]["known_facts"], ["a witness is inside"])
+        self.assertEqual(states[2]["relationships"]["mira"], 1)
+        self.assertEqual(states[2]["flags"], {"clue": "heard"})
+        self.assertEqual(states[3]["relationships"]["mira"], 2)
+        self.assertEqual(states[3]["risk_level"], 0)
         self.assertNotEqual(states[1], states[-1])
         self.assertNotEqual(states[2], states[-1])
 
