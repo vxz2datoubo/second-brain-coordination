@@ -4,12 +4,20 @@ Status: `BOUNDED_REMEDIATION / RESEARCH_ONLY / NO_TRADE / FAIL_CLOSED_ON_MISSING
 
 Source Issue: #486  
 Parent P0: #308  
-Current remediation snapshot: `W5-EVENT-COVERAGE-2026-08-29-R1`  
-Current observed canonical main at remediation start: `9c9cd901dee77154b1ddc7511d126737b4420bab`
+Current remediation snapshot: `W5-EVENT-COVERAGE-2026-08-29-R1` / Issue #486 comment `5463776748`  
+Snapshot canonical base: `9c9cd901dee77154b1ddc7511d126737b4420bab`
 
 ## Goal
 
 Turn the existing W5 event/source/time semantics into an executable deterministic pre-synthesis gate without creating a second event ledger, second news store, second source authority, or caller-mintable causal authority.
+
+## Effective-spec chronology and fresh-main reconciliation
+
+`SPEC_SNAPSHOT_GATE/v1` became effective before this remediation. Issue #486 then published `W5-EVENT-COVERAGE-2026-08-29-R1` at 2026-08-29T17:16:24Z. The acceptance-relevant blocker-remediation commits were written later, beginning at 17:20:01Z. Therefore the snapshot is genuinely pre-write and is not a retroactive provenance label.
+
+Before final review handoff Engineering fresh-reconciled current canonical main `faed675036eb535218eaf8dc867fe29512175db1` against the snapshot inputs and prior independent review. The later main movement consists of unrelated Control Tower / R163 execution-governance work and does not add a canonical W5 source-instance registry, causal-identification authority, participant-intent authority, or a superseding W5 binding decision. The R1 fail-closed remediation decisions therefore remain the effective specification for this bounded PR.
+
+If a later binding W5 correction, source-authority implementation, or superseding independent-review result appears before handoff, Engineering must stop and reconcile again rather than silently inheriting it.
 
 ## Canonical reality discovered during independent review
 
