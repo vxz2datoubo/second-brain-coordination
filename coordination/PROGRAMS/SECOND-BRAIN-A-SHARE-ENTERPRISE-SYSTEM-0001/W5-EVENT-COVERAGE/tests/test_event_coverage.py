@@ -221,6 +221,38 @@ class EventCoverageGateTests(unittest.TestCase):
         self.assertEqual(report["candidate_event_ids"], ["past-primary"])
         self.assertEqual(report["future_event_ids_ignored"], ["future-copy"])
 
+    def test_24_zero_blacklist_token_participant_paraphrase_never_allows(self):
+        text = "大资金正在持续收集流通筹码"
+        self.assertIsNone(mod._PARTICIPANT_INTENT.search(text))
+        result = self.run_gate(intent_value=intent(grade="A"), claims=[claim(text)])
+        row = result["claim_evidence_ledger"]["claims"][0]
+        self.assertEqual(row["outcome"], "DOWNGRADE")
+        self.assertIn("UNTYPED_FREE_TEXT_PARTICIPANT_SEMANTICS_UNVERIFIED", row["reason_codes"])
+
+    def test_25_second_zero_blacklist_token_participant_paraphrase_never_allows(self):
+        text = "大型资金账户正在主动减少市场流通筹码"
+        self.assertIsNone(mod._PARTICIPANT_INTENT.search(text))
+        result = self.run_gate(intent_value=intent(grade="A"), claims=[claim(text)])
+        row = result["claim_evidence_ledger"]["claims"][0]
+        self.assertNotEqual(row["outcome"], "ALLOW")
+        self.assertIn("UNTYPED_FREE_TEXT_PARTICIPANT_SEMANTICS_UNVERIFIED", row["reason_codes"])
+
+    def test_26_caller_relabel_cannot_mint_participant_semantics(self):
+        protected_text = "大资金正在持续收集流通筹码"
+        for claim_type in ("OBSERVED_FACT", "SOURCE_CLAIM", "MODEL_INFERENCE", "UNKNOWN"):
+            row = self.run_gate(
+                intent_value=intent(grade="A"),
+                claims=[claim(protected_text, claim_type=claim_type)],
+            )["claim_evidence_ledger"]["claims"][0]
+            self.assertNotEqual(row["outcome"], "ALLOW", claim_type)
+            self.assertIn("UNTYPED_FREE_TEXT_PARTICIPANT_SEMANTICS_UNVERIFIED", row["reason_codes"])
+
+    def test_27_generic_untyped_free_text_is_non_authoritative_until_typed_gate_exists(self):
+        row = self.run_gate(claims=[claim("candidate catalyst")])["claim_evidence_ledger"]["claims"][0]
+        self.assertEqual(row["outcome"], "DOWNGRADE")
+        self.assertFalse(mod.TYPED_FREE_TEXT_SEMANTIC_AUTHORITY_AVAILABLE)
+        self.assertIn("UNTYPED_FREE_TEXT_PARTICIPANT_SEMANTICS_UNVERIFIED", row["reason_codes"])
+
 
 if __name__ == "__main__":
     unittest.main()
