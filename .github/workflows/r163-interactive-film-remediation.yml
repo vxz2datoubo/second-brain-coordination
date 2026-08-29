@@ -45,6 +45,8 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_r163_legacy_migration.py' -v
       - name: R163 B per-event prefix timeline truth
         run: python -m unittest discover -s tests -p 'test_r163_timeline.py' -v
+      - name: R163 C end-to-end independently observable evidence
+        run: python -m unittest discover -s tests -p 'test_r163_c_end_to_end.py' -v
       - name: Diff hygiene
         run: git diff --check 58cd5b271164eff71b0824ee42df2723cbc0247d...HEAD
       - name: Scope and forbidden-capability audit

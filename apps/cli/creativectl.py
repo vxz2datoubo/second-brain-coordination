@@ -14,9 +14,11 @@ ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from creative_runtime.continuity import compile_director_sequence
 from creative_runtime.contracts import PlayerAction, canonical_json
 from creative_runtime.ledger import CreativeLedger, LedgerViolation
 from creative_runtime.knowledge import KnowledgeBridgeViolation, KnowledgeReviewBridge
+from creative_runtime.review import build_review_packet, stable_digest
 from creative_runtime.saves import SaveSlotViolation, SaveStore, migrate_session
 from creative_runtime.scene_graph import SceneGraph, SceneGraphViolation, synthetic_three_scene_manifest
 from creative_runtime.timeline import TimelineViolation, build_prefix_timeline
@@ -61,7 +63,6 @@ def _migrate_legacy_default(workspace: Path) -> tuple[CreativeLedger, tuple[str,
         migrated, migrations = migrate_session(legacy_record, graph.manifest_hash, graph)
         ledger = CreativeLedger.from_records(migrated["events"])
         graph.beat_for(ledger.replay())
-        # A migrated ledger must also be able to narrate its exact event prefixes.
         build_prefix_timeline(ledger, graph)
         _store(workspace).save_record(DEFAULT_SLOT, migrated, graph.manifest_hash)
     except (
@@ -101,6 +102,16 @@ def _load_session(workspace: Path, slot: str = DEFAULT_SLOT) -> CreativeLedger:
         raise LedgerViolation("No compatible session exists; run init first") from error
 
 
+def _restore_slot(workspace: Path, slot: str) -> CreativeLedger:
+    """Validate a sibling slot completely before atomically replacing default."""
+
+    ledger = _load_session(workspace, slot)
+    graph = _graph()
+    build_prefix_timeline(ledger, graph)
+    _write_session(workspace, ledger, DEFAULT_SLOT)
+    return ledger
+
+
 def _knowledge_path(workspace: Path) -> Path:
     return workspace / "knowledge-review.json"
 
@@ -124,6 +135,43 @@ def _timeline(ledger: CreativeLedger) -> list[dict[str, Any]]:
     return [entry.to_dict() for entry in build_prefix_timeline(ledger, _graph())]
 
 
+def transcript(ledger: CreativeLedger) -> list[dict[str, Any]]:
+    """Export deterministic turn text and the exact post-prefix state together."""
+
+    graph = _graph()
+    rows: list[dict[str, Any]] = []
+    for entry in build_prefix_timeline(ledger, graph):
+        beat = graph.beat_for(entry.state)
+        rows.append(
+            {
+                "turn": entry.turn,
+                "event_id": entry.event_id,
+                "event_type": entry.event_type,
+                "action_id": entry.action_id,
+                "transition_id": entry.transition_id,
+                "scene_id": entry.state.scene_id,
+                "beat_id": entry.state.beat_id,
+                "text": beat.text,
+                "state": entry.state.to_dict(),
+            }
+        )
+    return rows
+
+
+def _event_summary(ledger: CreativeLedger) -> list[dict[str, Any]]:
+    summary: list[dict[str, Any]] = []
+    for event in ledger.events:
+        item: dict[str, Any] = {"turn": event.sequence, "event_type": event.event_type}
+        if event.event_type == "player_action":
+            action = event.payload.get("action", {})
+            item["action_id"] = str(action.get("action_id", "")) if isinstance(action, dict) else ""
+            item["transition_id"] = event.payload.get("transition_id")
+        elif event.event_type == "state_patch":
+            item["patch"] = event.payload.get("patch")
+        summary.append(item)
+    return summary
+
+
 def _view(ledger: CreativeLedger) -> dict[str, Any]:
     graph = _graph()
     state = ledger.replay()
@@ -134,7 +182,10 @@ def _view(ledger: CreativeLedger) -> dict[str, Any]:
         "state": state.to_dict(),
         "recap": beat.recap,
         "text": beat.text,
-        "options": [{"id": action.action_id, "label": action.label} for action in beat.actions],
+        "options": [
+            {"id": action.action_id, "label": action.label, "transition_id": action.transition_id}
+            for action in beat.actions
+        ],
         "logical_turn": len(ledger.events) - 1,
         "timeline": _timeline(ledger),
     }
@@ -179,7 +230,6 @@ def choose(workspace: Path, action_id: str, source_text: str | None = None) -> d
         },
         f"2030-01-01T00:{len(ledger.events):02d}:00Z",
     )
-    # Refuse to persist a transition whose exact prefix history cannot be explained.
     build_prefix_timeline(ledger, graph)
     _write_session(workspace, ledger)
     return {**_view(ledger), "status": "chosen", "action_id": action_id}
@@ -272,10 +322,13 @@ def terminal_loop(
         if command.casefold() in {"quit", "exit"}:
             return {"status": "quit", "logical_turn": view["logical_turn"]}
         if command.casefold() == "help":
-            output.write("Commands: <choice>, choose <choice>, say <clear intent>, timeline, quit.\n")
+            output.write("Commands: <choice>, choose <choice>, say <clear intent>, timeline, transcript, quit.\n")
             continue
         if command.casefold() == "timeline":
             output.write(_plain_timeline(ledger) + "\n")
+            continue
+        if command.casefold() == "transcript":
+            output.write(json.dumps(transcript(ledger), ensure_ascii=False, sort_keys=True) + "\n")
             continue
         verb, _, remainder = command.partition(" ")
         if verb.casefold() == "say" and remainder:
@@ -301,6 +354,14 @@ def run(argv: list[str]) -> dict[str, Any]:
     subparsers.add_parser("resume")
     subparsers.add_parser("replay")
     subparsers.add_parser("timeline")
+    subparsers.add_parser("transcript")
+    director_parser = subparsers.add_parser("director")
+    director_parser.add_argument("--duration-budget", type=int, default=90)
+    review_parser = subparsers.add_parser("review-packet")
+    review_parser.add_argument("--duration-budget", type=int, default=90)
+    compare_parser = subparsers.add_parser("compare")
+    compare_parser.add_argument("left_slot")
+    compare_parser.add_argument("right_slot")
     subparsers.add_parser("interactive")
     slot_parser = subparsers.add_parser("slot")
     slot_subparsers = slot_parser.add_subparsers(dest="slot_command", required=True)
@@ -339,10 +400,43 @@ def run(argv: list[str]) -> dict[str, Any]:
         return {**_view(ledger), "status": "replayed", "event_count": len(ledger.events)}
     if args.command == "timeline":
         ledger = _load_session(args.workspace)
+        return {"status": "timeline", "manifest_hash": _graph().manifest_hash, "entries": _timeline(ledger)}
+    if args.command == "transcript":
+        ledger = _load_session(args.workspace)
+        return {"status": "transcript", "manifest_hash": _graph().manifest_hash, "turns": transcript(ledger)}
+    if args.command == "director":
+        sequence = compile_director_sequence(
+            _load_session(args.workspace),
+            _graph(),
+            duration_budget_seconds=args.duration_budget,
+        )
+        return {"status": "director_packet", "generation_called": False, **sequence.to_dict()}
+    if args.command == "review-packet":
         return {
-            "status": "timeline",
-            "manifest_hash": _graph().manifest_hash,
-            "entries": _timeline(ledger),
+            "status": "review_packet",
+            **build_review_packet(_load_session(args.workspace), _graph(), args.duration_budget),
+        }
+    if args.command == "compare":
+        left = _load_session(args.workspace, args.left_slot)
+        right = _load_session(args.workspace, args.right_slot)
+        left_records = left.to_records()
+        right_records = right.to_records()
+        left_state = left.replay()
+        right_state = right.replay()
+        left_digest = stable_digest(left_records)
+        right_digest = stable_digest(right_records)
+        return {
+            "status": "compared",
+            "left_slot": args.left_slot,
+            "right_slot": args.right_slot,
+            "left_event_digest": left_digest,
+            "right_event_digest": right_digest,
+            "same_event_digest": left_digest == right_digest,
+            "left_event_summary": _event_summary(left),
+            "right_event_summary": _event_summary(right),
+            "left_state": left_state.to_dict(),
+            "right_state": right_state.to_dict(),
+            "same_final_state": left_state == right_state,
         }
     if args.command == "interactive":
         return {"status": "interactive_ready", "workspace": str(args.workspace), "offline": True}
@@ -354,7 +448,8 @@ def run(argv: list[str]) -> dict[str, Any]:
             path = _write_session(args.workspace, _load_session(args.workspace), args.name)
             return {"status": "saved", "slot": args.name, "session": str(path)}
         if args.slot_command == "load":
-            return {**_view(_load_session(args.workspace, args.name)), "status": "loaded", "slot": args.name}
+            ledger = _restore_slot(args.workspace, args.name)
+            return {**_view(ledger), "status": "loaded", "slot": args.name, "restored_to_default": True}
         if args.slot_command == "delete":
             return {"status": "deleted" if store.delete(args.name) else "not_found", "slot": args.name}
     if args.command == "knowledge":
@@ -392,6 +487,7 @@ def main() -> int:
         KeyError,
         UnicodeDecodeError,
         json.JSONDecodeError,
+        ValueError,
     ) as error:
         print(json.dumps({"status": "error", "message": str(error)}, ensure_ascii=False, sort_keys=True))
         return 2

@@ -1,0 +1,35 @@
+schema: R163_C_TEST_RECEIPT/v1
+project: SECOND_BRAIN
+task_id: GPT-R161-INTERACTIVE-FILM-REMEDIATION-R163
+pr: 495
+evidence_class: EXECUTOR_AUTHORED_TEST_MANIFEST_NOT_INDEPENDENT_REVIEW
+observable_evidence_class: INDEPENDENTLY_OBSERVABLE_EXECUTION_EVIDENCE
+commands:
+  predecessor: python -m unittest discover -s tests -p 'test_creative_s*.py' -v
+  r163_a: python -m unittest discover -s tests -p 'test_r163_legacy_migration.py' -v
+  r163_b: python -m unittest discover -s tests -p 'test_r163_timeline.py' -v
+  r163_c: python -m unittest discover -s tests -p 'test_r163_c_end_to_end.py' -v
+  diff_hygiene: git diff --check 58cd5b271164eff71b0824ee42df2723cbc0247d...HEAD
+coverage:
+  - exact PR head checkout and SHA assertion
+  - predecessor S00-S06
+  - genuine legacy v1 migration and no-shadow negative paths
+  - B exact-prefix timeline and ledger/graph/patch fail closed
+  - genuine legacy resume into three-scene continuation
+  - two branches and deterministic branch comparison
+  - save/restore/uninterrupted parity
+  - corrupt/incompatible/unsafe sibling isolation
+  - transcript/timeline turn-state equality
+  - ordered director continuity and adversarial diagnostics
+  - stable review packet and final-state binding
+  - generation_called=false
+  - canonical_knowledge_written=false
+  - CLI supported surface
+  - changed-file scope
+  - forbidden network/credential/trading patterns
+python_matrix: ['3.11', '3.13']
+current_result: PENDING_EXACT_HEAD_GITHUB_ACTIONS
+final_result_location: PR_495_APPEND_ONLY_C_CHECKPOINT_ATTESTATION_AFTER_RUN_COMPLETES
+independent_review_performed: false
+review_request_posted: false
+merge_performed: false
