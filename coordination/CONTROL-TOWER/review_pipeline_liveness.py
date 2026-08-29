@@ -43,7 +43,7 @@ class SurfaceReadAttestation:
     surface: str
     source_ref: str
     observed_revision: str
-    fresh: bool
+    observed_main_sha: str
     complete: bool
 
 
@@ -60,6 +60,7 @@ class LivenessProvenanceEnvelope:
 @dataclass(frozen=True)
 class LivenessEvidence:
     project: str
+    repository: str
     queue_issue: int
     pending_exact_head_tickets: int
     reviewed_this_cycle: int = 0
@@ -87,8 +88,19 @@ def _validate_count(value: int, name: str) -> int:
     return value
 
 
+def _validate_issue_number(value: int, name: str) -> int:
+    value = _validate_count(value, name)
+    if value == 0:
+        raise ReviewPipelineLivenessError(f"{name}_INVALID")
+    return value
+
+
 def _is_full_sha(value: str) -> bool:
     return isinstance(value, str) and re.fullmatch(r"[0-9a-f]{40}", value) is not None
+
+
+def _is_github_read_ref(value: str) -> bool:
+    return isinstance(value, str) and value.startswith("github://") and len(value) > len("github://")
 
 
 def _provenance_is_complete(evidence: LivenessEvidence) -> bool:
@@ -97,13 +109,13 @@ def _provenance_is_complete(evidence: LivenessEvidence) -> bool:
         return False
     if envelope.schema != PROVENANCE_SCHEMA:
         return False
-    if not isinstance(envelope.repository, str) or not envelope.repository.strip():
+    if envelope.repository != evidence.repository:
         return False
     if envelope.queue_issue != evidence.queue_issue:
         return False
     if not _is_full_sha(envelope.canonical_main_sha):
         return False
-    if not isinstance(envelope.queue_snapshot_ref, str) or not envelope.queue_snapshot_ref.strip():
+    if not _is_github_read_ref(envelope.queue_snapshot_ref):
         return False
     if not isinstance(envelope.surface_reads, tuple):
         return False
@@ -116,17 +128,23 @@ def _provenance_is_complete(evidence: LivenessEvidence) -> bool:
             return False
         if read.surface in by_surface:
             return False
-        if not isinstance(read.source_ref, str) or not read.source_ref.strip():
+        if not _is_github_read_ref(read.source_ref):
             return False
         if not isinstance(read.observed_revision, str) or not read.observed_revision.strip():
             return False
-        if not isinstance(read.fresh, bool) or not isinstance(read.complete, bool):
+        if not _is_full_sha(read.observed_main_sha):
+            return False
+        if read.observed_main_sha != envelope.canonical_main_sha:
+            return False
+        if not isinstance(read.complete, bool) or not read.complete:
             return False
         by_surface[read.surface] = read
 
     if set(by_surface) != REQUIRED_LIVENESS_SURFACES:
         return False
-    return all(read.fresh and read.complete for read in by_surface.values())
+    if by_surface["REVIEW_QUEUE"].source_ref != envelope.queue_snapshot_ref:
+        return False
+    return True
 
 
 def _select_blocker(e: LivenessEvidence) -> tuple[str, str | None]:
@@ -153,7 +171,8 @@ def _select_blocker(e: LivenessEvidence) -> tuple[str, str | None]:
 
 def classify_review_cycle(evidence: LivenessEvidence) -> dict[str, Any]:
     project = _require_nonempty(evidence.project, "PROJECT")
-    queue_issue = _validate_count(evidence.queue_issue, "QUEUE_ISSUE")
+    _require_nonempty(evidence.repository, "REPOSITORY")
+    queue_issue = _validate_issue_number(evidence.queue_issue, "QUEUE_ISSUE")
     pending = _validate_count(evidence.pending_exact_head_tickets, "PENDING_TICKETS")
     reviewed = _validate_count(evidence.reviewed_this_cycle, "REVIEWED_THIS_CYCLE")
     prior_repeat = _validate_count(evidence.prior_stall_repeat_count, "PRIOR_REPEAT_COUNT")
@@ -234,7 +253,7 @@ def _validate_status_shape(value: Mapping[str, Any]) -> None:
     if value.get("pipeline_status") not in {"HEALTHY", "BLOCKED", "ACTIVE", "IDLE", "UNKNOWN"}:
         raise ReviewPipelineLivenessError("PIPELINE_STATUS_INVALID")
     _require_nonempty(value.get("project"), "PROJECT")
-    _validate_count(value.get("queue_issue"), "QUEUE_ISSUE")
+    _validate_issue_number(value.get("queue_issue"), "QUEUE_ISSUE")
     _validate_count(value.get("pending_exact_head_tickets"), "PENDING_TICKETS")
     _validate_count(value.get("reviewed_this_cycle"), "REVIEWED_THIS_CYCLE")
     _validate_count(value.get("stall_repeat_count"), "STALL_REPEAT_COUNT")
@@ -245,7 +264,7 @@ def _validate_status_shape(value: Mapping[str, Any]) -> None:
 def validate_review_cycle_status(
     value: Mapping[str, Any], evidence: LivenessEvidence | None = None
 ) -> None:
-    """Fail closed unless status semantics exactly re-derive from fresh provenance-bound evidence."""
+    """Fail closed unless status semantics exactly re-derive from provenance-bound evidence."""
     _validate_status_shape(value)
     if evidence is None:
         raise ReviewPipelineLivenessError("LIVENESS_EVIDENCE_REQUIRED")
