@@ -44,3 +44,18 @@ agent_id: CODEX
   knowledge-review references without granting those later slices authority.
 - **Next gate:** the complete focused S00/S01 suite must pass from the pushed
   SHA; S02 may use only synthetic beats and legal action IDs.
+
+## S02_CLI_INTERACTIVE_SCENE
+
+- **Primary work and process trace:** add `creativectl init`, `play`, `choose`,
+  `say`, `resume`, and `replay` commands over one synthetic adult-only,
+  non-explicit scene. Sessions are task-local JSON records under the ignored
+  workspace, never a repository artifact.
+- **Difficulty and complexity:** D2. Free text is reduced to exact legal intents
+  using a deterministic parser; ambiguity, low confidence, illegal options, and
+  boundary terms produce clarification rather than a fabricated action.
+- **Failure and correction:** the first test run found response-status merging
+  overwrote `initialized`/`chosen` with `ready`; an isolated return-order fix was
+  applied, then all S00-S02 checks passed.
+- **Next gate:** preserve the offline-only state machine while S03 derives plans
+  and fails closed on invalid continuity, knowledge, content, or duration data.

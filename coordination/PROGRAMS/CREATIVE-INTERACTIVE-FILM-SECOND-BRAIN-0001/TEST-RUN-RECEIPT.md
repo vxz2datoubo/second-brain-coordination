@@ -29,3 +29,13 @@ the remote branch head for independent acceptance.
 `python -m pytest -q` was attempted but this clean environment has no `pytest`
 module. The branch deliberately uses the Python standard-library `unittest`
 runner instead of installing an undeclared dependency.
+
+## S02 update
+
+| Command | Result | Evidence |
+| --- | --- | --- |
+| `python -m unittest discover -s tests -p test_creative_s*.py -v` | Passed | 11 tests passed. The S02 tests cover initialization, legal choice, free-text interpretation, ambiguity/unsafe fallback without state mutation, resume, and replay. |
+
+The first S02 run found two response-status assertions; the state persistence
+itself remained correct. A narrowly scoped field-order correction was made and
+the suite then passed in full.
