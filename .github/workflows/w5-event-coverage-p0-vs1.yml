@@ -130,8 +130,13 @@ jobs:
 
           collect_control_failures /tmp/w5-main /tmp/w5-main-control.json
 
+          # Test the candidate as a clean committed integration state.  A
+          # --no-commit merge would intentionally dirty the worktree and make
+          # repository-bound fail-closed checks report TRUSTED_REPOSITORY_WORKTREE_DIRTY,
+          # which is not representative of a canonical post-merge checkout.
           git -C /tmp/w5-integration -c user.name='R164 CI' -c user.email='r164-ci@example.invalid' \
-            merge --no-commit --no-ff "$HEAD_SHA"
+            merge --no-ff "$HEAD_SHA" -m 'R164 CI temporary current-main integration'
+          test -z "$(git -C /tmp/w5-integration status --porcelain=v1 --untracked-files=all)"
 
           (
             cd /tmp/w5-integration
