@@ -1,0 +1,39 @@
+schema: SourceSelectionProvenance/v1
+project: SECOND_BRAIN
+repository: vxz2datoubo/second-brain-coordination
+task_id: CODEX-R163-CLEAN-SUCCESSOR-R165
+route_epoch: 165
+source_issue: 499
+implementation_baseline: 0665cc0147fe7efae7e9498c36f9a87566ad036c
+canonical_sources:
+  - current main at baseline 0665cc0147fe7efae7e9498c36f9a87566ad036c
+  - source Issue #492 requirements
+  - remediation Issue #494 governance history
+  - prior valid R163 reviewed head 7b72fbd807f25e1f265306a57d8000f493fd9f45 as historical evidence only
+  - issuecomment-5464901584 / pullrequestreview-5059197775
+  - issuecomment-5465273392 / pullrequestreview-5059352209
+unaccepted_evidence_sources:
+  pr_493:
+    exact_head: 1dcd15011b02e5452186f178ea77746690d4d6a6
+    disposition: REFERENCE_ONLY_UNACCEPTED_CANDIDATE
+    mutation_allowed: false
+    implementation_reuse_allowed: false
+  pr_495:
+    exact_head: 43785fd2f24e0c9e640bdc7d26d09351c836d8c9
+    disposition: UNACCEPTED_EVIDENCE_ONLY
+    technical_review: TECHNICALLY_ACCEPTABLE_NOT_ACCEPTED
+    mutation_allowed: false
+    implementation_reuse_allowed: false
+    cherry_pick_allowed: false
+    merge_allowed: false
+    rebase_allowed: false
+    retrospective_authority_allowed: false
+forbidden_post_review_commits:
+  - 53839a4285b5b77b9c95242f4ed104fc5b9c871b
+  - fd45dbf5b3c209f08724a2c07ad0376347fa89e1
+  - a24f3a2579db88c84c9ca02bc7ea51d5f6e89b2d
+  - ad05c3b5bd594c23d1feab2b49df9a56681c1495
+  - 43785fd2f24e0c9e640bdc7d26d09351c836d8c9
+clean_reimplementation_rule: >-
+  Codex may inspect historical findings and behavior requirements, but must author the successor implementation from the clean canonical
+  baseline without importing commit objects or claiming implementation provenance from the forbidden PR #495 remediation commits.
