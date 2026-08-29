@@ -1,0 +1,11 @@
+schema: UnknownRegistry/v1
+task_id: CODEX-R163-CLEAN-SUCCESSOR-R165
+entries:
+  - id: R165-LOCAL-PY311
+    status: OPEN_EXTERNAL_CI_REQUIRED
+    statement: This Windows worktree exposes Python 3.13 but not Python 3.11.
+    mitigation: Exact-head GitHub Actions matrix is required on Python 3.11 and 3.13 before independent review.
+  - id: R165-PYTEST-LOCAL
+    status: OPEN_NONBLOCKING
+    statement: pytest is not installed locally.
+    mitigation: Standard-library unittest regression suite and compileall were run locally; CI performs the authoritative matrix.

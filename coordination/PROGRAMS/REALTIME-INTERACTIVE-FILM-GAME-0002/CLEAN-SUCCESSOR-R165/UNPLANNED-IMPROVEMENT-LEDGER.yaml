@@ -1,0 +1,14 @@
+schema: UnplannedImprovementLedger/v1
+task_id: CODEX-R163-CLEAN-SUCCESSOR-R165
+agent_id: CODEX
+entries:
+  - level: A
+    improvement: DirectorSequence and review packets consume only validated SavedSession objects.
+    value: Prevents a bypass from reappearing through a non-CLI projection surface.
+    risk: Low; read-only wrappers around the existing offline director.
+    rollback: Remove the new modules without changing the normal director compiler.
+  - level: B
+    improvement: Slot names are path-confined with a strict grammar.
+    value: Blocks sibling-slot traversal during migration persistence operations.
+    risk: Existing untrusted slot names are intentionally rejected.
+    evidence: test_tampered_legacy_and_unsafe_slot_fail_closed_without_default_shadow

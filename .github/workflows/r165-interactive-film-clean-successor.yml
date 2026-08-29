@@ -1,0 +1,69 @@
+name: R165 interactive-film clean successor
+
+on:
+  pull_request:
+    paths:
+      - "creative_runtime/**"
+      - "apps/cli/**"
+      - "tests/**"
+      - "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/CLEAN-SUCCESSOR-R165/**"
+      - ".github/workflows/r165-interactive-film-clean-successor.yml"
+      - ".gitignore"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-head-r165:
+    name: R165 exact head (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - name: Check out exact pull-request head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Assert exact checked-out commit
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          actual="$(git rev-parse HEAD)"
+          test "$actual" = "$EXPECTED_HEAD"
+          echo "expected_head=$EXPECTED_HEAD" >> "$GITHUB_STEP_SUMMARY"
+          echo "actual_head=$actual" >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Run inherited and R165 adversarial regressions
+        run: python -m unittest discover -s tests -v
+
+      - name: Compile changed runtime and tests
+        run: python -m compileall -q creative_runtime apps/cli tests
+
+      - name: Verify clean-baseline ancestry and forbidden-source fence
+        run: |
+          base=0665cc0147fe7efae7e9498c36f9a87566ad036c
+          git merge-base --is-ancestor "$base" HEAD
+          ! git merge-base --is-ancestor 43785fd2f24e0c9e640bdc7d26d09351c836d8c9 HEAD
+          ! git merge-base --is-ancestor 53839a4285b5b77b9c95242f4ed104fc5b9c871b HEAD
+          git diff --check "$base...HEAD"
+
+      - name: Enforce R165 allowed write surface
+        run: |
+          base=0665cc0147fe7efae7e9498c36f9a87566ad036c
+          changed="$(git diff --name-only "$base...HEAD")"
+          printf '%s\n' "$changed"
+          bad="$(printf '%s\n' "$changed" | grep -Ev '^(creative_runtime/|apps/cli/|tests/|coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/CLEAN-SUCCESSOR-R165/|\.github/workflows/r165-interactive-film-clean-successor\.yml$|\.gitignore$)' || true)"
+          test -z "$bad"
+
+      - name: Reject forbidden runtime capability additions
+        run: |
+          ! rg -n --glob '*.py' '(requests\.|urllib\.|httpx\.|socket\.|openai|anthropic|api[_-]?key|os\.environ)' creative_runtime apps/cli

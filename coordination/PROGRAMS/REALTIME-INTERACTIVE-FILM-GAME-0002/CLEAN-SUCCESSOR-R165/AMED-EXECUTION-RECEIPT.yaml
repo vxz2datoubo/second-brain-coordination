@@ -1,0 +1,27 @@
+schema: AMEDAgentExecutionReceipt/v1
+task_id: CODEX-R163-CLEAN-SUCCESSOR-R165
+route_epoch: 165
+agent_id: CODEX
+mode: bounded_remediation
+baseline: 0665cc0147fe7efae7e9498c36f9a87566ad036c
+implementation_summary:
+  - Added a v2 save boundary that separates hash integrity from state authority.
+  - Added a source-bound deterministic v1 migration prefix and typed terminal bridge.
+  - Preserved migration receipt/history through continued play and slots.
+  - Added timeline, director-sequence, and review-packet validation surfaces.
+  - Added inherited and adversarial standard-library regression coverage.
+proactive_findings:
+  - Existing v1 ledger hashes alone were insufficient to distinguish integrity from authority.
+  - The canonical baseline had no storage abstraction, so safe slot confinement required a new local SaveStore.
+improvements:
+  A_implemented:
+    - Explicit SceneGraph transition validation for all new player actions.
+    - Read-only review-packet projection sharing the same session validator.
+  B_implemented_with_evidence:
+    - Exact migration-prefix regeneration prevents a copied bridge from following arbitrary native v2 history.
+  C_proposed_only: []
+  D_stopped: []
+no_pr495_commit_import: true
+no_self_review: true
+no_self_accept: true
+no_merge: true
