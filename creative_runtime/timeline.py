@@ -4,6 +4,7 @@ The timeline is derived from the hash-chained ledger and the validated scene gra
 It never invents intermediate state: every entry is the replay result of the exact
 ledger prefix ending at that event. Player-action entries are additionally checked
 against the scene graph transition contract and fail closed on disagreement.
+Migration-only state patches must independently prove replayable legacy provenance.
 """
 
 from __future__ import annotations
@@ -13,6 +14,7 @@ from typing import Any, Mapping
 
 from .contracts import StoryState, canonical_json
 from .ledger import CreativeLedger, LedgerViolation
+from .saves import SaveSlotViolation, validate_state_patch_provenance
 from .scene_graph import SceneGraph, SceneGraphViolation
 
 
@@ -89,12 +91,17 @@ def build_prefix_timeline(ledger: CreativeLedger, graph: SceneGraph) -> tuple[Ti
     reusing the final state. This deliberately favors mechanical truth over speed.
     Any malformed hash chain, unsupported event semantics, graph-invalid state, or
     player-action/graph disagreement aborts the whole timeline instead of emitting
-    a partially false history.
+    a partially false history. A state_patch is admitted only if its embedded source
+    deterministically regenerates the same canonical migration prefix.
     """
 
     records = ledger.to_records()
     if not records:
         raise TimelineViolation("timeline requires a non-empty ledger")
+    try:
+        validate_state_patch_provenance(ledger, graph)
+    except SaveSlotViolation as error:
+        raise TimelineViolation("state_patch lacks validated canonical migration provenance") from error
 
     entries: list[TimelineEntry] = []
     state_before: StoryState | None = None
@@ -122,9 +129,9 @@ def build_prefix_timeline(ledger: CreativeLedger, graph: SceneGraph) -> tuple[Ti
                     f"prefix replay state disagrees with graph transition {transition_id}"
                 )
         elif event.event_type == "state_patch":
-            # State patches are retained for explicit migration/maintenance events.
-            # They are accepted only when the resulting state is still a valid graph beat;
-            # graph.beat_for(state_after) above is the fail-closed boundary.
+            # The authority boundary is validate_state_patch_provenance() above.
+            # Graph membership is necessary but not sufficient: a caller-recomputed
+            # event hash cannot manufacture migration/maintenance authority.
             _require_mapping(event.payload.get("patch"), "state_patch.patch")
         else:
             raise TimelineViolation(f"unsupported timeline event type: {event.event_type}")
