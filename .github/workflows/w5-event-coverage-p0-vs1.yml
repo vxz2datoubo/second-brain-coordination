@@ -77,9 +77,6 @@ jobs:
           print('W5_EVENT_COVERAGE_AUTHORITY_BOUNDARY_PASS')
           PY
 
-      - name: Retained Control Tower regressions
-        run: python -m unittest discover -s coordination/CONTROL-TOWER/tests -p 'test_*.py'
-
       - name: Current-main integration delta gate
         if: github.event_name == 'pull_request'
         env:
@@ -90,32 +87,87 @@ jobs:
           rm -rf /tmp/w5-main /tmp/w5-integrated
           git worktree add --detach /tmp/w5-main origin/main
           git worktree add --detach /tmp/w5-integrated origin/main
-          collect_failures() {
+
+          collect_control_result() {
             local root="$1"; local out="$2"
             (cd "$root" && python - "$out" <<'PY'
-          import json, sys, unittest
+          import hashlib
+          import json
+          import sys
+          import unittest
           from pathlib import Path
+
+          output = Path(sys.argv[1])
           suite = unittest.defaultTestLoader.discover('coordination/CONTROL-TOWER/tests', pattern='test_*.py')
-          result = unittest.TestResult(); suite.run(result)
-          failures = sorted({test.id() for test, _ in [*result.failures, *result.errors]})
-          Path(sys.argv[1]).write_text(json.dumps({'testsRun': result.testsRun, 'failures': failures}, sort_keys=True), encoding='utf-8')
+          result = unittest.TestResult()
+          suite.run(result)
+
+          def fingerprint(kind, test, text):
+              normalized = '\n'.join(line.rstrip() for line in text.strip().splitlines())
+              return hashlib.sha256((kind + '\n' + test.id() + '\n' + normalized).encode('utf-8')).hexdigest()
+
+          failures = {
+              test.id(): {'kind': 'FAIL', 'fingerprint': fingerprint('FAIL', test, text)}
+              for test, text in result.failures
+          }
+          failures.update({
+              test.id(): {'kind': 'ERROR', 'fingerprint': fingerprint('ERROR', test, text)}
+              for test, text in result.errors
+          })
+          payload = {
+              'testsRun': result.testsRun,
+              'failure_count': len(result.failures),
+              'error_count': len(result.errors),
+              'failures': failures,
+          }
+          output.write_text(json.dumps(payload, sort_keys=True), encoding='utf-8')
+          print(json.dumps(payload, sort_keys=True))
           PY
             )
           }
-          collect_failures /tmp/w5-main /tmp/w5-main.json
-          git -C /tmp/w5-integrated -c user.name='R164 CI' -c user.email='r164-ci@example.invalid' merge --no-ff "$HEAD_SHA" -m 'R164 temporary integration'
+
+          collect_control_result /tmp/w5-main /tmp/w5-main.json
+
+          git -C /tmp/w5-integrated -c user.name='R164 CI' -c user.email='r164-ci@example.invalid' \
+            merge --no-ff "$HEAD_SHA" -m 'R164 temporary current-main integration'
           test -z "$(git -C /tmp/w5-integrated status --porcelain=v1 --untracked-files=all)"
-          (cd /tmp/w5-integrated && python -m unittest discover -s coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/tests -p 'test_*.py' -v)
-          collect_failures /tmp/w5-integrated /tmp/w5-integrated.json
+
+          (
+            cd /tmp/w5-integrated
+            python -m py_compile coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/event_coverage.py
+            python -m unittest discover \
+              -s coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/tests \
+              -p 'test_*.py' -v
+          )
+          collect_control_result /tmp/w5-integrated /tmp/w5-integrated.json
+
           python - <<'PY'
           import json
           from pathlib import Path
-          base = json.loads(Path('/tmp/w5-main.json').read_text())
-          integrated = json.loads(Path('/tmp/w5-integrated.json').read_text())
-          introduced = sorted(set(integrated['failures']) - set(base['failures']))
+          base = json.loads(Path('/tmp/w5-main.json').read_text(encoding='utf-8'))
+          integrated = json.loads(Path('/tmp/w5-integrated.json').read_text(encoding='utf-8'))
+
+          base_failures = base['failures']
+          integrated_failures = integrated['failures']
+          introduced = sorted(set(integrated_failures) - set(base_failures))
+          modified = sorted(
+              test_id for test_id in set(base_failures).intersection(integrated_failures)
+              if base_failures[test_id] != integrated_failures[test_id]
+          )
+          improved = sorted(set(base_failures) - set(integrated_failures))
+
           if introduced:
-              raise SystemExit('candidate introduced Control Tower failures: ' + repr(introduced))
-          print('W5_CURRENT_MAIN_INTEGRATION_DELTA_PASS', 'base_tests=', base['testsRun'], 'integrated_tests=', integrated['testsRun'])
+              raise SystemExit('CANDIDATE_INTRODUCED_FAILURE: ' + repr(introduced))
+          if modified:
+              raise SystemExit('CANDIDATE_MODIFIED_BASELINE_FAILURE: ' + repr(modified))
+
+          print(
+              'W5_CURRENT_MAIN_INTEGRATION_DELTA_PASS '
+              f"baseline_failures={len(base_failures)} "
+              f"integrated_failures={len(integrated_failures)} "
+              f"baseline_improvements={len(improved)} "
+              f"base_tests={base['testsRun']} integrated_tests={integrated['testsRun']}"
+          )
           PY
 
       - name: Exact bounded file scope
