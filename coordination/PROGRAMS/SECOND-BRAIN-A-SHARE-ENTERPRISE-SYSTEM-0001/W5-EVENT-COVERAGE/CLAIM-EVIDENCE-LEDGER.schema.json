@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://second-brain.local/schemas/ClaimEvidenceLedger-v1.json",
+  "title": "ClaimEvidenceLedger/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "coverage_report_digest",
+    "data_grade",
+    "claims",
+    "has_blocking_claim",
+    "has_downgrade_claim",
+    "disposition",
+    "authority",
+    "ledger_digest"
+  ],
+  "properties": {
+    "schema_version": {"const": "ClaimEvidenceLedger/v1"},
+    "coverage_report_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "data_grade": {"enum": ["A", "B", "C"]},
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "claim_id",
+          "claim_type",
+          "outcome",
+          "reason_codes",
+          "eligible_evidence_event_ids",
+          "rejected_evidence_event_ids",
+          "independent_source_chain_ids"
+        ],
+        "properties": {
+          "claim_id": {"type": "string", "minLength": 1},
+          "claim_type": {"enum": ["OBSERVED_FACT", "SOURCE_CLAIM", "MODEL_INFERENCE", "CAUSAL_HYPOTHESIS", "UNKNOWN"]},
+          "outcome": {"enum": ["ALLOW", "DOWNGRADE", "BLOCK"]},
+          "reason_codes": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+          "eligible_evidence_event_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+          "rejected_evidence_event_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+          "independent_source_chain_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+        }
+      }
+    },
+    "has_blocking_claim": {"type": "boolean"},
+    "has_downgrade_claim": {"type": "boolean"},
+    "disposition": {"enum": ["READY_FOR_SYNTHESIS", "EVENT_COVERAGE_INCOMPLETE", "PRICE_ANOMALY_UNRESOLVED", "ABSTAIN"]},
+    "authority": {
+      "type": "object",
+      "additionalProperties": {"const": false},
+      "minProperties": 1
+    },
+    "ledger_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}
