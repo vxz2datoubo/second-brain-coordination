@@ -1,0 +1,81 @@
+schema_version: "1.0"
+task_id: "GPT-W5-EVENT-COVERAGE-P0-REMEDIATION-R162"
+route_epoch: 162
+repository: "vxz2datoubo/second-brain-coordination"
+issue: 486
+pull_request: 487
+status: "READY"
+execution_allowed: true
+target_agent: "GPT_ENGINEERING_WORKER"
+worker_slot_id: "GPT-WORKER-R162-W5-EVENT-COVERAGE-1"
+model_id: "GPT-5.6 Sol"
+implementation_branch: "gpt/w5-event-coverage-p0-vs1"
+canonical_reconciliation_base: "9c9cd901dee77154b1ddc7511d126737b4420bab"
+observed_start_head: "863e838b38ac7cd85f8da90cea8e8c786a144054"
+route_contract: "coordination/ROUTES/GPT-W5-EVENT-COVERAGE-P0-REMEDIATION-R162.yaml"
+
+objective: >-
+  Finish SAME PR #487 as a research-only, evidence-first W5 Event Coverage Gate. Revalidate the existing unregistered candidate
+  remediation instead of trusting it, repair anything still violating the two binding independent-review trust boundaries, restore
+  truthful current-main CI, and hand the final exact head back to an independent reviewer.
+
+must_preserve:
+  - "POINT_IN_TIME available_at exclusion"
+  - "source-chain deduplication / no fake corroboration"
+  - "EVENT_BACKFILL_REQUIRED for unexplained anomaly without inventing a cause"
+  - "Data Grade C language blocking/downgrade"
+  - "READY/INCOMPLETE/UNRESOLVED/ABSTAIN evidence dispositions"
+  - "all downstream action/trade/release/write authority false"
+  - "research-only / NO_TRADE"
+
+must_close:
+  - "caller-defined SourceRegistry authority metadata cannot mint complete coverage"
+  - "caller causal_identification_evidence boolean cannot mint unique-cause permission"
+  - "caller participant_intent_evidence boolean cannot mint participant-intent permission"
+  - "forged scanned source IDs and grade escalation fail closed"
+  - "current exact-head CI cannot remain red"
+
+current_ci_diagnosis:
+  exact_head: "863e838b38ac7cd85f8da90cea8e8c786a144054"
+  run: 33265411230
+  targeted_w5_regressions: "23 PASS"
+  schemas: "PASS"
+  static_authority_boundary: "PASS"
+  retained_control_tower: "FAIL"
+  root_cause_observed: >-
+    Current canonical main has R161 ACTIVE-CODEX-TASK, while ACTIVE-PROGRAM-LANES observed CODEX projection still names historical
+    R144. trusted_task_release calls scan_repository and therefore returns CONTROL_TOWER_SCAN_FAILED. This is a canonical integrator
+    reconciliation defect, not authorization for the W5 worker to edit Control Tower.
+
+prelease_candidate_policy:
+  commits_after_prior_review_are_authority: false
+  may_be_reused_after_fresh_inspection_and_tests: true
+  must_record_verdict_per_binding_finding: true
+  unexpected_branch_head_change_after_claim: "STOP"
+
+allowed_write_paths:
+  - ".github/workflows/w5-event-coverage-p0-vs1.yml"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/**"
+all_other_paths: "READ_ONLY"
+
+required_execution_order:
+  - "fresh reconcile main/Issue/PR/review/head/CI"
+  - "publish TaskLeaseClaim/v1"
+  - "verify branch head still equals observed_start_head"
+  - "inspect pre-lease candidate diff against prior reviewed head"
+  - "run/inspect targeted W5 regressions"
+  - "verify each binding finding mechanically, add/fix tests if needed"
+  - "reconcile exact-head workflow against canonical control-plane repair without weakening tests"
+  - "run clean exact-head CI"
+  - "audit diff/scope/provenance"
+  - "publish ENGINEERING_HANDOFF/v1 and REVIEW_REQUEST/v1"
+
+review_boundary:
+  independent_review_required: true
+  self_review: false
+  self_accept: false
+  self_merge: false
+  merge_authorized: false
+  review_queue_issue: 453
+
+completion_signal: "W5_EVENT_COVERAGE_P0_VS1_REMEDIATED_READY_FOR_INDEPENDENT_REVIEW"
