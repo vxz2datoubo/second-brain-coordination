@@ -1,127 +1,147 @@
 # W5 Event Coverage P0-VS1 — Project Plan
 
-Status: `BOUNDED_IMPLEMENTATION / RESEARCH_ONLY / NO_TRADE`
+Status: `BOUNDED_REMEDIATION / RESEARCH_ONLY / NO_TRADE / FAIL_CLOSED_ON_MISSING_SOURCE_AUTHORITY`
 
 Source Issue: #486  
 Parent P0: #308  
-Canonical release base: `939629f6e445245d1e8db693826be6d2aaa12521`
+Current remediation snapshot: `W5-EVENT-COVERAGE-2026-08-29-R1`  
+Current observed canonical main at remediation start: `9c9cd901dee77154b1ddc7511d126737b4420bab`
 
 ## Goal
 
-Turn the existing W5 event/source/time semantics into an executable, deterministic pre-synthesis gate so a market or portfolio answer cannot silently skip event coverage and then fill the gap with a fluent story.
+Turn the existing W5 event/source/time semantics into an executable deterministic pre-synthesis gate without creating a second event ledger, second news store, second source authority, or caller-mintable causal authority.
+
+## Canonical reality discovered during independent review
+
+The canonical W5 blueprint/skill retain the source-grade vocabulary and W5 event/evidence system-of-record boundary, but their current-reality section still says the source instance registry/adapters are **NOT ASSEMBLED / NOT IMPLEMENTED**.
+
+Therefore this VS1 remediation intentionally does **not** invent a source instance authority merely to preserve a green happy path.
+
+Until a separately governed canonical W5 source registry or mechanically trusted adapter receipt exists:
+
+- caller `SourceRegistry/v1` material is candidate/evidence metadata only;
+- caller source grade/class/coverage-role fields cannot satisfy mandatory coverage;
+- `observed_coverage_roles` remains empty;
+- mandatory roles remain unresolved;
+- coverage grade remains `INCOMPLETE`;
+- the public gate cannot return `READY_FOR_SYNTHESIS` from caller source metadata.
+
+This is a deliberate fail-closed capability gap, not a fabricated implementation.
 
 ## Reuse map
 
-This slice **does not create a new event ledger or news store**.
-
-It reuses:
+This slice reuses, rather than duplicates:
 
 - #68 / `A-SHARE-POLICY-MACRO-NEWS-CROSS-ASSET-INTELLIGENCE-BLUEPRINT-v1.0.md`
   - `PolicyMacroEvent.event_type`
-  - W5 source grades `A1/A2/B1/B2/C1/C2/D`
+  - W5 source-grade vocabulary `A1/A2/B1/B2/C1/C2/D`
   - `available_at` / `market_effective_at`
-  - point-in-time and source-authority discipline
+  - point-in-time/source-authority discipline
 - #199 cross-market event-transmission semantics
-- existing W2/W5 market/event authorities
+- existing W2/W5 event/market systems of record
 - #282/#30 only as future feedback consumers
-- #312 as the future shared Method Discovery / Effective Challenge authority
+- #312 as future shared Method Discovery / Effective Challenge authority
 
-The VS1 runtime is a compiler/verifier over bounded input evidence. It does not persist canonical event truth.
+The VS1 runtime remains an authority-free compiler/verifier over bounded evidence. It persists no canonical event truth.
 
 ## Runtime path
 
 ```text
 intent class
-  + SourceRegistry/v1
-  + explicit scanned source ids
-  + explicit scanned proxy symbols
+  + caller candidate SourceRegistry/v1 (EVIDENCE ONLY)
+  + scanned source ids
+  + scanned proxy symbols
   + point-in-time event candidates
   + candidate claims
         |
         v
 Event Coverage Gate
-  1. derive mandatory coverage roles from intent class
-  2. verify explicit scan coverage
+  1. derive mandatory roles from intent class
+  2. keep missing canonical source authority explicit
   3. reject future event evidence
   4. deduplicate syndicated source chains
   5. detect unresolved anomaly/no-news state
   6. compile ClaimEvidenceLedger/v1
   7. enforce data-grade/language rules
+  8. reject caller causal/participant authority flags
         |
         v
-READY_FOR_SYNTHESIS
-| EVENT_COVERAGE_INCOMPLETE
-| PRICE_ANOMALY_UNRESOLVED
+EVENT_COVERAGE_INCOMPLETE
 | ABSTAIN
 ```
 
-## Intent policy
+`READY_FOR_SYNTHESIS` remains in the historical enum for forward compatibility but is unreachable in the current public VS1 path while canonical source instance authority is absent.
 
-VS1 intentionally derives required roles from the intent class rather than trusting the caller to provide an empty allowlist.
+## Causal / participant-intent rule
 
-`MARKET_ATTRIBUTION` requires:
+Current canonical W5 does not provide a typed causal-identification authority or participant-intent authority for this slice.
 
-- `FIRST_PARTY`
-- `MARKET_WIRE`
-- `COMPANY_DISCLOSURE`
-- `TECHNOLOGY_RELEASE`
-- `POLICY_REGULATORY`
+Therefore:
 
-`PORTFOLIO_LATEST` requires all of the above plus:
+- `causal_identification_evidence` and `participant_intent_evidence` caller booleans are rejected;
+- unique-cause language such as `唯一原因/就是因为/主要因为` is blocked with `CANONICAL_CAUSAL_IDENTIFICATION_AUTHORITY_UNAVAILABLE`;
+- participant-intent language such as `主力/吸筹/洗盘/出货` is blocked even at Data Grade A with `CANONICAL_PARTICIPANT_INTENT_AUTHORITY_UNAVAILABLE`;
+- future separately governed typed evidence may reopen these claims, but this remediation cannot self-authorize that bridge.
 
-- `OVERSEAS_PROXY`
-- explicit scan coverage for every configured proxy/comparable symbol
-- default 24-hour point-in-time lookback
+## Preserved point-in-time semantics
 
-Missing coverage is `EVENT_COVERAGE_INCOMPLETE`, never evidence of “no event”.
-
-## Data-grade / language contract
-
-- Data Grade C cannot support CVD/Delta/footprint/absorption/order-book claims.
-- Participant-intent terms such as 主力/吸筹/洗盘/出货 require Data Grade A **and** explicit participant-intent evidence.
-- Supply/demand narrative terms at Data Grade C require downgrade.
-- “唯一原因/就是因为/主要因为” cannot become accepted causal language without explicit causal-identification evidence.
-- A complete scan with no qualified event and an unexplained anomaly returns `PRICE_ANOMALY_UNRESOLVED`; the runtime never invents an event or participant story.
+- future `available_at` evidence cannot support a current answer;
+- syndicated copies sharing a `source_chain_id` count once;
+- invalid/fabricated event ids cannot support a claim;
+- Data Grade C cannot support strong CVD/Delta/footprint/order-book language;
+- Data Grade C supply/demand narrative is downgraded;
+- unexplained anomaly with no eligible event retains `event_backfill_required=true` while source coverage remains incomplete;
+- proxy-scan gaps remain explicit.
 
 ## Anti-forgery / authority boundary
 
-The public trust path is `run_event_coverage_gate(...)`, which derives coverage and claim outcomes directly from raw bounded inputs in one deterministic pass. A caller does not supply a pre-approved `EventCoverageReport` to mint synthesis authority.
+`run_event_coverage_gate(...)` never accepts a pre-approved report/ledger. Caller source metadata is validated for shape and event linkage only, then explicitly labeled evidence-only. It cannot mint source coverage authority.
 
-Every returned object carries all-false authority flags. It cannot:
+Every returned authority vector remains all false. This slice cannot:
 
 - create task/route/work claim;
-- grant execution or write authority;
-- grant independent-review ACCEPT;
-- grant merge/release;
-- write W3 or domain truth;
+- grant execution/write/review/merge/release authority;
+- write W3 or canonical domain truth;
 - trade or touch accounts/orders/funds;
 - expand permissions or access secrets.
 
-## Mandatory regressions
+## Mandatory remediation regressions
 
-1. BlueFocus / DeepSeek Harness point-in-time candidate is visible before the A-share anomaly but cannot be promoted to unique cause.
-2. Complete no-news scan + unexplained jump returns `PRICE_ANOMALY_UNRESOLVED`.
-3. Data Grade C blocks strong microstructure / participant-intent language.
-4. `available_at` after the query/anomaly cutoff cannot count as evidence.
-5. Multiple syndicated copies sharing one `source_chain_id` count as one independent chain.
-6. Missing mandatory source role returns `EVENT_COVERAGE_INCOMPLETE`.
-7. `PORTFOLIO_LATEST` requires explicit proxy coverage.
-8. Equivalent inputs produce stable digests.
-9. Authority flags remain all false.
+1. fabricated all-role caller registry cannot create complete coverage;
+2. grade escalation cannot change coverage authority;
+3. caller registry output is explicitly evidence-only;
+4. forged scanned source id fails closed;
+5. caller causal boolean is rejected;
+6. caller participant-intent boolean is rejected;
+7. unique-cause language blocks without typed canonical authority;
+8. participant-intent language blocks even at Data Grade A;
+9. future event evidence is excluded;
+10. syndicated copies remain one evidence chain;
+11. anomaly/no-news retains backfill signal without pretending source scan completeness;
+12. portfolio proxy gaps remain visible;
+13. Data Grade C microstructure restriction remains;
+14. Data Grade C supply/demand downgrade remains;
+15. deterministic replay/digests remain stable;
+16. all authority flags remain false;
+17. event cannot self-declare source grade;
+18. fake event ids cannot support claims;
+19. timezone-naive query fails closed;
+20. exhaustive caller-grade/all-role combinations cannot reach `READY_FOR_SYNTHESIS` while canonical source authority is absent.
 
 ## Non-goals
 
-- no live news adapters in VS1;
-- no credentialed/paid-source access;
+- no live news/source adapter;
+- no new canonical source registry;
+- no credentialed/paid source access;
 - no production deployment;
-- no autonomous position change;
+- no autonomous position change/trading;
 - no L2 purchase;
 - no generic LLM reviewer / Effective Challenge runtime;
 - no learning promotion;
-- no second event or market-data store.
+- no second event/market-data/source store.
 
 ## Stop gate
 
-Exact-head CI -> Draft PR -> #453 `REVIEW_REQUEST/v1` -> independent reviewer.
+Exact-head CI → Draft PR → #453 `REVIEW_REQUEST/v1` with effective-spec snapshot → independent reviewer.
 
 Completion signal: `W5_EVENT_COVERAGE_P0_VS1_READY_FOR_INDEPENDENT_REVIEW`
