@@ -9,7 +9,6 @@ on:
       - 'tests/**'
       - 'coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/REMEDIATION-R163/**'
       - '.github/workflows/r163-interactive-film-remediation.yml'
-  workflow_dispatch:
 
 permissions:
   contents: read
@@ -26,14 +25,19 @@ jobs:
       - name: Checkout exact PR head
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Record exact head
+      - name: Record and verify exact head
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
-          git rev-parse HEAD
+          actual="$(git rev-parse HEAD)"
+          printf 'expected_head=%s\nactual_head=%s\n' "$EXPECTED_HEAD" "$actual"
+          test "$actual" = "$EXPECTED_HEAD"
           git merge-base --is-ancestor 58cd5b271164eff71b0824ee42df2723cbc0247d HEAD
       - name: Predecessor S00-S06 regression
         run: python -m unittest discover -s tests -p 'test_creative_s*.py' -v

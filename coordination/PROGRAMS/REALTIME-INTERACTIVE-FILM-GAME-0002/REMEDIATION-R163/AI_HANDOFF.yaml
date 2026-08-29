@@ -26,7 +26,7 @@ completed:
   - source legacy bytes preserved on success and failure
   - corrupt, noncanonical, tampered-patch and path-safety cases fail closed
   - repeated startup is idempotent once migrated default exists
-  - R163 GitHub Actions exact-head workflow added for Python 3.11 and 3.13
+  - R163 GitHub Actions configured to checkout and assert the PR exact head on Python 3.11 and 3.13
 fixture_evidence:
   multi_action:
     path: tests/fixtures/r163/legacy_session_v1_multi_action.json
@@ -39,13 +39,14 @@ fixture_evidence:
     route: [approach, listen]
     final_legacy_beat: resolution
 validation:
-  prior_exact_head: 76a1b5d523e627b0984060107c8230f2860ed899
-  github_actions_run: 33269659431
-  predecessor_s00_s06: PASS
-  r163_a_legacy_migration: PASS
-  git_diff_check: PASS
-  overall_run: FAIL_VALIDATION_HARNESS_FALSE_POSITIVE
-  harness_fix_commit: c205e6ed83a69e73c71247ec0ed27223772646a2
+  prior_run: 33269745554
+  prior_branch_head: 1e252f8d21c9c7a5553f766e15e344fa05d0c93b
+  predecessor_s00_s06: PASS_22_TESTS_BOTH_PYTHON_VERSIONS
+  r163_a_legacy_migration: PASS_9_TESTS_BOTH_PYTHON_VERSIONS
+  git_diff_check: PASS_BOTH_PYTHON_VERSIONS
+  prior_overall_run: FAIL_VALIDATION_HARNESS_MERGE_REF_SCOPE
+  harness_finding: actions/checkout defaulted to PR merge ref, causing baseline scope diff to include canonical main governance publications
+  harness_correction: checkout github.event.pull_request.head.sha and assert HEAD equals that exact head before tests
   final_checkpoint_ci: TO_BE_OBSERVED_ON_THIS_HANDOFF_CHECKPOINT_HEAD
 local_clean_clone: UNAVAILABLE_IN_EXECUTOR_SANDBOX_DNS
 independence_note: executor local or executor-authored receipts are not independent review; GitHub Actions is independently observable execution evidence only
