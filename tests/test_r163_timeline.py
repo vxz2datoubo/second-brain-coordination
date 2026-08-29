@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import unittest
 
+from creative_runtime.continuity import compile_director_sequence
 from creative_runtime.contracts import PlayerAction
 from creative_runtime.ledger import CreativeLedger
+from creative_runtime.review import build_review_packet
 from creative_runtime.scene_graph import SceneGraph, synthetic_three_scene_manifest
 from creative_runtime.timeline import TimelineViolation, build_prefix_timeline
 
@@ -36,6 +38,21 @@ class R163TimelineTruthTests(unittest.TestCase):
                 f"2030-01-01T00:{minute:02d}:00Z",
             )
             state = next_state
+        return ledger
+
+    def _caller_minted_direct_jump(self) -> CreativeLedger:
+        ledger = CreativeLedger()
+        ledger.append(
+            "story_initialized",
+            {"state": self.graph.initial_state().to_dict()},
+            "2030-01-01T00:00:00Z",
+        )
+        ledger.append(
+            "state_patch",
+            {"patch": {"scene_id": "dawn_courtyard", "beat_id": "return"}},
+            "2030-01-01T00:01:00Z",
+        )
+        ledger.verify_chain()
         return ledger
 
     def test_three_action_timeline_is_exact_prefix_state_not_final_state_repeated(self) -> None:
@@ -144,6 +161,22 @@ class R163TimelineTruthTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(TimelineViolation, "not legal"):
             build_prefix_timeline(ledger, self.graph)
+
+    def test_caller_minted_hash_valid_state_patch_cannot_enter_timeline(self) -> None:
+        ledger = self._caller_minted_direct_jump()
+        self.assertEqual(ledger.replay().scene_id, "dawn_courtyard")
+        with self.assertRaisesRegex(TimelineViolation, "validated canonical migration provenance"):
+            build_prefix_timeline(ledger, self.graph)
+
+    def test_caller_minted_state_patch_cannot_enter_director_packet(self) -> None:
+        ledger = self._caller_minted_direct_jump()
+        with self.assertRaisesRegex(TimelineViolation, "validated canonical migration provenance"):
+            compile_director_sequence(ledger, self.graph)
+
+    def test_caller_minted_state_patch_cannot_enter_review_packet(self) -> None:
+        ledger = self._caller_minted_direct_jump()
+        with self.assertRaisesRegex(TimelineViolation, "validated canonical migration provenance"):
+            build_review_packet(ledger, self.graph)
 
 
 if __name__ == "__main__":
