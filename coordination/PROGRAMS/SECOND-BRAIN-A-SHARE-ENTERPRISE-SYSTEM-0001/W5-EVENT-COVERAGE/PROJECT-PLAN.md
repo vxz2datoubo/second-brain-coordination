@@ -2,9 +2,9 @@
 
 Status: `BOUNDED_REMEDIATION / RESEARCH_ONLY / NO_TRADE / FAIL_CLOSED_ON_MISSING_SOURCE_AUTHORITY`
 
-Source Issue: #486  
-Parent P0: #308  
-Current remediation snapshot: `W5-EVENT-COVERAGE-2026-08-29-R1` / Issue #486 comment `5463776748`  
+Source Issue: #486
+Parent P0: #308
+Current remediation snapshot: `W5-EVENT-COVERAGE-2026-08-29-R1` / Issue #486 comment `5463776748`
 Snapshot canonical base: `9c9cd901dee77154b1ddc7511d126737b4420bab`
 
 ## Goal
