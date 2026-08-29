@@ -6,91 +6,39 @@ import json
 import re
 from typing import Any, Mapping, Sequence
 
-
 SOURCE_REGISTRY_SCHEMA = "SourceRegistry/v1"
 EVENT_COVERAGE_REPORT_SCHEMA = "EventCoverageReport/v1"
 CLAIM_EVIDENCE_LEDGER_SCHEMA = "ClaimEvidenceLedger/v1"
 GATE_RESULT_SCHEMA = "EventCoverageGateResult/v1"
 
 SOURCE_GRADES = frozenset({"A1", "A2", "B1", "B2", "C1", "C2", "D"})
-SOURCE_CLASSES = frozenset(
-    {
-        "OFFICIAL_PRIMARY",
-        "OFFICIAL_AUTHORIZED_MEDIA",
-        "INSTITUTIONAL_PRIMARY",
-        "PROFESSIONAL_MARKET_SOURCE",
-        "MAJOR_MEDIA",
-        "EXPERT_INTERPRETATION",
-        "SOCIAL_OR_RUMOR",
-    }
-)
-COVERAGE_ROLES = frozenset(
-    {
-        "FIRST_PARTY",
-        "MARKET_WIRE",
-        "COMPANY_DISCLOSURE",
-        "TECHNOLOGY_RELEASE",
-        "POLICY_REGULATORY",
-        "OVERSEAS_PROXY",
-    }
-)
-EVENT_TYPES = frozenset(
-    {
-        "DOMESTIC_TOP_LEVEL_POLICY",
-        "MONETARY_POLICY",
-        "FISCAL_POLICY",
-        "REGULATORY_POLICY",
-        "INDUSTRIAL_POLICY",
-        "MACRO_DATA",
-        "COMPANY_EVENT",
-        "TECHNOLOGY_EVENT",
-        "GEOPOLITICAL_EVENT",
-        "GLOBAL_MACRO_POLICY",
-        "COMMODITY_ENERGY",
-        "FINANCIAL_STABILITY",
-        "RUMOR_AND_LEAK",
-    }
-)
-CLAIM_TYPES = frozenset(
-    {
-        "OBSERVED_FACT",
-        "SOURCE_CLAIM",
-        "MODEL_INFERENCE",
-        "CAUSAL_HYPOTHESIS",
-        "UNKNOWN",
-    }
-)
+SOURCE_CLASSES = frozenset({
+    "OFFICIAL_PRIMARY", "OFFICIAL_AUTHORIZED_MEDIA", "INSTITUTIONAL_PRIMARY",
+    "PROFESSIONAL_MARKET_SOURCE", "MAJOR_MEDIA", "EXPERT_INTERPRETATION", "SOCIAL_OR_RUMOR",
+})
+COVERAGE_ROLES = frozenset({
+    "FIRST_PARTY", "MARKET_WIRE", "COMPANY_DISCLOSURE", "TECHNOLOGY_RELEASE",
+    "POLICY_REGULATORY", "OVERSEAS_PROXY",
+})
+EVENT_TYPES = frozenset({
+    "DOMESTIC_TOP_LEVEL_POLICY", "MONETARY_POLICY", "FISCAL_POLICY", "REGULATORY_POLICY",
+    "INDUSTRIAL_POLICY", "MACRO_DATA", "COMPANY_EVENT", "TECHNOLOGY_EVENT",
+    "GEOPOLITICAL_EVENT", "GLOBAL_MACRO_POLICY", "COMMODITY_ENERGY",
+    "FINANCIAL_STABILITY", "RUMOR_AND_LEAK",
+})
+CLAIM_TYPES = frozenset({"OBSERVED_FACT", "SOURCE_CLAIM", "MODEL_INFERENCE", "CAUSAL_HYPOTHESIS", "UNKNOWN"})
 DATA_GRADES = frozenset({"A", "B", "C"})
-DISPOSITIONS = frozenset(
-    {
-        "READY_FOR_SYNTHESIS",
-        "EVENT_COVERAGE_INCOMPLETE",
-        "PRICE_ANOMALY_UNRESOLVED",
-        "ABSTAIN",
-    }
-)
+DISPOSITIONS = frozenset({"READY_FOR_SYNTHESIS", "EVENT_COVERAGE_INCOMPLETE", "PRICE_ANOMALY_UNRESOLVED", "ABSTAIN"})
 
 MANDATORY_ROLES = {
-    "MARKET_ATTRIBUTION": frozenset(
-        {
-            "FIRST_PARTY",
-            "MARKET_WIRE",
-            "COMPANY_DISCLOSURE",
-            "TECHNOLOGY_RELEASE",
-            "POLICY_REGULATORY",
-        }
-    ),
-    "PORTFOLIO_LATEST": frozenset(
-        {
-            "FIRST_PARTY",
-            "MARKET_WIRE",
-            "COMPANY_DISCLOSURE",
-            "TECHNOLOGY_RELEASE",
-            "POLICY_REGULATORY",
-            "OVERSEAS_PROXY",
-        }
-    ),
+    "MARKET_ATTRIBUTION": frozenset({"FIRST_PARTY", "MARKET_WIRE", "COMPANY_DISCLOSURE", "TECHNOLOGY_RELEASE", "POLICY_REGULATORY"}),
+    "PORTFOLIO_LATEST": frozenset({"FIRST_PARTY", "MARKET_WIRE", "COMPANY_DISCLOSURE", "TECHNOLOGY_RELEASE", "POLICY_REGULATORY", "OVERSEAS_PROXY"}),
 }
+
+CANONICAL_SOURCE_INSTANCE_AUTHORITY_AVAILABLE = False
+SOURCE_AUTHORITY_STATE = "CANONICAL_SOURCE_REGISTRY_NOT_ASSEMBLED"
+CAUSAL_IDENTIFICATION_AUTHORITY_AVAILABLE = False
+PARTICIPANT_INTENT_AUTHORITY_AVAILABLE = False
 
 AUTHORITY = {
     "creates_task": False,
@@ -108,13 +56,11 @@ AUTHORITY = {
     "accesses_secrets": False,
 }
 
-_MICROSTRUCTURE_STRONG = re.compile(
-    r"(?:\bCVD\b|\bDelta\b|footprint|absorption|订单簿|order[- ]?book|盘口意图|主动买卖)",
-    re.IGNORECASE,
-)
+_MICROSTRUCTURE_STRONG = re.compile(r"(?:\bCVD\b|\bDelta\b|footprint|absorption|订单簿|order[- ]?book|盘口意图|主动买卖)", re.IGNORECASE)
 _PARTICIPANT_INTENT = re.compile(r"(?:主力|吸筹|洗盘|出货|庄家|机构意图)", re.IGNORECASE)
 _SUPPLY_DEMAND_NARRATIVE = re.compile(r"(?:抛压|卖压|承接|买盘|供给很强)", re.IGNORECASE)
 _UNIQUE_CAUSAL = re.compile(r"(?:唯一原因|就是因为|主要因为|唯一因果)", re.IGNORECASE)
+_FORBIDDEN_CALLER_AUTHORITY_FIELDS = frozenset({"causal_identification_evidence", "participant_intent_evidence"})
 
 
 class EventCoverageError(ValueError):
@@ -166,6 +112,7 @@ def _time_text(value: datetime) -> str:
 
 
 def validate_source_registry(value: Mapping[str, Any]) -> dict[str, Any]:
+    """Validate caller candidate source metadata without promoting it to W5 authority."""
     if not isinstance(value, Mapping):
         raise EventCoverageError("SOURCE_REGISTRY_NOT_OBJECT")
     if set(value) != {"schema_version", "sources"}:
@@ -175,20 +122,13 @@ def validate_source_registry(value: Mapping[str, Any]) -> dict[str, Any]:
     sources = value.get("sources")
     if not isinstance(sources, list) or not sources:
         raise EventCoverageError("SOURCE_REGISTRY_EMPTY", "/sources")
-
     normalized: list[dict[str, Any]] = []
     seen_ids: set[str] = set()
     for index, raw in enumerate(sources):
         path = f"/sources/{index}"
         if not isinstance(raw, Mapping):
             raise EventCoverageError("SOURCE_NOT_OBJECT", path)
-        required = {
-            "source_id",
-            "source_class",
-            "source_grade",
-            "coverage_roles",
-            "enabled",
-        }
+        required = {"source_id", "source_class", "source_grade", "coverage_roles", "enabled"}
         if set(raw) != required:
             raise EventCoverageError("SOURCE_FIELDS_INVALID", path)
         source_id = _nonempty(raw.get("source_id"), "SOURCE_ID_INVALID", f"{path}/source_id")
@@ -196,9 +136,9 @@ def validate_source_registry(value: Mapping[str, Any]) -> dict[str, Any]:
             raise EventCoverageError("SOURCE_ID_DUPLICATE", f"{path}/source_id")
         seen_ids.add(source_id)
         source_class = raw.get("source_class")
+        source_grade = raw.get("source_grade")
         if source_class not in SOURCE_CLASSES:
             raise EventCoverageError("SOURCE_CLASS_INVALID", f"{path}/source_class")
-        source_grade = raw.get("source_grade")
         if source_grade not in SOURCE_GRADES:
             raise EventCoverageError("SOURCE_GRADE_INVALID", f"{path}/source_grade")
         roles = _string_list(raw.get("coverage_roles"), "COVERAGE_ROLES_INVALID", f"{path}/coverage_roles")
@@ -206,17 +146,19 @@ def validate_source_registry(value: Mapping[str, Any]) -> dict[str, Any]:
             raise EventCoverageError("COVERAGE_ROLE_INVALID", f"{path}/coverage_roles")
         if not isinstance(raw.get("enabled"), bool):
             raise EventCoverageError("SOURCE_ENABLED_INVALID", f"{path}/enabled")
-        normalized.append(
-            {
-                "source_id": source_id,
-                "source_class": source_class,
-                "source_grade": source_grade,
-                "coverage_roles": sorted(roles),
-                "enabled": raw["enabled"],
-            }
-        )
-
-    result = {"schema_version": SOURCE_REGISTRY_SCHEMA, "sources": sorted(normalized, key=lambda item: item["source_id"])}
+        normalized.append({
+            "source_id": source_id,
+            "source_class": source_class,
+            "source_grade": source_grade,
+            "coverage_roles": sorted(roles),
+            "enabled": raw["enabled"],
+        })
+    result = {
+        "schema_version": SOURCE_REGISTRY_SCHEMA,
+        "sources": sorted(normalized, key=lambda item: item["source_id"]),
+        "trust_class": "CALLER_CANDIDATE_EVIDENCE_ONLY",
+        "authority": _copy(AUTHORITY),
+    }
     result["registry_digest"] = _digest(result)
     return result
 
@@ -224,15 +166,7 @@ def validate_source_registry(value: Mapping[str, Any]) -> dict[str, Any]:
 def _validate_intent(value: Mapping[str, Any]) -> dict[str, Any]:
     if not isinstance(value, Mapping):
         raise EventCoverageError("INTENT_NOT_OBJECT")
-    required = {
-        "intent_class",
-        "target_symbols",
-        "proxy_symbols",
-        "previous_close_at",
-        "anomaly_or_query_at",
-        "data_grade",
-        "price_anomaly_unexplained",
-    }
+    required = {"intent_class", "target_symbols", "proxy_symbols", "previous_close_at", "anomaly_or_query_at", "data_grade", "price_anomaly_unexplained"}
     if set(value) != required:
         raise EventCoverageError("INTENT_FIELDS_INVALID")
     intent_class = value.get("intent_class")
@@ -270,26 +204,13 @@ def _validate_intent(value: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
-def _validate_events(
-    events: Sequence[Mapping[str, Any]], registry: Mapping[str, Any]
-) -> list[dict[str, Any]]:
+def _validate_events(events: Sequence[Mapping[str, Any]], candidate_registry: Mapping[str, Any]) -> list[dict[str, Any]]:
     if not isinstance(events, Sequence) or isinstance(events, (str, bytes)):
         raise EventCoverageError("EVENTS_NOT_SEQUENCE")
-    registry_sources = {item["source_id"]: item for item in registry["sources"]}
+    candidate_sources = {item["source_id"]: item for item in candidate_registry["sources"]}
     seen_ids: set[str] = set()
     out: list[dict[str, Any]] = []
-    required = {
-        "event_id",
-        "event_type",
-        "source_id",
-        "source_chain_id",
-        "available_at",
-        "market_effective_at",
-        "target_symbols",
-        "proxy_symbols",
-        "mechanism",
-        "evidence_refs",
-    }
+    required = {"event_id", "event_type", "source_id", "source_chain_id", "available_at", "market_effective_at", "target_symbols", "proxy_symbols", "mechanism", "evidence_refs"}
     for index, raw in enumerate(events):
         path = f"/events/{index}"
         if not isinstance(raw, Mapping) or set(raw) != required:
@@ -298,71 +219,47 @@ def _validate_events(
         if event_id in seen_ids:
             raise EventCoverageError("EVENT_ID_DUPLICATE", f"{path}/event_id")
         seen_ids.add(event_id)
-        event_type = raw.get("event_type")
-        if event_type not in EVENT_TYPES:
+        if raw.get("event_type") not in EVENT_TYPES:
             raise EventCoverageError("EVENT_TYPE_INVALID", f"{path}/event_type")
         source_id = _nonempty(raw.get("source_id"), "EVENT_SOURCE_INVALID", f"{path}/source_id")
-        if source_id not in registry_sources or not registry_sources[source_id]["enabled"]:
-            raise EventCoverageError("EVENT_SOURCE_NOT_ENABLED", f"{path}/source_id")
-        source_chain_id = _nonempty(
-            raw.get("source_chain_id"), "SOURCE_CHAIN_INVALID", f"{path}/source_chain_id"
-        )
+        if source_id not in candidate_sources or not candidate_sources[source_id]["enabled"]:
+            raise EventCoverageError("EVENT_SOURCE_NOT_IN_CALLER_CANDIDATE_SET", f"{path}/source_id")
         available_at = _parse_time(raw.get("available_at"), "AVAILABLE_AT_INVALID", f"{path}/available_at")
-        market_effective_at = _parse_time(
-            raw.get("market_effective_at"), "MARKET_EFFECTIVE_AT_INVALID", f"{path}/market_effective_at"
-        )
+        market_effective_at = _parse_time(raw.get("market_effective_at"), "MARKET_EFFECTIVE_AT_INVALID", f"{path}/market_effective_at")
         if market_effective_at < available_at:
             raise EventCoverageError("MARKET_EFFECTIVE_BEFORE_AVAILABLE", f"{path}/market_effective_at")
-        target_symbols = _string_list(raw.get("target_symbols"), "EVENT_TARGETS_INVALID", f"{path}/target_symbols")
-        proxy_symbols = _string_list(raw.get("proxy_symbols"), "EVENT_PROXIES_INVALID", f"{path}/proxy_symbols")
-        mechanism = _nonempty(raw.get("mechanism"), "EVENT_MECHANISM_INVALID", f"{path}/mechanism")
         evidence_refs = _string_list(raw.get("evidence_refs"), "EVENT_EVIDENCE_REFS_INVALID", f"{path}/evidence_refs")
         if not evidence_refs:
             raise EventCoverageError("EVENT_EVIDENCE_REFS_EMPTY", f"{path}/evidence_refs")
-        out.append(
-            {
-                "event_id": event_id,
-                "event_type": event_type,
-                "source_id": source_id,
-                "source_chain_id": source_chain_id,
-                "available_at": available_at,
-                "market_effective_at": market_effective_at,
-                "target_symbols": target_symbols,
-                "proxy_symbols": proxy_symbols,
-                "mechanism": mechanism,
-                "evidence_refs": evidence_refs,
-                "source_grade": registry_sources[source_id]["source_grade"],
-            }
-        )
+        out.append({
+            "event_id": event_id,
+            "event_type": raw["event_type"],
+            "source_id": source_id,
+            "source_chain_id": _nonempty(raw.get("source_chain_id"), "SOURCE_CHAIN_INVALID", f"{path}/source_chain_id"),
+            "available_at": available_at,
+            "market_effective_at": market_effective_at,
+            "target_symbols": _string_list(raw.get("target_symbols"), "EVENT_TARGETS_INVALID", f"{path}/target_symbols"),
+            "proxy_symbols": _string_list(raw.get("proxy_symbols"), "EVENT_PROXIES_INVALID", f"{path}/proxy_symbols"),
+            "mechanism": _nonempty(raw.get("mechanism"), "EVENT_MECHANISM_INVALID", f"{path}/mechanism"),
+            "evidence_refs": evidence_refs,
+            "candidate_source_grade": candidate_sources[source_id]["source_grade"],
+        })
     return out
 
 
-def _build_coverage_report(
-    *,
-    intent: Mapping[str, Any],
-    registry: Mapping[str, Any],
-    scanned_source_ids: Sequence[str],
-    scanned_proxy_symbols: Sequence[str],
-    events: Sequence[Mapping[str, Any]],
-) -> tuple[dict[str, Any], dict[str, dict[str, Any]]]:
+def _build_coverage_report(*, intent: Mapping[str, Any], registry: Mapping[str, Any], scanned_source_ids: Sequence[str], scanned_proxy_symbols: Sequence[str], events: Sequence[Mapping[str, Any]]) -> tuple[dict[str, Any], dict[str, dict[str, Any]]]:
     normalized_intent = _validate_intent(intent)
-    normalized_registry = validate_source_registry(registry)
-    normalized_events = _validate_events(events, normalized_registry)
-
-    source_map = {item["source_id"]: item for item in normalized_registry["sources"]}
+    candidate_registry = validate_source_registry(registry)
+    normalized_events = _validate_events(events, candidate_registry)
+    candidate_source_ids = {item["source_id"] for item in candidate_registry["sources"] if item["enabled"]}
     scanned_sources = _string_list(list(scanned_source_ids), "SCANNED_SOURCE_IDS_INVALID", "/scanned_source_ids")
-    if any(source_id not in source_map or not source_map[source_id]["enabled"] for source_id in scanned_sources):
-        raise EventCoverageError("SCANNED_SOURCE_UNKNOWN_OR_DISABLED", "/scanned_source_ids")
-    scanned_proxies = _string_list(
-        list(scanned_proxy_symbols), "SCANNED_PROXY_SYMBOLS_INVALID", "/scanned_proxy_symbols"
-    )
+    if any(source_id not in candidate_source_ids for source_id in scanned_sources):
+        raise EventCoverageError("SCANNED_SOURCE_NOT_IN_CALLER_CANDIDATE_SET", "/scanned_source_ids")
+    scanned_proxies = _string_list(list(scanned_proxy_symbols), "SCANNED_PROXY_SYMBOLS_INVALID", "/scanned_proxy_symbols")
 
     required_roles = set(MANDATORY_ROLES[normalized_intent["intent_class"]])
     observed_roles: set[str] = set()
-    for source_id in scanned_sources:
-        observed_roles.update(source_map[source_id]["coverage_roles"])
-    unresolved_roles = sorted(required_roles - observed_roles)
-
+    unresolved_roles = sorted(required_roles)
     required_proxies = set(normalized_intent["proxy_symbols"]) if normalized_intent["intent_class"] == "PORTFOLIO_LATEST" else set()
     unresolved_proxies = sorted(required_proxies - set(scanned_proxies))
 
@@ -386,24 +283,11 @@ def _build_coverage_report(
             continue
         eligible.append(event)
 
-    # Syndicated/reposted copies sharing a source chain are one independent evidence chain.
     chain_choice: dict[str, dict[str, Any]] = {}
     for event in sorted(eligible, key=lambda item: (item["available_at"], item["event_id"])):
         chain_choice.setdefault(event["source_chain_id"], event)
-    deduped = list(chain_choice.values())
-    candidate_ids = [event["event_id"] for event in deduped]
+    candidate_ids = [event["event_id"] for event in chain_choice.values()]
 
-    incomplete = bool(unresolved_roles or unresolved_proxies)
-    if incomplete:
-        disposition = "EVENT_COVERAGE_INCOMPLETE"
-    elif normalized_intent["price_anomaly_unexplained"] and not candidate_ids:
-        disposition = "PRICE_ANOMALY_UNRESOLVED"
-    else:
-        disposition = "READY_FOR_SYNTHESIS"
-
-    coverage_grade = "INCOMPLETE" if incomplete else (
-        "A" if len(required_roles) >= 5 else "B" if len(required_roles) >= 2 else "C"
-    )
     report = {
         "schema_version": EVENT_COVERAGE_REPORT_SCHEMA,
         "intent_class": normalized_intent["intent_class"],
@@ -411,6 +295,7 @@ def _build_coverage_report(
         "proxy_symbols": sorted(normalized_intent["proxy_symbols"]),
         "window_start": _time_text(window_start),
         "anomaly_or_query_at": _time_text(query_at),
+        "source_authority_state": SOURCE_AUTHORITY_STATE,
         "required_coverage_roles": sorted(required_roles),
         "observed_coverage_roles": sorted(observed_roles),
         "scanned_source_ids": sorted(scanned_sources),
@@ -423,75 +308,51 @@ def _build_coverage_report(
         "outside_window_event_ids_ignored": sorted(outside_window_ids),
         "irrelevant_event_ids_ignored": sorted(irrelevant_ids),
         "event_backfill_required": bool(normalized_intent["price_anomaly_unexplained"] and not candidate_ids),
-        "coverage_grade": coverage_grade,
-        "disposition": disposition,
+        "coverage_grade": "INCOMPLETE",
+        "disposition": "EVENT_COVERAGE_INCOMPLETE",
         "authority": _copy(AUTHORITY),
     }
     report["report_digest"] = _digest(report)
-    event_by_id = {event["event_id"]: event for event in normalized_events}
-    return report, event_by_id
+    return report, {event["event_id"]: event for event in normalized_events}
 
 
 def _validate_claims(claims: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:
     if not isinstance(claims, Sequence) or isinstance(claims, (str, bytes)):
         raise EventCoverageError("CLAIMS_NOT_SEQUENCE")
-    required = {
-        "claim_id",
-        "claim_type",
-        "text",
-        "evidence_event_ids",
-        "evidence_refs",
-        "causal_identification_evidence",
-        "participant_intent_evidence",
-    }
+    required = {"claim_id", "claim_type", "text", "evidence_event_ids", "evidence_refs"}
     seen: set[str] = set()
     out: list[dict[str, Any]] = []
     for index, raw in enumerate(claims):
         path = f"/claims/{index}"
-        if not isinstance(raw, Mapping) or set(raw) != required:
+        if not isinstance(raw, Mapping):
+            raise EventCoverageError("CLAIM_NOT_OBJECT", path)
+        forbidden = set(raw).intersection(_FORBIDDEN_CALLER_AUTHORITY_FIELDS)
+        if forbidden:
+            raise EventCoverageError("CALLER_CLAIM_AUTHORITY_FLAG_FORBIDDEN", f"{path}/{sorted(forbidden)[0]}")
+        if set(raw) != required:
             raise EventCoverageError("CLAIM_FIELDS_INVALID", path)
         claim_id = _nonempty(raw.get("claim_id"), "CLAIM_ID_INVALID", f"{path}/claim_id")
         if claim_id in seen:
             raise EventCoverageError("CLAIM_ID_DUPLICATE", f"{path}/claim_id")
         seen.add(claim_id)
-        claim_type = raw.get("claim_type")
-        if claim_type not in CLAIM_TYPES:
+        if raw.get("claim_type") not in CLAIM_TYPES:
             raise EventCoverageError("CLAIM_TYPE_INVALID", f"{path}/claim_type")
-        text = _nonempty(raw.get("text"), "CLAIM_TEXT_INVALID", f"{path}/text")
-        evidence_event_ids = _string_list(
-            raw.get("evidence_event_ids"), "CLAIM_EVENT_EVIDENCE_INVALID", f"{path}/evidence_event_ids"
-        )
-        evidence_refs = _string_list(raw.get("evidence_refs"), "CLAIM_EVIDENCE_REFS_INVALID", f"{path}/evidence_refs")
-        for field in ("causal_identification_evidence", "participant_intent_evidence"):
-            if not isinstance(raw.get(field), bool):
-                raise EventCoverageError("CLAIM_EVIDENCE_FLAG_INVALID", f"{path}/{field}")
-        out.append(
-            {
-                "claim_id": claim_id,
-                "claim_type": claim_type,
-                "text": text,
-                "evidence_event_ids": evidence_event_ids,
-                "evidence_refs": evidence_refs,
-                "causal_identification_evidence": raw["causal_identification_evidence"],
-                "participant_intent_evidence": raw["participant_intent_evidence"],
-            }
-        )
+        out.append({
+            "claim_id": claim_id,
+            "claim_type": raw["claim_type"],
+            "text": _nonempty(raw.get("text"), "CLAIM_TEXT_INVALID", f"{path}/text"),
+            "evidence_event_ids": _string_list(raw.get("evidence_event_ids"), "CLAIM_EVENT_EVIDENCE_INVALID", f"{path}/evidence_event_ids"),
+            "evidence_refs": _string_list(raw.get("evidence_refs"), "CLAIM_EVIDENCE_REFS_INVALID", f"{path}/evidence_refs"),
+        })
     return out
 
 
-def _build_claim_ledger(
-    *,
-    claims: Sequence[Mapping[str, Any]],
-    report: Mapping[str, Any],
-    event_by_id: Mapping[str, Mapping[str, Any]],
-    data_grade: str,
-) -> dict[str, Any]:
+def _build_claim_ledger(*, claims: Sequence[Mapping[str, Any]], report: Mapping[str, Any], event_by_id: Mapping[str, Mapping[str, Any]], data_grade: str) -> dict[str, Any]:
     normalized_claims = _validate_claims(claims)
     eligible_ids = set(report["candidate_event_ids"])
     rows: list[dict[str, Any]] = []
     any_block = False
     any_downgrade = False
-
     for claim in normalized_claims:
         reasons: list[str] = []
         outcome = "ALLOW"
@@ -500,60 +361,44 @@ def _build_claim_ledger(
         if invalid_event_refs:
             outcome = "BLOCK"
             reasons.append("EVIDENCE_NOT_POINT_IN_TIME_RELEVANT_OR_INDEPENDENT")
-
         text = claim["text"]
-        if _UNIQUE_CAUSAL.search(text) and not claim["causal_identification_evidence"]:
+        if _UNIQUE_CAUSAL.search(text):
             outcome = "BLOCK"
-            reasons.append("UNIQUE_CAUSAL_CLAIM_UNSUPPORTED")
+            reasons.append("CANONICAL_CAUSAL_IDENTIFICATION_AUTHORITY_UNAVAILABLE")
         if claim["claim_type"] == "CAUSAL_HYPOTHESIS" and report["disposition"] != "READY_FOR_SYNTHESIS":
             outcome = "BLOCK"
             reasons.append("CAUSAL_CLAIM_BEFORE_COVERAGE_READY")
         if _MICROSTRUCTURE_STRONG.search(text) and data_grade != "A":
             outcome = "BLOCK"
             reasons.append("MICROSTRUCTURE_TERM_EXCEEDS_DATA_GRADE")
-        if _PARTICIPANT_INTENT.search(text) and (
-            data_grade != "A" or not claim["participant_intent_evidence"]
-        ):
+        if _PARTICIPANT_INTENT.search(text):
             outcome = "BLOCK"
-            reasons.append("PARTICIPANT_INTENT_UNSUPPORTED")
+            reasons.append("CANONICAL_PARTICIPANT_INTENT_AUTHORITY_UNAVAILABLE")
         if _SUPPLY_DEMAND_NARRATIVE.search(text) and data_grade == "C" and outcome != "BLOCK":
             outcome = "DOWNGRADE"
             reasons.append("SUPPLY_DEMAND_LANGUAGE_REQUIRES_PRICE_BEHAVIOR_DOWNGRADE")
-        if claim["claim_type"] in {"SOURCE_CLAIM", "CAUSAL_HYPOTHESIS"} and not (
-            claim["evidence_event_ids"] or claim["evidence_refs"]
-        ):
+        if claim["claim_type"] in {"SOURCE_CLAIM", "CAUSAL_HYPOTHESIS"} and not (claim["evidence_event_ids"] or claim["evidence_refs"]):
             if outcome != "BLOCK":
                 outcome = "DOWNGRADE"
             reasons.append("EVIDENCE_REFS_MISSING")
-
-        chain_ids = sorted(
-            {
-                str(event_by_id[event_id]["source_chain_id"])
-                for event_id in referenced
-                if event_id in eligible_ids and event_id in event_by_id
-            }
-        )
+        chain_ids = sorted({str(event_by_id[event_id]["source_chain_id"]) for event_id in referenced if event_id in eligible_ids and event_id in event_by_id})
         any_block = any_block or outcome == "BLOCK"
         any_downgrade = any_downgrade or outcome == "DOWNGRADE"
-        rows.append(
-            {
-                "claim_id": claim["claim_id"],
-                "claim_type": claim["claim_type"],
-                "outcome": outcome,
-                "reason_codes": sorted(set(reasons)),
-                "eligible_evidence_event_ids": sorted(referenced.intersection(eligible_ids)),
-                "rejected_evidence_event_ids": invalid_event_refs,
-                "independent_source_chain_ids": chain_ids,
-            }
-        )
-
+        rows.append({
+            "claim_id": claim["claim_id"],
+            "claim_type": claim["claim_type"],
+            "outcome": outcome,
+            "reason_codes": sorted(set(reasons)),
+            "eligible_evidence_event_ids": sorted(referenced.intersection(eligible_ids)),
+            "rejected_evidence_event_ids": invalid_event_refs,
+            "independent_source_chain_ids": chain_ids,
+        })
     if any_block:
         disposition = "ABSTAIN"
     elif report["disposition"] != "READY_FOR_SYNTHESIS":
         disposition = report["disposition"]
     else:
         disposition = "READY_FOR_SYNTHESIS"
-
     ledger = {
         "schema_version": CLAIM_EVIDENCE_LEDGER_SCHEMA,
         "coverage_report_digest": report["report_digest"],
@@ -568,21 +413,13 @@ def _build_claim_ledger(
     return ledger
 
 
-def run_event_coverage_gate(
-    *,
-    intent: Mapping[str, Any],
-    source_registry: Mapping[str, Any],
-    scanned_source_ids: Sequence[str],
-    scanned_proxy_symbols: Sequence[str],
-    events: Sequence[Mapping[str, Any]],
-    claims: Sequence[Mapping[str, Any]],
-) -> dict[str, Any]:
-    """Derive coverage + claim evidence from raw bounded inputs in one trust path.
+def run_event_coverage_gate(*, intent: Mapping[str, Any], source_registry: Mapping[str, Any], scanned_source_ids: Sequence[str], scanned_proxy_symbols: Sequence[str], events: Sequence[Mapping[str, Any]], claims: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+    """Fail-closed P0-VS1 gate.
 
-    A caller cannot pass a pre-approved EventCoverageReport or ledger into this function.
-    Missing scan evidence remains missing evidence; no-news is distinguishable from no-scan.
+    `source_registry` is caller candidate evidence only. It cannot establish source
+    grade/class/coverage authority. With the canonical W5 instance registry still
+    absent, the public gate cannot claim coverage completeness or READY_FOR_SYNTHESIS.
     """
-
     normalized_intent = _validate_intent(intent)
     report, event_by_id = _build_coverage_report(
         intent=intent,
@@ -591,12 +428,7 @@ def run_event_coverage_gate(
         scanned_proxy_symbols=scanned_proxy_symbols,
         events=events,
     )
-    ledger = _build_claim_ledger(
-        claims=claims,
-        report=report,
-        event_by_id=event_by_id,
-        data_grade=normalized_intent["data_grade"],
-    )
+    ledger = _build_claim_ledger(claims=claims, report=report, event_by_id=event_by_id, data_grade=normalized_intent["data_grade"])
     disposition = ledger["disposition"]
     if disposition not in DISPOSITIONS:
         raise EventCoverageError("INTERNAL_DISPOSITION_INVALID")
@@ -612,14 +444,8 @@ def run_event_coverage_gate(
 
 
 __all__ = [
-    "AUTHORITY",
-    "CLAIM_EVIDENCE_LEDGER_SCHEMA",
-    "DATA_GRADES",
-    "DISPOSITIONS",
-    "EVENT_COVERAGE_REPORT_SCHEMA",
-    "EventCoverageError",
-    "GATE_RESULT_SCHEMA",
-    "SOURCE_REGISTRY_SCHEMA",
-    "run_event_coverage_gate",
-    "validate_source_registry",
+    "AUTHORITY", "CANONICAL_SOURCE_INSTANCE_AUTHORITY_AVAILABLE", "CLAIM_EVIDENCE_LEDGER_SCHEMA",
+    "DATA_GRADES", "DISPOSITIONS", "EVENT_COVERAGE_REPORT_SCHEMA", "EventCoverageError",
+    "GATE_RESULT_SCHEMA", "SOURCE_AUTHORITY_STATE", "SOURCE_REGISTRY_SCHEMA",
+    "run_event_coverage_gate", "validate_source_registry",
 ]
