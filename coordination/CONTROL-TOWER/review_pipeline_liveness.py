@@ -27,6 +27,7 @@ REQUIRED_LIVENESS_SURFACES = frozenset(
         "ENGINEERING_IMPLEMENTATION",
         "REMEDIATION_REQUEUE",
         "STALE_REQUEST_SCAN",
+        "FINAL_FRESHNESS_READBACK",
     }
 )
 
@@ -53,12 +54,21 @@ _COMPLETION_MARKERS = (
     "completion_signal:",
     "Completion signal:",
 )
-_RELEASE_MARKERS = ("CONTROL_TOWER_RELEASED", "BOUNDED_ENGINEERING_AUTHORIZED")
+_RELEASE_MARKERS = (
+    "CONTROL_TOWER_RELEASED",
+    "BOUNDED_ENGINEERING_AUTHORIZED",
+    "GPT_REMEDIATION_RELEASE/v1",
+)
 _IMPLEMENTED_MARKERS = (
     "ENGINEERING_COMPLETE",
     "IMPLEMENTATION_COMPLETE",
     "READY_FOR_INDEPENDENT_REVIEW",
 )
+_CI_BAD_CONCLUSIONS = frozenset(
+    {"failure", "cancelled", "timed_out", "action_required", "startup_failure"}
+)
+_CI_OK_CONCLUSIONS = frozenset({"success", "neutral"})
+_CI_INFLIGHT = frozenset({"queued", "in_progress", "pending", "waiting", "requested"})
 
 
 class ReviewPipelineLivenessError(ValueError):
@@ -82,7 +92,7 @@ class LivenessProvenanceEnvelope:
 
     Historical callers may serialize it, but its contents cannot mint trusted
     freshness. NORMAL_IDLE is produced only by observe_review_cycle() after
-    live reads through the retained R137 provider.
+    internally constructed live GitHub reads and a final freshness readback.
     """
 
     schema: str
@@ -113,18 +123,11 @@ class LivenessEvidence:
 
 
 @dataclass(frozen=True)
-class _LiveObservation:
-    schema: str
-    project: str
-    repository: str
-    queue_issue: int
-    canonical_main_sha: str
-    queue_snapshot_digest: str
-    open_pr_snapshot_digest: str
-    open_issue_snapshot_digest: str
-    evidence: LivenessEvidence
-    complete_surfaces: tuple[str, ...]
-    observation_digest: str
+class _Snapshot:
+    main_sha: str
+    queue_digest: str
+    open_pr_digest: str
+    open_issue_digest: str
 
 
 def _canonical(value: Any) -> str:
@@ -201,7 +204,6 @@ def _select_blocker(
 ) -> tuple[str, str | None]:
     if evidence.pending_exact_head_tickets > 0:
         return "PENDING_REVIEW", None
-
     ordered = (
         ("STALE_REVIEW_REQUEST", evidence.stale_review_request_ref),
         ("CI_OR_PROVENANCE_BLOCKED", evidence.ci_or_provenance_blocked_ref),
@@ -214,7 +216,6 @@ def _select_blocker(
     for blocker_class, ref in ordered:
         if ref:
             return blocker_class, ref
-
     if trusted_idle:
         return "NORMAL_IDLE", None
     return "UNKNOWN_BLOCKED", None
@@ -231,7 +232,6 @@ def _classify(
     prior_repeat = _validate_count(
         evidence.prior_stall_repeat_count, "PRIOR_REPEAT_COUNT"
     )
-
     directory = PROJECT_DIRECTORY.get(project)
     if directory is not None and directory != (repository, queue_issue):
         raise ReviewPipelineLivenessError("PROJECT_QUEUE_BINDING_MISMATCH")
@@ -273,7 +273,6 @@ def _classify(
     repeat_count = (
         prior_repeat + 1 if repeated else (1 if fingerprint != "NONE" else 0)
     )
-
     return {
         "schema": STATUS_SCHEMA,
         "project": project,
@@ -294,7 +293,6 @@ def _classify(
 
 def classify_review_cycle(evidence: LivenessEvidence) -> dict[str, Any]:
     """Classify caller evidence without granting caller freshness authority."""
-
     return _classify(evidence, trusted_idle=False)
 
 
@@ -382,6 +380,7 @@ def _make_live_observer(
                 rf"^/repos/{repo_re}/pulls\?state=open&per_page=100&page=[1-9][0-9]*$",
                 rf"^/repos/{repo_re}/pulls/[1-9][0-9]*$",
                 rf"^/repos/{repo_re}/issues\?state=open&per_page=100&page=[1-9][0-9]*$",
+                rf"^/repos/{repo_re}/actions/runs\?head_sha=[0-9a-f]{{40}}&event=pull_request&per_page=100&page=[1-9][0-9]*$",
             )
             if any(re.fullmatch(pattern, path) for pattern in patterns):
                 return True
@@ -400,9 +399,7 @@ def _read_pages(
     rows: list[Mapping[str, Any]] = []
     for page in range(1, max_pages + 1):
         try:
-            _headers, payload, _meta = observer._get_json(
-                path_template.format(page=page)
-            )
+            _headers, payload, _meta = observer._get_json(path_template.format(page=page))
         except gateway_error as exc:
             raise ReviewPipelineLivenessError("LIVE_GITHUB_READ_FAILED") from exc
         if not isinstance(payload, list):
@@ -433,6 +430,75 @@ def _read_pr(
     return payload
 
 
+def _read_action_runs(
+    observer: Any,
+    gateway_error: type[BaseException],
+    repository: str,
+    head: str,
+    *,
+    max_pages: int = 20,
+) -> list[Mapping[str, Any]]:
+    if not _is_full_sha(head):
+        raise ReviewPipelineLivenessError("CI_HEAD_INVALID")
+    rows: list[Mapping[str, Any]] = []
+    for page in range(1, max_pages + 1):
+        path = (
+            f"/repos/{repository}/actions/runs?head_sha={head}"
+            f"&event=pull_request&per_page=100&page={page}"
+        )
+        try:
+            _headers, payload, _meta = observer._get_json(path)
+        except gateway_error as exc:
+            raise ReviewPipelineLivenessError("LIVE_CI_READ_FAILED") from exc
+        if not isinstance(payload, Mapping):
+            raise ReviewPipelineLivenessError("LIVE_CI_PAYLOAD_INVALID")
+        batch = payload.get("workflow_runs")
+        if not isinstance(batch, list):
+            raise ReviewPipelineLivenessError("LIVE_CI_RUNS_INVALID")
+        for raw in batch:
+            if not isinstance(raw, Mapping):
+                raise ReviewPipelineLivenessError("LIVE_CI_RUN_INVALID")
+            if raw.get("head_sha") != head:
+                raise ReviewPipelineLivenessError("LIVE_CI_HEAD_MISMATCH")
+            rows.append(raw)
+        if len(batch) < 100:
+            return rows
+    raise ReviewPipelineLivenessError("LIVE_CI_PAGINATION_INCOMPLETE")
+
+
+def _ci_blocker_ref(
+    observer: Any,
+    gateway_error: type[BaseException],
+    repository: str,
+    pr_number: int,
+    head: str,
+) -> str | None:
+    runs = _read_action_runs(observer, gateway_error, repository, head)
+    meaningful = []
+    for run in runs:
+        status = str(run.get("status") or "").lower()
+        conclusion = run.get("conclusion")
+        conclusion_norm = str(conclusion).lower() if conclusion is not None else None
+        if conclusion_norm == "skipped":
+            continue
+        meaningful.append(run)
+        if status in _CI_INFLIGHT:
+            return f"PR#{pr_number}@{head}:CI_{status.upper()}"
+        if status == "completed" and conclusion_norm in _CI_BAD_CONCLUSIONS:
+            return f"PR#{pr_number}@{head}:CI_{conclusion_norm.upper()}"
+        if status not in _CI_INFLIGHT | {"completed"}:
+            return f"PR#{pr_number}@{head}:CI_STATUS_UNKNOWN"
+    if not meaningful:
+        return f"PR#{pr_number}@{head}:NO_OBSERVABLE_EXACT_HEAD_CI"
+    if not any(
+        str(run.get("status") or "").lower() == "completed"
+        and str(run.get("conclusion") or "").lower() in _CI_OK_CONCLUSIONS
+        for run in meaningful
+    ):
+        return f"PR#{pr_number}@{head}:NO_SUCCESSFUL_EXACT_HEAD_CI"
+    return None
+
+
 def _queue_records(
     comments: list[Mapping[str, Any]],
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
@@ -450,7 +516,13 @@ def _queue_records(
         head = _field(body, "exact_head") or _field(body, "reviewed_head")
         if pr is None or not _is_full_sha(head):
             continue
-        record = {"id": comment_id, "pr": pr, "head": str(head), "body": body}
+        record = {
+            "id": comment_id,
+            "pr": pr,
+            "head": str(head),
+            "body": body,
+            "issue": _int_field(body, "issue") or _int_field(body, "source_issue"),
+        }
         if schema == _REQUEST_SCHEMA:
             requests.append(record)
         else:
@@ -466,7 +538,6 @@ def _derive_live_evidence(
     project: str,
     repository: str,
     queue_issue: int,
-    main_sha: str,
     queue_comments: list[Mapping[str, Any]],
     open_prs: list[Mapping[str, Any]],
     open_issues: list[Mapping[str, Any]],
@@ -571,6 +642,23 @@ def _derive_live_evidence(
         ):
             released_not_implemented.append(f"ISSUE#{number}")
 
+    ci_candidates: dict[tuple[int, str], None] = {}
+    for row in pending:
+        ci_candidates[(row["pr"], row["head"])] = None
+    for ref in implemented_not_queued + remediation_not_requeued:
+        match = re.fullmatch(r"PR#([1-9][0-9]*)@([0-9a-f]{40})", ref)
+        if match:
+            ci_candidates[(int(match.group(1)), match.group(2))] = None
+    ci_blockers = [
+        blocker
+        for number, head in sorted(ci_candidates)
+        if (
+            blocker := _ci_blocker_ref(
+                observer, gateway_error, repository, number, head
+            )
+        )
+    ]
+
     return LivenessEvidence(
         project=project,
         repository=repository,
@@ -596,54 +684,49 @@ def _derive_live_evidence(
             else None
         ),
         stale_review_request_ref=sorted(stale)[0] if stale else None,
+        ci_or_provenance_blocked_ref=sorted(ci_blockers)[0] if ci_blockers else None,
         provenance=None,
         prior_stall_fingerprint=prior_stall_fingerprint,
         prior_stall_repeat_count=prior_stall_repeat_count,
     )
 
 
-def observe_review_cycle(
-    repo_root: str | Path,
-    project: str,
-    *,
-    prior_stall_fingerprint: str | None = None,
-    prior_stall_repeat_count: int = 0,
-) -> dict[str, Any]:
-    """Fresh-read fixed GitHub liveness surfaces for one registered project.
-
-    Repository/queue identity, provider implementation and observations are not
-    injectable. NORMAL_IDLE can therefore come only from actual GitHub GET
-    material observed inside this invocation.
-    """
-
-    if project not in PROJECT_DIRECTORY:
-        raise ReviewPipelineLivenessError("PROJECT_NOT_REGISTERED")
-    repository, queue_issue = PROJECT_DIRECTORY[project]
-    root = Path(repo_root).resolve()
-    observer, gateway_error = _make_live_observer(root, repository, queue_issue)
-
+def _read_main(
+    observer: Any, gateway_error: type[BaseException], repository: str
+) -> str:
     try:
-        _headers, main_payload, _meta = observer._get_json(
+        _headers, payload, _meta = observer._get_json(
             f"/repos/{repository}/git/ref/heads/main"
         )
+    except gateway_error as exc:
+        raise ReviewPipelineLivenessError("LIVE_GITHUB_READ_FAILED") from exc
+    if not isinstance(payload, Mapping):
+        raise ReviewPipelineLivenessError("LIVE_MAIN_PAYLOAD_INVALID")
+    obj = payload.get("object")
+    sha = obj.get("sha") if isinstance(obj, Mapping) else None
+    if not _is_full_sha(sha):
+        raise ReviewPipelineLivenessError("LIVE_MAIN_SHA_INVALID")
+    return str(sha)
+
+
+def _read_snapshot(
+    observer: Any,
+    gateway_error: type[BaseException],
+    repository: str,
+    queue_issue: int,
+) -> tuple[_Snapshot, list[Mapping[str, Any]], list[Mapping[str, Any]], list[Mapping[str, Any]]]:
+    main_sha = _read_main(observer, gateway_error, repository)
+    try:
         _headers, queue_payload, _meta = observer._get_json(
             f"/repos/{repository}/issues/{queue_issue}"
         )
     except gateway_error as exc:
         raise ReviewPipelineLivenessError("LIVE_GITHUB_READ_FAILED") from exc
-
-    if not isinstance(main_payload, Mapping):
-        raise ReviewPipelineLivenessError("LIVE_MAIN_PAYLOAD_INVALID")
-    main_object = main_payload.get("object")
-    main_sha = main_object.get("sha") if isinstance(main_object, Mapping) else None
-    if not _is_full_sha(main_sha):
-        raise ReviewPipelineLivenessError("LIVE_MAIN_SHA_INVALID")
     if (
         not isinstance(queue_payload, Mapping)
         or queue_payload.get("number") != queue_issue
     ):
         raise ReviewPipelineLivenessError("LIVE_QUEUE_PAYLOAD_INVALID")
-
     queue_comments = _read_pages(
         observer,
         gateway_error,
@@ -659,12 +742,42 @@ def observe_review_cycle(
         gateway_error,
         f"/repos/{repository}/issues?state=open&per_page=100&page={{page}}",
     )
+    snapshot = _Snapshot(
+        main_sha=main_sha,
+        queue_digest=_digest(queue_comments),
+        open_pr_digest=_digest(open_prs),
+        open_issue_digest=_digest(open_issues),
+    )
+    return snapshot, queue_comments, open_prs, open_issues
 
+
+def observe_review_cycle(
+    repo_root: str | Path,
+    project: str,
+    *,
+    prior_stall_fingerprint: str | None = None,
+    prior_stall_repeat_count: int = 0,
+) -> dict[str, Any]:
+    """Fresh-read fixed GitHub liveness surfaces for one registered project.
+
+    NORMAL_IDLE is only possible when the internal retained R137 observer reads
+    canonical queue/PR/Issue/relevant CI surfaces and an immediate final
+    readback proves that the report did not race with a concurrent change.
+    """
+
+    if project not in PROJECT_DIRECTORY:
+        raise ReviewPipelineLivenessError("PROJECT_NOT_REGISTERED")
+    repository, queue_issue = PROJECT_DIRECTORY[project]
+    root = Path(repo_root).resolve()
+    observer, gateway_error = _make_live_observer(root, repository, queue_issue)
+
+    before, queue_comments, open_prs, open_issues = _read_snapshot(
+        observer, gateway_error, repository, queue_issue
+    )
     evidence = _derive_live_evidence(
         project=project,
         repository=repository,
         queue_issue=queue_issue,
-        main_sha=str(main_sha),
         queue_comments=queue_comments,
         open_prs=open_prs,
         open_issues=open_issues,
@@ -674,32 +787,10 @@ def observe_review_cycle(
         prior_stall_repeat_count=prior_stall_repeat_count,
     )
 
-    complete_surfaces = tuple(sorted(REQUIRED_LIVENESS_SURFACES))
-    observation_material = {
-        "schema": LIVE_OBSERVATION_SCHEMA,
-        "project": project,
-        "repository": repository,
-        "queue_issue": queue_issue,
-        "canonical_main_sha": main_sha,
-        "queue_snapshot_digest": _digest(queue_comments),
-        "open_pr_snapshot_digest": _digest(open_prs),
-        "open_issue_snapshot_digest": _digest(open_issues),
-        "complete_surfaces": list(complete_surfaces),
-        "evidence": {
-            key: value for key, value in evidence.__dict__.items() if key != "provenance"
-        },
-    }
-    observation = _LiveObservation(
-        schema=LIVE_OBSERVATION_SCHEMA,
-        project=project,
-        repository=repository,
-        queue_issue=queue_issue,
-        canonical_main_sha=str(main_sha),
-        queue_snapshot_digest=observation_material["queue_snapshot_digest"],
-        open_pr_snapshot_digest=observation_material["open_pr_snapshot_digest"],
-        open_issue_snapshot_digest=observation_material["open_issue_snapshot_digest"],
-        evidence=evidence,
-        complete_surfaces=complete_surfaces,
-        observation_digest=_digest(observation_material),
+    after, _q2, _p2, _i2 = _read_snapshot(
+        observer, gateway_error, repository, queue_issue
     )
-    return _classify(observation.evidence, trusted_idle=True)
+    if after != before:
+        raise ReviewPipelineLivenessError("LIVE_OBSERVATION_CHANGED_DURING_SCAN")
+
+    return _classify(evidence, trusted_idle=True)
