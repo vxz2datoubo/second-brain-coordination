@@ -1,0 +1,59 @@
+schema: TaskLeaseClaim/v1
+project: SECOND_BRAIN
+repository: vxz2datoubo/second-brain-coordination
+task_id: CODEX-R163-CLEAN-SUCCESSOR-R165
+route_epoch: 165
+source_issue: 499
+parent_issue: 494
+agent_type: CODEX
+executor_role: CODEX
+worker_slot_id: CODEX-R165-INTERACTIVE-FILM-CLEAN-SUCCESSOR-1
+status_observed: READY
+execution_allowed_observed: true
+implementation_baseline: 0665cc0147fe7efae7e9498c36f9a87566ad036c
+branch: codex/r165-r163-clean-successor
+claim_scope:
+  - creative_runtime/**
+  - apps/cli/**
+  - tests/**
+  - coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/CLEAN-SUCCESSOR-R165/**
+  - .github/workflows/r165-interactive-film-clean-successor.yml
+  - .gitignore (narrow task/runtime-generated rules only)
+claim_exclusions:
+  - coordination/ROUTES/** executor mutation
+  - coordination/TASK-BRIEFS/** executor mutation
+  - coordination/ACTIVE-*.yaml executor mutation
+  - coordination/CONTROL-TOWER/** executor mutation
+  - PR #493 mutation
+  - PR #495 mutation/Ready/merge
+  - PR #495 remediation commit import/cherry-pick/rebase/merge
+  - credentials/secrets/accounts/tokens
+  - network/provider/external/paid generation
+  - deployment/public release/production
+  - trade/account/order/fund
+  - canonical knowledge/W3/domain-truth write
+freshness_binding:
+  route_path: coordination/ROUTES/CODEX-R163-CLEAN-SUCCESSOR-R165.yaml
+  task_brief_path: coordination/TASK-BRIEFS/CODEX-R163-CLEAN-SUCCESSOR-R165.yaml
+  authorization_witness_path: coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/CLEAN-SUCCESSOR-R165/AUTHORIZATION-WITNESS.yaml
+  source_selection_path: coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/CLEAN-SUCCESSOR-R165/SOURCE-SELECTION-PROVENANCE.yaml
+  task_lease_path: coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/CLEAN-SUCCESSOR-R165/TASK-LEASE.yaml
+  executor_reservation_path: coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/CLEAN-SUCCESSOR-R165/EXECUTOR-RESERVATION.yaml
+  active_registry_path: coordination/ACTIVE-CODEX-TASK.yaml
+  control_tower_scan_path: coordination/CONTROL-TOWER/R165-INTERACTIVE-FILM-CLEAN-SUCCESSOR-ACTIVATION-SCAN.yaml
+substantive_write_gate:
+  state: CLOSED_UNTIL_EFFECTIVE_SPEC_SNAPSHOT
+  requires:
+    - exact CODEX reservation/lease/claim are canonical
+    - fresh Control Tower activation scan is PASS_PRE_SNAPSHOT
+    - Issue #499 EFFECTIVE_SPEC_SNAPSHOT/v1 exists
+    - snapshot predates first substantive branch write
+    - clean branch parent is exact implementation baseline
+mismatch_action: FAIL_CLOSED_NO_EDIT
+same_branch_writer_max: 1
+nested_parallelism: FORBIDDEN
+self_review_allowed: false
+self_accept_allowed: false
+self_merge_allowed: false
+history_rewrite_allowed: false
+claim_status: CLAIMED_GOVERNANCE_ONLY_PENDING_SNAPSHOT_GATE
