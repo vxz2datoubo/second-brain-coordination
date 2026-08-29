@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import importlib.util
+import io
 from pathlib import Path
 import tempfile
 import unittest
@@ -62,6 +63,22 @@ class SceneGraphTests(unittest.TestCase):
 
 
 class SaveSlotTests(unittest.TestCase):
+    def test_terminal_loop_is_accessible_offline_and_turn_deterministic(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory)
+            output = io.StringIO()
+            result = creativectl.terminal_loop(
+                workspace,
+                input_stream=io.StringIO("help\nlisten\ntranscript\nquit\n"),
+                output_stream=output,
+            )
+            rendered = output.getvalue()
+            self.assertEqual(result, {"status": "quit", "logical_turn": 1})
+            self.assertIn("Offline interactive film", rendered)
+            self.assertIn("Commands: <choice>", rendered)
+            self.assertIn("Turn 1 | archive_gate / echo", rendered)
+            self.assertIn('"action_id": "listen"', rendered)
+
     def test_cli_exposes_slots_transcript_and_branch_comparison(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             workspace = Path(directory)

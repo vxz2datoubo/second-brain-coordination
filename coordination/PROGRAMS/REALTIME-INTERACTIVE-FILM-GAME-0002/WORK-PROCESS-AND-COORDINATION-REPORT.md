@@ -31,3 +31,12 @@ while retaining the original `CreativeLedger` replay chain.
 GPT should independently reproduce the command set from `RUNBOOK.md` against
 the exact pushed head. Any issue should become a separate repair slice; it
 must not be silently folded into independent review.
+
+## S08 start and acceptance checkpoint
+
+Implemented `terminal_loop` as a plain-text, EOF-safe local presentation. It
+uses the exact same graph, ledger, parser and save-slot functions as the JSON
+CLI; it does not add a parallel gameplay state. A scripted `StringIO` test
+proves help, an accepted choice, transcript output, terminal rendering and a
+deterministic turn-1 exit path. The full offline suite now has 28 passing
+tests. This is executor verification only, not independent acceptance.

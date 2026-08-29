@@ -14,7 +14,7 @@ local/WorkBuddy/Eustia material.
 | Slice | Status | Deliverable | Acceptance boundary |
 | --- | --- | --- | --- |
 | S07 | executor_verified_only (checkpoint `62fb0a4`) | Manifest-driven three-scene graph, v2 save slots, explicit v1 migration, transcript and branch comparison | Deterministic, root-confined, corrupt/incompatible saves fail closed |
-| S08 | in_progress | Accessible terminal presentation and deterministic logical pacing | No model/network execution path |
+| S08 | executor_verified_only | Accessible terminal presentation and deterministic logical pacing | No model/network execution path |
 | S09 | planned | Multi-beat director packets and continuity diagnostics | Diagnostics do not alter story authority or generate media |
 | S10 | planned | Offline demo fixtures, golden snapshots, review packet | Fresh-clone reproduction |
 
@@ -34,6 +34,7 @@ local/WorkBuddy/Eustia material.
 
 ## Next slice
 
-S08 begins only after this checkpoint is pushed and the handoff records the
-exact commit and test receipt. It will add a human-friendly terminal loop on
-top of the existing JSON command API, not a network UI or model interpreter.
+S08 adds a human-friendly terminal loop on top of the existing JSON command
+API. It exposes recap, choices, consequences, help, transcripts and save-slot
+commands. Timing is the deterministic event turn number, never a wall-clock.
+It is not a network UI or model interpreter.

@@ -8,6 +8,7 @@ media.  The fixture is synthetic and uses adult characters only.
 from __future__ import annotations
 
 import argparse
+import io
 import json
 from pathlib import Path
 import sys
@@ -113,6 +114,85 @@ def transcript(ledger: CreativeLedger) -> list[dict[str, Any]]:
         state, action = graph.apply(state, action_id)
         records.append({"turn": turn, "action_id": action_id, "label": action.label, "scene_id": state.scene_id, "beat_id": state.beat_id, "text": graph.beat_for(state).text})
     return records
+
+
+def _plain_text_view(ledger: CreativeLedger) -> str:
+    """Render a screen-reader-friendly, deterministic terminal presentation."""
+
+    view = _view(ledger)
+    state = view["state"]
+    relationships = ", ".join(f"{name}={value}" for name, value in sorted(state["relationships"].items())) or "none"
+    facts = "; ".join(state["known_facts"]) or "none"
+    flags = ", ".join(f"{name}={value}" for name, value in sorted(state["flags"].items())) or "none"
+    choices = "\n".join(f"  {item['id']}: {item['label']}" for item in view["options"]) or "  (This scene has no further choices.)"
+    return (
+        f"Turn {view['logical_turn']} | {state['scene_id']} / {state['beat_id']}\n"
+        f"Recap: {view['recap']}\n\n{view['text']}\n\n"
+        f"Consequences — risk={state['risk_level']}; relationships: {relationships}; known facts: {facts}; flags: {flags}\n"
+        f"Choices:\n{choices}"
+    )
+
+
+def terminal_loop(workspace: Path, input_stream: io.TextIOBase | None = None, output_stream: io.TextIOBase | None = None) -> dict[str, Any]:
+    """Play locally through plain text; all timing is event/turn based, never wall-clock based."""
+
+    source = input_stream or sys.stdin
+    output = output_stream or sys.stdout
+    if not session_path(workspace).is_file():
+        initialize(workspace)
+    output.write("Offline interactive film. Type help for commands; type quit to exit.\n\n")
+    while True:
+        ledger = _load_session(workspace)
+        output.write(_plain_text_view(ledger) + "\n> ")
+        output.flush()
+        line = source.readline()
+        if line == "":
+            return {"status": "ended_at_eof", "logical_turn": len(ledger.events) - 1}
+        command = line.strip()
+        if not command:
+            output.write("Choose an option, use say <intent>, or type help.\n")
+            continue
+        normalized = command.casefold()
+        if normalized in {"quit", "exit"}:
+            return {"status": "quit", "logical_turn": len(ledger.events) - 1}
+        if normalized == "help":
+            output.write("Commands: <choice>, choose <choice>, say <clear intent>, status, transcript, slots, save <name>, load <name>, delete <name>, quit.\n")
+            continue
+        if normalized == "status":
+            continue
+        if normalized == "transcript":
+            output.write(json.dumps(transcript(ledger), ensure_ascii=False, sort_keys=True) + "\n")
+            continue
+        if normalized == "slots":
+            output.write((", ".join(_store(workspace).list_slots()) or "(no slots)") + "\n")
+            continue
+        verb, _, remainder = command.partition(" ")
+        try:
+            if verb.casefold() == "save" and remainder:
+                _write_session(workspace, ledger, remainder)
+                output.write(f"Saved slot {remainder}.\n")
+                continue
+            if verb.casefold() == "load" and remainder:
+                _load_session(workspace, remainder)
+                _write_session(workspace, _load_session(workspace, remainder))
+                output.write(f"Loaded slot {remainder} into the default session.\n")
+                continue
+            if verb.casefold() == "delete" and remainder:
+                output.write((f"Deleted slot {remainder}." if _store(workspace).delete(remainder) else f"Slot {remainder} was not found.") + "\n")
+                continue
+            if verb.casefold() == "say" and remainder:
+                result = say(workspace, remainder)
+            elif verb.casefold() == "choose" and remainder:
+                result = choose(workspace, remainder)
+            else:
+                result = choose(workspace, command)
+        except (LedgerViolation, SaveSlotViolation, SceneGraphViolation) as error:
+            output.write(f"Safe fallback: {error}\n")
+            continue
+        if result["status"] == "clarification_required":
+            output.write(result["message"] + " Legal choices: " + ", ".join(result["legal_options"]) + "\n")
+        else:
+            output.write("Choice recorded.\n")
 
 
 def _view(ledger: CreativeLedger) -> dict[str, Any]:
@@ -229,6 +309,7 @@ def run(argv: list[str]) -> dict[str, Any]:
     slot_delete.add_argument("name")
     slot_subparsers.add_parser("list")
     subparsers.add_parser("transcript")
+    subparsers.add_parser("interactive")
     compare_parser = subparsers.add_parser("compare")
     compare_parser.add_argument("left_slot")
     compare_parser.add_argument("right_slot")
@@ -271,6 +352,8 @@ def run(argv: list[str]) -> dict[str, Any]:
     if args.command == "transcript":
         ledger = _load_session(args.workspace)
         return {"status": "transcript", "manifest_hash": _graph().manifest_hash, "turns": transcript(ledger)}
+    if args.command == "interactive":
+        return {"status": "interactive_ready", "workspace": str(args.workspace), "offline": True}
     if args.command == "compare":
         left = _load_session(args.workspace, args.left_slot)
         right = _load_session(args.workspace, args.right_slot)
@@ -301,7 +384,11 @@ def run(argv: list[str]) -> dict[str, Any]:
 
 def main() -> int:
     try:
-        print(json.dumps(run(sys.argv[1:]), ensure_ascii=False, sort_keys=True, indent=2))
+        result = run(sys.argv[1:])
+        if result["status"] == "interactive_ready":
+            terminal_loop(Path(result["workspace"]))
+        else:
+            print(json.dumps(result, ensure_ascii=False, sort_keys=True, indent=2))
     except (LedgerViolation, SaveSlotViolation, SceneGraphViolation, KnowledgeBridgeViolation, KeyError, json.JSONDecodeError) as error:
         print(json.dumps({"status": "error", "message": str(error)}, ensure_ascii=False, sort_keys=True))
         return 2
