@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://second-brain.local/schemas/SourceRegistry-v1.json",
+  "title": "SourceRegistry/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "sources", "registry_digest"],
+  "properties": {
+    "schema_version": {"const": "SourceRegistry/v1"},
+    "registry_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source_id", "source_class", "source_grade", "coverage_roles", "enabled"],
+        "properties": {
+          "source_id": {"type": "string", "minLength": 1},
+          "source_class": {
+            "enum": [
+              "OFFICIAL_PRIMARY",
+              "OFFICIAL_AUTHORIZED_MEDIA",
+              "INSTITUTIONAL_PRIMARY",
+              "PROFESSIONAL_MARKET_SOURCE",
+              "MAJOR_MEDIA",
+              "EXPERT_INTERPRETATION",
+              "SOCIAL_OR_RUMOR"
+            ]
+          },
+          "source_grade": {"enum": ["A1", "A2", "B1", "B2", "C1", "C2", "D"]},
+          "coverage_roles": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "FIRST_PARTY",
+                "MARKET_WIRE",
+                "COMPANY_DISCLOSURE",
+                "TECHNOLOGY_RELEASE",
+                "POLICY_REGULATORY",
+                "OVERSEAS_PROXY"
+              ]
+            }
+          },
+          "enabled": {"type": "boolean"}
+        }
+      }
+    }
+  }
+}
