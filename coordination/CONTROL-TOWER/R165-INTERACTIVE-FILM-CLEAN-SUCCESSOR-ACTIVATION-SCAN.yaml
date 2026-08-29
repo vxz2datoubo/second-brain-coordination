@@ -1,0 +1,114 @@
+schema: ControlTowerActivationScan/v1
+project: SECOND_BRAIN
+repository: vxz2datoubo/second-brain-coordination
+task_id: CODEX-R163-CLEAN-SUCCESSOR-R165
+route_epoch: 165
+source_issue: 499
+parent_issue: 494
+scan_kind: FRESH_CANONICAL_CONTROL_PLANE_RECONCILIATION
+scanned_main: 2a3f592725af5e99f4fe0aa66f5123ea87417953
+scan_result: PASS_PRE_SNAPSHOT
+execution_allowed_by_route: true
+substantive_write_allowed_at_scan_time: false
+substantive_write_blocker: ISSUE_499_EFFECTIVE_SPEC_SNAPSHOT_REQUIRED
+
+identity_checks:
+  route_status_ready: PASS
+  route_epoch_165_matches_claim_lease_reservation: PASS
+  source_issue_499_matches: PASS
+  executor_agent_type_is_CODEX: PASS
+  active_codex_task_exact_match: PASS
+  worker_slot_exact_match: PASS
+  implementation_branch_exact_match: PASS
+  implementation_baseline_exact_match: PASS
+  authorization_witness_matches: PASS
+  source_selection_provenance_matches: PASS
+  old_r163_gpt_slot_execution_allowed_false: PASS
+  pr495_frozen_unaccepted_evidence_only: PASS
+  pr493_reference_only_unaccepted_candidate: PASS
+
+portfolio_checks:
+  codex_active_execution_routes_observed: 1
+  codex_active_execution_routes_max: 1
+  codex_capacity: PASS
+  same_branch_writer_observed: 1
+  same_branch_writer_max: 1
+  same_branch_writer_limit: PASS
+  r163_old_writer_status: FROZEN_NO_EXECUTION
+  r164_gpt_worker_status: ACTIVE_GOVERNED_PREWRITE
+  r164_write_surface: W5_COORDINATION_AND_W5_WORKFLOW_ONLY
+  r165_write_surface: CREATIVE_RUNTIME_CLI_TESTS_R165_TASK_LOCAL_WORKFLOW
+  r164_r165_write_overlap: NONE
+  lane_a_write_overlap: NONE
+  lane_b_write_overlap: NONE
+  lane_c_projection_matches_r165: PASS
+  control_plane_projection_drift: NONE_OBSERVED_AFTER_R165_PROJECTION
+  overlap_class: O0_NO_MATERIAL_WRITE_OVERLAP_WITH_R164
+
+source_and_review_checks:
+  governance_dispatch: 5465018954
+  independent_governance_result: 5465273392
+  independent_governance_review: 5059352209
+  prior_r163_result: 5464901584
+  prior_r163_review: 5059197775
+  snapshot_provenance_disposition: INVALID_STALE_OR_MISSING_PREWRITE_AUTHORITY
+  implementation_disposition: TECHNICALLY_ACCEPTABLE_NOT_ACCEPTED
+  clean_nonretroactive_successor_permitted: PASS
+  pr495_mutation_authorized: false
+  pr495_merge_authorized: false
+  pr495_ready_authorized: false
+  pr495_commit_import_authorized: false
+  pr493_mutation_authorized: false
+
+clean_baseline_checks:
+  implementation_baseline: 0665cc0147fe7efae7e9498c36f9a87566ad036c
+  baseline_is_canonical_main_observed_by_independent_result: PASS
+  baseline_predates_r165_governance_artifacts: true
+  baseline_contains_43785: false
+  baseline_contains_53839a: false
+  branch_must_be_created_directly_from_baseline: true
+  cherry_pick_from_pr495_forbidden: true
+  merge_from_pr495_forbidden: true
+  rebase_onto_pr495_forbidden: true
+
+scope_checks:
+  allowed_write_paths:
+    - creative_runtime/**
+    - apps/cli/**
+    - tests/**
+    - coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/CLEAN-SUCCESSOR-R165/**
+    - .github/workflows/r165-interactive-film-clean-successor.yml
+    - .gitignore
+  route_task_brief_executor_write: FORBIDDEN
+  active_registry_executor_write: FORBIDDEN
+  control_tower_executor_write: FORBIDDEN
+  canonical_knowledge_write: FORBIDDEN
+  network_provider_runtime: FORBIDDEN
+  credentials_tokens_accounts: FORBIDDEN
+  external_or_paid_generation: FORBIDDEN
+  production_deployment_public_release: FORBIDDEN
+  trade_broker_order_fund_access: FORBIDDEN
+  second_ledger_gateway_resolver_authority: FORBIDDEN
+
+history_and_review_checks:
+  force_push: FORBIDDEN
+  rebase: FORBIDDEN
+  amend: FORBIDDEN
+  reset_shared_history: FORBIDDEN
+  self_review: FORBIDDEN
+  self_accept: FORBIDDEN
+  self_merge: FORBIDDEN
+  independent_exact_head_review_required: true
+  python_3_11_and_3_13_exact_head_ci_required: true
+  merge_authorized: false
+
+freshness_and_gate:
+  scanned_against_exact_main: 2a3f592725af5e99f4fe0aa66f5123ea87417953
+  effective_spec_snapshot_observed_at_scan: false
+  next_required_action: PUBLISH_EFFECTIVE_SPEC_SNAPSHOT_V1_ON_ISSUE_499
+  implementation_gate_after_scan: FAIL_CLOSED_PENDING_SNAPSHOT
+  scan_disposition: >-
+    Fresh canonical evidence shows the prior R163 GPT writer is frozen with no execution authority, R164 remains confined to a non-overlapping
+    W5 surface, the CODEX singleton slot is reserved to R165, and the clean implementation baseline excludes the frozen PR #495 remediation
+    commits. Identity, capacity, collision, scope, source-fence and reviewer-separation checks pass. Substantive R165 write remains closed until
+    Issue #499 publishes a valid EFFECTIVE_SPEC_SNAPSHOT/v1 before any CODEX implementation write.
