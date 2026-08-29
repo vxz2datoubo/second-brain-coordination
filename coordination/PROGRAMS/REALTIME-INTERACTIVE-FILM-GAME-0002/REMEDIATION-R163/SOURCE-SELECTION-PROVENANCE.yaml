@@ -1,0 +1,65 @@
+schema: SourceSelectionProvenance/v1
+project: SECOND_BRAIN
+task_id: GPT-R161-INTERACTIVE-FILM-REMEDIATION-R163
+route_epoch: 163
+source_issue: 494
+source_candidate:
+  repository: vxz2datoubo/second-brain-coordination
+  pr: 493
+  exact_head: 1dcd15011b02e5452186f178ea77746690d4d6a6
+  independent_review: 5058772386
+  review_verdict: BLOCKED
+  disposition: REFERENCE_ONLY_UNACCEPTED_CANDIDATE
+  accepted_asset: false
+  canonical: false
+  mutation_forbidden: true
+  retroactive_provenance_repair_forbidden: true
+selection_reason: >-
+  PR #493 contains useful bounded implementation experiments for scene graphs, save confinement, continuity diagnostics and offline
+  review packets, but its execution provenance was superseded and its v1 migration/timeline behavior has blocking defects. Selected
+  source paths may therefore be inspected and selectively adapted only under the fresh R163 worker identity. Nothing from this PR is
+  treated as accepted/canonical merely because it is reused.
+selected_reference_paths:
+  - path: apps/cli/creativectl.py
+    reuse_mode: SELECTIVE_ADAPTATION_AFTER_REVALIDATION
+    known_risks:
+      - legacy session.json shadowing during interactive startup
+      - incorrect intermediate timeline states
+  - path: creative_runtime/saves.py
+    reuse_mode: SELECTIVE_ADAPTATION_AFTER_REVALIDATION
+    known_risks:
+      - current v1->v2 migration only relabels envelope and does not translate true legacy semantics
+  - path: creative_runtime/scene_graph.py
+    reuse_mode: SELECTIVE_ADAPTATION_AFTER_REVALIDATION
+    known_risks:
+      - new graph identities differ from canonical predecessor v1 vocabulary
+  - path: creative_runtime/continuity.py
+    reuse_mode: SELECTIVE_ADAPTATION_AFTER_REVALIDATION
+    known_risks:
+      - identity continuity may be stricter than intended; non-blocking future calibration
+  - path: creative_runtime/review.py
+    reuse_mode: SELECTIVE_ADAPTATION_AFTER_REVALIDATION
+    known_risks:
+      - must remain exact-ledger/manifest bound and offline-only
+  - path: tests/test_interactive_s07_scene_graph.py
+    reuse_mode: TEST_IDEA_REFERENCE_ONLY
+    known_risks:
+      - existing migration fixture is not a genuine canonical predecessor v1 save
+  - path: tests/test_interactive_s09_continuity.py
+    reuse_mode: TEST_IDEA_REFERENCE_ONLY
+    known_risks: []
+  - path: tests/test_interactive_s10_review.py
+    reuse_mode: TEST_IDEA_REFERENCE_ONLY
+    known_risks: []
+forbidden_reuse:
+  - blind cherry-pick of PR #493 as accepted implementation
+  - describing PR #493 as independently accepted
+  - using PR #493 executor receipts as independent review
+  - copying any unregistered WorkBuddy/local/Eustia/external material
+verification_plan:
+  - compare selected code against canonical baseline 027642a231e214f8649b273f44de65c82a4901f9 and fresh R163 main baseline
+  - build genuine legacy v1 fixtures from canonical predecessor semantics
+  - add migration semantic equivalence and fail-closed tests
+  - add 3+ action prefix timeline truth tests
+  - run predecessor and successor suites in independently observable exact-head CI
+status: REGISTERED_BEFORE_REUSE
