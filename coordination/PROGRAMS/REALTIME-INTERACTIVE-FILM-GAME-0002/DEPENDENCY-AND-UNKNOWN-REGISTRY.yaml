@@ -1,0 +1,28 @@
+schema: DependencyAndUnknownRegistry/v1
+task_id: REALTIME-INTERACTIVE-FILM-GAME-0002
+agent_id: CODEX
+updated_at: "2026-08-29"
+dependencies:
+  - name: canonical creative_runtime
+    status: verified_reusable
+    evidence: "Tracked predecessor implementation at baseline 027642a"
+  - name: Python standard library
+    status: verified_reusable
+    evidence: "S07 tests use unittest, json, pathlib, tempfile, and os only"
+  - name: network/provider/credentials
+    status: intentionally_absent
+    evidence: "No S07 acceptance path calls or reads them"
+unknowns:
+  - id: U-S08-TERMINAL-LOOP
+    status: open
+    question: "Which plain-text loop shape is clearest while retaining the scriptable JSON command API?"
+    fail_closed_behavior: "Do not add a model or network-backed input interpreter."
+  - id: U-S09-CONTINUITY-CONTRACT
+    status: open
+    question: "Which existing director metadata can express cross-beat screen direction without a parallel director authority?"
+    fail_closed_behavior: "Material contradiction blocks a packet; diagnostics never rewrite story state."
+  - id: U-LEGACY-V1-SEMANTICS
+    status: resolved_with_rejection
+    question: "Can every predecessor v1 session be migrated to the multi-scene manifest?"
+    finding: "No. Migration is explicit only; records whose replay state is absent from the manifest are rejected."
+    evidence: "apps/cli/creativectl.py _load_session validates migrated replay against SceneGraph."
