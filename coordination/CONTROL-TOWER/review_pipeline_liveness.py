@@ -1,10 +1,25 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import re
 from typing import Any, Mapping
 
 
 STATUS_SCHEMA = "REVIEW_CYCLE_STATUS/v1"
+PROVENANCE_SCHEMA = "REVIEW_LIVENESS_PROVENANCE/v1"
+
+REQUIRED_LIVENESS_SURFACES = frozenset(
+    {
+        "REVIEW_QUEUE",
+        "PR_STATE",
+        "CI_PROVENANCE",
+        "CANONICALIZATION",
+        "CONTROL_TOWER_RELEASE",
+        "ENGINEERING_IMPLEMENTATION",
+        "REMEDIATION_REQUEUE",
+        "STALE_REQUEST_SCAN",
+    }
+)
 
 STALL_CLASSES = {
     "ACCEPTED_NOT_CANONICALIZED": ("BLOCKED", "CANONICALIZER"),
@@ -24,6 +39,25 @@ class ReviewPipelineLivenessError(ValueError):
 
 
 @dataclass(frozen=True)
+class SurfaceReadAttestation:
+    surface: str
+    source_ref: str
+    observed_revision: str
+    fresh: bool
+    complete: bool
+
+
+@dataclass(frozen=True)
+class LivenessProvenanceEnvelope:
+    schema: str
+    repository: str
+    queue_issue: int
+    canonical_main_sha: str
+    queue_snapshot_ref: str
+    surface_reads: tuple[SurfaceReadAttestation, ...]
+
+
+@dataclass(frozen=True)
 class LivenessEvidence:
     project: str
     queue_issue: int
@@ -36,7 +70,7 @@ class LivenessEvidence:
     remediation_not_requeued_ref: str | None = None
     stale_review_request_ref: str | None = None
     ci_or_provenance_blocked_ref: str | None = None
-    evidence_complete: bool = True
+    provenance: LivenessProvenanceEnvelope | None = None
     prior_stall_fingerprint: str | None = None
     prior_stall_repeat_count: int = 0
 
@@ -51,6 +85,48 @@ def _validate_count(value: int, name: str) -> int:
     if not isinstance(value, int) or isinstance(value, bool) or value < 0:
         raise ReviewPipelineLivenessError(f"{name}_INVALID")
     return value
+
+
+def _is_full_sha(value: str) -> bool:
+    return isinstance(value, str) and re.fullmatch(r"[0-9a-f]{40}", value) is not None
+
+
+def _provenance_is_complete(evidence: LivenessEvidence) -> bool:
+    envelope = evidence.provenance
+    if envelope is None:
+        return False
+    if envelope.schema != PROVENANCE_SCHEMA:
+        return False
+    if not isinstance(envelope.repository, str) or not envelope.repository.strip():
+        return False
+    if envelope.queue_issue != evidence.queue_issue:
+        return False
+    if not _is_full_sha(envelope.canonical_main_sha):
+        return False
+    if not isinstance(envelope.queue_snapshot_ref, str) or not envelope.queue_snapshot_ref.strip():
+        return False
+    if not isinstance(envelope.surface_reads, tuple):
+        return False
+
+    by_surface: dict[str, SurfaceReadAttestation] = {}
+    for read in envelope.surface_reads:
+        if not isinstance(read, SurfaceReadAttestation):
+            return False
+        if read.surface not in REQUIRED_LIVENESS_SURFACES:
+            return False
+        if read.surface in by_surface:
+            return False
+        if not isinstance(read.source_ref, str) or not read.source_ref.strip():
+            return False
+        if not isinstance(read.observed_revision, str) or not read.observed_revision.strip():
+            return False
+        if not isinstance(read.fresh, bool) or not isinstance(read.complete, bool):
+            return False
+        by_surface[read.surface] = read
+
+    if set(by_surface) != REQUIRED_LIVENESS_SURFACES:
+        return False
+    return all(read.fresh and read.complete for read in by_surface.values())
 
 
 def _select_blocker(e: LivenessEvidence) -> tuple[str, str | None]:
@@ -70,7 +146,7 @@ def _select_blocker(e: LivenessEvidence) -> tuple[str, str | None]:
         if ref:
             return blocker_class, ref
 
-    if not e.evidence_complete:
+    if not _provenance_is_complete(e):
         return "UNKNOWN_BLOCKED", None
     return "NORMAL_IDLE", None
 
@@ -169,7 +245,7 @@ def _validate_status_shape(value: Mapping[str, Any]) -> None:
 def validate_review_cycle_status(
     value: Mapping[str, Any], evidence: LivenessEvidence | None = None
 ) -> None:
-    """Fail closed unless status semantics exactly re-derive from trusted evidence."""
+    """Fail closed unless status semantics exactly re-derive from fresh provenance-bound evidence."""
     _validate_status_shape(value)
     if evidence is None:
         raise ReviewPipelineLivenessError("LIVENESS_EVIDENCE_REQUIRED")
