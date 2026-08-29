@@ -82,47 +82,61 @@ class R163MigrationTests(unittest.TestCase):
     def setUp(self) -> None:
         self.graph = SceneGraph(synthetic_three_scene_manifest())
 
-    def test_multi_action_migration_rebuilds_chain_and_preserves_declared_semantics(self) -> None:
+    def test_lossy_multi_action_mapping_fails_closed_instead_of_rewriting_v2_semantics(self) -> None:
+        """Legacy echo/approach lacks v2 echo_knock's clue=heard consequence.
+
+        R163 must preserve current v2 behavior and reject this old path rather than
+        weakening the v2 graph just to force a migration success.
+        """
         legacy = fixture_record("legacy_session_v1_multi_action.json")
         legacy_ledger = CreativeLedger.from_records(legacy["events"])
+        with self.assertRaisesRegex(SaveSlotViolation, "cannot be preserved losslessly"):
+            migrate_session(legacy, self.graph.manifest_hash, self.graph)
+        self.assertEqual(
+            semantic_state(legacy_ledger.replay()),
+            {
+                "relationships": {"mira": 1},
+                "known_facts": ["a witness is inside"],
+                "risk_level": 1,
+                "flags": {"meeting": "offered"},
+            },
+        )
+
+    def test_current_v2_echo_knock_semantics_are_not_weakened_for_migration(self) -> None:
+        state = self.graph.initial_state()
+        state, _ = self.graph.apply(state, "listen")
+        state, action = self.graph.apply(state, "knock")
+        self.assertEqual(action.transition_id, "echo_knock")
+        self.assertEqual(state.flags, {"clue": "heard"})
+
+    def test_resolution_terminal_has_explicit_lossless_mapping_and_preserves_semantics(self) -> None:
+        legacy = fixture_record("legacy_session_v1_resolution.json")
+        legacy_final = CreativeLedger.from_records(legacy["events"]).replay()
         migrated, migrations = migrate_session(legacy, self.graph.manifest_hash, self.graph)
-        migrated_ledger = CreativeLedger.from_records(migrated["events"])
+        ledger = CreativeLedger.from_records(migrated["events"])
 
         self.assertEqual(migrations, ("CreativeSession/v1->v2:r163-canonical-semantic-mapping",))
         self.assertEqual(migrated["schema"], "CreativeSession/v2")
         self.assertEqual(migrated["manifest_hash"], self.graph.manifest_hash)
-        self.assertEqual([event.payload["action"]["action_id"] for event in migrated_ledger.events[1:]], ["listen", "knock", "retreat"])
-        self.assertNotEqual(migrated_ledger.events[1].event_id, legacy_ledger.events[1].event_id)
-        final = migrated_ledger.replay()
-        self.assertEqual((final.scene_id, final.beat_id), ("dawn_courtyard", "return"))
-        self.assertEqual(semantic_state(final), semantic_state(legacy_ledger.replay()))
-
-        receipt = migrated["migration_receipt"]
-        self.assertEqual(receipt["source_baseline"], CANONICAL_LEGACY_BASELINE)
-        self.assertEqual(receipt["source_record_sha256"], "823af2e1eeaecae2c37a75679865ca9f525c0a1a4217414bac7eadec51ffa10c")
-        self.assertEqual(
-            [(item["legacy_beat_id"], item["legacy_action_id"], item["new_action_id"]) for item in receipt["event_mappings"]],
-            [("arrival", "listen", "listen"), ("echo", "approach", "knock"), ("threshold", "leave", "retreat")],
-        )
-        self.assertIsNone(receipt["terminal_mapping"])
-
-    def test_resolution_terminal_has_explicit_mapping_and_preserves_semantics(self) -> None:
-        legacy = fixture_record("legacy_session_v1_resolution.json")
-        legacy_final = CreativeLedger.from_records(legacy["events"]).replay()
-        migrated, _ = migrate_session(legacy, self.graph.manifest_hash, self.graph)
-        ledger = CreativeLedger.from_records(migrated["events"])
         self.assertEqual([event.payload["action"]["action_id"] for event in ledger.events[1:3]], ["knock", "promise"])
         self.assertEqual(ledger.events[-1].event_type, "state_patch")
         final = ledger.replay()
         self.assertEqual((final.scene_id, final.beat_id), ("dawn_courtyard", "return"))
         self.assertEqual(semantic_state(final), semantic_state(legacy_final))
-        self.assertEqual(migrated["migration_receipt"]["terminal_mapping"]["method"], "explicit_terminal_state_patch_after_promise")
-        self.assertEqual(migrated["migration_receipt"]["source_record_sha256"], "fc9344bbab521ad5ac5ff3177c1bbcbf15582643ede118b871af974dab0feeee")
 
-    def test_legacy_startup_migrates_before_default_creation_preserves_source_and_is_idempotent(self) -> None:
+        receipt = migrated["migration_receipt"]
+        self.assertEqual(receipt["source_baseline"], CANONICAL_LEGACY_BASELINE)
+        self.assertEqual(receipt["source_record_sha256"], "fc9344bbab521ad5ac5ff3177c1bbcbf15582643ede118b871af974dab0feeee")
+        self.assertEqual(
+            [(item["legacy_beat_id"], item["legacy_action_id"], item["new_action_id"]) for item in receipt["event_mappings"]],
+            [("arrival", "approach", "knock"), ("threshold", "listen", "promise")],
+        )
+        self.assertEqual(receipt["terminal_mapping"]["method"], "explicit_terminal_state_patch_after_promise")
+
+    def test_legacy_startup_migrates_lossless_fixture_before_default_creation_preserves_source_and_is_idempotent(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             workspace = Path(directory)
-            source = fixture_bytes("legacy_session_v1_multi_action.json")
+            source = fixture_bytes("legacy_session_v1_resolution.json")
             (workspace / "session.json").write_bytes(source)
             output = io.StringIO()
             result = creativectl.terminal_loop(workspace, io.StringIO("quit\n"), output)
@@ -133,11 +147,29 @@ class R163MigrationTests(unittest.TestCase):
             first_default = default.read_bytes()
             migrated = json.loads(first_default)
             self.assertEqual(migrated["migration_history"], ["CreativeSession/v1->v2:r163-canonical-semantic-mapping"])
+            self.assertEqual(
+                semantic_state(CreativeLedger.from_records(migrated["events"]).replay()),
+                semantic_state(CreativeLedger.from_records(fixture_record("legacy_session_v1_resolution.json")["events"]).replay()),
+            )
 
             second = creativectl.terminal_loop(workspace, io.StringIO("quit\n"), io.StringIO())
             self.assertEqual(second["status"], "quit")
             self.assertEqual(default.read_bytes(), first_default)
             self.assertEqual((workspace / "session.json").read_bytes(), source)
+
+    def test_semantically_unrepresentable_real_legacy_is_user_visible_and_never_shadowed(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory)
+            source = fixture_bytes("legacy_session_v1_multi_action.json")
+            (workspace / "session.json").write_bytes(source)
+            output = io.StringIO()
+            result = creativectl.terminal_loop(workspace, io.StringIO("quit\n"), output)
+            self.assertEqual(result["status"], "legacy_incompatible")
+            self.assertTrue(result["legacy_session_preserved"])
+            self.assertFalse(result["default_session_created"])
+            self.assertIn("original preserved", output.getvalue())
+            self.assertEqual((workspace / "session.json").read_bytes(), source)
+            self.assertFalse((workspace / "saves" / "default.json").exists())
 
     def test_corrupt_legacy_is_user_visible_fail_closed_and_never_shadowed(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
