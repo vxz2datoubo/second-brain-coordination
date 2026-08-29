@@ -1,0 +1,139 @@
+schema: TaskBrief/v1
+project: SECOND_BRAIN
+repository: vxz2datoubo/second-brain-coordination
+task_id: CODEX-R163-CLEAN-SUCCESSOR-R165
+route_epoch: 165
+source_issue: 499
+parent_issue: 494
+source_program_issue: 492
+executor: CODEX
+implementation_baseline: 0665cc0147fe7efae7e9498c36f9a87566ad036c
+branch: codex/r165-r163-clean-successor
+status: READY_PENDING_PREWRITE_SNAPSHOT
+
+objective: >-
+  Reimplement the complete confirmed R163 remediation as one clean, non-retroactive CODEX bounded slice from canonical main,
+  without importing any implementation commit from frozen PR #495.
+
+required_behaviors:
+  state_patch_boundary:
+    - caller-minted or recomputable-hash CreativeSession/v2 state_patch MUST fail closed
+    - rejection MUST occur before SaveStore load, timeline, DirectorSequence/continuity, or review packet consumption
+    - append-only hashes are integrity only and MUST NOT mint state mutation authority
+  legacy_terminal_bridge:
+    - retain only the genuine canonical legacy-resolution terminal-equivalence bridge
+    - bridge provenance MUST be typed, mechanically validated, source-bound and replay-verifiable
+    - forged typed provenance or recomputed hashes MUST NOT authorize the bridge
+    - bridge MUST NOT become a reusable caller template
+  migration_durability:
+    - migration receipt/history/provenance MUST persist across continued play
+    - persistence MUST cover choose, say, repeated save, slot save, slot load and restore
+    - native v2 MUST remain unmarked as migrated
+  legacy_preservation:
+    - original legacy source bytes MUST remain unchanged
+    - incompatible, malformed, noncanonical or lossy legacy MUST fail closed
+    - no shadow or misleading default may be created on failed migration
+  semantics:
+    - current SceneGraph semantics MUST NOT be weakened merely to fit legacy history
+    - no second Ledger/Gateway/Resolver/Authority or canonical knowledge source
+
+required_regressions:
+  inherited:
+    - all predecessor S00-S06 regressions still applicable on canonical baseline
+    - all R163 A genuine migration regressions
+    - all R163 B exact-prefix timeline regressions
+    - all R163 C independently observable end-to-end evidence regressions
+    - all R163 D review-ticket/evidence expectations applicable to successor
+  adversarial:
+    - direct hash-valid caller state_patch jump
+    - direct jump through load/timeline/director/review surfaces
+    - forged typed migration provenance with recomputed event hashes
+    - sibling-slot save/load/restore attack
+    - migration provenance persistence after choose
+    - migration provenance persistence after say
+    - repeated save persistence
+    - native-v2 nonlabeling
+    - original legacy source preservation
+    - incompatible legacy fail-closed without shadow default
+    - wrong transition id
+    - wrong resulting_patch
+    - unknown action
+    - second or post-prefix state_patch/migration-source mint attempt
+
+allowed_write_paths:
+  - creative_runtime/**
+  - apps/cli/**
+  - tests/**
+  - coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/CLEAN-SUCCESSOR-R165/**
+  - .github/workflows/r165-interactive-film-clean-successor.yml
+  - .gitignore
+
+forbidden_paths_and_actions:
+  - coordination/ROUTES/** executor mutation
+  - coordination/TASK-BRIEFS/** executor mutation
+  - coordination/ACTIVE-*.yaml executor mutation
+  - coordination/CONTROL-TOWER/** executor mutation
+  - PR #493 mutation
+  - PR #495 mutation, Ready transition or merge
+  - cherry-pick/merge/rebase/copy-as-authorized-asset from PR #495 remediation commits
+  - credentials, tokens, accounts or secrets
+  - network/provider/model calls for runtime or tests
+  - external or paid generation
+  - deployment/public release/production action
+  - trading/broker/account/order/funds
+  - canonical W3/knowledge/domain-truth write
+  - force-push/rebase/amend/reset/history rewrite
+  - self-review/self-accept/self-merge
+
+clean_start_checks:
+  - git status --short
+  - git rev-parse HEAD
+  - git rev-parse --abbrev-ref HEAD
+  - git merge-base HEAD 0665cc0147fe7efae7e9498c36f9a87566ad036c
+  - git log --oneline --decorate --max-count=20
+  - git branch --contains 43785fd2f24e0c9e640bdc7d26d09351c836d8c9
+  - git merge-base --is-ancestor 43785fd2f24e0c9e640bdc7d26d09351c836d8c9 HEAD && exit 1 || true
+  - git merge-base --is-ancestor 53839a4285b5b77b9c95242f4ed104fc5b9c871b HEAD && exit 1 || true
+
+local_validation_commands:
+  - python -m pytest -q tests/test_r163_legacy_migration.py tests/test_r163_timeline.py tests/test_r163_c_end_to_end.py
+  - python -m pytest -q tests
+  - python -m compileall -q creative_runtime apps/cli tests
+  - git diff --check 0665cc0147fe7efae7e9498c36f9a87566ad036c...HEAD
+  - git status --short
+
+scope_and_provenance_checks:
+  - git diff --name-only 0665cc0147fe7efae7e9498c36f9a87566ad036c...HEAD
+  - git rev-list --ancestry-path 0665cc0147fe7efae7e9498c36f9a87566ad036c..HEAD
+  - git log --format='%H %P %s' 0665cc0147fe7efae7e9498c36f9a87566ad036c..HEAD
+  - verify no commit has parent 43785fd2f24e0c9e640bdc7d26d09351c836d8c9 or any of its five post-review remediation commits
+  - verify changed paths are within route allowlist
+  - verify PR #493 and PR #495 refs/state were not mutated
+
+ci_requirement:
+  workflow_path: .github/workflows/r165-interactive-film-clean-successor.yml
+  exact_head_checkout_assertion_required: true
+  python_matrix: ["3.11", "3.13"]
+  required_jobs:
+    - exact-head provenance/ancestry assertion
+    - inherited R163 regression suite
+    - adversarial state_patch/provenance suite
+    - full repository-supported tests within bounded runtime
+    - diff hygiene and allowed-path audit
+    - forbidden-capability audit
+  both_python_versions_must_pass: true
+
+handoff_required:
+  - exact head SHA
+  - branch and baseline
+  - changed files
+  - exact commands and results
+  - CI run ID and Python 3.11/3.13 job IDs
+  - clean baseline and ancestry proof
+  - explicit no cherry-pick/no import from PR #495 attestation
+  - explicit no self-review/no self-accept/no merge attestation
+  - append NEW REVIEW_REQUEST/v1 to Issue #453 bound to successor pre-write snapshot and exact head
+
+completion_rule: >-
+  Codex may continuously implement, test, commit and push this one bounded branch after the pre-write snapshot opens the gate.
+  Codex MUST stop after engineering handoff/review request and MUST NOT review, accept, Ready or merge its own candidate.
