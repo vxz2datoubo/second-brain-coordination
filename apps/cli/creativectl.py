@@ -20,6 +20,7 @@ if str(ROOT) not in sys.path:
 
 from creative_runtime.contracts import PlayerAction, StoryState, canonical_json
 from creative_runtime.ledger import CreativeLedger, LedgerViolation
+from creative_runtime.knowledge import KnowledgeBridgeViolation, KnowledgeReviewBridge
 
 
 SCHEMA = "CreativeSession/v1"
@@ -93,6 +94,22 @@ def _load_session(workspace: Path) -> CreativeLedger:
     if data.get("schema") != SCHEMA:
         raise LedgerViolation("Unsupported session schema")
     return CreativeLedger.from_records(data.get("events", []))
+
+
+def _knowledge_path(workspace: Path) -> Path:
+    return workspace / "knowledge-review.json"
+
+
+def _load_knowledge(workspace: Path) -> KnowledgeReviewBridge:
+    path = _knowledge_path(workspace)
+    if not path.is_file():
+        return KnowledgeReviewBridge()
+    return KnowledgeReviewBridge.from_records(json.loads(path.read_text(encoding="utf-8")).get("candidates", []))
+
+
+def _write_knowledge(workspace: Path, bridge: KnowledgeReviewBridge) -> None:
+    workspace.mkdir(parents=True, exist_ok=True)
+    _knowledge_path(workspace).write_text(canonical_json({"schema": "CreativeKnowledgeReview/v1", "candidates": bridge.to_records()}) + "\n", encoding="utf-8")
 
 
 def _view(ledger: CreativeLedger) -> dict[str, Any]:
@@ -183,6 +200,19 @@ def run(argv: list[str]) -> dict[str, Any]:
     say_parser.add_argument("text")
     subparsers.add_parser("resume")
     subparsers.add_parser("replay")
+    knowledge_parser = subparsers.add_parser("knowledge")
+    knowledge_subparsers = knowledge_parser.add_subparsers(dest="knowledge_command", required=True)
+    knowledge_search = knowledge_subparsers.add_parser("search")
+    knowledge_search.add_argument("query")
+    knowledge_correct = knowledge_subparsers.add_parser("correct")
+    knowledge_correct.add_argument("assertion")
+    knowledge_correct.add_argument("--source-event-id", action="append", default=[])
+    knowledge_correct.add_argument("--source-artifact-id", action="append", default=[])
+    knowledge_review = knowledge_subparsers.add_parser("review")
+    knowledge_review.add_argument("candidate_id")
+    knowledge_review.add_argument("--reviewer", required=True)
+    knowledge_review.add_argument("--approve", action="store_true")
+    knowledge_review.add_argument("--note", default="")
     args = parser.parse_args(argv)
     if args.command == "init":
         return initialize(args.workspace)
@@ -195,13 +225,25 @@ def run(argv: list[str]) -> dict[str, Any]:
     if args.command == "replay":
         ledger = _load_session(args.workspace)
         return {**_view(ledger), "status": "replayed", "event_count": len(ledger.events)}
+    if args.command == "knowledge":
+        bridge = _load_knowledge(args.workspace)
+        if args.knowledge_command == "search":
+            return {"status": "searched", "candidates": [item.to_dict() for item in bridge.search(args.query)]}
+        if args.knowledge_command == "correct":
+            candidate = bridge.correct(args.assertion, source_event_ids=args.source_event_id, source_artifact_ids=args.source_artifact_id)
+            _write_knowledge(args.workspace, bridge)
+            return {"status": "pending_human_review", "candidate": candidate.to_dict()}
+        if args.knowledge_command == "review":
+            candidate = bridge.review(args.candidate_id, args.reviewer, args.approve, args.note)
+            _write_knowledge(args.workspace, bridge)
+            return {"status": "reviewed", "candidate": candidate.to_dict(), "canonical_write": False}
     raise AssertionError("unreachable")
 
 
 def main() -> int:
     try:
         print(json.dumps(run(sys.argv[1:]), ensure_ascii=False, sort_keys=True, indent=2))
-    except (LedgerViolation, KeyError, json.JSONDecodeError) as error:
+    except (LedgerViolation, KnowledgeBridgeViolation, KeyError, json.JSONDecodeError) as error:
         print(json.dumps({"status": "error", "message": str(error)}, ensure_ascii=False, sort_keys=True))
         return 2
     return 0

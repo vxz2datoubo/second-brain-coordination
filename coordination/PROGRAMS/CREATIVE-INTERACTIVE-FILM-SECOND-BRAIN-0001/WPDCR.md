@@ -74,3 +74,17 @@ agent_id: CODEX
   omitted dominant change also block.
 - **Next gate:** S04 may package evidence and proposed corrections, but must not
   write any canonical knowledge truth or change the official skill index.
+
+## S04_SECOND_BRAIN_KNOWLEDGE_REVIEW_BRIDGE
+
+- **Primary work and process trace:** build an isolated candidate-packet store
+  with `knowledge search`, `correct`, and `review` CLI commands. Each correction
+  needs an event or artifact reference; no import from `brain_core` or canonical
+  write API exists in this implementation.
+- **Authority result:** `canonical_write_enabled` is hard-coded false. A named,
+  non-executor reviewer can only mark a local candidate as reusable; it cannot
+  mutate a formal skill index.
+- **Negative results:** source-free corrections and CODEX/executor self-review
+  raise deterministic errors.
+- **Next gate:** S05 must consume only a passed S03 report and return simulated
+  results unless an explicitly governed future extension changes the route.

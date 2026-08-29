@@ -20,6 +20,7 @@ from .contracts import (
 )
 from .ledger import CreativeLedger, LedgerViolation, create_artifact
 from .director import DirectorCompilation, QualityFinding, QualityReport, compile_director
+from .knowledge import KnowledgeBridgeViolation, KnowledgeCandidate, KnowledgeReviewBridge
 
 __all__ = [
     "CreativeArtifact",
@@ -31,6 +32,9 @@ __all__ = [
     "GenerationResult",
     "GovernanceViolation",
     "LedgerViolation",
+    "KnowledgeBridgeViolation",
+    "KnowledgeCandidate",
+    "KnowledgeReviewBridge",
     "PlayerAction",
     "QualityFinding",
     "QualityReport",
