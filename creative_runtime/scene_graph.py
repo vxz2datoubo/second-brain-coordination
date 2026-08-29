@@ -100,16 +100,14 @@ class SceneGraph:
                     patch = transition.get("patch", {})
                     if not isinstance(patch, Mapping):
                         raise SceneGraphViolation("Transition patch must be an object")
-                    graph_actions.append(
-                        GraphAction(
-                            action_id=action_id,
-                            label=str(raw_action.get("label", action_id)),
-                            transition_id=self._validate_identifier(transition.get("transition_id"), "transition_id"),
-                            target_scene_id=self._validate_identifier(target.get("scene_id"), "target scene_id"),
-                            target_beat_id=self._validate_identifier(target.get("beat_id"), "target beat_id"),
-                            patch=dict(patch),
-                        )
-                    )
+                    graph_actions.append(GraphAction(
+                        action_id=action_id,
+                        label=str(raw_action.get("label", action_id)),
+                        transition_id=self._validate_identifier(transition.get("transition_id"), "transition_id"),
+                        target_scene_id=self._validate_identifier(target.get("scene_id"), "target scene_id"),
+                        target_beat_id=self._validate_identifier(target.get("beat_id"), "target beat_id"),
+                        patch=dict(patch),
+                    ))
                 self._beats[(scene_id, beat_id)] = GraphBeat(
                     scene_id=scene_id,
                     beat_id=beat_id,
@@ -189,7 +187,7 @@ def synthetic_three_scene_manifest() -> dict[str, Any]:
                         "text": "A quiet voice names an old case number.",
                         "recap": "A witness has spoken from inside.",
                         "actions": [
-                            {"action_id": "knock", "label": "Knock with care", "transition": {"transition_id": "echo_knock", "target": {"scene_id": "interior_archive", "beat_id": "threshold"}, "patch": {"relationship_delta": {"mira": 1}}}},
+                            {"action_id": "knock", "label": "Knock with care", "transition": {"transition_id": "echo_knock", "target": {"scene_id": "interior_archive", "beat_id": "threshold"}, "patch": {"relationship_delta": {"mira": 1}, "flags": {"clue": "heard"}}}},
                             {"action_id": "record", "label": "Record the clue and withdraw", "transition": {"transition_id": "echo_record", "target": {"scene_id": "dawn_courtyard", "beat_id": "return"}, "patch": {"flags": {"clue": "recorded"}}}},
                         ],
                     },
