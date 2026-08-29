@@ -17,3 +17,21 @@ and rejects a graph whose declared initial state does not match the ledger.
 
 No network, credentials, paid generation, deployment, private media, or
 canonical second-brain write participates in the proof.
+
+## Clean-clone second pass
+
+A detached fresh worktree was created directly at
+`bdde8fb2f36159eaccba4fa78ec10d70528cfdc8` and had no working-tree changes.
+The two route-prescribed command groups passed there:
+
+```text
+python -m unittest discover -s tests -p 'test_creative_s*.py' -v
+Ran 22 tests
+OK
+
+python -m unittest discover -s tests -p 'test_interactive_s*.py' -v
+Ran 11 tests
+OK
+```
+
+This is a clean-clone executor second pass, not independent agent review.

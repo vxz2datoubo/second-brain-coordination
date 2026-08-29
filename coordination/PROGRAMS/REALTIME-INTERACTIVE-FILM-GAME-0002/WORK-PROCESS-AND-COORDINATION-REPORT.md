@@ -59,3 +59,12 @@ deterministic transcript, multi-beat director diagnostics, final state, and a
 whole-packet digest. The golden all-synthetic playthrough is asserted in tests.
 The packet contains explicit `generation_called: false` and
 `canonical_knowledge_written: false` facts; it is evidence, not authority.
+
+## Completion checkpoint and transfer
+
+S07-S10 implementation was clean-clone verified from detached commit
+`bdde8fb2f36159eaccba4fa78ec10d70528cfdc8`: the predecessor suite reported
+22 passing tests and the R161 interactive suite reported 11 passing tests.
+The implementation is now ready for GPT's independent exact-head review via
+Issue #453. This is a transfer for review and integration, **not** a claim of
+independent verification or merge authorization by CODEX.
