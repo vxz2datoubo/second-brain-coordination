@@ -1,0 +1,107 @@
+name: W5 Event Coverage P0 VS1
+
+on:
+  pull_request:
+    paths:
+      - 'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/**'
+      - '.github/workflows/w5-event-coverage-p0-vs1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install retained-suite dependency
+        run: python -m pip install --disable-pip-version-check PyYAML
+
+      - name: Compile runtime
+        run: >-
+          python -m py_compile
+          coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/event_coverage.py
+
+      - name: P0-VS1 adversarial regressions
+        run: >-
+          python -m unittest discover
+          -s coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/tests
+          -p 'test_*.py' -v
+
+      - name: Parse JSON schemas
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path('coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE')
+          schemas = sorted(root.glob('*.schema.json'))
+          assert len(schemas) == 3, schemas
+          for path in schemas:
+              with path.open(encoding='utf-8') as handle:
+                  doc = json.load(handle)
+              assert doc.get('$schema') == 'https://json-schema.org/draft/2020-12/schema'
+              assert doc.get('additionalProperties') is False
+          print('W5_EVENT_COVERAGE_SCHEMAS_PASS')
+          PY
+
+      - name: Authority boundary static gate
+        run: |
+          python - <<'PY'
+          import importlib.util
+          from pathlib import Path
+          path = Path('coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/event_coverage.py')
+          spec = importlib.util.spec_from_file_location('event_coverage', path)
+          module = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(module)
+          assert module.AUTHORITY
+          assert all(value is False for value in module.AUTHORITY.values())
+          forbidden_true = {'grants_trading', 'grants_merge', 'grants_release', 'grants_domain_write', 'grants_w3_write'}
+          assert all(module.AUTHORITY[name] is False for name in forbidden_true)
+          print('W5_EVENT_COVERAGE_AUTHORITY_BOUNDARY_PASS')
+          PY
+
+      - name: Retained Control Tower regressions
+        run: python -m unittest discover -s coordination/CONTROL-TOWER/tests -p 'test_*.py'
+
+      - name: Exact bounded file scope
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          git fetch origin "$BASE_REF" --depth=1
+          python - <<'PY'
+          import os
+          import subprocess
+          expected = {
+              '.github/workflows/w5-event-coverage-p0-vs1.yml',
+              'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/CLAIM-EVIDENCE-LEDGER.schema.json',
+              'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/EVENT-COVERAGE-REPORT.schema.json',
+              'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/PROJECT-PLAN.md',
+              'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/SOURCE-REGISTRY.schema.json',
+              'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/event_coverage.py',
+              'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/tests/test_event_coverage.py',
+          }
+          base = os.environ['BASE_REF']
+          out = subprocess.check_output(
+              ['git', 'diff', '--name-only', f'origin/{base}...HEAD'], text=True
+          )
+          actual = {line for line in out.splitlines() if line}
+          if actual != expected:
+              raise SystemExit(f'changed-file scope mismatch: {sorted(actual)}')
+          print('W5_EVENT_COVERAGE_EXACT_SCOPE_PASS')
+          PY
+
+      - name: Whitespace gate
+        run: git diff --check
