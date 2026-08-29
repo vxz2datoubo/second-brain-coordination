@@ -1,0 +1,122 @@
+schema: ControlTowerActivationScan/v1
+project: SECOND_BRAIN
+repository: vxz2datoubo/second-brain-coordination
+task_id: GPT-R161-INTERACTIVE-FILM-REMEDIATION-R163
+route_epoch: 163
+source_issue: 494
+parent_issue: 492
+scan_kind: FRESH_CANONICAL_CONTROL_PLANE_RECONCILIATION
+scanned_main: cb13aed7e710f3033b0cb4c8c4c4a3d057c6dc79
+scan_result: PASS_PRE_SNAPSHOT
+execution_allowed_by_route: true
+substantive_write_allowed_at_scan_time: false
+substantive_write_blocker: ISSUE_494_EFFECTIVE_SPEC_SNAPSHOT_REQUIRED
+
+exact_inputs:
+  route:
+    path: coordination/ROUTES/GPT-R161-INTERACTIVE-FILM-REMEDIATION-R163.yaml
+    blob_sha: 62c4d201ee1ed248c0d1a26e43a0291230a41b09
+  task_brief:
+    path: coordination/TASK-BRIEFS/GPT-R161-INTERACTIVE-FILM-REMEDIATION-R163.yaml
+    blob_sha: ecc7f914bec2b715597a306710a05a5a1cec0fd8
+  gpt_worker_registry:
+    path: coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml
+    blob_sha: 08c9c0ee301af8302838a03a98cd2e1f24a5ee08
+  program_lane_projection:
+    path: coordination/ACTIVE-PROGRAM-LANES.yaml
+    blob_sha: e8c6d1a17a45f634dfbae300038e5578d2e8376d
+  codex_active:
+    path: coordination/ACTIVE-CODEX-TASK.yaml
+    blob_sha: e0481df0a645276459a5d213209c9dc5be199147
+  work_claim:
+    path: coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/REMEDIATION-R163/WORK-CLAIM.yaml
+    blob_sha: de16ad472c3a18b5e1bf783deed5922e4936ee34
+  authorization_witness:
+    path: coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/REMEDIATION-R163/AUTHORIZATION-WITNESS.yaml
+    blob_sha: 7cad7e8a67208cab9f12db44fc28d6cb523cf094
+  source_selection_provenance:
+    path: coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/REMEDIATION-R163/SOURCE-SELECTION-PROVENANCE.yaml
+    blob_sha: 9812d64e7e0ff557233c73571b931613432e62f4
+
+identity_checks:
+  route_status_ready: PASS
+  route_execution_allowed_true: PASS
+  route_epoch_163_matches_claim: PASS
+  source_issue_494_matches: PASS
+  executor_agent_type_is_GPT_ENGINEERING_WORKER: PASS
+  worker_slot_exact_match: PASS
+  implementation_branch_exact_match: PASS
+  implementation_baseline_exact_match: PASS
+  authorization_witness_matches_route_and_slot: PASS
+  work_claim_matches_route_and_slot: PASS
+  active_gpt_registry_contains_exact_slot: PASS
+  active_codex_execution_is_false: PASS
+  r161_codex_identity_not_reused: PASS
+  codex_impersonation_absent: PASS
+
+portfolio_checks:
+  active_gpt_worker_slots_observed: 1
+  gpt_worker_slot_capacity: 2
+  worker_slot_capacity: PASS
+  same_branch_writer_observed: 1
+  same_branch_writer_max: 1
+  same_branch_writer_limit: PASS
+  other_active_gpt_slot_write_overlap: NONE
+  lane_a_write_overlap: NONE
+  lane_b_write_overlap: NONE
+  lane_c_projection_matches_r163_slot: PASS
+  control_plane_projection_drift: NONE_OBSERVED
+  overlap_class: O1_READ_ONLY_COEXISTENCE_WITH_OTHER_LANES
+
+source_and_review_checks:
+  blocked_source_pr: 493
+  blocked_source_exact_head: 1dcd15011b02e5452186f178ea77746690d4d6a6
+  blocked_source_review: 5058772386
+  blocked_review_intake: 5463948297
+  spec_snapshot_gate: 5463716847
+  source_candidate_disposition: REFERENCE_ONLY_UNACCEPTED_CANDIDATE
+  source_pr_mutation_authorized: false
+  source_pr_merge_authorized: false
+  source_pr_relabel_as_accepted_authorized: false
+  source_selection_provenance_registered_before_reuse: PASS
+
+scope_checks:
+  allowed_write_paths:
+    - creative_runtime/**
+    - apps/cli/**
+    - tests/**
+    - coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/REMEDIATION-R163/**
+    - .github/workflows/r163-interactive-film-remediation.yml
+    - .gitignore (narrow task/runtime-generated rules only)
+  control_tower_worker_write: FORBIDDEN
+  active_registry_worker_write: FORBIDDEN
+  route_task_brief_worker_write: FORBIDDEN
+  canonical_knowledge_write: FORBIDDEN
+  cross_repo_write: FORBIDDEN
+  external_workbuddy_eustia_local_asset_import: FORBIDDEN
+  credential_secret_account_access: FORBIDDEN
+  external_or_paid_generation: FORBIDDEN
+  production_deployment_public_release: FORBIDDEN
+  trade_account_order_fund_access: FORBIDDEN
+
+history_and_review_checks:
+  force_push: FORBIDDEN
+  rebase: FORBIDDEN
+  amend: FORBIDDEN
+  reset_shared_history: FORBIDDEN
+  self_review: FORBIDDEN
+  self_accept: FORBIDDEN
+  self_merge: FORBIDDEN
+  independent_exact_head_review_required: true
+  merge_authorized: false
+
+freshness_and_gate:
+  scanned_against_exact_main: cb13aed7e710f3033b0cb4c8c4c4a3d057c6dc79
+  effective_spec_snapshot_observed_at_scan: false
+  next_required_action: PUBLISH_EFFECTIVE_SPEC_SNAPSHOT_V1_ON_ISSUE_494
+  implementation_gate_after_scan: FAIL_CLOSED_PENDING_SNAPSHOT
+  scan_disposition: >-
+    Canonical route, worker slot, Work Claim, authorization witness, source-selection provenance and portfolio projection are mutually
+    consistent at the scanned main. No R161/CODEX execution authority remains. The activation scan therefore passes the identity,
+    WIP/collision, source-provenance and scope checks, but substantive remediation remains explicitly blocked until Issue #494 contains
+    a valid EFFECTIVE_SPEC_SNAPSHOT/v1 created before substantive write.
