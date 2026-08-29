@@ -7,6 +7,8 @@ pr: 495
 executor_agent_type: GPT_ENGINEERING_WORKER
 worker_slot_id: GPT-WORKER-R163-INTERACTIVE-FILM-REMEDIATION-1
 effective_spec_snapshot_id: SECOND-BRAIN-R163-ISSUE494-SNAPSHOT-001
+effective_spec_snapshot_ref: https://github.com/vxz2datoubo/second-brain-coordination/issues/494#issuecomment-5464074732
+snapshot_canonical_base: faed675036eb535218eaf8dc867fe29512175db1
 frozen_root_baseline: 58cd5b271164eff71b0824ee42df2723cbc0247d
 source_candidate:
   pr: 493
@@ -14,8 +16,8 @@ source_candidate:
   disposition: REFERENCE_ONLY_UNACCEPTED_CANDIDATE
   accepted_asset: false
   mutation_forbidden: true
-current_slice: C_INDEPENDENTLY_OBSERVABLE_EXACT_HEAD_EVIDENCE
-implementation_status: COMPLETE_PENDING_CURRENT_HEAD_ACTIONS_RESULT
+current_slice: D_FINAL_ENGINEERING_HANDOFF
+implementation_status: SUBSTANTIVE_COMPLETE_FINAL_EVIDENCE_COMMIT
 freshness:
   reconciled_main: 0665cc0147fe7efae7e9498c36f9a87566ad036c
   pr_base_recorded: faed675036eb535218eaf8dc867fe29512175db1
@@ -25,8 +27,10 @@ freshness:
 completed:
   A:
     - genuine canonical CreativeSession/v1 fixtures from predecessor 027642a231e214f8649b273f44de65c82a4901f9
-    - deterministic lossless mapping or user-visible fail-closed incompatibility
+    - deterministic lossless mapping only when current v2 graph preserves legacy semantic fields
+    - explicit fail-closed incompatibility when the current graph would add or change legacy consequences
     - legacy session.json source preservation and no default shadowing
+    - canonical v2 graph semantics remain authoritative and are not weakened to make legacy migration pass
   B:
     - per-event exact prefix timeline replay
     - graph/transition/patch mismatch fail closed
@@ -42,7 +46,7 @@ completed:
     - deterministic offline review packet binding manifest hash, session schema, event digest, transcript, timeline, director diagnostics and final state
     - explicit generation_called=false and canonical_knowledge_written=false
     - CLI coverage for init, legacy startup, choose, say, resume, replay, timeline, slot save/load/list/delete, transcript, compare, director, review-packet and interactive offline entry
-    - exact-head workflow expanded for C on Python 3.11 and 3.13
+    - exact-head workflow on Python 3.11 and 3.13
 fixtures:
   c_resume:
     path: tests/fixtures/r163/legacy_session_v1_resume.json
@@ -51,21 +55,30 @@ fixtures:
     migrated_state: interior_archive/threshold
     continuation: [promise, depart]
 source_reuse_evidence: coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/REMEDIATION-R163/C-SOURCE-REUSE-RECEIPT.yaml
+pre_final_exact_head_validation:
+  exact_head: fd3cd94d36cfa47de7bf286f2fb5fa39ca36b9e1
+  workflow: R163 Interactive Film Remediation
+  run_id: 33272571690
+  conclusion: success
+  python_3_11_job: 99153595415
+  python_3_11_conclusion: success
+  python_3_13_job: 99153595534
+  python_3_13_conclusion: success
+  successful_steps:
+    - exact PR head checkout and assertion
+    - predecessor S00-S06 regression
+    - R163 A genuine legacy migration regression
+    - R163 B per-event prefix timeline truth
+    - R163 C end-to-end independently observable evidence
+    - git diff --check
+    - changed-file scope and forbidden-capability audit
 validation_contract:
   evidence_class: INDEPENDENTLY_OBSERVABLE_EXECUTION_EVIDENCE
   executor_local_is_independent_review: false
   workflow: .github/workflows/r163-interactive-film-remediation.yml
   python_versions: ['3.11', '3.13']
-  required_steps:
-    - exact PR head checkout and assertion
-    - predecessor S00-S06
-    - R163 A
-    - R163 B
-    - R163 C end-to-end
-    - git diff --check
-    - changed-file scope
-    - forbidden-capability scan
-  final_run_binding: TO_BE_ATTESTED_ON_PR_AFTER_ACTIONS_COMPLETES_WITHOUT_CHANGING_HEAD
+  final_exact_head_rule: FINAL_HEAD_MUST_COMPLETE_THE_SAME_WORKFLOW_SUCCESSFULLY_AFTER_THIS_EVIDENCE_COMMIT
+  final_result_binding: APPEND_ONLY_PR_495_ATTESTATION_AND_ISSUE_453_REVIEW_REQUEST_WITHOUT_FURTHER_BRANCH_MUTATION
 hard_boundaries_preserved:
   credential_read: false
   network_runtime_dependency: false
@@ -79,6 +92,8 @@ hard_boundaries_preserved:
   self_merge: false
   history_rewrite: false
 open_scope:
-  - D_453_REVIEW_REQUEST_NOT_STARTED
+  - VERIFY_FINAL_EXACT_HEAD_CI
+  - POST_APPEND_ONLY_ENGINEERING_COMPLETION_ATTESTATION_ON_PR_495
+  - POST_COMPLIANT_REVIEW_REQUEST_V1_ON_ISSUE_453
 merge_authorized: false
-next_action: RUN_CURRENT_C_EXACT_HEAD_ACTIONS_AND_STOP_AT_C_CHECKPOINT
+next_action: VERIFY_FINAL_EXACT_HEAD_CI_THEN_POST_ATTESTATION_AND_REVIEW_REQUEST_WITHOUT_FURTHER_HEAD_MUTATION
