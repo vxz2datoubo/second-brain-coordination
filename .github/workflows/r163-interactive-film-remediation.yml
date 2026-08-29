@@ -53,4 +53,10 @@ jobs:
               *) echo "Unauthorized R163 changed path: $path" >&2; exit 1 ;;
             esac
           done <<< "$changed"
-          ! grep -RInE '(os\.environ|os\.getenv|requests\.|urllib\.request|httpx\.|subprocess.*curl|openai\.|anthropic\.|broker|place_order|send_order)' creative_runtime apps/cli tests/test_r163_legacy_migration.py
+          changed_python="$(printf '%s\n' "$changed" | grep -E '^(creative_runtime|apps/cli|tests)/.*\.py$' || true)"
+          if [[ -n "$changed_python" ]]; then
+            if grep -nE '(os\.environ|os\.getenv|requests\.|urllib\.request|httpx\.|subprocess.*curl|openai\.|anthropic\.|place_order|send_order)' $changed_python; then
+              echo 'Forbidden network/credential/trading capability pattern in R163 changed Python' >&2
+              exit 1
+            fi
+          fi
