@@ -1,15 +1,15 @@
-schema_version: "3.22"
+schema_version: "3.23"
 registry_id: "AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001"
 control_tower_issue: 310
 owner: "USER"
 architecture_owner: "GPT"
 status: "ACTIVE_CANDIDATE_CONTROL_VIEW"
-as_of: "2026-08-29T17:52:13Z"
+as_of: "2026-08-29T22:56:00Z"
 boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 
 authority_role: >-
-  This registry is authoritative only for Program Lane identity, mission, desired state, cross-lane relationships,
-  overlap declarations and portfolio-level gates. Per-agent ACTIVE routes, GPT worker slots and canonical historical tombstones remain execution truth.
+  This registry is authoritative for Program Lane identity, mission, desired state, cross-lane relationships, overlap declarations and
+  portfolio-level gates. Per-agent ACTIVE routes/leases remain execution truth.
 
 source_precedence:
   - "USER_CURRENT_EXPLICIT_DIRECTION"
@@ -30,114 +30,99 @@ portfolio_capacity_policy:
   a_share_business_vertical_slices_max: 1
   same_canonical_object_writers_max: 1
   nested_parallelism: "FORBIDDEN"
-  additional_rule: >-
-    R163 releases one bounded GPT_ENGINEERING_WORKER remediation slot for Issue #494. The prior R161/CODEX execution identity remains
-    superseded and non-authoritative. PR #493 remains REFERENCE_ONLY_UNACCEPTED_CANDIDATE. No trading, W3 canonical write, external
-    generation, credential, production or cross-repository write authority is created.
 
 current_user_release_policy:
-  decision_at: "2026-08-29T17:52:13Z"
-  decision: "R163_GPT_INTERACTIVE_FILM_REMEDIATION_GOVERNED_RELEASE / SNAPSHOT_BEFORE_SUBSTANTIVE_WRITE"
+  decision_at: "2026-08-29T22:56:00Z"
+  decision: "R165_CODEX_CLEAN_NONRETROACTIVE_INTERACTIVE_FILM_SUCCESSOR / SNAPSHOT_BEFORE_SUBSTANTIVE_WRITE"
   rationale: >-
-    Independent review 5058772386 BLOCKED PR #493 and #453 intake 5463948297 registered remediation Issue #494. The user explicitly
-    directs a fresh GPT_ENGINEERING_WORKER release with valid worker slot, Work Claim, Control Tower scan and EFFECTIVE_SPEC_SNAPSHOT/v1
-    before any substantive remediation. This current projection synchronizes portfolio observability with the canonical per-agent slot.
-  released_implementation_lanes: []
-  prepared_implementation_lanes: []
-  held_lanes: []
+    Independent governance result 5465273392 / review 5059352209 found PR #495 technically acceptable but invalid for acceptance due
+    stale/missing pre-write authority, and explicitly permits a clean CODEX successor after fresh governed release. The old R163 GPT
+    execution slot is frozen with execution_allowed=false. R165 is a new executor identity from clean canonical baseline 0665cc0.
   auxiliary_bounded_releases:
-    - task_id: "GPT-R161-INTERACTIVE-FILM-REMEDIATION-R163"
-      route_epoch: 163
-      issue: 494
-      agent_type: "GPT_ENGINEERING_WORKER"
-      worker_slot_id: "GPT-WORKER-R163-INTERACTIVE-FILM-REMEDIATION-1"
-      route: "coordination/ROUTES/GPT-R161-INTERACTIVE-FILM-REMEDIATION-R163.yaml"
-      implementation_baseline: "58cd5b271164eff71b0824ee42df2723cbc0247d"
-      branch: "gpt/r163-interactive-film-remediation"
+    - task_id: "CODEX-R163-CLEAN-SUCCESSOR-R165"
+      route_epoch: 165
+      issue: 499
+      agent_type: "CODEX"
+      worker_slot_id: "CODEX-R165-INTERACTIVE-FILM-CLEAN-SUCCESSOR-1"
+      route: "coordination/ROUTES/CODEX-R163-CLEAN-SUCCESSOR-R165.yaml"
+      implementation_baseline: "0665cc0147fe7efae7e9498c36f9a87566ad036c"
+      branch: "codex/r165-r163-clean-successor"
       status: "ACTIVE_GOVERNED_PREWRITE"
       execution_allowed: true
-      substantive_write_gate: "ISSUE_494_EFFECTIVE_SPEC_SNAPSHOT_REQUIRED"
-      source_candidate: "PR #493 @ 1dcd15011b02e5452186f178ea77746690d4d6a6 / REFERENCE_ONLY_UNACCEPTED_CANDIDATE"
-  release_owner: "USER_CURRENT_EXPLICIT_DIRECTION + GPT_GOVERNED_ENGINEERING_AUTHORITY"
-  standing_routine_engineering_merge_authorization: true
-  standing_authorization_scope: "INDEPENDENT_EXACT_HEAD_ACCEPT + REQUIRED_GATES_PASS + NO_DRIFT"
+      substantive_write_gate: "ISSUE_499_EFFECTIVE_SPEC_SNAPSHOT_REQUIRED"
+      source_pr_495: "43785fd2f24e0c9e640bdc7d26d09351c836d8c9 / UNACCEPTED_EVIDENCE_ONLY / NO_IMPORT"
+      source_pr_493: "REFERENCE_ONLY_UNACCEPTED_CANDIDATE"
+  release_owner: "USER_CURRENT_EXPLICIT_DIRECTION + GPT_GOVERNANCE_COORDINATOR"
+  standing_routine_engineering_merge_authorization: false
   standing_authorization_exclusions:
     - "TRADING_ACCOUNT_ORDER_FUND"
     - "SECRETS_CREDENTIALS"
     - "PERMISSION_VISIBILITY_EXPANSION"
     - "DESTRUCTIVE_DELETION"
     - "MAJOR_ARCHITECTURE_OUTSIDE_APPROVED_SCOPE"
-  r163_issue: 494
-  r163_parent_issue: 492
-  r163_route_epoch: 163
-  r163_task_id: "GPT-R161-INTERACTIVE-FILM-REMEDIATION-R163"
-  r163_worker_slot_id: "GPT-WORKER-R163-INTERACTIVE-FILM-REMEDIATION-1"
-  r163_branch: "gpt/r163-interactive-film-remediation"
-  r163_blocked_source_pr: 493
-  r163_blocked_source_review: 5058772386
-  r163_review_intake: 5463948297
-  r163_spec_snapshot_gate: 5463716847
-  r163_status: "GOVERNANCE_RELEASED / IMPLEMENTATION_BLOCKED_UNTIL_EFFECTIVE_SPEC_SNAPSHOT"
+    - "PR495_RETROACTIVE_AUTHORIZATION"
+  r165_issue: 499
+  r165_parent_issue: 494
+  r165_route_epoch: 165
+  r165_task_id: "CODEX-R163-CLEAN-SUCCESSOR-R165"
+  r165_worker_slot_id: "CODEX-R165-INTERACTIVE-FILM-CLEAN-SUCCESSOR-1"
+  r165_branch: "codex/r165-r163-clean-successor"
+  r165_spec_snapshot_gate: 5463716847
+  r165_status: "GOVERNANCE_RELEASED / IMPLEMENTATION_BLOCKED_UNTIL_EFFECTIVE_SPEC_SNAPSHOT"
 
 historical_execution_refs:
+  r163:
+    issue: 494
+    route_epoch: 163
+    status: "FROZEN_PROVENANCE_INVALID_POST_REVIEW_REMEDIATION / EXECUTION_LEASE_RETIRED"
+    pr: 495
+    invalid_head: "43785fd2f24e0c9e640bdc7d26d09351c836d8c9"
+    independent_governance_result: 5465273392
+    successor: "R165 CLEAN CODEX ONLY"
   r145:
     issue: 415
     route_epoch: 145
     status: "IMPLEMENTATION_ACCEPTED_MERGED / EXECUTION_LEASE_RELEASED"
     merge: "935840769ca9ac032807066b3e0d3d1b780a55b4"
-    closeout_receipt: "coordination/CONTROL-TOWER/R145-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-CLOSURE-RECONCILIATION.yaml"
   r144:
     issue: 406
     route_epoch: 144
     status: "IMPLEMENTATION_ACCEPTED_MERGED / EXECUTION_LEASE_RELEASED"
     merge: "d9734f2db3f039167f0e3e32933392ae5571de13"
-    closeout_receipt: "coordination/CONTROL-TOWER/R144-GPT-WORKER-FIRST-CLASS-CLOSURE-RECONCILIATION.yaml"
   r143:
     issue: 404
     route_epoch: 143
     status: "IMPLEMENTATION_ACCEPTED_MERGED / EXECUTION_LEASE_RELEASED"
     merge: "4423349b6154986b74b6f172d7e01643f8bd46f9"
-    closeout_receipt: "coordination/CONTROL-TOWER/R143-W2-S1-CLOSURE-RECONCILIATION.yaml"
   r142:
     issue: 393
     route_epoch: 142
     status: "IMPLEMENTATION_ACCEPTED_MERGED / EXECUTION_LEASE_RELEASED"
     merge: "341fefa057d891103ef9de91af719e1050e4a0ab"
-    closeout_receipt: "coordination/CONTROL-TOWER/R142-RETROSPECTIVE-SIGNAL-INTAKE-CLOSURE-RECONCILIATION.yaml"
 
 observed_agent_state:
   CODEX:
     source: "coordination/ACTIVE-CODEX-TASK.yaml"
-    observed_task_id: "CODEX-CONTROL-TOWER-GPT-ENGINEERING-WORKER-FIRST-CLASS-R144"
-    observed_route_epoch: 144
-    observed_issue: 406
-    observed_status: "DONE_HISTORICAL"
-    execution_allowed: false
-    observation_status: "R144_DONE_HISTORICAL / EXECUTION_LEASE_RELEASED / R161_CODEX_SUPERSEDED"
-  GPT_ENGINEERING_WORKER:
-    source: "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+    observed_task_id: "CODEX-R163-CLEAN-SUCCESSOR-R165"
+    observed_route_epoch: 165
+    observed_issue: 499
     observed_status: "ACTIVE_GOVERNED_PREWRITE"
     execution_allowed: true
-    observed_worker_slot_id: "GPT-WORKER-R163-INTERACTIVE-FILM-REMEDIATION-1"
-    observed_issue: 494
-    observed_pr: null
-    observation_status: "R163_GOVERNED_RELEASE / SUBSTANTIVE_WRITE_REQUIRES_EFFECTIVE_SPEC_SNAPSHOT"
+    observation_status: "R165_RESERVED / SUBSTANTIVE_WRITE_REQUIRES_EFFECTIVE_SPEC_SNAPSHOT"
+  GPT_ENGINEERING_WORKER:
+    source: "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+    observed_status: "R163_FROZEN + R164_ACTIVE_W5"
+    r163_execution_allowed: false
+    r164_execution_allowed: true
+    r164_write_overlap_with_r165: "NONE"
   QCLAW:
     source: "coordination/ACTIVE-QCLAW-TASK.yaml"
-    observed_task_id: "QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60"
-    observed_route_epoch: 60
-    observed_issue: 296
     observed_status: "DONE_HISTORICAL"
     execution_allowed: false
-    observation_status: "R60_DONE_HISTORICAL / NO_ACTIVE_QCLAW_EXECUTOR"
   WORKBUDDY:
     source: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
-    observed_task_id: "WORKBUDDY-PAUSED-COMPUTE-UNAVAILABLE-UNTIL-AFTER-2026-07-28"
-    observed_route_epoch: 15
-    observed_issue: 89
     observed_status: "PAUSED_COMPUTE_UNAVAILABLE"
     execution_allowed: false
-    observation_status: "NON_EXECUTABLE"
 
 signal_tower_operating_contract:
   normal_mode: "ON_DEMAND / EVENT_OR_TASK_RELEASE_DRIVEN"
@@ -148,58 +133,42 @@ signal_tower_operating_contract:
     - "CONDITIONAL_RESEARCH when required"
     - "RELEASE_DECISION"
   full_body_scan_every_time: false
-  daemon_or_scheduler_required_for_normal_mode: false
   no_signal_equals_task_rule: true
   task_release_without_fresh_preflight: "FORBIDDEN"
 
 program_lanes:
   - lane_id: "LANE-A-HARNESS-INTEGRATION"
-    mission: "Maintain shared Cognitive OS coordination/runtime substrate and accepted Signal Tower capabilities."
-    owner: "USER"
-    architecture_owner: "GPT"
+    mission: "Maintain shared Cognitive OS coordination/runtime substrate."
     desired_state: "ACTIVE"
-    observed_state: "R145_ACCEPTED_MERGED / NO_ACTIVE_LANE_IMPLEMENTATION"
-    current_phase: "AWAIT_GOVERNED_SUCCESSOR"
+    observed_state: "NO_ACTIVE_LANE_IMPLEMENTATION"
     active_execution_route: null
-    next_gate: "NEW_GOVERNED_TASK_RELEASE"
     heavy_execution_authorized: false
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
-    mission: "Repair A-share research deficiencies while preserving evidence, PIT/T+1, validation/risk and NO_TRADE."
-    owner: "USER"
-    architecture_owner: "GPT"
+    mission: "Repair A-share research deficiencies while preserving NO_TRADE."
     desired_state: "ACTIVE"
-    observed_state: "R143_ACCEPTED_MERGED / NO_ACTIVE_LANE_IMPLEMENTATION"
-    current_phase: "AWAIT_GOVERNED_SUCCESSOR"
-    active_execution_route: null
-    next_gate: "NEW_GOVERNED_TASK_RELEASE"
-    heavy_execution_authorized: false
+    observed_state: "R164_BOUNDED_W5_GPT_WORKER_ACTIVE_PREWRITE"
+    active_execution_route: "coordination/ROUTES/GPT-W5-EVENT-COVERAGE-P0-REMEDIATION-R164.yaml"
+    write_surface: ".github/workflows/w5-event-coverage-p0-vs1.yml + coordination/.../W5-EVENT-COVERAGE/**"
   - lane_id: "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"
-    mission: "Preserve the completed Second Brain × GPT cognitive closed-loop foundation; permit bounded proven-defect remediation without granting W3 canonical write authority."
-    owner: "USER"
-    architecture_owner: "GPT"
+    mission: "Bounded clean interactive-film remediation without W3 canonical write authority."
     desired_state: "ACTIVE"
-    observed_state: "R163_AUXILIARY_PROVEN_DEFECT_REMEDIATION_ACTIVE_PREWRITE"
-    current_phase: "ISSUE_494_R163_GOVERNANCE_RELEASE"
-    active_execution_route: "coordination/ROUTES/GPT-R161-INTERACTIVE-FILM-REMEDIATION-R163.yaml"
-    next_gate: "EFFECTIVE_SPEC_SNAPSHOT_THEN_BOUNDED_IMPLEMENTATION"
-    maturity: "FOUNDATION_CLOSED_WITH_BOUNDED_GAPS / PROVEN_DEFECT_REMEDIATION"
-    heavy_execution_authorized: false
-    implementation_owner: "GPT_ENGINEERING_WORKER"
-    worker_slot_id: "GPT-WORKER-R163-INTERACTIVE-FILM-REMEDIATION-1"
+    observed_state: "R165_CODEX_CLEAN_SUCCESSOR_ACTIVE_PREWRITE"
+    current_phase: "ISSUE_499_R165_GOVERNANCE_RELEASE"
+    active_execution_route: "coordination/ROUTES/CODEX-R163-CLEAN-SUCCESSOR-R165.yaml"
+    next_gate: "EFFECTIVE_SPEC_SNAPSHOT_THEN_ONE_SHOT_IMPLEMENTATION"
+    implementation_owner: "CODEX"
+    worker_slot_id: "CODEX-R165-INTERACTIVE-FILM-CLEAN-SUCCESSOR-1"
     canonical_knowledge_write_authorized: false
 
 cross_lane_overlap_matrix:
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-B-A-SHARE-REMEDIATION"]
     overlap_level: "O1_READ_ONLY_COEXISTENCE"
-    rule: "No active implementation writer in either lane."
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
     overlap_level: "O1_READ_ONLY_COEXISTENCE"
-    rule: "R163 writes only creative runtime/task-local remediation surfaces and cannot mutate Signal Tower or W3 canonical authority."
   - pair: ["LANE-B-A-SHARE-REMEDIATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
-    overlap_level: "O1_READ_ONLY_COEXISTENCE"
-    rule: "R163 has no A-share W2/W3 write or trading authority."
+    overlap_level: "O0_NO_MATERIAL_WRITE_OVERLAP"
+    rule: "R164 writes W5 coordination/workflow only; R165 writes creative_runtime/apps/cli/tests/task-local R165/workflow only."
 
 reconciliation_rule: >-
-  Execution truth for R163 is the exact worker slot in ACTIVE-GPT-ENGINEERING-WORKERS plus the R163 route, Work Claim and authorization witness.
-  This portfolio projection is synchronized to that truth. PR #493 remains immutable unaccepted evidence. R163 substantive implementation
-  remains fail-closed until Issue #494 publishes the required EFFECTIVE_SPEC_SNAPSHOT/v1 and the fresh Control Tower activation scan is PASS.
+  R165 execution truth is ACTIVE-CODEX-TASK + R165 route + lease/claim/reservation + authorization witness + source-selection provenance +
+  fresh Control Tower scan + Issue #499 pre-write snapshot. PR #493 and PR #495 remain immutable unaccepted evidence surfaces.
