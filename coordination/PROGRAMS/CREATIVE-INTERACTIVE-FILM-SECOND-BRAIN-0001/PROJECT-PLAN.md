@@ -12,7 +12,7 @@ deployment.
 | S00 | executor-verified | collaboration, provenance, scope, and handoff controls | exact baseline, scope rejection, source classes |
 | S01 | executor-verified | deterministic creative event ledger | append and replay equivalence |
 | S02 | executor-verified | local interactive CLI | offline create, act, inspect, replay |
-| S03 | pending | director compiler and gates | structured plan plus fail-closed gates |
+| S03 | executor-verified | director compiler and gates | structured plan plus fail-closed gates |
 | S04 | pending | review-only knowledge bridge | no canonical knowledge write |
 | S05 | pending | offline/mock adapters | no credential or paid-call path |
 | S06 | pending | end-to-end replay and review handoff | positive and negative evidence |

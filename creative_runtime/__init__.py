@@ -19,22 +19,27 @@ from .contracts import (
     canonical_json,
 )
 from .ledger import CreativeLedger, LedgerViolation, create_artifact
+from .director import DirectorCompilation, QualityFinding, QualityReport, compile_director
 
 __all__ = [
     "CreativeArtifact",
     "CreativeEvent",
     "CreativeLedger",
+    "DirectorCompilation",
     "DirectorBrief",
     "GenerationRequest",
     "GenerationResult",
     "GovernanceViolation",
     "LedgerViolation",
     "PlayerAction",
+    "QualityFinding",
+    "QualityReport",
     "ShotPlan",
     "StoryBeat",
     "StoryState",
     "TaskGovernance",
     "canonical_json",
+    "compile_director",
     "create_artifact",
     "load_task_governance",
 ]

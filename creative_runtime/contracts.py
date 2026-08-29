@@ -104,6 +104,10 @@ class ShotPlan:
     performance_task: str
     duration_seconds: int
     reference_artifact_ids: tuple[str, ...] = ()
+    axis: str = ""
+    lighting: str = ""
+    sound: str = ""
+    dominant_change: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return _json_value(self)

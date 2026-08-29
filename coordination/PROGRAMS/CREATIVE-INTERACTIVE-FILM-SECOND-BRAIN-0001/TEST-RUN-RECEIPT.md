@@ -39,3 +39,9 @@ runner instead of installing an undeclared dependency.
 The first S02 run found two response-status assertions; the state persistence
 itself remained correct. A narrowly scoped field-order correction was made and
 the suite then passed in full.
+
+## S03 update
+
+| Command | Result | Evidence |
+| --- | --- | --- |
+| `python -m unittest discover -s tests -p test_creative_s*.py -v` | Passed | 14 tests passed. S03 covers valid compile plus fail-closed missing asset, adult identity, knowledge, content, axis, duration, and change gates. |

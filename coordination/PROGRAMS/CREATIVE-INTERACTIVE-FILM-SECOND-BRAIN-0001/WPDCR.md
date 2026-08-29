@@ -59,3 +59,18 @@ agent_id: CODEX
   applied, then all S00-S02 checks passed.
 - **Next gate:** preserve the offline-only state machine while S03 derives plans
   and fails closed on invalid continuity, knowledge, content, or duration data.
+
+## S03_AI_DIRECTOR_COMPILATION_AND_GATES
+
+- **Primary work and process trace:** compile only `StoryState` facts into a
+  `DirectorBrief` and `ShotPlan`, with a synthetic asset index whose role and
+  adult identity are inspectable. The quality report is a data artifact; no
+  provider request can be authorized from a failed report.
+- **Difficulty and complexity:** D2. The gate is deliberately fail-closed for
+  missing assets, unconfirmed adult character identity, axis, knowledge
+  boundary, content rating, duration, performance task, and dominant change.
+- **Negative results:** missing scene references and non-adult character flags
+  block; invented knowledge, explicit rating, zero duration, omitted axis, and
+  omitted dominant change also block.
+- **Next gate:** S04 may package evidence and proposed corrections, but must not
+  write any canonical knowledge truth or change the official skill index.
