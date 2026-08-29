@@ -7,18 +7,27 @@
 - **Current exact head:** see `AI_HANDOFF.yaml` on this branch
 - **Executor status:** `EXECUTOR_VERIFIED_ONLY` — this is **not** independent acceptance.
 
-## This checkpoint
+## Delivered scope
 
-S00 establishes the handoff/provenance/authority foundation only: a governed
-manifest, deterministic offline checks, explicit source and unknown registries,
-and an AI-readable handoff.  It does not import Eustia/local assets, call a
-provider, access credentials, deploy, trade, or perform self-review/self-merge.
+S00–S06 are implemented as one synthetic, offline-first vertical slice:
+
+- authority, provenance, status, and machine/human handoff control;
+- JSON contracts plus deterministic append-only event replay;
+- private, adult-only, non-explicit offline CLI interaction;
+- director brief/shot compiler with fail-closed quality gates;
+- evidence-backed, review-only knowledge candidate packets;
+- deterministic offline generation plus blocked external-provider guards; and
+- end-to-end replay, negative provenance tests, and clean-clone runbook.
+
+It does not import Eustia/local assets, call a provider, access credentials,
+deploy, trade, or perform self-review/self-merge.
 
 ## Reproduction
 
 ```text
 python -m json.tool coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/AUTHORIZED-PATH-MANIFEST.json
 python -m unittest discover -s tests -p test_creative_s00_governance.py -v
+python -m unittest discover -s tests -p test_creative_s*.py -v
 git diff --check
 ```
 
@@ -38,5 +47,6 @@ push, rewrite history, or alter the frozen baseline.
 
 ## Next slice
 
-After GPT independently verifies S00, implement S01's deterministic creative
-contracts and append-only event ledger in a separate, reviewable checkpoint.
+No further implementation slice is authorized on this delivery. GPT must perform
+the independent exact-head review described in `RUNBOOK.md` and
+`REVIEW_REQUEST.yaml` before accepting or merging.
