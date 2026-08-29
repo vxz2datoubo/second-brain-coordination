@@ -14,6 +14,7 @@ coverage:
   - exact PR head checkout and SHA assertion
   - predecessor S00-S06
   - genuine legacy v1 migration and no-shadow negative paths
+  - lossless-or-fail-closed migration without weakening current v2 graph semantics
   - B exact-prefix timeline and ledger/graph/patch fail closed
   - genuine legacy resume into three-scene continuation
   - two branches and deterministic branch comparison
@@ -28,8 +29,17 @@ coverage:
   - changed-file scope
   - forbidden network/credential/trading patterns
 python_matrix: ['3.11', '3.13']
-current_result: PENDING_EXACT_HEAD_GITHUB_ACTIONS
-final_result_location: PR_495_APPEND_ONLY_C_CHECKPOINT_ATTESTATION_AFTER_RUN_COMPLETES
+pre_final_validation:
+  exact_head: fd3cd94d36cfa47de7bf286f2fb5fa39ca36b9e1
+  workflow_run_id: 33272571690
+  conclusion: success
+  python_3_11_job: 99153595415
+  python_3_11_conclusion: success
+  python_3_13_job: 99153595534
+  python_3_13_conclusion: success
+final_result_rule: FINAL_EVIDENCE_COMMIT_HEAD_MUST_PASS_THE_SAME_EXACT_HEAD_WORKFLOW
+final_result_location: PR_495_APPEND_ONLY_ENGINEERING_COMPLETION_ATTESTATION
+review_request_location: ISSUE_453_APPEND_ONLY_REVIEW_REQUEST_V1
 independent_review_performed: false
 review_request_posted: false
 merge_performed: false
