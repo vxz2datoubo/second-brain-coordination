@@ -1,0 +1,26 @@
+schema: TEST_RECEIPT/v1
+project: SECOND_BRAIN
+task_id: GPT-R161-INTERACTIVE-FILM-REMEDIATION-R163
+slice: A_REAL_S00_S06_V1_MIGRATION
+receipt_class: EXECUTOR_OBSERVED_GITHUB_ACTIONS_NOT_INDEPENDENT_REVIEW
+workflow: .github/workflows/r163-interactive-film-remediation.yml
+prior_run:
+  run_id: 33269659431
+  exact_head: 76a1b5d523e627b0984060107c8230f2860ed899
+  python_3_13:
+    predecessor_s00_s06: PASS
+    r163_a_legacy_migration: PASS
+    diff_hygiene: PASS
+    scope_forbidden_capability_audit: FAIL_FALSE_POSITIVE_FROM_SCANNING_UNCHANGED_BASELINE_FILES
+  overall: FAILURE
+harness_remediation:
+  commit: c205e6ed83a69e73c71247ec0ed27223772646a2
+  change: forbidden-capability scan now inspects only R163-changed Python paths while changed-file allowlist still audits the full branch diff
+final_checkpoint_expected_commands:
+  - python -m unittest discover -s tests -p 'test_creative_s*.py' -v
+  - python -m unittest discover -s tests -p 'test_r163_legacy_migration.py' -v
+  - git diff --check 58cd5b271164eff71b0824ee42df2723cbc0247d...HEAD
+  - git merge-base --is-ancestor 58cd5b271164eff71b0824ee42df2723cbc0247d HEAD
+  - changed-file allowlist and forbidden-capability scan
+final_checkpoint_result: PENDING_EXTERNAL_RUN_AFTER_THIS_RECEIPT_COMMIT
+no_claim_of_independent_review: true
