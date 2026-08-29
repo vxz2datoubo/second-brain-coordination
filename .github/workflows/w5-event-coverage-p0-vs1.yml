@@ -81,18 +81,29 @@ jobs:
         if: github.event_name == 'pull_request'
         env:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          HEAD_BRANCH: ${{ github.head_ref }}
         run: |
           set -euo pipefail
+
           git fetch origin main
+          MAIN_START="$(git rev-parse origin/main)"
+          git fetch origin "refs/heads/${HEAD_BRANCH}:refs/remotes/origin/w5-proof-head-start"
+          HEAD_REMOTE_START="$(git rev-parse refs/remotes/origin/w5-proof-head-start)"
+          if [ "$HEAD_REMOTE_START" != "$HEAD_SHA" ]; then
+            echo "TEST_ENVIRONMENT_INVALID: CANDIDATE_HEAD_CHANGED_BEFORE_PROOF expected=$HEAD_SHA observed=$HEAD_REMOTE_START"
+            exit 1
+          fi
+
           rm -rf /tmp/w5-main /tmp/w5-integrated
-          git worktree add --detach /tmp/w5-main origin/main
-          git worktree add --detach /tmp/w5-integrated origin/main
+          git worktree add --detach /tmp/w5-main "$MAIN_START"
+          git worktree add --detach /tmp/w5-integrated "$MAIN_START"
 
           collect_control_result() {
             local root="$1"; local out="$2"
             (cd "$root" && python - "$out" <<'PY'
           import hashlib
           import json
+          import re
           import sys
           import unittest
           from pathlib import Path
@@ -101,9 +112,16 @@ jobs:
           suite = unittest.defaultTestLoader.discover('coordination/CONTROL-TOWER/tests', pattern='test_*.py')
           result = unittest.TestResult()
           suite.run(result)
+          worktree = str(Path.cwd().resolve())
+
+          def normalize_failure(text):
+              normalized = text.replace(worktree, '<WORKTREE>')
+              normalized = re.sub(r'/tmp/tmp[^/\s]+', '/tmp/<TMP>', normalized)
+              normalized = re.sub(r'0x[0-9a-fA-F]+', '0xADDR', normalized)
+              return '\n'.join(line.rstrip() for line in normalized.strip().splitlines())
 
           def fingerprint(kind, test, text):
-              normalized = '\n'.join(line.rstrip() for line in text.strip().splitlines())
+              normalized = normalize_failure(text)
               return hashlib.sha256((kind + '\n' + test.id() + '\n' + normalized).encode('utf-8')).hexdigest()
 
           failures = {
@@ -141,14 +159,37 @@ jobs:
           )
           collect_control_result /tmp/w5-integrated /tmp/w5-integrated.json
 
+          git fetch origin main
+          MAIN_END="$(git rev-parse origin/main)"
+          git fetch origin "refs/heads/${HEAD_BRANCH}:refs/remotes/origin/w5-proof-head-end"
+          HEAD_REMOTE_END="$(git rev-parse refs/remotes/origin/w5-proof-head-end)"
+
+          if [ "$MAIN_START" != "$MAIN_END" ]; then
+            echo "TEST_ENVIRONMENT_INVALID: CURRENT_MAIN_CHANGED_DURING_PROOF start=$MAIN_START end=$MAIN_END"
+            exit 1
+          fi
+          if [ "$HEAD_SHA" != "$HEAD_REMOTE_END" ]; then
+            echo "TEST_ENVIRONMENT_INVALID: CANDIDATE_HEAD_CHANGED_DURING_PROOF expected=$HEAD_SHA end=$HEAD_REMOTE_END"
+            exit 1
+          fi
+
+          export MAIN_START MAIN_END HEAD_REMOTE_START HEAD_REMOTE_END
           python - <<'PY'
           import json
+          import os
           from pathlib import Path
+
           base = json.loads(Path('/tmp/w5-main.json').read_text(encoding='utf-8'))
           integrated = json.loads(Path('/tmp/w5-integrated.json').read_text(encoding='utf-8'))
-
           base_failures = base['failures']
           integrated_failures = integrated['failures']
+
+          if base['testsRun'] != integrated['testsRun']:
+              raise SystemExit(
+                  'TEST_ENVIRONMENT_INVALID: CONTROL_TOWER_TEST_CARDINALITY_DRIFT '
+                  f"base={base['testsRun']} integrated={integrated['testsRun']}"
+              )
+
           introduced = sorted(set(integrated_failures) - set(base_failures))
           modified = sorted(
               test_id for test_id in set(base_failures).intersection(integrated_failures)
@@ -163,10 +204,12 @@ jobs:
 
           print(
               'W5_CURRENT_MAIN_INTEGRATION_DELTA_PASS '
+              f"main={os.environ['MAIN_START']} "
+              f"candidate={os.environ['HEAD_REMOTE_START']} "
               f"baseline_failures={len(base_failures)} "
               f"integrated_failures={len(integrated_failures)} "
               f"baseline_improvements={len(improved)} "
-              f"base_tests={base['testsRun']} integrated_tests={integrated['testsRun']}"
+              f"tests={base['testsRun']}"
           )
           PY
 
