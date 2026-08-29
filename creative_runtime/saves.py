@@ -19,6 +19,9 @@ from .scene_graph import SceneGraph, SceneGraphViolation, synthetic_three_scene_
 CURRENT_SESSION_SCHEMA = "CreativeSession/v2"
 LEGACY_SESSION_SCHEMA = "CreativeSession/v1"
 CANONICAL_LEGACY_BASELINE = "027642a231e214f8649b273f44de65c82a4901f9"
+MIGRATION_HISTORY_MARKER = "CreativeSession/v1->v2:r163-canonical-semantic-mapping"
+MIGRATION_MAPPING_POLICY = "EXPLICIT_CANONICAL_S00_S06_TO_THREE_SCENE_GRAPH"
+MIGRATION_PATCH_PROVENANCE_SCHEMA = "MigrationStatePatchProvenance/v1"
 _SLOT = re.compile(r"^[a-z0-9][a-z0-9_-]{0,31}$")
 _RESERVED = {"con", "prn", "aux", "nul", *(f"com{number}" for number in range(1, 10)), *(f"lpt{number}" for number in range(1, 10))}
 
@@ -63,6 +66,8 @@ def _same_story_semantics(left: StoryState, right: StoryState) -> bool:
 
 
 def _migrate_legacy_v1(record: Mapping[str, Any], graph: SceneGraph) -> tuple[dict[str, Any], tuple[str, ...]]:
+    source_record = json.loads(canonical_json(record))
+    source_digest = hashlib.sha256(canonical_json(source_record).encode("utf-8")).hexdigest()
     events = record.get("events")
     if not isinstance(events, list):
         raise SaveSlotViolation("Legacy session has no event list")
@@ -130,6 +135,7 @@ def _migrate_legacy_v1(record: Mapping[str, Any], graph: SceneGraph) -> tuple[di
                     "legacy_scene_id": legacy_state.scene_id,
                     "legacy_beat_id": legacy_state.beat_id,
                     "legacy_action_id": action_id,
+                    "source_record_sha256": source_digest,
                 },
             },
             legacy_event.occurred_at,
@@ -149,9 +155,23 @@ def _migrate_legacy_v1(record: Mapping[str, Any], graph: SceneGraph) -> tuple[di
 
     terminal_mapping: dict[str, Any] | None = None
     if legacy_state.beat_id == "resolution":
+        migration_provenance = {
+            "schema": MIGRATION_PATCH_PROVENANCE_SCHEMA,
+            "authority_class": "VALIDATED_LEGACY_MIGRATION_ONLY",
+            "source_schema": LEGACY_SESSION_SCHEMA,
+            "target_schema": CURRENT_SESSION_SCHEMA,
+            "source_baseline": CANONICAL_LEGACY_BASELINE,
+            "source_record_sha256": source_digest,
+            "mapping_policy": MIGRATION_MAPPING_POLICY,
+            "migration_reason": "legacy_resolution_terminal_equivalence",
+            "source_record": source_record,
+        }
         terminal_event = new_ledger.append(
             "state_patch",
-            {"patch": {"scene_id": "dawn_courtyard", "beat_id": "return"}, "migration_reason": "legacy_resolution_terminal_equivalence"},
+            {
+                "patch": {"scene_id": "dawn_courtyard", "beat_id": "return"},
+                "migration_provenance": migration_provenance,
+            },
             legacy_ledger.events[-1].occurred_at,
         )
         new_state = new_ledger.replay()
@@ -164,6 +184,7 @@ def _migrate_legacy_v1(record: Mapping[str, Any], graph: SceneGraph) -> tuple[di
             "new_beat_id": "return",
             "new_event_id": terminal_event.event_id,
             "method": "explicit_terminal_state_patch_after_promise",
+            "state_patch_provenance_digest": hashlib.sha256(canonical_json(migration_provenance).encode("utf-8")).hexdigest(),
         }
 
     if legacy_state.beat_id == "courtyard" and (new_state.scene_id, new_state.beat_id) != ("dawn_courtyard", "return"):
@@ -171,14 +192,13 @@ def _migrate_legacy_v1(record: Mapping[str, Any], graph: SceneGraph) -> tuple[di
     if legacy_state.beat_id not in {"arrival", "echo", "threshold", "courtyard", "resolution"}:
         raise SaveSlotViolation("Legacy final beat is not a canonical S00-S06 beat")
 
-    source_digest = hashlib.sha256(canonical_json(record).encode("utf-8")).hexdigest()
     receipt = {
         "schema": "CreativeSessionMigrationReceipt/v1",
         "source_schema": LEGACY_SESSION_SCHEMA,
         "target_schema": CURRENT_SESSION_SCHEMA,
         "source_baseline": CANONICAL_LEGACY_BASELINE,
         "source_record_sha256": source_digest,
-        "mapping_policy": "EXPLICIT_CANONICAL_S00_S06_TO_THREE_SCENE_GRAPH",
+        "mapping_policy": MIGRATION_MAPPING_POLICY,
         "event_mappings": mappings,
         "terminal_mapping": terminal_mapping,
         "legacy_final_state": legacy_state.to_dict(),
@@ -189,10 +209,72 @@ def _migrate_legacy_v1(record: Mapping[str, Any], graph: SceneGraph) -> tuple[di
         "schema": CURRENT_SESSION_SCHEMA,
         "manifest_hash": graph.manifest_hash,
         "events": new_ledger.to_records(),
-        "migration_history": ["CreativeSession/v1->v2:r163-canonical-semantic-mapping"],
+        "migration_history": [MIGRATION_HISTORY_MARKER],
         "migration_receipt": receipt,
     }
-    return migrated, ("CreativeSession/v1->v2:r163-canonical-semantic-mapping",)
+    return migrated, (MIGRATION_HISTORY_MARKER,)
+
+
+def validate_state_patch_provenance(ledger: CreativeLedger, graph: SceneGraph) -> Mapping[str, Any] | None:
+    """Validate migration-only state_patch events by replaying their embedded legacy source.
+
+    A hash-valid v2 ledger is only integrity evidence. A state_patch therefore carries
+    no authority merely because its destination beat exists. The only state_patch
+    admitted by R163 is one whose embedded source record deterministically regenerates
+    the exact ledger prefix through the canonical v1->v2 migration function.
+    """
+
+    state_patch_indices = [index for index, event in enumerate(ledger.events) if event.event_type == "state_patch"]
+    if not state_patch_indices:
+        return None
+    if len(state_patch_indices) != 1:
+        raise SaveSlotViolation("CreativeSession/v2 may contain only one validated migration state_patch")
+    index = state_patch_indices[0]
+    event = ledger.events[index]
+    payload = event.payload
+    if set(payload) != {"patch", "migration_provenance"}:
+        raise SaveSlotViolation("state_patch is not a typed migration event")
+    patch = payload.get("patch")
+    provenance = payload.get("migration_provenance")
+    if not isinstance(patch, Mapping) or dict(patch) != {"scene_id": "dawn_courtyard", "beat_id": "return"}:
+        raise SaveSlotViolation("state_patch target is not the governed R163 terminal mapping")
+    if not isinstance(provenance, Mapping):
+        raise SaveSlotViolation("state_patch migration provenance is missing")
+    required = {
+        "schema", "authority_class", "source_schema", "target_schema", "source_baseline",
+        "source_record_sha256", "mapping_policy", "migration_reason", "source_record",
+    }
+    if set(provenance) != required:
+        raise SaveSlotViolation("state_patch migration provenance fields are invalid")
+    if provenance.get("schema") != MIGRATION_PATCH_PROVENANCE_SCHEMA:
+        raise SaveSlotViolation("state_patch migration provenance schema is invalid")
+    if provenance.get("authority_class") != "VALIDATED_LEGACY_MIGRATION_ONLY":
+        raise SaveSlotViolation("state_patch is not migration-only authority")
+    if provenance.get("source_schema") != LEGACY_SESSION_SCHEMA or provenance.get("target_schema") != CURRENT_SESSION_SCHEMA:
+        raise SaveSlotViolation("state_patch migration schemas are invalid")
+    if provenance.get("source_baseline") != CANONICAL_LEGACY_BASELINE:
+        raise SaveSlotViolation("state_patch legacy baseline is not canonical")
+    if provenance.get("mapping_policy") != MIGRATION_MAPPING_POLICY:
+        raise SaveSlotViolation("state_patch mapping policy is invalid")
+    if provenance.get("migration_reason") != "legacy_resolution_terminal_equivalence":
+        raise SaveSlotViolation("state_patch migration reason is invalid")
+    source_record = provenance.get("source_record")
+    if not isinstance(source_record, Mapping):
+        raise SaveSlotViolation("state_patch source record is missing")
+    source_digest = hashlib.sha256(canonical_json(source_record).encode("utf-8")).hexdigest()
+    if provenance.get("source_record_sha256") != source_digest:
+        raise SaveSlotViolation("state_patch source record digest mismatch")
+
+    try:
+        expected_record, _ = _migrate_legacy_v1(source_record, graph)
+        expected_ledger = CreativeLedger.from_records(expected_record["events"])
+    except (KeyError, LedgerViolation, SaveSlotViolation, SceneGraphViolation, TypeError, ValueError) as error:
+        raise SaveSlotViolation("state_patch source record does not validate as canonical legacy migration") from error
+    expected_events = expected_ledger.to_records()
+    actual_prefix = ledger.to_records()[: index + 1]
+    if len(expected_events) != index + 1 or canonical_json(actual_prefix) != canonical_json(expected_events):
+        raise SaveSlotViolation("state_patch ledger prefix is not the deterministic canonical migration output")
+    return expected_record
 
 
 def migrate_session(record: Mapping[str, Any], expected_manifest_hash: str, graph: SceneGraph | None = None) -> tuple[dict[str, Any], tuple[str, ...]]:
@@ -204,9 +286,18 @@ def migrate_session(record: Mapping[str, Any], expected_manifest_hash: str, grap
         if migrated.get("manifest_hash") != expected_manifest_hash:
             raise SaveSlotViolation("Save manifest hash does not match the current graph")
         try:
-            CreativeLedger.from_records(migrated.get("events", []))
+            ledger = CreativeLedger.from_records(migrated.get("events", []))
         except (KeyError, LedgerViolation, TypeError, ValueError) as error:
             raise SaveSlotViolation("Save slot is corrupt or incompatible") from error
+        active_graph = graph or SceneGraph(synthetic_three_scene_manifest())
+        if active_graph.manifest_hash != expected_manifest_hash:
+            raise SaveSlotViolation("Validation graph does not match expected manifest hash")
+        expected_migration = validate_state_patch_provenance(ledger, active_graph)
+        if expected_migration is not None:
+            if migrated.get("migration_history") != expected_migration["migration_history"]:
+                raise SaveSlotViolation("Migration history is not bound to the validated state_patch source")
+            if canonical_json(migrated.get("migration_receipt")) != canonical_json(expected_migration["migration_receipt"]):
+                raise SaveSlotViolation("Migration receipt is not bound to the validated state_patch source")
         return migrated, ()
     if schema != LEGACY_SESSION_SCHEMA:
         raise SaveSlotViolation("Unsupported session schema: " + str(schema))
@@ -259,9 +350,25 @@ class SaveStore:
                 raise SaveSlotViolation("Save replacement failed") from error
         return target
 
+    def _migration_metadata(self, ledger: CreativeLedger, manifest_hash: str) -> Mapping[str, Any] | None:
+        graph = SceneGraph(synthetic_three_scene_manifest())
+        if graph.manifest_hash != manifest_hash:
+            if any(event.event_type == "state_patch" for event in ledger.events):
+                raise SaveSlotViolation("state_patch is not authorized for this manifest")
+            return None
+        return validate_state_patch_provenance(ledger, graph)
+
     def save(self, slot: str, ledger: CreativeLedger, manifest_hash: str) -> Path:
         target = self._path(slot)
-        payload = {"schema": CURRENT_SESSION_SCHEMA, "manifest_hash": manifest_hash, "events": ledger.to_records(), "migration_history": []}
+        migration = self._migration_metadata(ledger, manifest_hash)
+        payload: dict[str, Any] = {
+            "schema": CURRENT_SESSION_SCHEMA,
+            "manifest_hash": manifest_hash,
+            "events": ledger.to_records(),
+            "migration_history": list(migration["migration_history"]) if migration is not None else [],
+        }
+        if migration is not None:
+            payload["migration_receipt"] = migration["migration_receipt"]
         return self._atomic_write(target, payload)
 
     def save_record(self, slot: str, record: Mapping[str, Any], expected_manifest_hash: str) -> Path:
@@ -269,9 +376,15 @@ class SaveStore:
         if record.get("schema") != CURRENT_SESSION_SCHEMA or record.get("manifest_hash") != expected_manifest_hash:
             raise SaveSlotViolation("Migrated save record is not bound to the current graph")
         try:
-            CreativeLedger.from_records(record.get("events", []))
+            ledger = CreativeLedger.from_records(record.get("events", []))
         except (KeyError, LedgerViolation, TypeError, ValueError) as error:
             raise SaveSlotViolation("Migrated save record has an invalid event chain") from error
+        migration = self._migration_metadata(ledger, expected_manifest_hash)
+        if migration is not None:
+            if record.get("migration_history") != migration["migration_history"]:
+                raise SaveSlotViolation("Migrated save history does not match validated provenance")
+            if canonical_json(record.get("migration_receipt")) != canonical_json(migration["migration_receipt"]):
+                raise SaveSlotViolation("Migrated save receipt does not match validated provenance")
         return self._atomic_write(target, record)
 
     def load(self, slot: str, expected_manifest_hash: str, graph: SceneGraph | None = None) -> LoadedSession:
