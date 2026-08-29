@@ -1,0 +1,62 @@
+schema: TaskLeaseClaim/v1
+project: SECOND_BRAIN
+repository: vxz2datoubo/second-brain-coordination
+task_id: GPT-R161-INTERACTIVE-FILM-REMEDIATION-R163
+route_epoch: 163
+source_issue: 494
+parent_issue: 492
+agent_type: GPT_ENGINEERING_WORKER
+executor_role: GPT_ENGINEERING_WORKER
+worker_slot_id: GPT-WORKER-R163-INTERACTIVE-FILM-REMEDIATION-1
+model_id: GPT-5.6 Sol
+status_observed: READY
+execution_allowed_observed: true
+implementation_baseline: 58cd5b271164eff71b0824ee42df2723cbc0247d
+branch: gpt/r163-interactive-film-remediation
+blocked_source_pr:
+  pr: 493
+  exact_head: 1dcd15011b02e5452186f178ea77746690d4d6a6
+  review: 5058772386
+  disposition: REFERENCE_ONLY_UNACCEPTED_CANDIDATE
+claim_scope:
+  - creative_runtime/**
+  - apps/cli/**
+  - tests/**
+  - coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/REMEDIATION-R163/**
+  - .github/workflows/r163-interactive-film-remediation.yml
+  - narrow necessary .gitignore changes
+claim_exclusions:
+  - all coordination/ROUTES/** worker mutation
+  - all coordination/TASK-BRIEFS/** worker mutation
+  - all coordination/ACTIVE-*.yaml worker mutation
+  - all coordination/CONTROL-TOWER/** worker mutation
+  - PR #493 branch mutation
+  - credentials/secrets/accounts
+  - network/external/paid generation
+  - deployment/public release
+  - trade/account/order/fund
+  - external/local/WorkBuddy/Eustia asset import
+  - canonical knowledge writes
+freshness_binding:
+  route_path: coordination/ROUTES/GPT-R161-INTERACTIVE-FILM-REMEDIATION-R163.yaml
+  task_brief_path: coordination/TASK-BRIEFS/GPT-R161-INTERACTIVE-FILM-REMEDIATION-R163.yaml
+  authorization_witness_path: coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/REMEDIATION-R163/AUTHORIZATION-WITNESS.yaml
+  source_selection_path: coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/REMEDIATION-R163/SOURCE-SELECTION-PROVENANCE.yaml
+  active_registry_path: coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml
+  control_tower_scan_path: coordination/CONTROL-TOWER/R163-INTERACTIVE-FILM-REMEDIATION-ACTIVATION-SCAN.yaml
+substantive_write_gate:
+  state: CLOSED_UNTIL_EFFECTIVE_SPEC_SNAPSHOT
+  requires:
+    - matching active worker slot is canonical
+    - fresh Control Tower activation scan is PASS
+    - Issue #494 EFFECTIVE_SPEC_SNAPSHOT/v1 exists
+    - snapshot created_before_substantive_write is true
+    - snapshot canonical_base and binding refs match fresh repository state
+mismatch_action: FAIL_CLOSED_NO_EDIT
+same_branch_writer_max: 1
+nested_parallelism: FORBIDDEN
+self_review_allowed: false
+self_accept_allowed: false
+self_merge_allowed: false
+history_rewrite_allowed: false
+claim_status: CLAIMED_GOVERNANCE_ONLY_PENDING_SNAPSHOT_GATE
