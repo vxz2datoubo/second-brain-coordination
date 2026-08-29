@@ -54,7 +54,6 @@ def _validate_count(value: int, name: str) -> int:
 
 
 def _select_blocker(e: LivenessEvidence) -> tuple[str, str | None]:
-    # Queue-first. A pending exact-head ticket is not a stall; reviewer owns the next step.
     if e.pending_exact_head_tickets > 0:
         return "PENDING_REVIEW", None
 
@@ -104,7 +103,11 @@ def classify_review_cycle(evidence: LivenessEvidence) -> dict[str, Any]:
         }
         next_action = action_by_class[blocker_class]
         if blocker_class in {"NORMAL_IDLE", "UNKNOWN_BLOCKED"}:
-            fingerprint = "NONE" if blocker_class == "NORMAL_IDLE" else f"{project}|UNKNOWN_BLOCKED|{queue_issue}"
+            fingerprint = (
+                "NONE"
+                if blocker_class == "NORMAL_IDLE"
+                else f"{project}|UNKNOWN_BLOCKED|{queue_issue}"
+            )
         else:
             fingerprint = f"{project}|{blocker_class}|{blocking_ref}"
 
@@ -129,7 +132,7 @@ def classify_review_cycle(evidence: LivenessEvidence) -> dict[str, Any]:
     }
 
 
-def validate_review_cycle_status(value: Mapping[str, Any]) -> None:
+def _validate_status_shape(value: Mapping[str, Any]) -> None:
     required = {
         "schema",
         "project",
@@ -161,3 +164,19 @@ def validate_review_cycle_status(value: Mapping[str, Any]) -> None:
     _validate_count(value.get("stall_repeat_count"), "STALL_REPEAT_COUNT")
     if not isinstance(value.get("new_evidence"), bool):
         raise ReviewPipelineLivenessError("NEW_EVIDENCE_INVALID")
+
+
+def validate_review_cycle_status(
+    value: Mapping[str, Any], evidence: LivenessEvidence | None = None
+) -> None:
+    """Fail closed unless status semantics exactly re-derive from trusted evidence."""
+    _validate_status_shape(value)
+    if evidence is None:
+        raise ReviewPipelineLivenessError("LIVENESS_EVIDENCE_REQUIRED")
+
+    expected = classify_review_cycle(evidence)
+    mismatched = [key for key in expected if value.get(key) != expected[key]]
+    if mismatched:
+        raise ReviewPipelineLivenessError(
+            "STATUS_SEMANTICS_MISMATCH:" + ",".join(sorted(mismatched))
+        )
