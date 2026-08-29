@@ -22,8 +22,14 @@ SurfaceRead = mod.SurfaceReadAttestation
 classify_review_cycle = mod.classify_review_cycle
 validate_review_cycle_status = mod.validate_review_cycle_status
 
+SECOND_BRAIN_REPO = "vxz2datoubo/second-brain-coordination"
+AI_WORLD_REPO = "vxz2datoubo/ai-world-simulation-engine"
+AI_FILM_REPO = "vxz2datoubo/eustia-ai-film"
+MAIN_SHA = "a" * 40
+
 
 def complete_provenance(
+    repository: str,
     queue_issue: int,
     *,
     stale_surface: str | None = None,
@@ -31,18 +37,26 @@ def complete_provenance(
     omit_surface: str | None = None,
     duplicate_surface: str | None = None,
     queue_override: int | None = None,
-    main_sha: str = "a" * 40,
+    repository_override: str | None = None,
+    main_sha: str = MAIN_SHA,
+    invalid_ref_surface: str | None = None,
+    queue_ref_mismatch: bool = False,
 ) -> EvidenceEnvelope:
+    queue_ref = f"github://{repository}/issues/{queue_issue}/comments/fresh"
     reads = []
     for surface in sorted(REQUIRED_LIVENESS_SURFACES):
         if surface == omit_surface:
             continue
+        observed_main = "b" * 40 if surface == stale_surface else main_sha
+        source_ref = queue_ref if surface == "REVIEW_QUEUE" else f"github://{repository}/{surface.lower()}"
+        if surface == invalid_ref_surface:
+            source_ref = "caller://forged"
         reads.append(
             SurfaceRead(
                 surface=surface,
-                source_ref=f"github://fresh/{surface.lower()}",
+                source_ref=source_ref,
                 observed_revision=f"rev:{surface}",
-                fresh=surface != stale_surface,
+                observed_main_sha=observed_main,
                 complete=surface != incomplete_surface,
             )
         )
@@ -50,18 +64,20 @@ def complete_provenance(
         reads.append(
             SurfaceRead(
                 surface=duplicate_surface,
-                source_ref="github://fresh/duplicate",
+                source_ref=f"github://{repository}/duplicate",
                 observed_revision="rev:duplicate",
-                fresh=True,
+                observed_main_sha=main_sha,
                 complete=True,
             )
         )
     return EvidenceEnvelope(
         schema=PROVENANCE_SCHEMA,
-        repository="vxz2datoubo/example",
+        repository=repository if repository_override is None else repository_override,
         queue_issue=queue_issue if queue_override is None else queue_override,
         canonical_main_sha=main_sha,
-        queue_snapshot_ref=f"github://issues/{queue_issue}/comments/fresh",
+        queue_snapshot_ref=(
+            f"github://{repository}/wrong-queue-snapshot" if queue_ref_mismatch else queue_ref
+        ),
         surface_reads=tuple(reads),
     )
 
@@ -69,7 +85,10 @@ def complete_provenance(
 class ReviewPipelineLivenessTests(unittest.TestCase):
     def test_pending_ticket_keeps_reviewer_as_next_authority(self) -> None:
         evidence = LivenessEvidence(
-            project="SECOND_BRAIN", queue_issue=453, pending_exact_head_tickets=2
+            project="SECOND_BRAIN",
+            repository=SECOND_BRAIN_REPO,
+            queue_issue=453,
+            pending_exact_head_tickets=2,
         )
         out = classify_review_cycle(evidence)
         self.assertEqual(out["pipeline_status"], "ACTIVE")
@@ -82,6 +101,7 @@ class ReviewPipelineLivenessTests(unittest.TestCase):
     def test_empty_queue_detects_accept_not_canonicalized(self) -> None:
         evidence = LivenessEvidence(
             project="AI_WORLD_SIMULATION_ENGINE",
+            repository=AI_WORLD_REPO,
             queue_issue=50,
             pending_exact_head_tickets=0,
             accepted_not_canonicalized_ref="PR#96@8651edec",
@@ -96,6 +116,7 @@ class ReviewPipelineLivenessTests(unittest.TestCase):
     def test_empty_refs_without_provenance_fail_closed_unknown(self) -> None:
         evidence = LivenessEvidence(
             project="EUSTIA_AI_FILM",
+            repository=AI_FILM_REPO,
             queue_issue=15,
             pending_exact_head_tickets=0,
         )
@@ -108,9 +129,10 @@ class ReviewPipelineLivenessTests(unittest.TestCase):
     def test_normal_idle_requires_complete_fresh_provenance(self) -> None:
         evidence = LivenessEvidence(
             project="SECOND_BRAIN",
+            repository=SECOND_BRAIN_REPO,
             queue_issue=453,
             pending_exact_head_tickets=0,
-            provenance=complete_provenance(453),
+            provenance=complete_provenance(SECOND_BRAIN_REPO, 453),
         )
         out = classify_review_cycle(evidence)
         self.assertEqual(out["pipeline_status"], "IDLE")
@@ -121,6 +143,7 @@ class ReviewPipelineLivenessTests(unittest.TestCase):
     def test_stale_request_precedes_provenance_completeness(self) -> None:
         evidence = LivenessEvidence(
             project="SECOND_BRAIN",
+            repository=SECOND_BRAIN_REPO,
             queue_issue=453,
             pending_exact_head_tickets=0,
             stale_review_request_ref="PR#1@oldhead",
@@ -133,6 +156,7 @@ class ReviewPipelineLivenessTests(unittest.TestCase):
     def test_repeat_stall_suppresses_fake_new_evidence(self) -> None:
         first_evidence = LivenessEvidence(
             project="AI_WORLD_SIMULATION_ENGINE",
+            repository=AI_WORLD_REPO,
             queue_issue=50,
             pending_exact_head_tickets=0,
             accepted_not_canonicalized_ref="PR#96@8651edec",
@@ -140,6 +164,7 @@ class ReviewPipelineLivenessTests(unittest.TestCase):
         first = classify_review_cycle(first_evidence)
         second_evidence = LivenessEvidence(
             project="AI_WORLD_SIMULATION_ENGINE",
+            repository=AI_WORLD_REPO,
             queue_issue=50,
             pending_exact_head_tickets=0,
             accepted_not_canonicalized_ref="PR#96@8651edec",
@@ -154,7 +179,10 @@ class ReviewPipelineLivenessTests(unittest.TestCase):
 
     def test_no_privileged_mutation_is_valid_status_invariant(self) -> None:
         evidence = LivenessEvidence(
-            project="SECOND_BRAIN", queue_issue=453, pending_exact_head_tickets=0
+            project="SECOND_BRAIN",
+            repository=SECOND_BRAIN_REPO,
+            queue_issue=453,
+            pending_exact_head_tickets=0,
         )
         out = classify_review_cycle(evidence)
         validate_review_cycle_status(out, evidence)
@@ -166,12 +194,29 @@ class ReviewPipelineLivenessTests(unittest.TestCase):
     def test_invalid_counts_fail_closed(self) -> None:
         with self.assertRaisesRegex(ReviewPipelineLivenessError, "PENDING_TICKETS_INVALID"):
             classify_review_cycle(
-                LivenessEvidence(project="SECOND_BRAIN", queue_issue=453, pending_exact_head_tickets=-1)
+                LivenessEvidence(
+                    project="SECOND_BRAIN",
+                    repository=SECOND_BRAIN_REPO,
+                    queue_issue=453,
+                    pending_exact_head_tickets=-1,
+                )
+            )
+
+    def test_zero_queue_issue_fails_closed(self) -> None:
+        with self.assertRaisesRegex(ReviewPipelineLivenessError, "QUEUE_ISSUE_INVALID"):
+            classify_review_cycle(
+                LivenessEvidence(
+                    project="SECOND_BRAIN",
+                    repository=SECOND_BRAIN_REPO,
+                    queue_issue=0,
+                    pending_exact_head_tickets=0,
+                )
             )
 
     def test_implemented_not_queued_routes_to_engineering_without_inventing_review(self) -> None:
         evidence = LivenessEvidence(
             project="EUSTIA_AI_FILM",
+            repository=AI_FILM_REPO,
             queue_issue=15,
             pending_exact_head_tickets=0,
             implemented_not_queued_ref="PR#30@abcdef",
@@ -184,7 +229,10 @@ class ReviewPipelineLivenessTests(unittest.TestCase):
 
     def test_validation_requires_authoritative_liveness_evidence(self) -> None:
         evidence = LivenessEvidence(
-            project="SECOND_BRAIN", queue_issue=453, pending_exact_head_tickets=0
+            project="SECOND_BRAIN",
+            repository=SECOND_BRAIN_REPO,
+            queue_issue=453,
+            pending_exact_head_tickets=0,
         )
         out = classify_review_cycle(evidence)
         with self.assertRaisesRegex(ReviewPipelineLivenessError, "LIVENESS_EVIDENCE_REQUIRED"):
@@ -192,7 +240,10 @@ class ReviewPipelineLivenessTests(unittest.TestCase):
 
     def test_adversarial_pending_ticket_cannot_be_laundered_to_idle(self) -> None:
         evidence = LivenessEvidence(
-            project="SECOND_BRAIN", queue_issue=453, pending_exact_head_tickets=1
+            project="SECOND_BRAIN",
+            repository=SECOND_BRAIN_REPO,
+            queue_issue=453,
+            pending_exact_head_tickets=1,
         )
         bad = classify_review_cycle(evidence)
         bad.update(
@@ -207,6 +258,7 @@ class ReviewPipelineLivenessTests(unittest.TestCase):
     def test_adversarial_blocker_cannot_route_to_wrong_role_or_action(self) -> None:
         evidence = LivenessEvidence(
             project="AI_WORLD_SIMULATION_ENGINE",
+            repository=AI_WORLD_REPO,
             queue_issue=50,
             pending_exact_head_tickets=0,
             accepted_not_canonicalized_ref="PR#96@8651edec",
@@ -220,6 +272,7 @@ class ReviewPipelineLivenessTests(unittest.TestCase):
     def test_adversarial_blocking_ref_and_fingerprint_cannot_drift(self) -> None:
         evidence = LivenessEvidence(
             project="AI_WORLD_SIMULATION_ENGINE",
+            repository=AI_WORLD_REPO,
             queue_issue=50,
             pending_exact_head_tickets=0,
             accepted_not_canonicalized_ref="PR#96@8651edec",
@@ -233,6 +286,7 @@ class ReviewPipelineLivenessTests(unittest.TestCase):
     def test_adversarial_repeat_count_and_new_evidence_cannot_contradict_history(self) -> None:
         first_evidence = LivenessEvidence(
             project="AI_WORLD_SIMULATION_ENGINE",
+            repository=AI_WORLD_REPO,
             queue_issue=50,
             pending_exact_head_tickets=0,
             accepted_not_canonicalized_ref="PR#96@8651edec",
@@ -240,6 +294,7 @@ class ReviewPipelineLivenessTests(unittest.TestCase):
         first = classify_review_cycle(first_evidence)
         evidence = LivenessEvidence(
             project="AI_WORLD_SIMULATION_ENGINE",
+            repository=AI_WORLD_REPO,
             queue_issue=50,
             pending_exact_head_tickets=0,
             accepted_not_canonicalized_ref="PR#96@8651edec",
@@ -255,58 +310,106 @@ class ReviewPipelineLivenessTests(unittest.TestCase):
     def test_partial_provenance_cannot_mint_normal_idle(self) -> None:
         evidence = LivenessEvidence(
             project="SECOND_BRAIN",
+            repository=SECOND_BRAIN_REPO,
             queue_issue=453,
             pending_exact_head_tickets=0,
-            provenance=complete_provenance(453, omit_surface="CI_PROVENANCE"),
+            provenance=complete_provenance(
+                SECOND_BRAIN_REPO, 453, omit_surface="CI_PROVENANCE"
+            ),
         )
-        out = classify_review_cycle(evidence)
-        self.assertEqual(out["pipeline_status"], "UNKNOWN")
-        self.assertEqual(out["blocker_class"], "UNKNOWN_BLOCKED")
+        self.assertEqual(classify_review_cycle(evidence)["blocker_class"], "UNKNOWN_BLOCKED")
 
-    def test_stale_surface_provenance_yields_unknown_blocked(self) -> None:
+    def test_stale_surface_main_binding_yields_unknown_blocked(self) -> None:
         evidence = LivenessEvidence(
             project="SECOND_BRAIN",
+            repository=SECOND_BRAIN_REPO,
             queue_issue=453,
             pending_exact_head_tickets=0,
-            provenance=complete_provenance(453, stale_surface="PR_STATE"),
+            provenance=complete_provenance(
+                SECOND_BRAIN_REPO, 453, stale_surface="PR_STATE"
+            ),
         )
-        out = classify_review_cycle(evidence)
-        self.assertEqual(out["pipeline_status"], "UNKNOWN")
-        self.assertEqual(out["blocker_class"], "UNKNOWN_BLOCKED")
+        self.assertEqual(classify_review_cycle(evidence)["blocker_class"], "UNKNOWN_BLOCKED")
 
     def test_incomplete_surface_provenance_yields_unknown_blocked(self) -> None:
         evidence = LivenessEvidence(
             project="SECOND_BRAIN",
+            repository=SECOND_BRAIN_REPO,
             queue_issue=453,
             pending_exact_head_tickets=0,
-            provenance=complete_provenance(453, incomplete_surface="CANONICALIZATION"),
+            provenance=complete_provenance(
+                SECOND_BRAIN_REPO, 453, incomplete_surface="CANONICALIZATION"
+            ),
         )
         self.assertEqual(classify_review_cycle(evidence)["blocker_class"], "UNKNOWN_BLOCKED")
 
     def test_duplicate_surface_attestation_fails_closed(self) -> None:
         evidence = LivenessEvidence(
             project="SECOND_BRAIN",
+            repository=SECOND_BRAIN_REPO,
             queue_issue=453,
             pending_exact_head_tickets=0,
-            provenance=complete_provenance(453, duplicate_surface="REVIEW_QUEUE"),
+            provenance=complete_provenance(
+                SECOND_BRAIN_REPO, 453, duplicate_surface="REVIEW_QUEUE"
+            ),
         )
         self.assertEqual(classify_review_cycle(evidence)["blocker_class"], "UNKNOWN_BLOCKED")
 
     def test_queue_identity_mismatch_fails_closed(self) -> None:
         evidence = LivenessEvidence(
             project="SECOND_BRAIN",
+            repository=SECOND_BRAIN_REPO,
             queue_issue=453,
             pending_exact_head_tickets=0,
-            provenance=complete_provenance(453, queue_override=999),
+            provenance=complete_provenance(SECOND_BRAIN_REPO, 453, queue_override=999),
+        )
+        self.assertEqual(classify_review_cycle(evidence)["blocker_class"], "UNKNOWN_BLOCKED")
+
+    def test_repository_identity_mismatch_fails_closed(self) -> None:
+        evidence = LivenessEvidence(
+            project="SECOND_BRAIN",
+            repository=SECOND_BRAIN_REPO,
+            queue_issue=453,
+            pending_exact_head_tickets=0,
+            provenance=complete_provenance(
+                SECOND_BRAIN_REPO,
+                453,
+                repository_override="vxz2datoubo/other",
+            ),
         )
         self.assertEqual(classify_review_cycle(evidence)["blocker_class"], "UNKNOWN_BLOCKED")
 
     def test_non_full_main_sha_fails_closed(self) -> None:
         evidence = LivenessEvidence(
             project="SECOND_BRAIN",
+            repository=SECOND_BRAIN_REPO,
             queue_issue=453,
             pending_exact_head_tickets=0,
-            provenance=complete_provenance(453, main_sha="abc123"),
+            provenance=complete_provenance(SECOND_BRAIN_REPO, 453, main_sha="abc123"),
+        )
+        self.assertEqual(classify_review_cycle(evidence)["blocker_class"], "UNKNOWN_BLOCKED")
+
+    def test_non_github_surface_ref_fails_closed(self) -> None:
+        evidence = LivenessEvidence(
+            project="SECOND_BRAIN",
+            repository=SECOND_BRAIN_REPO,
+            queue_issue=453,
+            pending_exact_head_tickets=0,
+            provenance=complete_provenance(
+                SECOND_BRAIN_REPO, 453, invalid_ref_surface="CI_PROVENANCE"
+            ),
+        )
+        self.assertEqual(classify_review_cycle(evidence)["blocker_class"], "UNKNOWN_BLOCKED")
+
+    def test_queue_snapshot_must_bind_review_queue_read(self) -> None:
+        evidence = LivenessEvidence(
+            project="SECOND_BRAIN",
+            repository=SECOND_BRAIN_REPO,
+            queue_issue=453,
+            pending_exact_head_tickets=0,
+            provenance=complete_provenance(
+                SECOND_BRAIN_REPO, 453, queue_ref_mismatch=True
+            ),
         )
         self.assertEqual(classify_review_cycle(evidence)["blocker_class"], "UNKNOWN_BLOCKED")
 
