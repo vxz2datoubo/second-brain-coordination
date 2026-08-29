@@ -68,3 +68,6 @@ S07-S10 implementation was clean-clone verified from detached commit
 The implementation is now ready for GPT's independent exact-head review via
 Issue #453. This is a transfer for review and integration, **not** a claim of
 independent verification or merge authorization by CODEX.
+
+Draft PR [#493](https://github.com/vxz2datoubo/second-brain-coordination/pull/493)
+contains the implementation and the reviewer-facing command/results summary.
