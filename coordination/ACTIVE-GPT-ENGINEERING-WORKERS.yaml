@@ -1,4 +1,4 @@
-schema_version: "1.2"
+schema_version: "1.3"
 registry_id: "ACTIVE-GPT-ENGINEERING-WORKERS-0001"
 agent_type: "GPT_ENGINEERING_WORKER"
 parallel_routes_allowed: true
@@ -6,9 +6,9 @@ boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 
 semantics:
   purpose: >-
-    Canonical active route registry for the GPT_ENGINEERING_WORKER agent type. Each active slot is a distinct lease with exact
-    route + Work Claim binding. Frozen historical slots may remain recorded but carry no execution authority. This registry does
-    not create pseudo-agent species and it does not permit CODEX to impersonate GPT_ENGINEERING_WORKER.
+    Canonical active route registry for GPT Engineering Worker execution identities. Active slots require exact route, claim,
+    witness, lease, branch and pre-write snapshot bindings. Frozen historical slots remain audit evidence only and carry no
+    execution authority. A later clean successor never inherits invalid execution provenance merely because its code is similar.
   agent_type: "GPT_ENGINEERING_WORKER"
   slot_is_provenance_not_species: true
   singleton_overwrite_model_forbidden: true
@@ -16,6 +16,7 @@ semantics:
   no_slot_no_execution: true
   impersonation_forbidden: true
   historical_executor_provenance_preserved: true
+  retroactive_authorization_forbidden: true
 
 worker_slots:
   - worker_slot_id: "GPT-WORKER-R163-INTERACTIVE-FILM-REMEDIATION-1"
@@ -26,55 +27,25 @@ worker_slots:
     route_epoch: 163
     issue: 494
     parent_issue: 492
-    blocked_source_pr: 493
-    blocked_source_reviewed_head: "1dcd15011b02e5452186f178ea77746690d4d6a6"
     branch: "gpt/r163-interactive-film-remediation"
     pr: 495
-    implementation_baseline: "58cd5b271164eff71b0824ee42df2723cbc0247d"
     status: "FROZEN_GOVERNANCE_INVALID_POST_REVIEW_REMEDIATION"
     execution_allowed: false
     substantive_write_gate: "CLOSED_BY_INDEPENDENT_GOVERNANCE_RESULT_5465273392"
-    route: "coordination/ROUTES/GPT-R161-INTERACTIVE-FILM-REMEDIATION-R163.yaml"
-    task_brief: "coordination/TASK-BRIEFS/GPT-R161-INTERACTIVE-FILM-REMEDIATION-R163.yaml"
-    work_claim: "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/REMEDIATION-R163/WORK-CLAIM.yaml"
-    authorization_witness: "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/REMEDIATION-R163/AUTHORIZATION-WITNESS.yaml"
-    source_selection_provenance: "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/REMEDIATION-R163/SOURCE-SELECTION-PROVENANCE.yaml"
-    control_tower_scan: "coordination/CONTROL-TOWER/R163-INTERACTIVE-FILM-REMEDIATION-ACTIVATION-SCAN.yaml"
-    write_paths:
-      - "creative_runtime/**"
-      - "apps/cli/**"
-      - "tests/**"
-      - "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/REMEDIATION-R163/**"
-      - ".github/workflows/r163-interactive-film-remediation.yml"
-      - ".gitignore"
-    read_paths:
-      - "coordination/ROUTES/GPT-R161-INTERACTIVE-FILM-REMEDIATION-R163.yaml"
-      - "coordination/TASK-BRIEFS/GPT-R161-INTERACTIVE-FILM-REMEDIATION-R163.yaml"
-      - "coordination/CONTROL-TOWER/**"
-      - "coordination/GOVERNANCE/**"
-      - "PR #493 as REFERENCE_ONLY_UNACCEPTED_CANDIDATE"
-      - "PR #495 @ 43785fd2f24e0c9e640bdc7d26d09351c836d8c9 as UNACCEPTED_EVIDENCE_ONLY"
-    read_domains: [W1, W3]
-    write_domains: []
-    authority_claims: []
-    source_candidate_disposition: "REFERENCE_ONLY_UNACCEPTED_CANDIDATE"
+    write_paths: []
     resource_class: "FROZEN_NO_EXECUTION"
     provenance:
       source_issue: 494
-      prior_review_result: 5464901584
-      prior_review: 5059197775
       invalid_post_review_head: "43785fd2f24e0c9e640bdc7d26d09351c836d8c9"
       independent_governance_result: 5465273392
       independent_governance_review: 5059352209
       snapshot_provenance_disposition: "INVALID_STALE_OR_MISSING_PREWRITE_AUTHORITY"
       implementation_disposition: "TECHNICALLY_ACCEPTABLE_BUT_NOT_AUTHORIZED_ASSET"
       five_post_review_commits_disposition: "UNACCEPTED_EVIDENCE_ONLY"
-      retroactive_authorization_forbidden: true
-      clean_nonretroactive_successor_only: true
+      clean_successor: "CODEX-R163-CLEAN-SUCCESSOR-R165 / Issue #499"
     reviewer_role: "GPT_INDEPENDENT_REVIEWER"
-    reviewer_separation: "EXECUTION_IDENTITY_NOT_ACCEPTANCE_AUTHORITY"
     activation_state: "FROZEN"
-    closure_state: "SUPERSEDED_FOR_FUTURE_REMEDIATION_BY_CLEAN_CODEX_SUCCESSOR_PATH"
+    closure_state: "SUPERSEDED_BY_CLEAN_CODEX_R165"
 
   - worker_slot_id: "GPT-WORKER-R164-W5-EVENT-COVERAGE-2"
     agent_type: "GPT_ENGINEERING_WORKER"
@@ -83,42 +54,93 @@ worker_slots:
     task_id: "GPT-W5-EVENT-COVERAGE-P0-REMEDIATION-R164"
     route_epoch: 164
     issue: 486
-    pr: 487
     branch: "gpt/w5-event-coverage-p0-vs1"
-    implementation_baseline: "863e838b38ac7cd85f8da90cea8e8c786a144054"
+    pr: 487
+    status: "FROZEN_SUPERSEDED_ROUTE_BRANCH_BINDING"
+    execution_allowed: false
+    substantive_write_gate: "CLOSED_BY_R166_CLEAN_SUCCESSOR_RELEASE"
+    write_paths: []
+    resource_class: "FROZEN_NO_EXECUTION"
+    provenance:
+      source_issue: 486
+      prior_review: 5059199228
+      stale_snapshot_review: 5059359436
+      prior_pr_487_disposition: "FROZEN_REFERENCE_ONLY"
+      pre_route_successor_pr_497: 497
+      pre_route_successor_head: "e288f30ef90a5a4dd954655f245193e5da363676"
+      pre_route_successor_disposition: "REFERENCE_ONLY_TECHNICAL_EVIDENCE"
+      route_claim_mismatch_discovered_before_review: true
+      retroactive_route_repair_forbidden: true
+    reviewer_role: "GPT_INDEPENDENT_REVIEWER"
+    activation_state: "FROZEN"
+    closure_state: "SUPERSEDED_BY_R166_CLEAN_GOVERNED_SUCCESSOR"
+
+  - worker_slot_id: "GPT-WORKER-R166-W5-EVENT-COVERAGE-2"
+    agent_type: "GPT_ENGINEERING_WORKER"
+    executor_role: "GPT_ENGINEERING_WORKER"
+    model_id: "GPT-5.6 Sol"
+    task_id: "GPT-W5-EVENT-COVERAGE-CLEAN-SUCCESSOR-R166"
+    route_epoch: 166
+    issue: 501
+    parent_issue: 486
+    branch: "gpt/w5-event-coverage-r166-clean-successor"
+    pr: null
+    pr_creation_gate: "AFTER_ISSUE_501_EFFECTIVE_SPEC_SNAPSHOT_AND_FIRST_SUBSTANTIVE_COMMIT"
     status: "ACTIVE_GOVERNED_PREWRITE"
     execution_allowed: true
-    substantive_write_gate: "ISSUE_486_R164_EFFECTIVE_SPEC_SNAPSHOT_REQUIRED"
-    route: "coordination/ROUTES/GPT-W5-EVENT-COVERAGE-P0-REMEDIATION-R164.yaml"
-    task_brief: "coordination/TASK-BRIEFS/GPT-W5-EVENT-COVERAGE-P0-REMEDIATION-R164.yaml"
-    work_claim: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/REMEDIATION-R164/WORK-CLAIM.yaml"
-    authorization_witness: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/REMEDIATION-R164/AUTHORIZATION-WITNESS.yaml"
-    source_selection_provenance: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/REMEDIATION-R164/SOURCE-SELECTION-PROVENANCE.yaml"
+    substantive_write_gate: "CLOSED_UNTIL_ISSUE_501_EFFECTIVE_SPEC_SNAPSHOT"
+    route: "coordination/ROUTES/GPT-W5-EVENT-COVERAGE-CLEAN-SUCCESSOR-R166.yaml"
+    task_brief: "coordination/TASK-BRIEFS/GPT-W5-EVENT-COVERAGE-CLEAN-SUCCESSOR-R166.yaml"
+    work_claim: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/CLEAN-SUCCESSOR-R166/WORK-CLAIM.yaml"
+    authorization_witness: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/CLEAN-SUCCESSOR-R166/AUTHORIZATION-WITNESS.yaml"
+    source_selection_provenance: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/CLEAN-SUCCESSOR-R166/SOURCE-SELECTION-PROVENANCE.yaml"
+    task_lease: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/CLEAN-SUCCESSOR-R166/TASK-LEASE.yaml"
+    executor_reservation: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/CLEAN-SUCCESSOR-R166/EXECUTOR-RESERVATION.yaml"
+    control_tower_scan: "coordination/CONTROL-TOWER/R166-W5-EVENT-COVERAGE-CLEAN-SUCCESSOR-ACTIVATION-SCAN.yaml"
     write_paths:
       - ".github/workflows/w5-event-coverage-p0-vs1.yml"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/**"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/CLAIM-EVIDENCE-LEDGER.schema.json"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/EVENT-COVERAGE-REPORT.schema.json"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/PROJECT-PLAN.md"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/SOURCE-REGISTRY.schema.json"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/event_coverage.py"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/tests/test_event_coverage.py"
     read_paths:
-      - "coordination/ROUTES/GPT-W5-EVENT-COVERAGE-P0-REMEDIATION-R164.yaml"
-      - "coordination/TASK-BRIEFS/GPT-W5-EVENT-COVERAGE-P0-REMEDIATION-R164.yaml"
+      - "Issue #501"
+      - "Issue #486"
+      - "pullrequestreview-5059199228"
+      - "pullrequestreview-5059359436"
+      - "PR #487 as frozen reference only"
+      - "PR #497 as frozen technical evidence only"
+      - "coordination/CONTROL-TOWER/**"
+      - "coordination/GOVERNANCE/**"
       - "coordination/SKILLS/A-SHARE-POLICY-MACRO-NEWS-CROSS-ASSET-INTELLIGENCE-SKILL-v1.0.yaml"
       - "coordination/BLUEPRINTS/A-SHARE-POLICY-MACRO-NEWS-CROSS-ASSET-INTELLIGENCE-BLUEPRINT-v1.0.md"
-      - "coordination/CONTROL-TOWER/**"
-      - "PR #487 / prior review 5057457615"
     read_domains: [W5]
     write_domains: []
     authority_claims:
-      - "R164_BOUNDED_W5_EVENT_COVERAGE_REMEDIATION_ONLY"
-      - "NO_SECOND_SOURCE_OR_CAUSAL_AUTHORITY"
+      - "R166_BOUNDED_W5_EVENT_COVERAGE_CLEAN_SUCCESSOR_ONLY"
+      - "NO_SECOND_SOURCE_CAUSAL_PARTICIPANT_AUTHORITY"
+      - "UNTYPED_FREE_TEXT_NON_AUTHORITATIVE_UNTIL_GOVERNED_TYPED_AUTHORITY"
       - "RESEARCH_ONLY_NO_TRADE"
+    source_candidate_disposition: "PR487_AND_PR497_REFERENCE_ONLY_NO_PROVENANCE_INHERITANCE"
     resource_class: "LIGHT_IMPLEMENTATION"
+    concurrency:
+      concurrent_codex_task: "CODEX-R163-CLEAN-SUCCESSOR-R165"
+      overlap_class: "O0_NO_MATERIAL_WRITE_OVERLAP"
+      nested_parallelism: "FORBIDDEN"
     provenance:
-      source_issue: 486
-      prior_review: 5057457615
-      prior_reviewed_head: "a98ff40e8731ef89efb6ced4808b9ffb2aff410a"
-      prelease_candidate_head: "863e838b38ac7cd85f8da90cea8e8c786a144054"
-      prepared_r162_superseded_by_fresh_r164_activation: true
-      prelease_candidate_not_retroactively_governed: true
+      source_issue: 501
+      parent_issue: 486
+      route_precedes_snapshot: true
+      claim_precedes_snapshot: true
+      witness_precedes_snapshot: true
+      lease_precedes_snapshot: true
+      reservation_precedes_snapshot: true
+      exact_branch_bound_before_snapshot: true
+      branch_must_not_exist_before_snapshot: true
+      snapshot_required_before_substantive_write: true
     reviewer_role: "GPT_INDEPENDENT_REVIEWER"
     reviewer_separation: "EXECUTION_IDENTITY_NOT_ACCEPTANCE_AUTHORITY"
-    activation_state: "ACTIVE"
+    activation_state: "PREWRITE_RESERVED"
     closure_state: null
