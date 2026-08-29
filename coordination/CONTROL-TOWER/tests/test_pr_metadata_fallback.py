@@ -1,5 +1,6 @@
 import importlib.util
 import json
+import sys
 from pathlib import Path
 
 import pytest
@@ -8,6 +9,7 @@ MODULE_PATH = Path(__file__).resolve().parents[1] / "pr_metadata_fallback.py"
 spec = importlib.util.spec_from_file_location("pr_metadata_fallback", MODULE_PATH)
 mod = importlib.util.module_from_spec(spec)
 assert spec.loader is not None
+sys.modules[spec.name] = mod
 spec.loader.exec_module(mod)
 
 HEAD = "a" * 40
@@ -85,26 +87,57 @@ def test_already_ready_is_idempotent_and_does_not_mutate():
     fake = FakeRunner(before=ready, after=ready)
     receipt = mod.mark_ready_for_review("o/r", 96, HEAD, runner=fake)
     assert receipt.status == "ALREADY_READY"
-    # GraphQL node lookup/mutation is never needed for an already-ready PR.
     assert not any(args[:2] == ["api", "graphql"] for args in fake.calls)
 
 
-def test_invalid_sha_rejected():
+def test_invalid_sha_rejected_before_transport():
+    fake = FakeRunner()
     with pytest.raises(mod.FallbackError, match="40-hex"):
-        mod.mark_ready_for_review("o/r", 96, "not-a-sha", runner=FakeRunner())
+        mod.mark_ready_for_review("o/r", 96, "not-a-sha", runner=fake)
+    assert fake.calls == []
 
 
 def test_receipt_digest_is_deterministic():
-    fake1 = FakeRunner()
-    fake2 = FakeRunner()
-    r1 = mod.mark_ready_for_review("o/r", 96, HEAD, runner=fake1)
-    r2 = mod.mark_ready_for_review("o/r", 96, HEAD, runner=fake2)
+    r1 = mod.mark_ready_for_review("o/r", 96, HEAD, runner=FakeRunner())
+    r2 = mod.mark_ready_for_review("o/r", 96, HEAD, runner=FakeRunner())
     assert r1.digest() == r2.digest()
 
 
-def test_v1_exposes_no_merge_or_code_write_operation():
+def test_v1_exposes_no_merge_code_or_branch_write_authority():
     source = MODULE_PATH.read_text(encoding="utf-8")
     assert 'choices=["mark_ready_for_review"]' in source
     assert '"grants_merge": False' in source
     assert '"grants_code_write": False' in source
     assert '"grants_branch_write": False' in source
+    assert '"grants_review_accept": False' in source
+    assert '"grants_release": False' in source
+    assert "merge_pull_request" not in source
+    assert "git push" not in source
+    assert "git commit" not in source
+    assert "curl " not in source
+
+
+def test_no_embedded_secret_material():
+    source = MODULE_PATH.read_text(encoding="utf-8")
+    for token in ("GITHUB_TOKEN=", "ghp_", "github_pat_", "Authorization: Bearer", "Authorization: token"):
+        assert token not in source
+
+
+def test_policy_keeps_native_connector_primary_and_fallback_bounded():
+    doc = (MODULE_PATH.parent / "PR-METADATA-FALLBACK-V1.md").read_text(encoding="utf-8")
+    assert "Primary lane" in doc
+    assert "Fallback lane" in doc
+    assert "only after the primary lane returns a concrete transport/schema failure" in doc
+    assert "not a second governance system" in doc
+    assert "cannot authorize merge or review acceptance" in doc
+    assert "fresh PR readback is mandatory" in doc
+
+
+def test_receipt_fixture_pins_exact_head_and_all_false_authority():
+    fixture = Path(__file__).resolve().parent / "fixtures" / "pr_metadata_fallback_receipt_example.json"
+    data = json.loads(fixture.read_text(encoding="utf-8"))
+    assert data["schema"] == "PR_METADATA_FALLBACK_RECEIPT/v1"
+    assert data["before_head"] == data["expected_head"] == data["after_head"]
+    assert data["before_draft"] is True
+    assert data["after_draft"] is False
+    assert all(value is False for value in data["authority"].values())
