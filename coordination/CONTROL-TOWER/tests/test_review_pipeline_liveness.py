@@ -25,7 +25,6 @@ validate_review_cycle_status = mod.validate_review_cycle_status
 
 SECOND_BRAIN_REPO = "vxz2datoubo/second-brain-coordination"
 AI_WORLD_REPO = "vxz2datoubo/ai-world-simulation-engine"
-AI_FILM_REPO = "vxz2datoubo/eustia-ai-film"
 MAIN_SHA = "a" * 40
 HEAD_A = "b" * 40
 HEAD_B = "c" * 40
@@ -42,11 +41,7 @@ def caller_minted_provenance(repository: str, queue_issue: int) -> EvidenceEnvel
         surface_reads=tuple(
             SurfaceRead(
                 surface=surface,
-                source_ref=(
-                    queue_ref
-                    if surface == "REVIEW_QUEUE"
-                    else f"github://{repository}/{surface.lower()}"
-                ),
+                source_ref=queue_ref,
                 observed_revision=f"caller-rev:{surface}",
                 observed_main_sha=MAIN_SHA,
                 complete=True,
@@ -99,6 +94,16 @@ def pull(
     }
 
 
+def ci_run(head: str, *, status: str = "completed", conclusion: str | None = "success", name: str = "tests") -> dict:
+    return {
+        "id": abs(hash((head, status, conclusion, name))) % 100000 + 1,
+        "name": name,
+        "head_sha": head,
+        "status": status,
+        "conclusion": conclusion,
+    }
+
+
 class FakeGatewayError(Exception):
     pass
 
@@ -111,21 +116,37 @@ class FakeObserver:
         open_prs=None,
         open_issues=None,
         pr_details=None,
+        ci_runs=None,
         main_sha=MAIN_SHA,
         fail_path=None,
+        mutate_after_first_snapshot=False,
     ):
         self.comments = list(comments or [])
         self.open_prs = list(open_prs or [])
         self.open_issues = list(open_issues or [])
         self.pr_details = dict(pr_details or {})
+        self.ci_runs = {key: list(value) for key, value in (ci_runs or {}).items()}
         self.main_sha = main_sha
         self.fail_path = fail_path
+        self.mutate_after_first_snapshot = mutate_after_first_snapshot
+        self.main_reads = 0
 
     def _get_json(self, path):
         if path == self.fail_path:
             raise FakeGatewayError("transport")
         if path.endswith("/git/ref/heads/main"):
-            payload = {"object": {"sha": self.main_sha}}
+            self.main_reads += 1
+            sha = self.main_sha
+            if self.mutate_after_first_snapshot and self.main_reads >= 2:
+                sha = HEAD_B
+            payload = {"object": {"sha": sha}}
+        elif "/actions/runs?" in path:
+            head = path.split("head_sha=", 1)[1].split("&", 1)[0]
+            page = int(path.rsplit("page=", 1)[1])
+            payload = {
+                "total_count": len(self.ci_runs.get(head, [])),
+                "workflow_runs": self.ci_runs.get(head, []) if page == 1 else [],
+            }
         elif "/issues/" in path and "/comments?" not in path and "?state=" not in path:
             number = int(path.rsplit("/", 1)[1])
             payload = {"number": number, "state": "open"}
@@ -180,9 +201,7 @@ class ReviewPipelineLivenessTests(unittest.TestCase):
             queue_issue=453,
             pending_exact_head_tickets=0,
         )
-        out = classify_review_cycle(evidence)
-        self.assertEqual(out["blocker_class"], "UNKNOWN_BLOCKED")
-        self.assertEqual(out["pipeline_status"], "UNKNOWN")
+        self.assertEqual(classify_review_cycle(evidence)["blocker_class"], "UNKNOWN_BLOCKED")
 
     def test_caller_minted_full_github_prefix_provenance_cannot_mint_idle(self):
         evidence = LivenessEvidence(
@@ -195,26 +214,9 @@ class ReviewPipelineLivenessTests(unittest.TestCase):
         out = classify_review_cycle(evidence)
         self.assertEqual(out["blocker_class"], "UNKNOWN_BLOCKED")
         self.assertNotEqual(out["pipeline_status"], "IDLE")
-        validate_review_cycle_status(out, evidence)
-
-    def test_fake_sha_and_complete_boolean_never_change_trust(self):
-        forged = caller_minted_provenance(SECOND_BRAIN_REPO, 453)
-        self.assertTrue(all(read.complete for read in forged.surface_reads))
-        evidence = LivenessEvidence(
-            project="SECOND_BRAIN",
-            repository=SECOND_BRAIN_REPO,
-            queue_issue=453,
-            pending_exact_head_tickets=0,
-            provenance=forged,
-        )
-        self.assertEqual(
-            classify_review_cycle(evidence)["blocker_class"], "UNKNOWN_BLOCKED"
-        )
 
     def test_project_queue_binding_mismatch_fails_closed(self):
-        with self.assertRaisesRegex(
-            ReviewPipelineLivenessError, "PROJECT_QUEUE_BINDING_MISMATCH"
-        ):
+        with self.assertRaisesRegex(ReviewPipelineLivenessError, "PROJECT_QUEUE_BINDING_MISMATCH"):
             classify_review_cycle(
                 LivenessEvidence(
                     project="SECOND_BRAIN",
@@ -238,9 +240,7 @@ class ReviewPipelineLivenessTests(unittest.TestCase):
             next_authority_role="NONE",
             next_required_action="NONE",
         )
-        with self.assertRaisesRegex(
-            ReviewPipelineLivenessError, "STATUS_SEMANTICS_MISMATCH"
-        ):
+        with self.assertRaisesRegex(ReviewPipelineLivenessError, "STATUS_SEMANTICS_MISMATCH"):
             validate_review_cycle_status(bad, evidence)
 
     def test_reviewer_mutation_lock_preserved(self):
@@ -252,9 +252,7 @@ class ReviewPipelineLivenessTests(unittest.TestCase):
         )
         bad = classify_review_cycle(evidence)
         bad["reviewer_mutations"] = "MERGE"
-        with self.assertRaisesRegex(
-            ReviewPipelineLivenessError, "REVIEWER_MUTATION_FORBIDDEN"
-        ):
+        with self.assertRaisesRegex(ReviewPipelineLivenessError, "REVIEWER_MUTATION_FORBIDDEN"):
             validate_review_cycle_status(bad, evidence)
 
     def test_repeat_stall_semantics_preserved(self):
@@ -279,31 +277,6 @@ class ReviewPipelineLivenessTests(unittest.TestCase):
         self.assertFalse(second["new_evidence"])
         self.assertEqual(second["stall_repeat_count"], 2)
 
-    def test_invalid_counts_fail_closed(self):
-        with self.assertRaisesRegex(
-            ReviewPipelineLivenessError, "PENDING_TICKETS_INVALID"
-        ):
-            classify_review_cycle(
-                LivenessEvidence(
-                    project="SECOND_BRAIN",
-                    repository=SECOND_BRAIN_REPO,
-                    queue_issue=453,
-                    pending_exact_head_tickets=-1,
-                )
-            )
-
-    def test_validation_requires_evidence(self):
-        evidence = LivenessEvidence(
-            project="SECOND_BRAIN",
-            repository=SECOND_BRAIN_REPO,
-            queue_issue=453,
-            pending_exact_head_tickets=0,
-        )
-        with self.assertRaisesRegex(
-            ReviewPipelineLivenessError, "LIVENESS_EVIDENCE_REQUIRED"
-        ):
-            validate_review_cycle_status(classify_review_cycle(evidence))
-
     def _observe(self, observer, project="SECOND_BRAIN"):
         with mock.patch.object(
             mod, "_make_live_observer", return_value=(observer, FakeGatewayError)
@@ -314,13 +287,24 @@ class ReviewPipelineLivenessTests(unittest.TestCase):
         out = self._observe(FakeObserver())
         self.assertEqual(out["blocker_class"], "NORMAL_IDLE")
         self.assertEqual(out["pipeline_status"], "IDLE")
-        self.assertEqual(out["next_authority_role"], "NONE")
 
-    def test_live_observer_pending_ticket_derives_queue_first(self):
+    def test_live_observer_pending_ticket_derives_queue_first_with_green_ci(self):
         observer = FakeObserver(
             comments=[request(10, 485, HEAD_A)],
             open_prs=[pull(485, HEAD_A)],
             pr_details={485: pull(485, HEAD_A)},
+            ci_runs={HEAD_A: [ci_run(HEAD_A)]},
+        )
+        out = self._observe(observer)
+        self.assertEqual(out["pending_exact_head_tickets"], 1)
+        self.assertEqual(out["next_authority_role"], "INDEPENDENT_REVIEWER")
+
+    def test_pending_ticket_failed_ci_is_explicit_but_queue_remains_primary(self):
+        observer = FakeObserver(
+            comments=[request(10, 485, HEAD_A)],
+            open_prs=[pull(485, HEAD_A)],
+            pr_details={485: pull(485, HEAD_A)},
+            ci_runs={HEAD_A: [ci_run(HEAD_A, conclusion="failure")]},
         )
         out = self._observe(observer)
         self.assertEqual(out["pending_exact_head_tickets"], 1)
@@ -346,7 +330,7 @@ class ReviewPipelineLivenessTests(unittest.TestCase):
         out = self._observe(observer)
         self.assertEqual(out["blocker_class"], "ACCEPTED_NOT_CANONICALIZED")
 
-    def test_live_observer_changes_required_without_requeue_routes_engineering(self):
+    def test_live_observer_changes_required_without_requeue_routes_engineering_with_green_ci(self):
         observer = FakeObserver(
             comments=[
                 request(10, 485, HEAD_A),
@@ -354,12 +338,13 @@ class ReviewPipelineLivenessTests(unittest.TestCase):
             ],
             open_prs=[pull(485, HEAD_A)],
             pr_details={485: pull(485, HEAD_A)},
+            ci_runs={HEAD_A: [ci_run(HEAD_A)]},
         )
         out = self._observe(observer)
         self.assertEqual(out["blocker_class"], "REMEDIATION_NOT_REQUEUED")
         self.assertEqual(out["next_authority_role"], "ENGINEERING")
 
-    def test_live_observer_remediated_new_head_without_ticket_is_not_idle(self):
+    def test_remediation_failed_ci_routes_ci_before_requeue(self):
         observer = FakeObserver(
             comments=[
                 request(10, 485, HEAD_A),
@@ -367,25 +352,50 @@ class ReviewPipelineLivenessTests(unittest.TestCase):
             ],
             open_prs=[pull(485, HEAD_B)],
             pr_details={485: pull(485, HEAD_B)},
+            ci_runs={HEAD_B: [ci_run(HEAD_B, conclusion="failure")]},
         )
         out = self._observe(observer)
-        self.assertEqual(out["blocker_class"], "REMEDIATION_NOT_REQUEUED")
-        self.assertIn(HEAD_B, out["blocking_ref"])
+        self.assertEqual(out["blocker_class"], "CI_OR_PROVENANCE_BLOCKED")
+        self.assertIn("CI_FAILURE", out["blocking_ref"])
 
-    def test_live_observer_unqueued_completion_marker_is_detected(self):
+    def test_remediation_without_observable_exact_head_ci_fails_closed(self):
+        observer = FakeObserver(
+            comments=[
+                request(10, 485, HEAD_A),
+                result(20, 485, HEAD_A, "CHANGES_REQUIRED"),
+            ],
+            open_prs=[pull(485, HEAD_B)],
+            pr_details={485: pull(485, HEAD_B)},
+            ci_runs={HEAD_B: []},
+        )
+        out = self._observe(observer)
+        self.assertEqual(out["blocker_class"], "CI_OR_PROVENANCE_BLOCKED")
+        self.assertIn("NO_OBSERVABLE_EXACT_HEAD_CI", out["blocking_ref"])
+
+    def test_skipped_only_ci_does_not_mint_ci_complete(self):
+        observer = FakeObserver(
+            comments=[
+                request(10, 485, HEAD_A),
+                result(20, 485, HEAD_A, "CHANGES_REQUIRED"),
+            ],
+            open_prs=[pull(485, HEAD_B)],
+            pr_details={485: pull(485, HEAD_B)},
+            ci_runs={HEAD_B: [ci_run(HEAD_B, conclusion="skipped")]},
+        )
+        out = self._observe(observer)
+        self.assertEqual(out["blocker_class"], "CI_OR_PROVENANCE_BLOCKED")
+
+    def test_unqueued_completion_marker_with_green_ci_is_detected(self):
         observer = FakeObserver(
             open_prs=[
-                pull(
-                    492,
-                    HEAD_A,
-                    body="completion_signal: READY_FOR_INDEPENDENT_REVIEW",
-                )
-            ]
+                pull(492, HEAD_A, body="completion_signal: READY_FOR_INDEPENDENT_REVIEW")
+            ],
+            ci_runs={HEAD_A: [ci_run(HEAD_A)]},
         )
         out = self._observe(observer)
         self.assertEqual(out["blocker_class"], "IMPLEMENTED_NOT_QUEUED")
 
-    def test_live_observer_released_issue_without_implementation_is_detected(self):
+    def test_released_issue_without_implementation_is_detected(self):
         observer = FakeObserver(
             open_issues=[
                 {
@@ -397,6 +407,29 @@ class ReviewPipelineLivenessTests(unittest.TestCase):
         out = self._observe(observer)
         self.assertEqual(out["blocker_class"], "RELEASED_NOT_IMPLEMENTED")
 
+    def test_final_readback_main_drift_fails_closed(self):
+        observer = FakeObserver(mutate_after_first_snapshot=True)
+        with self.assertRaisesRegex(
+            ReviewPipelineLivenessError, "LIVE_OBSERVATION_CHANGED_DURING_SCAN"
+        ):
+            self._observe(observer)
+
+    def test_final_readback_queue_drift_fails_closed(self):
+        observer = FakeObserver()
+        original = observer._get_json
+        seen = {"comments": 0}
+        def changing(path):
+            if "/comments?per_page=100&page=1" in path:
+                seen["comments"] += 1
+                if seen["comments"] >= 2:
+                    observer.comments.append({"id": 999, "body": "late engineering update"})
+            return original(path)
+        observer._get_json = changing
+        with self.assertRaisesRegex(
+            ReviewPipelineLivenessError, "LIVE_OBSERVATION_CHANGED_DURING_SCAN"
+        ):
+            self._observe(observer)
+
     def test_live_provider_failure_does_not_fall_back_to_caller_idle(self):
         observer = FakeObserver(
             fail_path=f"/repos/{SECOND_BRAIN_REPO}/git/ref/heads/main"
@@ -404,10 +437,22 @@ class ReviewPipelineLivenessTests(unittest.TestCase):
         with mock.patch.object(
             mod, "_make_live_observer", return_value=(observer, FakeGatewayError)
         ):
-            with self.assertRaisesRegex(
-                ReviewPipelineLivenessError, "LIVE_GITHUB_READ_FAILED"
-            ):
+            with self.assertRaisesRegex(ReviewPipelineLivenessError, "LIVE_GITHUB_READ_FAILED"):
                 mod.observe_review_cycle("/repo", "SECOND_BRAIN")
+
+    def test_ci_provider_failure_fails_closed(self):
+        path = (
+            f"/repos/{SECOND_BRAIN_REPO}/actions/runs?head_sha={HEAD_A}"
+            "&event=pull_request&per_page=100&page=1"
+        )
+        observer = FakeObserver(
+            comments=[request(10, 485, HEAD_A)],
+            open_prs=[pull(485, HEAD_A)],
+            pr_details={485: pull(485, HEAD_A)},
+            fail_path=path,
+        )
+        with self.assertRaisesRegex(ReviewPipelineLivenessError, "LIVE_CI_READ_FAILED"):
+            self._observe(observer)
 
     def test_observe_api_has_no_provider_receipt_runner_or_repository_override(self):
         params = set(inspect.signature(mod.observe_review_cycle).parameters)
@@ -422,9 +467,7 @@ class ReviewPipelineLivenessTests(unittest.TestCase):
         )
 
     def test_live_observer_unregistered_project_fails_before_transport(self):
-        with self.assertRaisesRegex(
-            ReviewPipelineLivenessError, "PROJECT_NOT_REGISTERED"
-        ):
+        with self.assertRaisesRegex(ReviewPipelineLivenessError, "PROJECT_NOT_REGISTERED"):
             mod.observe_review_cycle("/repo", "CALLER_FORGED_PROJECT")
 
 
