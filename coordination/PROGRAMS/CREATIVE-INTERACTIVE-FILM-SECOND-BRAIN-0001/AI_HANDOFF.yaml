@@ -1,0 +1,45 @@
+schema: CreativeAIHandoff/v1
+agent_id: CODEX
+source_agent: CODEX
+target_agent: GPT_GITHUB_INTEGRATOR
+reviewer: GPT_INDEPENDENT_REVIEWER
+task:
+  id: CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001
+  issue: 490
+  route_epoch: 160
+  branch: codex/creative-interactive-film-second-brain-0001
+  baseline: 963acf85f0e38890c8eea8a0469980246ce3f1ce
+  remote_main_at_claim: a2cdd33cd3c60dc78a13b6bdec9b8edd3e378536
+progress:
+  current_slice: S00_COLLABORATION_AND_HANDOFF_FOUNDATION
+  completed_slices: []
+  completion_ratio: 0.10
+  independent_review_readiness: NOT_READY
+facts:
+  verified:
+    - Route 160 is READY and authorizes the exact branch/root.
+    - Local/WorkBuddy material is not approved for reuse.
+  inferences: []
+  unknowns:
+    - source-import-decision
+    - external-provider-configuration
+provenance:
+  registry: SOURCE-PROVENANCE-REGISTRY.yaml
+  workbuddy_local_unverified_assets_encountered: true
+  reuse_attempted: false
+authority:
+  knowledge_write: review_packet_only
+  generation_execution: mock_or_dry_run_only
+  NO_SELF_REVIEW: true
+  NO_SELF_MERGE: true
+tests:
+  commands:
+    - python -m json.tool coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/AUTHORIZED-PATH-MANIFEST.json
+    - python -m unittest discover -s tests -p test_creative_s00_governance.py -v
+    - git diff --check
+  status: EXECUTOR_VERIFIED_ONLY
+failed_attempts:
+  - Earlier empty local worktree was based on an obsolete SHA; it was not used and a new exact-baseline worktree was created.
+rollback:
+  method: preserve draft branch and evidence; route a clean successor without history rewrite
+exact_next_action: Publish the S00 checkpoint and Draft PR, then have GPT independently rerun the S00 commands before status can become independently_verified.
