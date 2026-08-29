@@ -25,3 +25,6 @@ agent_id: CODEX
   focused standard-library suite passed 4/4 checks; `git diff --check` was clean.
 - **Status:** `EXECUTOR_VERIFIED_ONLY`.  This is not an independent review and
   must remain so until GPT reruns the recorded commands from the pushed SHA.
+- **Correction:** the initial checkpoint briefly included three generated Python
+  bytecode files.  A follow-up, non-history-rewriting correction removes them
+  and adds ignore rules before any review is requested.
