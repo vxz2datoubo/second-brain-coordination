@@ -9,6 +9,7 @@ on:
       - 'coordination/CONTROL-TOWER/PR-METADATA-FALLBACK-V1.md'
       - 'coordination/CONTROL-TOWER/PR-METADATA-FALLBACK-PLAN.md'
       - 'coordination/CONTROL-TOWER/PR-METADATA-FALLBACK-INCIDENT-2026-08-29.md'
+      - 'coordination/CONTROL-TOWER/PR-METADATA-FALLBACK-INCIDENTS.json'
       - '.github/workflows/pr-metadata-fallback-v1.yml'
   workflow_dispatch:
 
@@ -38,6 +39,8 @@ jobs:
           p = Path('coordination/CONTROL-TOWER/pr_metadata_fallback.py').read_text()
           required = [
               'choices=["mark_ready_for_review"]',
+              'INCIDENT_REGISTRY_PATH = "coordination/CONTROL-TOWER/PR-METADATA-FALLBACK-INCIDENTS.json"',
+              '?ref=main',
               '"grants_code_write": False',
               '"grants_branch_write": False',
               '"grants_review_accept": False',
