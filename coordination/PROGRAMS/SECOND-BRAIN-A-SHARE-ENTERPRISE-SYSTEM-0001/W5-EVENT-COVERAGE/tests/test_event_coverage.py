@@ -242,19 +242,11 @@ class EventCoverageGateTests(unittest.TestCase):
     def test_09_supply_demand_language_is_downgraded_at_grade_c(self):
         result = self.run_gate(
             intent_value=intent(grade="C", anomaly=False),
-            claims=[
-                claim(
-                    text="高位抛压很大",
-                    claim_type="MODEL_INFERENCE",
-                )
-            ],
+            claims=[claim(text="高位抛压很大", claim_type="MODEL_INFERENCE")],
         )
         row = result["claim_evidence_ledger"]["claims"][0]
         self.assertEqual(row["outcome"], "DOWNGRADE")
-        self.assertIn(
-            "SUPPLY_DEMAND_LANGUAGE_REQUIRES_PRICE_BEHAVIOR_DOWNGRADE",
-            row["reason_codes"],
-        )
+        self.assertIn("SUPPLY_DEMAND_LANGUAGE_REQUIRES_PRICE_BEHAVIOR_DOWNGRADE", row["reason_codes"])
 
     def test_10_deterministic_replay_has_stable_digest(self):
         first = self.run_gate()
@@ -287,7 +279,6 @@ class EventCoverageGateTests(unittest.TestCase):
     def test_14_event_source_grade_is_derived_from_registry(self):
         result = self.run_gate()
         self.assertEqual(result["event_coverage_report"]["candidate_event_ids"], ["deepseek-harness"])
-        # There is deliberately no caller-supplied source-grade field in event input.
         bad = event()
         bad["source_grade"] = "A1"
         with self.assertRaises(mod.EventCoverageError) as ctx:
@@ -297,17 +288,53 @@ class EventCoverageGateTests(unittest.TestCase):
     def test_15_causal_claim_cannot_run_before_coverage_complete(self):
         result = self.run_gate(
             scanned=scanned_sources(include_tech=False),
-            claims=[
-                claim(
-                    text="Harness 可能是候选催化",
-                    claim_type="CAUSAL_HYPOTHESIS",
-                    causal=False,
-                )
-            ],
+            claims=[claim(text="Harness 可能是候选催化", claim_type="CAUSAL_HYPOTHESIS", causal=False)],
         )
         row = result["claim_evidence_ledger"]["claims"][0]
         self.assertEqual(row["outcome"], "BLOCK")
         self.assertIn("CAUSAL_CLAIM_BEFORE_COVERAGE_READY", row["reason_codes"])
+
+    def test_16_timezone_naive_query_time_fails_closed(self):
+        malformed = intent()
+        malformed["anomaly_or_query_at"] = "2026-08-14T10:00:00"
+        with self.assertRaises(mod.EventCoverageError) as ctx:
+            self.run_gate(intent_value=malformed)
+        self.assertEqual(ctx.exception.code, "QUERY_TIME_INVALID_TIMEZONE_REQUIRED")
+
+    def test_17_duplicate_event_id_fails_closed(self):
+        with self.assertRaises(mod.EventCoverageError) as ctx:
+            self.run_gate(events=[event(), event()])
+        self.assertEqual(ctx.exception.code, "EVENT_ID_DUPLICATE")
+
+    def test_18_fake_event_evidence_id_cannot_support_claim(self):
+        result = self.run_gate(
+            claims=[claim(event_ids=["fabricated-event-id"], claim_type="CAUSAL_HYPOTHESIS")]
+        )
+        row = result["claim_evidence_ledger"]["claims"][0]
+        self.assertEqual(row["outcome"], "BLOCK")
+        self.assertEqual(row["rejected_evidence_event_ids"], ["fabricated-event-id"])
+
+    def test_19_empty_claims_do_not_invent_findings(self):
+        result = self.run_gate(claims=[])
+        ledger = result["claim_evidence_ledger"]
+        self.assertEqual(ledger["claims"], [])
+        self.assertFalse(ledger["has_blocking_claim"])
+        self.assertFalse(ledger["has_downgrade_claim"])
+        self.assertEqual(result["disposition"], "READY_FOR_SYNTHESIS")
+
+    def test_20_future_copy_cannot_displace_past_same_chain_evidence(self):
+        past = event(event_id="past-primary", source_chain_id="same-origin")
+        future = event(
+            event_id="future-copy",
+            source_id="market-wire",
+            source_chain_id="same-origin",
+            available_at="2026-08-14T10:30:00+08:00",
+        )
+        result = self.run_gate(events=[future, past], claims=[])
+        report = result["event_coverage_report"]
+        self.assertEqual(report["candidate_event_ids"], ["past-primary"])
+        self.assertEqual(report["future_event_ids_ignored"], ["future-copy"])
+        self.assertEqual(report["independent_source_chain_count"], 1)
 
 
 if __name__ == "__main__":
