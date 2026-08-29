@@ -18,8 +18,10 @@ jobs:
       matrix:
         python-version: ['3.11', '3.13']
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
 
       - uses: actions/setup-python@v5
@@ -28,6 +30,17 @@ jobs:
 
       - name: Install retained-suite dependency
         run: python -m pip install --disable-pip-version-check PyYAML
+
+      - name: Exact-head provenance
+        if: github.event_name == 'pull_request'
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          printf 'expected_head=%s\nactual_head=%s\n' "$EXPECTED_HEAD" "$actual"
+          test "$actual" = "$EXPECTED_HEAD"
+          git merge-base --is-ancestor a98ff40e8731ef89efb6ced4808b9ffb2aff410a HEAD
 
       - name: Compile runtime
         run: >-
@@ -72,17 +85,87 @@ jobs:
           print('W5_EVENT_COVERAGE_AUTHORITY_BOUNDARY_PASS')
           PY
 
-      - name: Retained Control Tower regressions
+      - name: Retained Control Tower regressions on exact candidate head
         run: python -m unittest discover -s coordination/CONTROL-TOWER/tests -p 'test_*.py'
+
+      - name: Current-main integration delta gate
+        if: github.event_name == 'pull_request'
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          rm -rf /tmp/w5-main /tmp/w5-integration
+          git worktree add --detach /tmp/w5-main origin/main
+          git worktree add --detach /tmp/w5-integration origin/main
+
+          collect_control_failures() {
+            local root="$1"
+            local out="$2"
+            (
+              cd "$root"
+              python - "$out" <<'PY'
+          import json
+          from pathlib import Path
+          import sys
+          import unittest
+
+          output = Path(sys.argv[1])
+          suite = unittest.defaultTestLoader.discover('coordination/CONTROL-TOWER/tests', pattern='test_*.py')
+          result = unittest.TestResult()
+          suite.run(result)
+          failures = sorted({test.id() for test, _ in [*result.failures, *result.errors]})
+          payload = {
+              'testsRun': result.testsRun,
+              'failures': failures,
+              'failure_count': len(result.failures),
+              'error_count': len(result.errors),
+          }
+          output.write_text(json.dumps(payload, sort_keys=True), encoding='utf-8')
+          print(json.dumps(payload, sort_keys=True))
+          PY
+            )
+          }
+
+          collect_control_failures /tmp/w5-main /tmp/w5-main-control.json
+
+          git -C /tmp/w5-integration -c user.name='R164 CI' -c user.email='r164-ci@example.invalid' \
+            merge --no-commit --no-ff "$HEAD_SHA"
+
+          (
+            cd /tmp/w5-integration
+            python -m py_compile coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/event_coverage.py
+            python -m unittest discover \
+              -s coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/tests \
+              -p 'test_*.py' -v
+          )
+          collect_control_failures /tmp/w5-integration /tmp/w5-integration-control.json
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          base = json.loads(Path('/tmp/w5-main-control.json').read_text(encoding='utf-8'))
+          integrated = json.loads(Path('/tmp/w5-integration-control.json').read_text(encoding='utf-8'))
+          base_failures = set(base['failures'])
+          integrated_failures = set(integrated['failures'])
+          introduced = sorted(integrated_failures - base_failures)
+          if introduced:
+              raise SystemExit('W5 introduced current-main Control Tower regressions: ' + repr(introduced))
+          if integrated['testsRun'] != base['testsRun']:
+              raise SystemExit(
+                  f"Control Tower suite cardinality drift: base={base['testsRun']} integrated={integrated['testsRun']}"
+              )
+          print(
+              'W5_CURRENT_MAIN_INTEGRATION_DELTA_PASS '
+              f"base_preexisting_failures={len(base_failures)} integrated_failures={len(integrated_failures)}"
+          )
+          PY
 
       - name: Exact bounded file scope
         if: github.event_name == 'pull_request'
-        env:
-          BASE_REF: ${{ github.base_ref }}
         run: |
-          git fetch origin "$BASE_REF" --depth=1
           python - <<'PY'
-          import os
           import subprocess
           expected = {
               '.github/workflows/w5-event-coverage-p0-vs1.yml',
@@ -93,9 +176,8 @@ jobs:
               'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/event_coverage.py',
               'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/tests/test_event_coverage.py',
           }
-          base = os.environ['BASE_REF']
           out = subprocess.check_output(
-              ['git', 'diff', '--name-only', f'origin/{base}...HEAD'], text=True
+              ['git', 'diff', '--name-only', '939629f6e445245d1e8db693826be6d2aaa12521...HEAD'], text=True
           )
           actual = {line for line in out.splitlines() if line}
           if actual != expected:
@@ -104,4 +186,4 @@ jobs:
           PY
 
       - name: Whitespace gate
-        run: git diff --check
+        run: git diff --check 939629f6e445245d1e8db693826be6d2aaa12521...HEAD
