@@ -1,0 +1,155 @@
+schema_version: "1.0"
+task_id: "REALTIME-INTERACTIVE-FILM-GAME-0002"
+route_epoch: 161
+repository: "vxz2datoubo/second-brain-coordination"
+issue: 492
+status: "READY"
+execution_allowed: true
+target_agent: "CODEX"
+mode: "project_plan"
+canonical_task_baseline: "027642a231e214f8649b273f44de65c82a4901f9"
+implementation_branch: "codex/realtime-interactive-film-game-0002"
+route_contract: "coordination/ROUTES/REALTIME-INTERACTIVE-FILM-GAME-0002.yaml"
+predecessor:
+  issue: 490
+  pr: 491
+  merge_commit: "027642a231e214f8649b273f44de65c82a4901f9"
+
+fundamental_goal: >-
+  Produce the next real engineering increment of the offline interactive-film + second-brain creative runtime: multiple validated
+  scenes and deterministic branches, safe named save slots and schema migration, a richer real-time terminal experience,
+  multi-beat director continuity diagnostics, and a clean-clone reproducible demo/review package.
+
+primary_delivery:
+  - id: S07
+    name: "MANIFEST_SCENE_GRAPH_AND_SAVE_SLOTS"
+    objective: >-
+      Generalize the single-scene predecessor runtime into validated manifest-driven multi-scene/beat/action graphs and robust
+      migration-safe persistent save slots while preserving deterministic replay.
+    acceptance:
+      - "at least three synthetic adult/non-explicit scenes exercise branch, reconvergence and terminal outcomes"
+      - "scene/beat/action/transition identities are stable and validation rejects duplicate/dangling/ambiguous references"
+      - "named save slots support list/save/load/delete and transcript export"
+      - "slot names are bounded and cannot escape the configured save root"
+      - "partial/corrupt/incompatible save data fails closed and does not damage unrelated slots"
+      - "session migration is explicit, version-to-version and tested"
+      - "replaying identical manifest+ledger produces byte-stable canonical state or a documented stable digest"
+  - id: S08
+    name: "REALTIME_INTERACTIVE_PRESENTATION"
+    objective: >-
+      Deliver a playable offline terminal loop with concise scene presentation, choice handling, live state/consequence visibility,
+      deterministic logical pacing and accessibility-friendly transcript behavior.
+    acceptance:
+      - "scene recap + legal choices + state/consequence timeline + help are available"
+      - "free-text intent parsing is bounded to declared actions/synonyms and asks for clarification when ambiguous"
+      - "logical turn/beat timing is deterministic and replayable"
+      - "no network/model/provider dependency exists in the acceptance path"
+  - id: S09
+    name: "MULTI_BEAT_DIRECTOR_CONTINUITY"
+    objective: >-
+      Extend the existing director compiler to sequences of beats/shots and produce deterministic continuity diagnostics rather than
+      a fluent but unverifiable director plan.
+    acceptance:
+      - "ordered director packets preserve beat and character identity"
+      - "screen direction and spatial relation are checked across adjacent shots"
+      - "audience/character knowledge cannot appear before its reveal source"
+      - "action precondition -> action -> result causality is checked across cuts"
+      - "duration budget and final-state handoff are explicit"
+      - "diagnostics carry stable code, severity, beat/shot locator and observed/expected fields"
+      - "material contradictions fail closed; advisory aesthetics remain non-authoritative"
+  - id: S10
+    name: "OFFLINE_DEMO_REVIEW_PACKAGE"
+    objective: >-
+      Turn S07-S09 into a reproducible evidence package that a fresh reviewer can run without network, credentials or private data.
+    acceptance:
+      - "scripted multi-scene demo and branch variants"
+      - "golden synthetic replay snapshots/digests"
+      - "save migration and corruption fixtures"
+      - "review packet export binding manifest/session/event/transcript/director diagnostics"
+      - "RUNBOOK and AI_HANDOFF reproduce the exact supported commands from a clean clone"
+
+non_negotiables:
+  - "reuse canonical creative_runtime before new parallel abstractions"
+  - "no second event ledger, director authority, W3 store, dispatcher or review queue"
+  - "no local/WorkBuddy/Eustia/unregistered external asset reuse"
+  - "no credentials, network provider calls, paid generation, deployment, production services or trading"
+  - "no canonical knowledge promotion/write"
+  - "no self-review/self-accept/self-merge"
+  - "no rebase/force-push/amend/history rewrite"
+
+better_method_mandate:
+  authorized: true
+  rules:
+    - "Inside S07-S10, prefer stronger deterministic interfaces and tests over literal implementation shape."
+    - "Fix predecessor defects encountered on the same authorized surfaces when they block correctness and regression coverage proves the fix."
+    - "Do not broaden authority, import sources, change route identity or weaken tests in the name of improvement."
+    - "Record negative results and unresolved UNKNOWNs instead of masking them."
+
+mandatory_discovery:
+  - "Audit predecessor contracts/ledger/director/CLI for single-scene assumptions before designing successor APIs."
+  - "Test whether manifest and save semantics can be represented by extension rather than a parallel session system."
+  - "Probe deterministic ordering and serialization under branch/reload/migration."
+  - "Probe filesystem/path safety for save-slot names and corrupt writes."
+  - "Probe continuity diagnostics with adversarial screen-direction, reveal-order, causality and identity contradictions."
+  - "Identify any hidden network/environment/credential dependency and remove it from the acceptance path."
+  - "Separate reusable discoveries from task-local decisions in the handoff."
+
+work_claim:
+  required_schema: "TaskLeaseClaim/v1"
+  exact:
+    repository: "vxz2datoubo/second-brain-coordination"
+    task_id: "REALTIME-INTERACTIVE-FILM-GAME-0002"
+    route_epoch: 161
+    issue: 492
+    agent: "CODEX"
+    status_observed: "READY"
+    execution_allowed_observed: true
+    canonical_task_baseline: "027642a231e214f8649b273f44de65c82a4901f9"
+    branch: "codex/realtime-interactive-film-game-0002"
+  required_protocols: [AMED, PMA_BIG, WPDCR, PDER, RTCE, LEASE]
+  invalid_claim_action: "FAIL_CLOSED_NO_EDIT"
+
+allowed_write_paths:
+  - "AGENTS.md"
+  - ".github/**"
+  - "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/**"
+  - "creative_runtime/**"
+  - "apps/cli/**"
+  - "tests/**"
+  - ".gitignore"
+all_other_repository_paths: "READ_ONLY"
+
+required_task_local_artifacts:
+  - "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/PROJECT-PLAN.md"
+  - "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/AUTHORIZED-PATH-MANIFEST.json"
+  - "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/DEPENDENCY-AND-UNKNOWN-REGISTRY.yaml"
+  - "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/WORK-PROCESS-AND-COORDINATION-REPORT.md"
+  - "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/AI_HANDOFF.yaml"
+  - "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/RUNBOOK.md"
+  - "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/REVIEW_REQUEST.yaml"
+
+checkpoint_policy:
+  pushed_checkpoint_each_slice: true
+  AI_HANDOFF_update_each_slice: true
+  WPDCR_moments: [LEASE_CLAIM, FIRST_SUBSTANTIVE_ACTION, EACH_SLICE_START, EACH_SLICE_ACCEPTANCE_CHECKPOINT, MATERIAL_BLOCKER_OR_ESCALATION, HANDOFF_OR_ROUTE_CHANGE, COMPLETION]
+  PDER_required_for_material_discovery: true
+
+acceptance_commands:
+  - "git status --short"
+  - "git rev-parse HEAD"
+  - "git merge-base HEAD 027642a231e214f8649b273f44de65c82a4901f9"
+  - "git diff --check 027642a231e214f8649b273f44de65c82a4901f9...HEAD"
+  - "python -m unittest discover -s tests -p 'test_creative_s*.py' -v"
+  - "python -m unittest discover -s tests -p 'test_interactive_s*.py' -v"
+
+review:
+  draft_pr_required: true
+  queue_issue: 453
+  exact_head_review_required: true
+  independent_reviewer: "GPT_INDEPENDENT_REVIEWER"
+  integrator: "GPT_GITHUB_INTEGRATOR"
+  green_ci_is_acceptance_authority: false
+  merge_authorized: false
+
+completion_signal: "REALTIME_INTERACTIVE_FILM_GAME_0002_READY_FOR_GPT_INDEPENDENT_REVIEW"
+next_command: "READ_LATEST_ROUTE_CLAIM_VALID_LEASE_AND_EXECUTE_IMMEDIATELY"
