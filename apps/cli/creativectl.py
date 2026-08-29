@@ -20,6 +20,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from creative_runtime.contracts import PlayerAction, canonical_json
+from creative_runtime.continuity import compile_director_sequence
 from creative_runtime.ledger import CreativeLedger, LedgerViolation
 from creative_runtime.knowledge import KnowledgeBridgeViolation, KnowledgeReviewBridge
 from creative_runtime.saves import SaveSlotViolation, SaveStore, migrate_session
@@ -309,6 +310,8 @@ def run(argv: list[str]) -> dict[str, Any]:
     slot_delete.add_argument("name")
     slot_subparsers.add_parser("list")
     subparsers.add_parser("transcript")
+    director_parser = subparsers.add_parser("director")
+    director_parser.add_argument("--duration-budget", type=int, default=90)
     subparsers.add_parser("interactive")
     compare_parser = subparsers.add_parser("compare")
     compare_parser.add_argument("left_slot")
@@ -352,6 +355,9 @@ def run(argv: list[str]) -> dict[str, Any]:
     if args.command == "transcript":
         ledger = _load_session(args.workspace)
         return {"status": "transcript", "manifest_hash": _graph().manifest_hash, "turns": transcript(ledger)}
+    if args.command == "director":
+        sequence = compile_director_sequence(_load_session(args.workspace), _graph(), duration_budget_seconds=args.duration_budget)
+        return {"status": "director_packet", "generation_called": False, **sequence.to_dict()}
     if args.command == "interactive":
         return {"status": "interactive_ready", "workspace": str(args.workspace), "offline": True}
     if args.command == "compare":

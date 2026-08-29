@@ -40,3 +40,13 @@ CLI; it does not add a parallel gameplay state. A scripted `StringIO` test
 proves help, an accepted choice, transcript output, terminal rendering and a
 deterministic turn-1 exit path. The full offline suite now has 28 passing
 tests. This is executor verification only, not independent acceptance.
+
+## S09 start and acceptance checkpoint
+
+Added `creative_runtime.continuity` as a validation layer over the existing
+director compiler, not a new director authority. It reconstructs declared
+transitions from the canonical ledger and graph, then emits ordered packets,
+cross-cut contracts, final-state handoff, and stable diagnostics. The tests
+exercise a valid multi-beat path, transition tampering, and adversarial
+direction/spatial/knowledge/duration failures. The `creativectl director`
+command exports a packet but declares `generation_called: false`.
