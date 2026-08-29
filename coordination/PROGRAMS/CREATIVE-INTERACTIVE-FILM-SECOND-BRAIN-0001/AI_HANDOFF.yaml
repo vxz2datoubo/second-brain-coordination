@@ -13,14 +13,15 @@ task:
   head_ref: refs/heads/codex/creative-interactive-film-second-brain-0001
   head_sha_at_last_record: 7c4c8f16c07f7ed8edf53d2506913e95e1163966
 progress:
-  current_slice: S00_COLLABORATION_AND_HANDOFF_FOUNDATION
+  current_slice: S01_CREATIVE_CONTRACTS_AND_EVENT_LEDGER
   completed_slices: []
-  completion_ratio: 0.10
+  completion_ratio: 0.24
   independent_review_readiness: NOT_READY
 facts:
   verified:
     - Route 160 is READY and authorizes the exact branch/root.
     - Local/WorkBuddy material is not approved for reuse.
+    - S01 contracts and ledger replay identically from the same explicit event records.
   inferences: []
   unknowns:
     - source-import-decision
@@ -38,10 +39,12 @@ tests:
   commands:
     - python -m json.tool coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/AUTHORIZED-PATH-MANIFEST.json
     - python -m unittest discover -s tests -p test_creative_s00_governance.py -v
+    - python -m unittest discover -s tests -p test_creative_s*.py -v
     - git diff --check
   status: EXECUTOR_VERIFIED_ONLY
 failed_attempts:
   - Earlier empty local worktree was based on an obsolete SHA; it was not used and a new exact-baseline worktree was created.
+  - python -m pytest -q is unavailable because pytest is not installed; the dependency-free unittest suite is the supported verification command for this task branch.
 rollback:
   method: preserve draft branch and evidence; route a clean successor without history rewrite
-exact_next_action: Create the Draft PR, then have GPT independently rerun the S00 commands from the remote head_ref before status can become independently_verified.
+exact_next_action: Publish the S01 deterministic-ledger checkpoint, then implement the S02 offline CLI solely against the synthetic fixture and ledger contracts.

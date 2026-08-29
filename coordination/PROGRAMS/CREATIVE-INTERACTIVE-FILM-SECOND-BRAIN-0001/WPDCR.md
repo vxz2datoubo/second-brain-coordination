@@ -28,3 +28,19 @@ agent_id: CODEX
 - **Correction:** the initial checkpoint briefly included three generated Python
   bytecode files.  A follow-up, non-history-rewriting correction removes them
   and adds ignore rules before any review is requested.
+
+## S01_CREATIVE_CONTRACTS_AND_EVENT_LEDGER
+
+- **Primary work and process trace:** define all eight fixed JSON-serializable
+  contracts in `creative_runtime.contracts`, then implement an in-memory,
+  append-only ledger with explicit timestamps, parent artifact references,
+  stable event IDs, full chain hashes, and deterministic state rebuild.
+- **Difficulty and complexity:** D2. Hashing includes only normalized JSON and
+  explicit inputs, so timestamps are caller-supplied and replay never reads
+  clocks, files, providers, or local assets.
+- **Negative results:** tampered serialized records fail before replay; unknown
+  patch fields fail rather than being silently interpreted.
+- **New discovery:** the contract layer can carry director, generation, and
+  knowledge-review references without granting those later slices authority.
+- **Next gate:** the complete focused S00/S01 suite must pass from the pushed
+  SHA; S02 may use only synthetic beats and legal action IDs.

@@ -16,3 +16,16 @@ agent_id: CODEX
 
 Reproduction must occur on the pushed task-branch head declared in
 `AI_HANDOFF.yaml`; a different SHA is not a substitute for independent review.
+
+## S01 update
+
+| Command | Result | Evidence |
+| --- | --- | --- |
+| `python -m unittest discover -s tests -p test_creative_s*.py -v` | Passed | 8 tests passed. The S01 tests prove stable artifact provenance, deterministic event records/replay, chain tamper rejection, and non-finite JSON rejection. |
+
+The S01 results are also `EXECUTOR_VERIFIED_ONLY`; GPT must reproduce them at
+the remote branch head for independent acceptance.
+
+`python -m pytest -q` was attempted but this clean environment has no `pytest`
+module. The branch deliberately uses the Python standard-library `unittest`
+runner instead of installing an undeclared dependency.
