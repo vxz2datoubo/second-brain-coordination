@@ -9,8 +9,16 @@ import tempfile
 import unittest
 
 from creative_runtime.contracts import PlayerAction, StoryState, canonical_json
-from creative_runtime.ledger import CreativeLedger
-from creative_runtime.saves import CANONICAL_LEGACY_BASELINE, SaveSlotViolation, SaveStore, migrate_session
+from creative_runtime.ledger import CreativeLedger, LedgerViolation
+from creative_runtime.saves import (
+    CANONICAL_LEGACY_BASELINE,
+    MIGRATION_HISTORY_MARKER,
+    MIGRATION_PATCH_PROVENANCE_SCHEMA,
+    MIGRATION_PLAYER_PROVENANCE_SCHEMA,
+    SaveSlotViolation,
+    SaveStore,
+    migrate_session,
+)
 from creative_runtime.scene_graph import SceneGraph, synthetic_three_scene_manifest
 
 
@@ -38,6 +46,18 @@ def semantic_state(state: StoryState) -> dict:
         "risk_level": value["risk_level"],
         "flags": value["flags"],
     }
+
+
+def write_v2_record(path: Path, graph: SceneGraph, ledger: CreativeLedger, **extra: object) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    record = {
+        "schema": "CreativeSession/v2",
+        "manifest_hash": graph.manifest_hash,
+        "events": ledger.to_records(),
+        "migration_history": [],
+        **extra,
+    }
+    path.write_text(canonical_json(record) + "\n", encoding="utf-8")
 
 
 class R163CanonicalLegacyFixtureTests(unittest.TestCase):
@@ -115,7 +135,7 @@ class R163MigrationTests(unittest.TestCase):
         migrated, migrations = migrate_session(legacy, self.graph.manifest_hash, self.graph)
         ledger = CreativeLedger.from_records(migrated["events"])
 
-        self.assertEqual(migrations, ("CreativeSession/v1->v2:r163-canonical-semantic-mapping",))
+        self.assertEqual(migrations, (MIGRATION_HISTORY_MARKER,))
         self.assertEqual(migrated["schema"], "CreativeSession/v2")
         self.assertEqual(migrated["manifest_hash"], self.graph.manifest_hash)
         self.assertEqual([event.payload["action"]["action_id"] for event in ledger.events[1:3]], ["knock", "promise"])
@@ -133,6 +153,18 @@ class R163MigrationTests(unittest.TestCase):
         )
         self.assertEqual(receipt["terminal_mapping"]["method"], "explicit_terminal_state_patch_after_promise")
 
+        for mapped_event in ledger.events[1:3]:
+            source = mapped_event.payload["migration_source"]
+            self.assertEqual(source["schema"], MIGRATION_PLAYER_PROVENANCE_SCHEMA)
+            self.assertEqual(source["authority_class"], "VALIDATED_LEGACY_MIGRATION_ONLY")
+            self.assertEqual(source["source_record_sha256"], receipt["source_record_sha256"])
+            self.assertEqual(source["source_record"], legacy)
+        patch_provenance = ledger.events[-1].payload["migration_provenance"]
+        self.assertEqual(patch_provenance["schema"], MIGRATION_PATCH_PROVENANCE_SCHEMA)
+        self.assertEqual(patch_provenance["authority_class"], "VALIDATED_LEGACY_MIGRATION_ONLY")
+        self.assertEqual(patch_provenance["source_record_sha256"], receipt["source_record_sha256"])
+        self.assertEqual(patch_provenance["source_record"], legacy)
+
     def test_legacy_startup_migrates_lossless_fixture_before_default_creation_preserves_source_and_is_idempotent(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             workspace = Path(directory)
@@ -146,7 +178,7 @@ class R163MigrationTests(unittest.TestCase):
             self.assertTrue(default.is_file())
             first_default = default.read_bytes()
             migrated = json.loads(first_default)
-            self.assertEqual(migrated["migration_history"], ["CreativeSession/v1->v2:r163-canonical-semantic-mapping"])
+            self.assertEqual(migrated["migration_history"], [MIGRATION_HISTORY_MARKER])
             self.assertEqual(
                 semantic_state(CreativeLedger.from_records(migrated["events"]).replay()),
                 semantic_state(CreativeLedger.from_records(fixture_record("legacy_session_v1_resolution.json")["events"]).replay()),
@@ -222,6 +254,92 @@ class R163MigrationTests(unittest.TestCase):
                 with self.subTest(invalid=invalid):
                     with self.assertRaises(SaveSlotViolation):
                         store.load(invalid, self.graph.manifest_hash, self.graph)
+
+    def test_hash_valid_caller_state_patch_direct_jump_cannot_load(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            store = SaveStore(root)
+            ledger = CreativeLedger()
+            ledger.append("story_initialized", {"state": self.graph.initial_state().to_dict()}, "2030-01-01T00:00:00Z")
+            ledger.append(
+                "state_patch",
+                {"patch": {"scene_id": "dawn_courtyard", "beat_id": "return"}},
+                "2030-01-01T00:01:00Z",
+            )
+            ledger.verify_chain()
+            write_v2_record(root / "evil.json", self.graph, ledger)
+            with self.assertRaises(SaveSlotViolation):
+                store.load("evil", self.graph.manifest_hash, self.graph)
+
+    def test_hash_valid_forged_typed_state_patch_provenance_cannot_load(self) -> None:
+        valid, _ = migrate_session(fixture_record("legacy_session_v1_resolution.json"), self.graph.manifest_hash, self.graph)
+        valid_ledger = CreativeLedger.from_records(valid["events"])
+        forged = CreativeLedger()
+        for event in valid_ledger.events:
+            payload = json.loads(canonical_json(event.payload))
+            if event.event_type == "state_patch":
+                payload["migration_provenance"]["source_record_sha256"] = "0" * 64
+            forged.append(event.event_type, payload, event.occurred_at, event.parent_artifact_ids)
+        forged.verify_chain()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            write_v2_record(
+                root / "forged.json",
+                self.graph,
+                forged,
+                migration_history=valid["migration_history"],
+                migration_receipt=valid["migration_receipt"],
+            )
+            with self.assertRaises(SaveSlotViolation):
+                SaveStore(root).load("forged", self.graph.manifest_hash, self.graph)
+
+    def test_caller_state_patch_in_sibling_slot_cannot_restore_over_default(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory)
+            creativectl.initialize(workspace)
+            ledger = CreativeLedger()
+            ledger.append("story_initialized", {"state": self.graph.initial_state().to_dict()}, "2030-01-01T00:00:00Z")
+            ledger.append(
+                "state_patch",
+                {"patch": {"scene_id": "dawn_courtyard", "beat_id": "return"}},
+                "2030-01-01T00:01:00Z",
+            )
+            write_v2_record(workspace / "saves" / "evil.json", self.graph, ledger)
+            default_before = (workspace / "saves" / "default.json").read_bytes()
+            with self.assertRaises(LedgerViolation):
+                creativectl._restore_slot(workspace, "evil")
+            self.assertEqual((workspace / "saves" / "default.json").read_bytes(), default_before)
+
+    def test_resume_migration_provenance_survives_choose_and_sibling_save(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory)
+            source = fixture_bytes("legacy_session_v1_resume.json")
+            (workspace / "session.json").write_bytes(source)
+            initial = creativectl.initialize(workspace)
+            self.assertEqual(initial["status"], "migrated_legacy")
+            default_path = workspace / "saves" / "default.json"
+            before = json.loads(default_path.read_text(encoding="utf-8"))
+            self.assertEqual(before["migration_history"], [MIGRATION_HISTORY_MARKER])
+            self.assertIn("migration_receipt", before)
+
+            chosen = creativectl.choose(workspace, "promise")
+            self.assertEqual(chosen["status"], "chosen")
+            after = json.loads(default_path.read_text(encoding="utf-8"))
+            self.assertEqual(after["migration_history"], [MIGRATION_HISTORY_MARKER])
+            self.assertEqual(after["migration_receipt"], before["migration_receipt"])
+            self.assertEqual((workspace / "session.json").read_bytes(), source)
+            SaveStore(workspace / "saves").load("default", self.graph.manifest_hash, self.graph)
+
+            saved = creativectl.run(["--workspace", str(workspace), "slot", "save", "branch"])
+            self.assertEqual(saved["status"], "saved")
+            sibling = json.loads((workspace / "saves" / "branch.json").read_text(encoding="utf-8"))
+            self.assertEqual(sibling["migration_history"], [MIGRATION_HISTORY_MARKER])
+            self.assertEqual(sibling["migration_receipt"], before["migration_receipt"])
+            restored = creativectl.run(["--workspace", str(workspace), "slot", "load", "branch"])
+            self.assertEqual(restored["status"], "loaded")
+            default_after_restore = json.loads(default_path.read_text(encoding="utf-8"))
+            self.assertEqual(default_after_restore["migration_history"], [MIGRATION_HISTORY_MARKER])
+            self.assertEqual(default_after_restore["migration_receipt"], before["migration_receipt"])
 
 
 if __name__ == "__main__":
