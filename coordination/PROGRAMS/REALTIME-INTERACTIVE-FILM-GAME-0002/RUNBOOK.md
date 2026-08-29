@@ -24,11 +24,17 @@ python apps/cli/creativectl.py --workspace $workspace slot save heard
 python apps/cli/creativectl.py --workspace $workspace choose knock
 python apps/cli/creativectl.py --workspace $workspace transcript
 python apps/cli/creativectl.py --workspace $workspace compare default heard
+python apps/cli/creativectl.py --workspace $workspace director --duration-budget 90
+python apps/cli/creativectl.py --workspace $workspace review-packet --duration-budget 90
 ```
 
 Expected behavior: the initial scene is `archive_gate/arrival`; `listen` moves
 to `archive_gate/echo`; `knock` moves to `interior_archive/threshold`. Output
 contains a stable manifest hash and never makes a network/provider call.
+
+`director` exports ordered director packets and continuity diagnostics only;
+`review-packet` adds the session/event digests and deterministic transcript. In
+both outputs `generation_called` is `false` and no media is produced.
 
 ## Save safety checks
 

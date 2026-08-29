@@ -25,6 +25,7 @@ from creative_runtime.ledger import CreativeLedger, LedgerViolation
 from creative_runtime.knowledge import KnowledgeBridgeViolation, KnowledgeReviewBridge
 from creative_runtime.saves import SaveSlotViolation, SaveStore, migrate_session
 from creative_runtime.scene_graph import SceneGraph, SceneGraphViolation, synthetic_three_scene_manifest
+from creative_runtime.review import build_review_packet
 
 
 DEFAULT_WORKSPACE = Path(".creative-runtime")
@@ -312,6 +313,8 @@ def run(argv: list[str]) -> dict[str, Any]:
     subparsers.add_parser("transcript")
     director_parser = subparsers.add_parser("director")
     director_parser.add_argument("--duration-budget", type=int, default=90)
+    review_parser = subparsers.add_parser("review-packet")
+    review_parser.add_argument("--duration-budget", type=int, default=90)
     subparsers.add_parser("interactive")
     compare_parser = subparsers.add_parser("compare")
     compare_parser.add_argument("left_slot")
@@ -358,6 +361,8 @@ def run(argv: list[str]) -> dict[str, Any]:
     if args.command == "director":
         sequence = compile_director_sequence(_load_session(args.workspace), _graph(), duration_budget_seconds=args.duration_budget)
         return {"status": "director_packet", "generation_called": False, **sequence.to_dict()}
+    if args.command == "review-packet":
+        return {"status": "review_packet", **build_review_packet(_load_session(args.workspace), _graph(), args.duration_budget)}
     if args.command == "interactive":
         return {"status": "interactive_ready", "workspace": str(args.workspace), "offline": True}
     if args.command == "compare":

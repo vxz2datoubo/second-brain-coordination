@@ -50,3 +50,12 @@ cross-cut contracts, final-state handoff, and stable diagnostics. The tests
 exercise a valid multi-beat path, transition tampering, and adversarial
 direction/spatial/knowledge/duration failures. The `creativectl director`
 command exports a packet but declares `generation_called: false`.
+
+## S10 start and acceptance checkpoint
+
+Implemented an offline review-packet builder and CLI command. It binds
+`SceneManifest/v1` SHA-256, `CreativeSession/v2`, a canonical ledger digest,
+deterministic transcript, multi-beat director diagnostics, final state, and a
+whole-packet digest. The golden all-synthetic playthrough is asserted in tests.
+The packet contains explicit `generation_called: false` and
+`canonical_knowledge_written: false` facts; it is evidence, not authority.
