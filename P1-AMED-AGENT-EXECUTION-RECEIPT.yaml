@@ -1,0 +1,71 @@
+# P1-AMED-AGENT-EXECUTION-RECEIPT.yaml
+schema_version: "1.0"
+receipt_id: "QCLAW-0020Q-P1-AMED-EXECUTION-RECEIPT-001"
+
+# AMED: Agent Model Execution Documentation
+# Records exact execution chain for P1 audit
+
+agent_id: "QCLAW"
+role_class: "TEMPORARY_BORROW"
+parent_task: "QCLAW-0017-D0-INDEPENDENT-AUDIT-0020Q-P1"
+
+execution:
+  started_at: "2026-07-24T07:03:00+08:00"
+  completed_at: "2026-07-24T08:40:00+08:00"
+  duration_minutes: 97
+
+phases:
+  - phase: "IDENTITY"
+    start: "07:03"
+    end: "07:05"
+    description: "Created P1-AUDIT-IDENTITY-AND-INDEPENDENCE-RECEIPT.yaml"
+
+  - phase: "CODE_D0_RETRIEVAL"
+    start: "07:05"
+    end: "07:30"
+    description: "Retrieved 22 Codex D0 files from PR #79 via GitHub API"
+
+  - phase: "BAR_ONLY_AND_PIT_REVIEW"
+    start: "07:30"
+    end: "07:45"
+    description: "SV-001 through SV-008 scan, PIT review, rule snapshot audit"
+
+  - phase: "COUNTEREVIDENCE_AND_SELF_VERIFICATION"
+    start: "07:45"
+    end: "08:00"
+    description: "Self-verification loop scan, maturity inflation check, UNKNOWN register"
+
+  - phase: "SCORING"
+    start: "08:00"
+    end: "08:15"
+    description: "42 questions scored across 10 dimensions"
+
+  - phase: "BLOCKING_ASSESSMENT"
+    start: "08:00"
+    end: "08:11"
+    description: "Parallel sub-agent: 4 blocking modes assessed, 0 triggered"
+
+  - phase: "VERDICT_AND_WRAPUP"
+    start: "08:15"
+    end: "08:40"
+    description: "Verdict, recommendations, manifest, receipt, handoff files"
+
+sub_agents:
+  - task_name: "p1-scorecard"
+    result: "COMPLETED"
+    description: "DIMENSION SCORECARD production"
+
+  - task_name: "p1-blocking"
+    result: "COMPLETED"
+    description: "4-mode BLOCKING FAILURE ASSESSMENT"
+
+model: "qclaw/pool-deepseek-v4-pro"
+environment: "Python 3.12.10, PyYAML 6.0.3, Windows 10.0.22631"
+
+no_replay_available: true
+reason: "QCLAW does not share the local vendor data, brain_core paths, or W3 access that Codex would need for a D1 execution. This is a read-only contractual audit."
+
+signature:
+  agent: QCLAW
+  signed_at: "2026-07-24T08:40:00+08:00"
+  boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"

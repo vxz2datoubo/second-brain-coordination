@@ -1,0 +1,75 @@
+schema_version: "1.0"
+record_type: "LocalDataInventoryReceipt"
+task_id: "CODEX-A-SHARE-LIQUIDITY-SWEEP-RECLAIM-0017-D0-PLAN-R1"
+agent_id: CODEX
+collected_at: "2026-07-24"
+scope: "read_only metadata and hash inventory; no raw payload publication"
+privacy: "PUBLIC_SAFE"
+inventories:
+  - alias: LOCAL_TDX_DAY_300418
+    vendor: "local TDX installation"
+    market: CN-A
+    symbol: "300418.SZ"
+    bar_period: "day candidate"
+    size_bytes: 38400
+    record_size_bytes: 32
+    record_count: 1200
+    coverage: {start: "2021-08-02", end: "2026-07-16", timezone: "Asia/Shanghai"}
+    sha256: "c3ed79d2ffaa75ab254442df7ddc591d551e559a61b9d89ef68c86ff1ec595b9"
+    parsed_fields_candidate: [date, open, high, low, close, amount, volume, reserved]
+    semantics:
+      ohlc: "candidate raw integer divided by 100; not yet authoritative"
+      amount: "float32 and uint32 interpretations remain ambiguous"
+      volume: "vendor raw value; unit UNKNOWN"
+      reserved: "UNKNOWN"
+    adjustment_policy: UNKNOWN
+    available_at: UNKNOWN
+    license: UNKNOWN
+    reproducibility: "VENDOR_LOCAL_NOT_PUBLICLY_REPRODUCIBLE"
+    disposition: "LOCAL_RESEARCH_ONLY; excluded from D0 execution"
+  - alias: LOCAL_TDX_LC1_300418
+    vendor: "local TDX installation"
+    market: CN-A
+    symbol: "300418.SZ"
+    bar_period: "minute candidate"
+    size_bytes: 783360
+    sha256: "776b77aea6df29fcc6b917dd01e57ca4913ec7628a6a444c22925aee28d6c71b"
+    fields: UNKNOWN
+    timezone: UNKNOWN
+    license: UNKNOWN
+    available_at: UNKNOWN
+    disposition: "UNVERIFIED_FORMAT; excluded from D0 execution"
+  - alias: LOCAL_JSON_300418
+    vendor: UNKNOWN
+    market: CN-A
+    symbol: "300418.SZ candidate"
+    bar_period: day
+    record_count: 250
+    coverage: {start: "2025-06-24", end: "2026-07-03", timezone: "not recorded"}
+    fields: [date, open, high, low, close, volume, amount]
+    available_at: UNKNOWN
+    license: UNKNOWN
+    adjustment_policy: UNKNOWN
+    reproducibility: UNKNOWN
+    disposition: "LEGACY_UNKNOWN; excluded from validation"
+  - alias: SYNTHETIC_SAMPLE_BARS
+    vendor: "test/sample"
+    bar_period: day
+    record_count: 36
+    fields: [date, open, high, low, close, volume]
+    provenance: "synthetic/sample, not market evidence"
+    disposition: "ALLOWED_ONLY_FOR_FUTURE_FIXTURES"
+global_local_inventory:
+  vendor_day_files: {count: 96483, approximate_bytes: 1679435424}
+  vendor_lc1_files: {count: 25758, approximate_bytes: 9993315648}
+  vendor_lc5_files: {count: 9414, approximate_bytes: 6016692768}
+  statement: "Counts are local inventory metadata, not licensed data coverage or source capability."
+reproduction_requirements:
+  - "A manifest with source identifier, permitted usage, SHA-256, source timezone, field semantics and availability model."
+  - "A versioned trading calendar, adjustment policy, security classification history and suspension/limit metadata."
+  - "A public-safe fixture generator for all unit tests; local vendor files must remain outside Git and CI."
+known_gaps:
+  - U-DATA: "No public/authorized source manifest for production-like historical bars."
+  - U-DATA: "No verified minute-bar format, completeness or point-in-time arrival semantics."
+  - U-RULES: "No full historical board/status/corporate-action mapping attached to the local files."
+  - U-EXTERNAL: "No QCLAW-equivalent licensed dataset receipt."

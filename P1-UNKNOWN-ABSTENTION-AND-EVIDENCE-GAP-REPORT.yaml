@@ -1,0 +1,60 @@
+# P1-UNKNOWN-ABSTENTION-AND-EVIDENCE-GAP-REPORT.yaml
+# QCLAW-0017-D0-INDEPENDENT-AUDIT-0020Q-P1
+
+schema_version: "1.0"
+report_id: "QCLAW-0020Q-P1-UNKNOWN-001"
+target_head: "b515b66290944af3d3e1d3285e95cb6162736d41"
+
+# ============================================================================
+# UNKNOWN / ABSTAIN / EVIDENCE-GAP REGISTER
+# ============================================================================
+# Each entry: question_id, finding_type (UNKNOWN/ABSTAIN/GAP), description, severity, resolution_path
+
+findings:
+  - {question: "Q14", type: "UNKNOWN", description: "Untradeable-event rate not quantified. Codex explicitly marks U0017-008.", severity: "KNOWN_UNKNOWN_ACCEPTED", resolution: "D3 preregistered run after D0 acceptance."}
+  - {question: "Q18", type: "GAP", description: "Codex acknowledges brain_core local paths exist but marks as publicly non-reproducible. Paths not disclosed in D0 package.", severity: "KNOWN_GAP_EXTERNAL_AUDIT_REQUIRED", resolution: "Partially satisfied by QCLAW root-cause analysis. Full resolution requires authorized manifest."}
+  - {question: "Q23", type: "UNKNOWN", description: "No reproducible label-generation script exists. Codex marks 'FUTURE_IMPLEMENTATION_REQUIRED'.", severity: "KNOWN_UNKNOWN_BLOCKING_D1", resolution: "D1 implementation after D0 acceptance."}
+  - {question: "Q24", type: "UNKNOWN", description: "ALL cost components (commission, stamp_duty, exchange_fees, spread, slippage) have status UNKNOWN.", severity: "KNOWN_UNKNOWN_ACCEPTED_AT_D0", resolution: "D2-D4 from official fee sources."}
+  - {question: "Q26", type: "UNKNOWN", description: "Capacity estimation: explicitly UNKNOWN. 'No market-cap-quintile capacity number or practical-minimum claim in D0.'", severity: "KNOWN_UNKNOWN_ACCEPTED_AT_D0", resolution: "Requires authorized PIT volume, float/market-cap classification."}
+  - {question: "Q29", type: "UNKNOWN", description: "B3 null-increment comparison BLOCKED_BY_W3_W7_INTERFACE. Cannot assert 0017 adds value without baseline.", severity: "KNOWN_UNKNOWN_BLOCKING_VALIDATION", resolution: "W3/W7 read-only interface freeze required."}
+  - {question: "Q35", type: "GAP", description: "PR57/PR74 validation framework reuse: PARTIAL audit. Codex acknowledges candidates but has not verified applicability.", severity: "KNOWN_GAP", resolution: "Interface audit before D1 implementation."}
+  - {question: "Q36", type: "GAP", description: "Self-verification loop scan: EXTERNAL_AUDIT_REQUIRED. Codex defers to QCLAW/GPT. QCLAW assessment: NOT a self-verification loop (see counterevidence report).", severity: "RESOLVED_BY_QCLAW", resolution: "QCLAW assessed: no golden-answer comparison, no truth self-certification."}
+  - {question: "Q39", type: "GAP", description: "Self-containment assessment: EXTERNAL_AUDIT_REQUIRED. Codex states D0 is not independently runnable without authorized manifest.", severity: "KNOWN_GAP_ACCEPTED_AT_D0", resolution: "Planning artifact reproducibility sufficient for D0."}
+  - {question: "Q41", type: "UNKNOWN", description: "W3 physical system of record UNKNOWN. Codex explicitly marks U0017-001.", severity: "KNOWN_UNKNOWN_ACCEPTED", resolution: "W3/W7 interface freeze required before D3."}
+
+# ============================================================================
+# ABSTENTION COUNT
+# ============================================================================
+abstentions:
+  count: 0
+  note: "No question requires ABSTAIN per UNKNOWN-AND-ABSTENTION-CONTRACT.yaml. All UNKNOWNs are explicitly declared by Codex and properly gated to future phases."
+
+# ============================================================================
+# EVIDENCE GAPS BY DIMENSION
+# ============================================================================
+evidence_gaps_by_dimension:
+  D1_REFERENCE_ZONE: {gaps: 0, note: "Zone contracts are well-defined. Gaps: no concrete worked examples."}
+  D2_BAR_ONLY: {gaps: 0, note: "All SV rules PASS. BAR_ONLY boundary well-respected."}
+  D3_T1_UNTRADEABLE: {gaps: 1, note: "Q14 untradeable rate is EXPLICIT UNKNOWN. T+1/suspension/auction contracts are design-complete."}
+  D4_DATA: {gaps: 3, note: "Q15/Q16/Q18: data is VENDOR_LOCAL. Q17 gap detection is abstract. Q18 brain_core paths are external-only."}
+  D5_LABELS: {gaps: 1, note: "Q23: no reproducible label script."}
+  D6_COSTS: {gaps: 2, note: "Q24/Q26: costs and capacity both EXPLICIT UNKNOWN."}
+  D7_BASELINES: {gaps: 1, note: "Q29: B3 comparison blocked by W3/W7."}
+  D8_SELF_VERIFICATION: {gaps: 1, note: "Q35: PR57/74 reuse audit is partial."}
+  D9_ARCHITECTURE: {gaps: 1, note: "Q39: self-containment requires external audit. No new runtime in D0."}
+  D10_LEGACY_W3: {gaps: 1, note: "Q41: W3 physical SoR UNKNOWN."}
+
+# ============================================================================
+# POSITIVE FINDINGS
+# ============================================================================
+positive:
+  - "Codex's UNKNOWN culture is anomalous and positive: 9 explicit UNKNOWNs, honest about limits"
+  - "No scope inflation: all contracts marked CANDIDATE_CONTRACT_NOT_IMPLEMENTED"
+  - "D0 is proportionately scoped as a planning package"
+  - "All 8 SV scope rules PASS — no BAR_ONLY violation"
+  - "No hidden intent, no participant identity, no trade signals"
+  - "Explicit phase gating: D1-D6 all gated behind GPT/QCLAW acceptance"
+  - "Licensed data paths not disclosed — correctly handled"
+
+signed_by: "QCLAW"
+signed_at: "2026-07-24T07:30:00+08:00"
