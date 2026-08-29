@@ -22,6 +22,7 @@ from .ledger import CreativeLedger, LedgerViolation, create_artifact
 from .director import DirectorCompilation, QualityFinding, QualityReport, compile_director
 from .knowledge import KnowledgeBridgeViolation, KnowledgeCandidate, KnowledgeReviewBridge
 from .generation import ExternalGenerationGuard, GenerationViolation, OfflineGenerationAdapter, adapter_for
+from .provenance import ProvenanceViolation, SourceProvenance, require_reusable_source
 
 __all__ = [
     "CreativeArtifact",
@@ -42,13 +43,16 @@ __all__ = [
     "PlayerAction",
     "QualityFinding",
     "QualityReport",
+    "ProvenanceViolation",
     "ShotPlan",
     "StoryBeat",
     "StoryState",
+    "SourceProvenance",
     "TaskGovernance",
     "canonical_json",
     "adapter_for",
     "compile_director",
     "create_artifact",
+    "require_reusable_source",
     "load_task_governance",
 ]

@@ -100,3 +100,17 @@ agent_id: CODEX
   by route authority. The implementation never reads environment variables.
 - **Next gate:** S06 must prove the complete interaction-to-generation-to-review
   chain and preserve all no-call/no-canonical-write negative behavior.
+
+## S06_END_TO_END_REPLAY_AND_HANDOFF_ACCEPTANCE
+
+- **Primary work and process trace:** run a synthetic chain from player choice
+  through ledger replay, director plan and quality pass, offline result,
+  provenance-backed knowledge correction, named non-executor review candidate,
+  and final replay equality. Add program, status, runbook, evidence, and review
+  request artifacts so a fresh GPT/Codex session needs no chat history.
+- **Negative results:** LOCAL_UNVERIFIED and unregistered external sources fail
+  the runtime provenance gate. No provider call, credential, canonical knowledge
+  write, production action, or trade action occurs.
+- **Coordination request:** GPT must independently reconcile PR #491, Issue #490,
+  the branch remote head, baseline ancestry, all changed paths, and the runbook
+  before changing acceptance status or merging.

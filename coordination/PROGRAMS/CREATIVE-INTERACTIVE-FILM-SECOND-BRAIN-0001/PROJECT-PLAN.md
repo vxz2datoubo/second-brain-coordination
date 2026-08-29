@@ -15,7 +15,7 @@ deployment.
 | S03 | executor-verified | director compiler and gates | structured plan plus fail-closed gates |
 | S04 | executor-verified | review-only knowledge bridge | no canonical knowledge write |
 | S05 | executor-verified | offline/mock adapters | no credential or paid-call path |
-| S06 | pending | end-to-end replay and review handoff | positive and negative evidence |
+| S06 | executor-verified | end-to-end replay and review handoff | positive and negative evidence |
 
 ## Frozen decisions
 
@@ -30,5 +30,7 @@ deployment.
 
 ## Completion gate
 
-All S00–S06 acceptance checks must pass on the exact PR head, with the current
-`AI_HANDOFF.yaml`, a Draft PR, and `REVIEW_REQUEST/v1` for Issue #453.
+All S00–S06 acceptance checks have passed as executor-only evidence. Independent
+GPT verification is still required on the exact remote PR head before acceptance
+or merge, with `AI_HANDOFF.yaml`, Draft PR #491, and `REVIEW_REQUEST/v1` for
+Issue #453.

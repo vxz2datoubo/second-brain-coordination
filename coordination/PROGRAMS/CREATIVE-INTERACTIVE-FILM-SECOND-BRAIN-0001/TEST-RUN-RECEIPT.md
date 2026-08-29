@@ -57,3 +57,12 @@ the suite then passed in full.
 | Command | Result | Evidence |
 | --- | --- | --- |
 | `python -m unittest discover -s tests -p test_creative_s*.py -v` | Passed | 20 tests passed. S05 proves deterministic offline output and that quality/content failures plus external-provider requests are blocked without a call path. |
+
+## S06 update
+
+| Command | Result | Evidence |
+| --- | --- | --- |
+| `python -m unittest discover -s tests -p test_creative_s*.py -v` | Passed | 22 tests passed. S06 proves the complete synthetic chain and rejects local/unregistered source reuse. |
+
+All 22 checks are executor evidence only. The formal independent reproduction
+instructions are in `RUNBOOK.md`.
