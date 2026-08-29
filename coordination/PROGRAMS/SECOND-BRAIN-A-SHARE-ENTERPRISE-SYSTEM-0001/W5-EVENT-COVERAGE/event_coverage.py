@@ -39,6 +39,7 @@ CANONICAL_SOURCE_INSTANCE_AUTHORITY_AVAILABLE = False
 SOURCE_AUTHORITY_STATE = "CANONICAL_SOURCE_REGISTRY_NOT_ASSEMBLED"
 CAUSAL_IDENTIFICATION_AUTHORITY_AVAILABLE = False
 PARTICIPANT_INTENT_AUTHORITY_AVAILABLE = False
+TYPED_FREE_TEXT_SEMANTIC_AUTHORITY_AVAILABLE = False
 
 AUTHORITY = {
     "creates_task": False,
@@ -374,6 +375,9 @@ def _build_claim_ledger(*, claims: Sequence[Mapping[str, Any]], report: Mapping[
         if _PARTICIPANT_INTENT.search(text):
             outcome = "BLOCK"
             reasons.append("CANONICAL_PARTICIPANT_INTENT_AUTHORITY_UNAVAILABLE")
+        if not TYPED_FREE_TEXT_SEMANTIC_AUTHORITY_AVAILABLE and outcome != "BLOCK":
+            outcome = "DOWNGRADE"
+            reasons.append("UNTYPED_FREE_TEXT_PARTICIPANT_SEMANTICS_UNVERIFIED")
         if _SUPPLY_DEMAND_NARRATIVE.search(text) and data_grade == "C" and outcome != "BLOCK":
             outcome = "DOWNGRADE"
             reasons.append("SUPPLY_DEMAND_LANGUAGE_REQUIRES_PRICE_BEHAVIOR_DOWNGRADE")
@@ -419,6 +423,8 @@ def run_event_coverage_gate(*, intent: Mapping[str, Any], source_registry: Mappi
     `source_registry` is caller candidate evidence only. It cannot establish source
     grade/class/coverage authority. With the canonical W5 instance registry still
     absent, the public gate cannot claim coverage completeness or READY_FOR_SYNTHESIS.
+    Untyped caller free-text is likewise never an authority-bearing semantic claim;
+    until a separately governed typed semantic authority exists it is at most DOWNGRADE.
     """
     normalized_intent = _validate_intent(intent)
     report, event_by_id = _build_coverage_report(
@@ -447,5 +453,5 @@ __all__ = [
     "AUTHORITY", "CANONICAL_SOURCE_INSTANCE_AUTHORITY_AVAILABLE", "CLAIM_EVIDENCE_LEDGER_SCHEMA",
     "DATA_GRADES", "DISPOSITIONS", "EVENT_COVERAGE_REPORT_SCHEMA", "EventCoverageError",
     "GATE_RESULT_SCHEMA", "SOURCE_AUTHORITY_STATE", "SOURCE_REGISTRY_SCHEMA",
-    "run_event_coverage_gate", "validate_source_registry",
+    "TYPED_FREE_TEXT_SEMANTIC_AUTHORITY_AVAILABLE", "run_event_coverage_gate", "validate_source_registry",
 ]
