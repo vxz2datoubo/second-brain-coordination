@@ -88,3 +88,15 @@ agent_id: CODEX
   raise deterministic errors.
 - **Next gate:** S05 must consume only a passed S03 report and return simulated
   results unless an explicitly governed future extension changes the route.
+
+## S05_OFFLINE_FIRST_GENERATION_ADAPTERS
+
+- **Primary work and process trace:** add a deterministic offline adapter and a
+  guarded external-provider representation for `dreamina` and `command`. The
+  offline adapter returns only a stable `offline://` reference; it creates no
+  media and has no network dependency.
+- **Authority result:** quality or content failures raise before any result. An
+  external request without confirmation is denied; confirmation is still denied
+  by route authority. The implementation never reads environment variables.
+- **Next gate:** S06 must prove the complete interaction-to-generation-to-review
+  chain and preserve all no-call/no-canonical-write negative behavior.

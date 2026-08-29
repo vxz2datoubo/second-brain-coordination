@@ -51,3 +51,9 @@ the suite then passed in full.
 | Command | Result | Evidence |
 | --- | --- | --- |
 | `python -m unittest discover -s tests -p test_creative_s*.py -v` | Passed | 17 tests passed. S04 covers provenance-required correction, local-only search/review, non-executor named review, and absence of canonical-write authority. |
+
+## S05 update
+
+| Command | Result | Evidence |
+| --- | --- | --- |
+| `python -m unittest discover -s tests -p test_creative_s*.py -v` | Passed | 20 tests passed. S05 proves deterministic offline output and that quality/content failures plus external-provider requests are blocked without a call path. |

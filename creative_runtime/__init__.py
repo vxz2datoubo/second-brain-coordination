@@ -21,6 +21,7 @@ from .contracts import (
 from .ledger import CreativeLedger, LedgerViolation, create_artifact
 from .director import DirectorCompilation, QualityFinding, QualityReport, compile_director
 from .knowledge import KnowledgeBridgeViolation, KnowledgeCandidate, KnowledgeReviewBridge
+from .generation import ExternalGenerationGuard, GenerationViolation, OfflineGenerationAdapter, adapter_for
 
 __all__ = [
     "CreativeArtifact",
@@ -30,11 +31,14 @@ __all__ = [
     "DirectorBrief",
     "GenerationRequest",
     "GenerationResult",
+    "GenerationViolation",
     "GovernanceViolation",
     "LedgerViolation",
     "KnowledgeBridgeViolation",
     "KnowledgeCandidate",
     "KnowledgeReviewBridge",
+    "ExternalGenerationGuard",
+    "OfflineGenerationAdapter",
     "PlayerAction",
     "QualityFinding",
     "QualityReport",
@@ -43,6 +47,7 @@ __all__ = [
     "StoryState",
     "TaskGovernance",
     "canonical_json",
+    "adapter_for",
     "compile_director",
     "create_artifact",
     "load_task_governance",

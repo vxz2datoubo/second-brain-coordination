@@ -13,9 +13,9 @@ task:
   head_ref: refs/heads/codex/creative-interactive-film-second-brain-0001
   head_sha_at_last_record: 7c4c8f16c07f7ed8edf53d2506913e95e1163966
 progress:
-  current_slice: S04_SECOND_BRAIN_KNOWLEDGE_REVIEW_BRIDGE
+  current_slice: S05_OFFLINE_FIRST_GENERATION_ADAPTERS
   completed_slices: []
-  completion_ratio: 0.66
+  completion_ratio: 0.80
   independent_review_readiness: NOT_READY
 facts:
   verified:
@@ -25,6 +25,7 @@ facts:
     - S02 uses a synthetic adult-only, non-explicit private scene and has no model or provider call path.
     - S03 blocks generation when asset, adult identity, spatial axis, knowledge, content, duration, or shot-change gates fail.
     - S04 only stores evidence-backed candidate packets and requires a named non-executor reviewer before a candidate is marked reusable.
+    - S05 has a deterministic offline adapter and external-provider guards that never read environment variables or issue calls.
   inferences: []
   unknowns:
     - source-import-decision
@@ -50,4 +51,4 @@ failed_attempts:
   - python -m pytest -q is unavailable because pytest is not installed; the dependency-free unittest suite is the supported verification command for this task branch.
 rollback:
   method: preserve draft branch and evidence; route a clean successor without history rewrite
-exact_next_action: Publish the S04 knowledge-review checkpoint, then implement S05 offline/mock generation adapters that require a passing director report and never read credentials.
+exact_next_action: Publish the S05 adapter checkpoint, then execute S06 end-to-end replay, negative cases, and final GPT review handoff artifacts.
