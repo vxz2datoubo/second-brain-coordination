@@ -1,0 +1,101 @@
+schema_version: "1.0"
+scan_id: "R166-W5-EVENT-COVERAGE-CLEAN-SUCCESSOR-ACTIVATION-SCAN"
+project: "SECOND_BRAIN"
+repository: "vxz2datoubo/second-brain-coordination"
+source_issue: 501
+parent_issue: 486
+task_id: "GPT-W5-EVENT-COVERAGE-CLEAN-SUCCESSOR-R166"
+route_epoch: 166
+worker_slot_id: "GPT-WORKER-R166-W5-EVENT-COVERAGE-2"
+observed_main_before_scan: "3aa065be8d18b510439b07f35e675a0c37d251db"
+scan_result: "PASS_PRE_SNAPSHOT"
+
+canonical_bindings_observed:
+  route: "coordination/ROUTES/GPT-W5-EVENT-COVERAGE-CLEAN-SUCCESSOR-R166.yaml"
+  task_brief: "coordination/TASK-BRIEFS/GPT-W5-EVENT-COVERAGE-CLEAN-SUCCESSOR-R166.yaml"
+  work_claim: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/CLEAN-SUCCESSOR-R166/WORK-CLAIM.yaml"
+  authorization_witness: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/CLEAN-SUCCESSOR-R166/AUTHORIZATION-WITNESS.yaml"
+  source_selection_provenance: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/CLEAN-SUCCESSOR-R166/SOURCE-SELECTION-PROVENANCE.yaml"
+  task_lease: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/CLEAN-SUCCESSOR-R166/TASK-LEASE.yaml"
+  executor_reservation: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/CLEAN-SUCCESSOR-R166/EXECUTOR-RESERVATION.yaml"
+  worker_registry: "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+  program_lanes: "coordination/ACTIVE-PROGRAM-LANES.yaml"
+
+branch_precondition:
+  required_branch: "gpt/w5-event-coverage-r166-clean-successor"
+  observed_before_scan: "ABSENT"
+  branch_creation_allowed_now: false
+  branch_creation_gate: "AFTER_ISSUE_501_EFFECTIVE_SPEC_SNAPSHOT"
+
+historical_fences:
+  r164_slot:
+    state: "FROZEN"
+    execution_allowed: false
+  pr_487:
+    disposition: "FROZEN_REFERENCE_ONLY"
+    mutation_allowed: false
+  pr_497:
+    disposition: "FROZEN_REFERENCE_ONLY_TECHNICAL_EVIDENCE"
+    head: "e288f30ef90a5a4dd954655f245193e5da363676"
+    mutation_allowed: false
+    commit_import_allowed: false
+  retroactive_authorization_allowed: false
+
+parallel_execution_scan:
+  codex_task_id: "CODEX-R163-CLEAN-SUCCESSOR-R165"
+  codex_issue: 499
+  codex_route_epoch: 165
+  codex_branch: "codex/r165-r163-clean-successor"
+  codex_branch_head_observed: "0665cc0147fe7efae7e9498c36f9a87566ad036c"
+  codex_surface:
+    - "creative_runtime/**"
+    - "apps/cli/**"
+    - "tests/**"
+    - "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/CLEAN-SUCCESSOR-R165/**"
+    - ".github/workflows/r165-interactive-film-clean-successor.yml"
+  r166_surface:
+    - ".github/workflows/w5-event-coverage-p0-vs1.yml"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/CLAIM-EVIDENCE-LEDGER.schema.json"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/EVENT-COVERAGE-REPORT.schema.json"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/PROJECT-PLAN.md"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/SOURCE-REGISTRY.schema.json"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/event_coverage.py"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/tests/test_event_coverage.py"
+  path_overlap: false
+  interface_overlap: false
+  authority_overlap: false
+  domain_write_overlap: false
+  overlap_class: "O0_NO_MATERIAL_WRITE_OVERLAP"
+
+capacity_scan:
+  gpt_parallel_routes_allowed: true
+  gpt_active_slots_max: 2
+  frozen_r163_counts_active: false
+  frozen_r164_counts_active: false
+  r166_active_slots_after_activation: 1
+  gpt_capacity: "PASS"
+  codex_singleton_separate_agent_type: true
+  local_heavy_stage_required_by_r166: false
+  nested_parallelism: "FORBIDDEN"
+
+trust_boundary_scan:
+  w3_write_authority: false
+  w5_source_authority_created: false
+  causal_authority_created: false
+  participant_authority_created: false
+  task_authority_created_by_runtime_output: false
+  review_authority_created: false
+  merge_authority_created: false
+  trading_authority_created: false
+  credential_or_account_access: false
+  production_or_deployment: false
+
+required_next_gate:
+  action: "PUBLISH_EFFECTIVE_SPEC_SNAPSHOT_ON_ISSUE_501"
+  snapshot_must_bind_final_main_after_this_scan: true
+  branch_must_remain_absent_until_snapshot: true
+  substantive_write_allowed_before_snapshot: false
+  on_any_mismatch: "FAIL_CLOSED_RESCAN_AND_SUCCESSOR_SNAPSHOT"
+
+merge_authorized: false
+review_authority: "GPT_INDEPENDENT_REVIEWER_ONLY_AFTER_ENGINEERING_HANDOFF"
