@@ -1,98 +1,85 @@
-schema_version: "146.0"
+schema_version: "165.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
-active_issue: 406
-task_id: "CODEX-CONTROL-TOWER-GPT-ENGINEERING-WORKER-FIRST-CLASS-R144"
-parent_task_id: "AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001"
-route_epoch: 144
-mode: "project_plan"
-mode_label: "【Codex模式：项目计划模式】R144 Control Tower GPT Engineering Worker First-Class Agent"
-status: "DONE_HISTORICAL"
-execution_allowed: false
-automatic_resume_within_task: false
-second_user_start_command_required: true
+active_issue: 499
+task_id: "CODEX-R163-CLEAN-SUCCESSOR-R165"
+parent_task_id: "REALTIME-INTERACTIVE-FILM-GAME-0002"
+route_epoch: 165
+mode: "bounded_remediation"
+mode_label: "R165 CODEX clean non-retroactive interactive-film successor"
+status: "ACTIVE_GOVERNED_PREWRITE"
+execution_allowed: true
+automatic_resume_within_task: true
+second_user_start_command_required: false
 intermediate_gpt_review_required: false
 merge_authorized: false
-runtime_code_change_allowed: false
-runtime_code_scope: "NONE / CLOSED_HISTORY_ONLY"
-active_executor: null
+runtime_code_change_allowed: true
+active_executor: "CODEX-R165-INTERACTIVE-FILM-CLEAN-SUCCESSOR-1"
 
-canonical_route: "coordination/ROUTES/CODEX-CONTROL-TOWER-GPT-ENGINEERING-WORKER-FIRST-CLASS-R144.yaml"
-canonical_contract: "coordination/TASK-BRIEFS/CODEX-CONTROL-TOWER-GPT-ENGINEERING-WORKER-FIRST-CLASS-R144.yaml"
-implementation_branch: "codex/r144-control-tower-gpt-worker-first-class"
-implementation_pr: 408
+canonical_route: "coordination/ROUTES/CODEX-R163-CLEAN-SUCCESSOR-R165.yaml"
+canonical_contract: "coordination/TASK-BRIEFS/CODEX-R163-CLEAN-SUCCESSOR-R165.yaml"
+implementation_baseline: "0665cc0147fe7efae7e9498c36f9a87566ad036c"
+implementation_branch: "codex/r165-r163-clean-successor"
+planned_draft_pr: true
 
 activation:
-  user_authorization: "同意方案B，把 GPT Engineering Worker 正式纳入 Control Tower。"
-  issue: 406
-  source_blocker_pr: 405
-  source_blocker_review: 4970596508
-  architecture_decision_comment: 5340334185
-  release_decision: "PROCEED_R144_FIRST_CLASS_AGENT_EXTENSION / FREEZE_R143_RUNTIME"
-  canonicalization_rule: >-
-    Historical activation record only. R144 implementation was independently accepted and merged; this task no longer grants any
-    current execution or write authority. A successor task requires a fresh governed release, Work Claim and authorization witness.
+  user_authorization: "Release clean/non-retroactive CODEX successor after independent governance approval."
+  issue: 499
+  parent_issue: 494
+  source_program_issue: 492
+  independent_governance_result: 5465273392
+  independent_review: 5059352209
+  source_executor_intent: 5465075825
+  queue_policy_note: 5465076807
+  release_decision: "PROCEED_R165_CODEX_CLEAN_SUCCESSOR / FREEZE_PR495"
+  prewrite_snapshot_required: true
 
-completion:
-  implementation_status: "ACCEPTED / MERGED / DONE_HISTORICAL"
-  accepted_exact_head: "217a38e341b0c66864b67b549cdccf0be7757206"
-  independent_final_review: 4975349444
-  implementation_merge_commit: "d9734f2db3f039167f0e3e32933392ae5571de13"
-  merge_parent_1: "97a067037c9812deabc4da8e2e0450a7ffbf8300"
-  merge_parent_2: "217a38e341b0c66864b67b549cdccf0be7757206"
-  execution_lease: "RELEASED"
-  closeout_receipt: "coordination/CONTROL-TOWER/R144-GPT-WORKER-FIRST-CLASS-CLOSURE-RECONCILIATION.yaml"
-  r143_resume_rule: "NO_AUTOMATIC_RESUME / FRESH_SIGNAL_TOWER_AND_CONTROL_TOWER_PREFLIGHT_REQUIRED"
-
-predecessor_history:
-  task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE"
-  route_epoch: 142
-  status: "DONE_HISTORICAL"
-  issue: 393
-  implementation_pr: 400
-  implementation_merge_commit: "341fefa057d891103ef9de91af719e1050e4a0ab"
-  closure_receipt: "coordination/CONTROL-TOWER/R142-RETROSPECTIVE-SIGNAL-INTAKE-CLOSURE-RECONCILIATION.yaml"
-  execution_lease: "RELEASED"
+lease:
+  worker_slot_id: "CODEX-R165-INTERACTIVE-FILM-CLEAN-SUCCESSOR-1"
+  task_lease: "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/CLEAN-SUCCESSOR-R165/TASK-LEASE.yaml"
+  work_claim: "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/CLEAN-SUCCESSOR-R165/WORK-CLAIM.yaml"
+  executor_reservation: "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/CLEAN-SUCCESSOR-R165/EXECUTOR-RESERVATION.yaml"
+  control_tower_scan: "coordination/CONTROL-TOWER/R165-INTERACTIVE-FILM-CLEAN-SUCCESSOR-ACTIVATION-SCAN.yaml"
+  substantive_write_gate: "CLOSED_UNTIL_ISSUE_499_EFFECTIVE_SPEC_SNAPSHOT"
 
 mission:
   goal: >-
-    Extend Control Tower so GPT_ENGINEERING_WORKER is a first-class, fail-closed execution identity with multi-slot/lease route
-    provenance, exact Work Claim binding, authorization witness invalidation, deterministic projection, WIP/resource control and
-    backward compatibility, without weakening any existing validator to make R143 pass.
-  target_agent_type: "GPT_ENGINEERING_WORKER"
-  target_parallel_model: "ONE_AGENT_TYPE / MULTI_SLOT_OR_LEASE_REGISTRY"
+    Cleanly reimplement the confirmed R163 runtime/save/timeline remediation from canonical main without importing the frozen PR #495
+    remediation commits, preserving fail-closed SceneGraph causality and migration provenance durability.
 
-allowed_write_paths: []
-
-read_only_boundaries:
-  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE"
-  - "coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DEFECT-LEDGER.yaml"
-  - "W3/domain canonical stores"
-  - "Signal Tower runtime"
-  - "broker/account/order/fund/production/private-data paths"
-
-resource_contract:
-  local_heavy_stage_max: 1
-  cpu_bound_worker_max: 1
-  task_owned_python_process_cap: 2
-  nested_parallelism: "FORBIDDEN"
-  global_python_or_docker_kill: "FORBIDDEN"
-  cleanup: "ONLY_VERIFIED_TASK_OWNED_DESCENDANTS"
+allowed_write_paths:
+  - "creative_runtime/**"
+  - "apps/cli/**"
+  - "tests/**"
+  - "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/CLEAN-SUCCESSOR-R165/**"
+  - ".github/workflows/r165-interactive-film-clean-successor.yml"
+  - ".gitignore"
 
 hard_locks:
-  - "NO_TRADE"
-  - "NO_W2_RUNTIME"
-  - "NO_W3_WRITE"
-  - "NO_SIGNAL_TOWER_RUNTIME_WRITE"
-  - "NO_PRODUCTION_OR_PRIVATE_DATA"
-  - "NO_SECRET_OR_PERMISSION_EXPANSION"
-  - "NO_FAIL_CLOSED_WEAKENING_FOR_R143"
-  - "NO_GPT_WORKER_CODEX_IMPERSONATION"
+  - "NO_NETWORK_OR_EXTERNAL_PROVIDER_RUNTIME"
+  - "NO_CREDENTIAL_READ_OR_SECRET_UPLOAD"
+  - "NO_ACCOUNT_INTROSPECTION"
+  - "NO_EXTERNAL_OR_PAID_GENERATION"
+  - "NO_PRODUCTION_OR_PUBLIC_RELEASE"
+  - "NO_TRADE_BROKER_ACCOUNT_ORDER_FUND_ACCESS"
+  - "NO_CANONICAL_W3_KNOWLEDGE_WRITE"
+  - "NO_SECOND_LEDGER_GATEWAY_RESOLVER_AUTHORITY"
+  - "NO_PR493_MUTATION"
+  - "NO_PR495_MUTATION_READY_MERGE"
+  - "NO_PR495_COMMIT_IMPORT_OR_CHERRY_PICK"
   - "NO_SELF_REVIEW"
+  - "NO_SELF_ACCEPT"
   - "NO_SELF_MERGE"
-  - "NO_REBASE_RESET_FORCE_PUSH_HISTORY_REWRITE"
+  - "NO_REBASE_RESET_FORCE_PUSH_AMEND_HISTORY_REWRITE"
 
-completion_signal: "R144_CONTROL_TOWER_GPT_ENGINEERING_WORKER_FIRST_CLASS_READY_FOR_GPT_REVIEW"
-next_command: "WAIT_FOR_FRESH_GOVERNED_SUCCESSOR_RELEASE"
-updated_by: "GPT_ARCHITECTURE_OWNER"
-updated_at: "2026-08-20T02:32:00+08:00"
+review_gate:
+  queue_issue: 453
+  independent_reviewer: "GPT_INDEPENDENT_REVIEWER"
+  exact_head_review_required: true
+  python_3_11_and_3_13_required: true
+  new_review_request_required: true
+
+completion_signal: "R165_CODEX_CLEAN_INTERACTIVE_FILM_SUCCESSOR_READY_FOR_INDEPENDENT_REVIEW"
+next_command: "READ_ISSUE_499_EFFECTIVE_SPEC_SNAPSHOT_THEN_EXECUTE_ONE_SHOT_TASK"
+updated_by: "GPT_GOVERNANCE_COORDINATOR"
+updated_at: "2026-08-29T22:53:00Z"
