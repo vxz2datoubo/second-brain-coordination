@@ -1,0 +1,100 @@
+schema_version: "1.0"
+task_id: "GPT-R171-SINGLE-V2-AUTHORITY-CLEAN-SUCCESSOR-R172"
+repository: "vxz2datoubo/second-brain-coordination"
+source_issue: 515
+parent_issue: 512
+route_epoch: 172
+mode: "clean_nonretroactive_successor"
+mode_label: "Single migrated-v2 session authority after R171 executor provenance freeze"
+target_agent: "GPT_ENGINEERING_WORKER"
+worker_slot_id: "GPT-WORKER-R172-SINGLE-V2-AUTHORITY-1"
+implementation_branch: "gpt/r172-single-v2-authority"
+pull_request: null
+status: "GOVERNANCE_CANDIDATE / CODE_WRITE_BLOCKED_UNTIL_CANONICAL_RELEASE_AND_EFFECTIVE_SPEC_SNAPSHOT"
+
+purpose: >-
+  Independently reimplement the interactive-film migrated-session continuation contract from canonical main under a valid GPT
+  Engineering Worker identity. Eliminate the parallel continuation authority while preserving immutable legacy-source evidence,
+  deterministic graph-verified continuation, durable slots, and fail-closed validation across every acceptance consumer.
+
+required_behavior:
+  authority:
+    - "CreativeSession/v2 is the only persisted migrated-v2 session authority"
+    - "CreativeSession/v2-continuation is absent/rejected"
+    - "legacy session.json is immutable evidence after migration, never continuation storage"
+  migration:
+    - "receipt is untrusted storage and rederived from source bytes"
+    - "migrated ledger prefix is rederived from source"
+    - "migration_bridge positions and event identities are exact and deterministic"
+    - "lossy legacy routes fail before creating a shadow save"
+  continuation:
+    - "choose/say append graph-derived player_action events only"
+    - "caller patches/state_patch cannot mint continuation state"
+    - "default and named slots preserve one receipt plus ledger history"
+  consumers:
+    - "load/state/timeline/director/review and CLI play/resume/replay/choose/say share one validation choke point"
+    - "source-A/source-B receipt+ledger substitution fails every consumer"
+    - "native v2 remains explicitly non-migrated"
+
+exact_runtime_write_allowlist:
+  - ".github/workflows/r172-single-v2-authority.yml"
+  - "creative_runtime/ledger.py"
+  - "creative_runtime/session_v2.py"
+  - "apps/cli/creativectl.py"
+  - "tests/test_r172_single_v2_authority.py"
+  - "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/SINGLE-V2-AUTHORITY-R172/AI_HANDOFF.yaml"
+
+source_fence:
+  frozen_implementation_candidates:
+    - "PR #513"
+    - "PR #511"
+    - "PR #508"
+    - "PR #506"
+    - "PR #502"
+    - "PR #495"
+    - "PR #493"
+  allowed_as_specification_only:
+    - "Issue #515"
+    - "Issue #512"
+    - "pullrequestreview-5060691960"
+    - "issuecomment-5469016549"
+    - "public behavior contracts and adversarial findings"
+  implementation_reuse: false
+
+parallelism:
+  r168: "ACTIVE_GPT_ENGINEERING_WORKER_SEPARATE_CONTROL_TOWER_SURFACE"
+  r166: "FROZEN_NO_EXECUTION_PENDING_FUTURE_SUCCESSOR_AFTER_R168_PRIMITIVE"
+  codex_r171: "FROZEN_EXECUTOR_PROVENANCE_MISMATCH"
+  gpt_active_slots_after_r172: 2
+  gpt_active_slots_max: 2
+  same_canonical_object_writers_max: 1
+  nested_parallelism: "FORBIDDEN"
+
+prewrite_gate:
+  substantive_write_allowed: false
+  requires:
+    - "governance activation PR independently accepted and merged"
+    - "R172 route/task/claim/witness/lease/reservation/source provenance canonical"
+    - "R166 execution slot frozen and R171 CODEX execution frozen canonically"
+    - "R172 GPT slot and Lane C projection canonical"
+    - "fresh Control Tower activation scan"
+    - "implementation branch absent before Issue #515 EFFECTIVE_SPEC_SNAPSHOT/v1"
+    - "Issue #515 EFFECTIVE_SPEC_SNAPSHOT/v1 published after canonical governance release"
+
+hard_locks:
+  - "NO_FROZEN_PR_IMPLEMENTATION_REUSE"
+  - "NO_RETROACTIVE_AUTHORIZATION"
+  - "NO_SECOND_LEDGER_GATEWAY_RESOLVER_AUTHORITY"
+  - "NO_NETWORK_PROVIDER_MODEL_RUNTIME"
+  - "NO_CREDENTIAL_ACCOUNT_INTROSPECTION"
+  - "NO_DEPLOY_PUBLIC_RELEASE_PRODUCTION"
+  - "NO_TRADE_BROKER_ORDER_FUND"
+  - "NO_CANONICAL_W3_DOMAIN_TRUTH_WRITE"
+  - "NO_SELF_REVIEW_SELF_ACCEPT_SELF_MERGE"
+  - "NO_FORCE_PUSH_REBASE_AMEND_RESET_HISTORY_REWRITE"
+
+completion:
+  signal: "R172_SINGLE_V2_AUTHORITY_READY_FOR_INDEPENDENT_REVIEW"
+  review_queue: 453
+  independent_reviewer: "GPT_INDEPENDENT_REVIEWER"
+  merge_authorized: false
