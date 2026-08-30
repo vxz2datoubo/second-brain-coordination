@@ -97,7 +97,7 @@ class CreativeLedger:
         occurred_at: str,
         parent_artifact_ids: Iterable[str] = (),
     ) -> CreativeEvent:
-        if event_type not in {"story_initialized", "player_action", "state_patch"}:
+        if event_type not in {"story_initialized", "player_action", "state_patch", "migration_bridge"}:
             raise LedgerViolation("Unsupported event type: " + event_type)
         sequence = len(self.events)
         previous_hash = self.events[-1].event_hash if self.events else None
@@ -140,6 +140,11 @@ class CreativeLedger:
                 if not isinstance(patch, Mapping):
                     raise LedgerViolation("state_patch requires a patch")
                 state = apply_state_patch(state, patch)
+            elif event.event_type == "migration_bridge":
+                # A bridge is provenance metadata, never a general-purpose state
+                # mutation.  Only SavedSession may admit one after it has rebuilt
+                # the exact expected migration history.
+                raise LedgerViolation("migration_bridge requires SavedSession validation")
             else:
                 raise LedgerViolation("story_initialized may only appear first")
         return state
