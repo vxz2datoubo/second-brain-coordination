@@ -180,7 +180,7 @@ def collect_snapshot(repo_root: str | Path, *, test_dir: str = "coordination/CON
     try:
         os.chdir(repo)
         sys.path.insert(0, str(control_tower))
-        suite = unittest.defaultTestLoader.discover(str(tests), pattern=pattern, top_level_dir=str(control_tower))
+        suite = unittest.defaultTestLoader.discover(str(tests), pattern=pattern)
         result = RecordingResult(roots=(repo, tests, control_tower))
         suite.run(result)
         if result._pending:
