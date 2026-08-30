@@ -14,7 +14,15 @@ class CreativeS03DirectorTests(unittest.TestCase):
         )
         self.assertTrue(compilation.quality_report.can_generate)
         self.assertEqual(compilation.shots[0].beat_id, "echo")
+        self.assertEqual(len(compilation.shots), 2)
+        self.assertEqual(sum(shot.duration_seconds for shot in compilation.shots), 13)
         self.assertIn("art_scene_synthetic_archive", compilation.shots[0].reference_artifact_ids)
+
+    def test_three_scene_state_uses_matching_scene_asset_and_axis_for_every_shot(self) -> None:
+        compilation = compile_director(StoryState(scene_id="interior_archive", beat_id="threshold"))
+        self.assertTrue(compilation.quality_report.can_generate)
+        self.assertTrue(all(shot.axis == "entry-hall-to-record-room" for shot in compilation.shots))
+        self.assertTrue(all("art_scene_interior_archive" in shot.reference_artifact_ids for shot in compilation.shots))
 
     def test_missing_asset_and_non_adult_identity_block_generation(self) -> None:
         state = StoryState(scene_id="synthetic_archive", beat_id="arrival")
@@ -45,6 +53,14 @@ class CreativeS03DirectorTests(unittest.TestCase):
         codes = {finding.code for finding in report.findings}
         self.assertFalse(report.can_generate)
         self.assertTrue({"knowledge_boundary_violation", "spatial_axis_missing", "content_rating_violation", "duration_infeasible", "dominant_change_missing"} <= codes)
+
+    def test_cross_shot_continuity_and_budget_violations_fail_closed(self) -> None:
+        valid = compile_director(StoryState(scene_id="archive_gate", beat_id="echo"))
+        wrong_scene = replace(valid.shots[0], shot_id=valid.shots[1].shot_id, axis="wrong-axis", beat_id="arrival", duration_seconds=16, reference_artifact_ids=("art_scene_dawn_courtyard",))
+        report = validate_compilation(valid.brief, (wrong_scene, valid.shots[1]), synthetic_asset_index())
+        codes = {finding.code for finding in report.findings}
+        self.assertFalse(report.can_generate)
+        self.assertTrue({"duplicate_shot_id", "duration_budget_exceeded", "spatial_axis_mismatch", "shot_beat_mismatch", "scene_reference_missing", "scene_reference_mismatch", "character_reference_missing"} <= codes)
 
 
 if __name__ == "__main__":
