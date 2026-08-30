@@ -36,6 +36,11 @@ The only uploaded result is a short-retention, repository-synthetic JSON
 artifact plus its dependency-free static viewer; its envelope explicitly says
 that it has no customer data and no external-provider result.
 
+The same artifact also includes `VerifiedInteractiveSequencePlan/v1`: each
+verified timeline prefix has its own frame, director plan, cut policy, and
+duration. It remains a render/planning receipt, not a request to generate or
+publish media.
+
 The artifact job does not trust its just-written label: it immediately runs
 `python tools/verify_experience_artifact.py --expected-head <SHA> --artifact
 experience.json`. That verifier rebuilds the fixed demo route and all covered

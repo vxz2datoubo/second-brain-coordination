@@ -25,6 +25,7 @@ from creative_runtime.continuity import graph_for_initial_state
 from creative_runtime.contracts import canonical_json
 from creative_runtime.coverage import coverage_for_scenario, ledger_for_route
 from creative_runtime.experience import build_verified_experience, build_verified_scenario_catalog
+from creative_runtime.sequence import build_verified_sequence
 
 
 DEMO_SCENARIO = "night_signal"
@@ -60,6 +61,7 @@ def expected_artifact(head_sha: str) -> dict[str, Any]:
         "scenario": DEMO_SCENARIO,
         "actions": list(DEMO_ACTIONS),
         "experience": build_verified_experience(ledger, slot=DEMO_SLOT).to_dict(),
+        "sequence": build_verified_sequence(ledger, slot=DEMO_SLOT).to_dict(),
         "catalog": build_verified_scenario_catalog(DEMO_SCENARIO).to_dict(),
         "boundary": {
             "synthetic_only": True,
@@ -103,6 +105,8 @@ def verify_artifact(
         "catalog_node_count": len(expected["catalog"]["nodes"]),
         "catalog_edge_count": len(expected["catalog"]["edges"]),
         "catalog_transition_count": len(expected["catalog"]["covered_transition_ids"]),
+        "sequence_step_count": len(expected["sequence"]["steps"]),
+        "sequence_total_duration_seconds": expected["sequence"]["total_duration_seconds"],
         "worktree_status": "clean_required_and_clean" if require_clean_worktree else "not_checked_for_verifier_self_test",
         "boundary": dict(expected["boundary"]),
         "authority_note": "Offline reproducibility evidence only; this verifier cannot approve release, deployment, or customer intake.",

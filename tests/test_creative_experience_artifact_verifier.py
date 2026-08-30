@@ -28,6 +28,8 @@ class CreativeExperienceArtifactVerifierTests(unittest.TestCase):
         self.assertEqual(receipt["catalog_node_count"], 24)
         self.assertEqual(receipt["catalog_edge_count"], 23)
         self.assertEqual(receipt["catalog_transition_count"], 14)
+        self.assertEqual(receipt["sequence_step_count"], 6)
+        self.assertEqual(receipt["sequence_total_duration_seconds"], 78)
         self.assertEqual(receipt["worktree_status"], "not_checked_for_verifier_self_test")
         self.assertTrue(receipt["boundary"]["synthetic_only"])
 
