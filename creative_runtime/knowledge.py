@@ -47,6 +47,24 @@ class KnowledgeCandidate:
         )
 
 
+@dataclass(frozen=True)
+class VerifiedKnowledgeCandidate:
+    """A candidate tied to a graph-validated interactive-film timeline."""
+
+    candidate: KnowledgeCandidate
+    timeline_hash: str
+    graph_revision: str
+    final_event_id: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "candidate": self.candidate.to_dict(),
+            "timeline_hash": self.timeline_hash,
+            "graph_revision": self.graph_revision,
+            "final_event_id": self.final_event_id,
+        }
+
+
 class KnowledgeReviewBridge:
     """A bounded local packet store, deliberately isolated from `brain_core`."""
 
@@ -106,3 +124,33 @@ class KnowledgeReviewBridge:
     @classmethod
     def from_records(cls, records: Iterable[Mapping[str, Any]]) -> "KnowledgeReviewBridge":
         return cls(KnowledgeCandidate.from_dict(record) for record in records)
+
+
+def correct_from_verified_timeline(
+    bridge: KnowledgeReviewBridge,
+    assertion: str,
+    ledger: Any,
+    graph: Any | None = None,
+) -> VerifiedKnowledgeCandidate:
+    """Create a candidate only after every event prefix passes continuity replay.
+
+    The generic ``correct`` API is intentionally still available for other
+    evidence classes.  Interactive-film callers should use this route so a
+    candidate links to the exact final event and immutable timeline digest,
+    rather than a caller-supplied event string that may not belong to the story.
+    """
+
+    from .continuity import verified_director_input
+
+    verified = verified_director_input(ledger, graph)
+    candidate = bridge.correct(
+        assertion,
+        source_event_ids=(verified.final_event_id,),
+        source_artifact_ids=("timeline_sha256:" + verified.timeline_hash,),
+    )
+    return VerifiedKnowledgeCandidate(
+        candidate=candidate,
+        timeline_hash=verified.timeline_hash,
+        graph_revision=verified.graph_revision,
+        final_event_id=verified.final_event_id,
+    )

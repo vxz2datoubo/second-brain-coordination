@@ -9,6 +9,7 @@ from creative_runtime.continuity import TimelineViolation, default_story_graph, 
 from creative_runtime.contracts import PlayerAction, StoryState
 from creative_runtime.director import compile_verified_director
 from creative_runtime.ledger import CreativeLedger
+from creative_runtime.knowledge import KnowledgeReviewBridge, correct_from_verified_timeline
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -79,6 +80,10 @@ class CreativeContinuityTests(unittest.TestCase):
             replay_timeline(ledger)
         with self.assertRaisesRegex(TimelineViolation, "semantically equal"):
             compile_verified_director(ledger)
+        bridge = KnowledgeReviewBridge()
+        with self.assertRaisesRegex(TimelineViolation, "semantically equal"):
+            correct_from_verified_timeline(bridge, "Never accept forged story evidence.", ledger, default_story_graph())
+        self.assertEqual(bridge.to_records(), [])
 
     def test_hash_valid_wrong_transition_id_fails_closed(self) -> None:
         ledger = self.initialized_ledger()
@@ -122,6 +127,7 @@ class CreativeContinuityTests(unittest.TestCase):
             timeline = creativectl.run(["--workspace", str(workspace), "timeline"])
             director = creativectl.run(["--workspace", str(workspace), "director"])
             understanding = creativectl.run(["--workspace", str(workspace), "understanding"])
+            derived = creativectl.run(["--workspace", str(workspace), "knowledge", "derive", "A cautious choice can preserve a witness lead."])
             self.assertEqual(timeline["status"], "timeline_verified")
             self.assertEqual(len(timeline["entries"]), 3)
             self.assertEqual(timeline["entries"][-1]["state"]["beat_id"], "threshold")
@@ -131,6 +137,8 @@ class CreativeContinuityTests(unittest.TestCase):
             self.assertTrue(director["quality_report"]["can_generate"])
             self.assertEqual(understanding["status"], "understanding_mapped")
             self.assertEqual(understanding["drift_assessments"][0]["status"], "pass")
+            self.assertEqual(derived["status"], "pending_human_review")
+            self.assertEqual(derived["verified_timeline_candidate"]["candidate"]["source_event_ids"], [timeline["entries"][-1]["event_id"]])
 
 
 if __name__ == "__main__":

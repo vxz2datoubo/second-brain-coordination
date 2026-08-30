@@ -39,9 +39,10 @@ Player action ──> append-only ledger ──> graph-backed prefix replay
 | Story authority | `CreativeLedger` plus `StoryGraph` | ledger hash chain and graph patch must both match | `creativectl timeline` lists each true historical state |
 | Intermediate truth | prefix replay, not final-state backfill | every entry is reconstructed from `events[:n]` | consequences cannot quietly change in the middle of a route |
 | Director boundary | `compile_verified_director` | malformed/forged timeline raises before a brief exists | `creativectl director` reports the source timeline hash |
+| Durable handoff | `CreativeSession/v2` migration envelope | legacy source remains byte-identical; envelope must re-verify graph/timeline | `creativectl migrate` is idempotent and never creates a shadow save on failure |
 | User understanding | `UnderstandingMap` | layer, authority, evidence tier, confidence, and card references validate | `creativectl understanding` emits a plain-language card and hard hash anchor |
 | Numeric anti-drift | `MetricAnchor` and `DriftAssessment` | hash/ID integrity uses `exact_match`, not an averaged score | an identity mismatch is a failure, not “mostly healthy” |
-| Knowledge boundary | existing review packet bridge | candidate never becomes canonical automatically | humans can correct/review without rewriting story history |
+| Knowledge boundary | review packet bridge plus verified-timeline derivation | candidate never becomes canonical automatically; derived film candidate must reference validated final event/hash | `creativectl knowledge derive` prepares a human-review-only candidate |
 | Generation boundary | existing offline adapter and quality gate | no provider call path in this branch | playable and demonstrable without credentials or spend |
 
 ## Four information layers

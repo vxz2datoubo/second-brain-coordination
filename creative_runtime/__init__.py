@@ -20,7 +20,7 @@ from .contracts import (
 )
 from .ledger import CreativeLedger, LedgerViolation, create_artifact
 from .director import DirectorCompilation, QualityFinding, QualityReport, VerifiedDirectorCompilation, compile_director, compile_verified_director
-from .knowledge import KnowledgeBridgeViolation, KnowledgeCandidate, KnowledgeReviewBridge
+from .knowledge import KnowledgeBridgeViolation, KnowledgeCandidate, KnowledgeReviewBridge, VerifiedKnowledgeCandidate, correct_from_verified_timeline
 from .generation import ExternalGenerationGuard, GenerationViolation, OfflineGenerationAdapter, adapter_for
 from .provenance import ProvenanceViolation, SourceProvenance, require_reusable_source
 from .continuity import (
@@ -94,12 +94,14 @@ __all__ = [
     "UnderstandingViolation",
     "VerifiedDirectorInput",
     "VerifiedDirectorCompilation",
+    "VerifiedKnowledgeCandidate",
     "canonical_json",
     "adapter_for",
     "assess_anchor",
     "bind_verified_timeline",
     "compile_director",
     "compile_verified_director",
+    "correct_from_verified_timeline",
     "create_artifact",
     "default_story_graph",
     "require_reusable_source",

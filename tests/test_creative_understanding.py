@@ -5,6 +5,7 @@ import unittest
 from creative_runtime.continuity import default_story_graph, verified_director_input
 from creative_runtime.contracts import PlayerAction, StoryState, canonical_json
 from creative_runtime.ledger import CreativeLedger
+from creative_runtime.knowledge import KnowledgeReviewBridge, correct_from_verified_timeline
 from creative_runtime.understanding import (
     MetricAnchor,
     UnderstandingCard,
@@ -67,6 +68,21 @@ class CreativeUnderstandingTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(UnderstandingViolation, "missing numeric anchor"):
             mapped.add_card(card)
+
+    def test_knowledge_candidate_can_bind_to_verified_timeline_only(self) -> None:
+        ledger, timeline = self.verified_timeline()
+        bridge = KnowledgeReviewBridge()
+        derived = correct_from_verified_timeline(
+            bridge,
+            "Listening first can reveal a cautious next step.",
+            ledger,
+            default_story_graph(),
+        )
+        self.assertEqual(derived.final_event_id, timeline.final_event_id)
+        self.assertEqual(derived.timeline_hash, timeline.timeline_hash)
+        self.assertEqual(derived.candidate.source_event_ids, (timeline.final_event_id,))
+        self.assertEqual(derived.candidate.source_artifact_ids, ("timeline_sha256:" + timeline.timeline_hash,))
+        self.assertEqual(derived.candidate.status, "pending_human_review")
 
 
 if __name__ == "__main__":

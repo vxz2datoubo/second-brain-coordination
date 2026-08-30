@@ -22,7 +22,7 @@ from creative_runtime.contracts import PlayerAction, StoryState, canonical_json
 from creative_runtime.continuity import TimelineViolation, default_story_graph, replay_timeline, timeline_hash
 from creative_runtime.director import compile_verified_director
 from creative_runtime.ledger import CreativeLedger, LedgerViolation
-from creative_runtime.knowledge import KnowledgeBridgeViolation, KnowledgeReviewBridge
+from creative_runtime.knowledge import KnowledgeBridgeViolation, KnowledgeReviewBridge, correct_from_verified_timeline
 from creative_runtime.understanding import bind_verified_timeline
 from creative_runtime.session import SessionViolation, migrate_legacy_session
 
@@ -178,6 +178,8 @@ def run(argv: list[str]) -> dict[str, Any]:
     knowledge_correct.add_argument("assertion")
     knowledge_correct.add_argument("--source-event-id", action="append", default=[])
     knowledge_correct.add_argument("--source-artifact-id", action="append", default=[])
+    knowledge_derive = knowledge_subparsers.add_parser("derive")
+    knowledge_derive.add_argument("assertion")
     knowledge_review = knowledge_subparsers.add_parser("review")
     knowledge_review.add_argument("candidate_id")
     knowledge_review.add_argument("--reviewer", required=True)
@@ -232,6 +234,15 @@ def run(argv: list[str]) -> dict[str, Any]:
             candidate = bridge.correct(args.assertion, source_event_ids=args.source_event_id, source_artifact_ids=args.source_artifact_id)
             _write_knowledge(args.workspace, bridge)
             return {"status": "pending_human_review", "candidate": candidate.to_dict()}
+        if args.knowledge_command == "derive":
+            derived = correct_from_verified_timeline(
+                bridge,
+                args.assertion,
+                _load_session(args.workspace),
+                default_story_graph(),
+            )
+            _write_knowledge(args.workspace, bridge)
+            return {"status": "pending_human_review", "verified_timeline_candidate": derived.to_dict()}
         if args.knowledge_command == "review":
             candidate = bridge.review(args.candidate_id, args.reviewer, args.approve, args.note)
             _write_knowledge(args.workspace, bridge)
