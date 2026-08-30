@@ -7,6 +7,7 @@ import tempfile
 import unittest
 
 from creative_runtime.contracts import canonical_json
+from creative_runtime.experience_package import PACKAGE_MANIFEST_NAME, build_package_manifest
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -17,6 +18,19 @@ SPEC.loader.exec_module(artifact_verifier)
 
 
 class CreativeExperienceArtifactVerifierTests(unittest.TestCase):
+    def _write_exact_package(self, directory: Path, head: str) -> Path:
+        package = directory / "experience-package"
+        package.mkdir()
+        members = {
+            "experience.json": (canonical_json(artifact_verifier.expected_artifact(head)) + "\n").encode("utf-8"),
+            "verified_experience_player.html": (ROOT / "apps" / "web" / "verified_experience_player.html").read_bytes(),
+            "README.md": (ROOT / "apps" / "web" / "README.md").read_bytes(),
+        }
+        for name, content in members.items():
+            (package / name).write_bytes(content)
+        (package / PACKAGE_MANIFEST_NAME).write_text(canonical_json(build_package_manifest(head, members)) + "\n", encoding="utf-8")
+        return package
+
     def test_verifier_rebuilds_and_checks_the_exact_demo_artifact(self) -> None:
         head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, check=True, text=True, capture_output=True).stdout.strip()
         with tempfile.TemporaryDirectory() as directory:
@@ -59,6 +73,24 @@ class CreativeExperienceArtifactVerifierTests(unittest.TestCase):
             player.write_text("forged player", encoding="utf-8")
             with self.assertRaisesRegex(RuntimeError, "Static player does not exactly match"):
                 artifact_verifier.verify_artifact(path, head, require_clean_worktree=False, player_path=player)
+
+    def test_package_verifier_rebuilds_and_checks_the_fixed_four_file_package(self) -> None:
+        head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, check=True, text=True, capture_output=True).stdout.strip()
+        with tempfile.TemporaryDirectory() as directory:
+            package = self._write_exact_package(Path(directory), head)
+            receipt = artifact_verifier.verify_package(package, head, require_clean_worktree=False)
+        self.assertEqual(receipt["status"], "experience_package_exactly_verified")
+        self.assertEqual(receipt["package_member_count"], 3)
+        self.assertEqual(receipt["catalog_node_count"], 24)
+        self.assertEqual(receipt["sequence_step_count"], 6)
+
+    def test_package_verifier_rejects_a_member_changed_after_its_manifest(self) -> None:
+        head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, check=True, text=True, capture_output=True).stdout.strip()
+        with tempfile.TemporaryDirectory() as directory:
+            package = self._write_exact_package(Path(directory), head)
+            (package / "README.md").write_text("forged guide", encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "manifest does not exactly match"):
+                artifact_verifier.verify_package(package, head, require_clean_worktree=False)
 
 
 if __name__ == "__main__":

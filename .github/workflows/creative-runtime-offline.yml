@@ -9,6 +9,7 @@ on:
       - "tests/test_creative*.py"
       - "tools/verify_creative_runtime.py"
       - "tools/build_experience_demo.py"
+      - "tools/build_experience_package.py"
       - "tools/verify_experience_artifact.py"
       - "skills/creative-program-understanding-map/**"
       - "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/**"
@@ -120,19 +121,16 @@ jobs:
         shell: bash
         env:
           EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
-          EXPERIENCE_OUTPUT: ${{ runner.temp }}/creative-runtime-experience/experience.json
+          EXPERIENCE_PACKAGE: ${{ runner.temp }}/creative-runtime-experience
         run: |
           set -euo pipefail
-          python tools/build_experience_demo.py --expected-head "$EXPECTED_HEAD" --output "$EXPERIENCE_OUTPUT"
-          python tools/verify_experience_artifact.py --expected-head "$EXPECTED_HEAD" --artifact "$EXPERIENCE_OUTPUT" --player apps/web/verified_experience_player.html --guide apps/web/README.md
+          python tools/build_experience_package.py --expected-head "$EXPECTED_HEAD" --output-dir "$EXPERIENCE_PACKAGE"
+          python tools/verify_experience_artifact.py --expected-head "$EXPECTED_HEAD" --package-dir "$EXPERIENCE_PACKAGE"
 
       - name: Upload public-safe synthetic experience
         uses: actions/upload-artifact@v4
         with:
           name: creative-runtime-synthetic-experience-${{ github.event.pull_request.head.sha || github.sha }}
-          path: |
-            ${{ runner.temp }}/creative-runtime-experience/experience.json
-            apps/web/verified_experience_player.html
-            apps/web/README.md
+          path: ${{ runner.temp }}/creative-runtime-experience
           if-no-files-found: error
           retention-days: 7

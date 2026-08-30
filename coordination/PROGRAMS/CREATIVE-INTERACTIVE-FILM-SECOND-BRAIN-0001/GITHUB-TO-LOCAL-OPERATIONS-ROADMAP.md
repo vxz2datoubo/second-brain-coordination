@@ -42,13 +42,14 @@ duration. It remains a render/planning receipt, not a request to generate or
 publish media.
 
 The artifact job does not trust its just-written label: it immediately runs
-`python tools/verify_experience_artifact.py --expected-head <SHA> --artifact
-experience.json --player verified_experience_player.html --guide README.md`.
+`python tools/verify_experience_artifact.py --expected-head <SHA> --package-dir
+creative-runtime-experience`.
 That verifier rebuilds the fixed demo route and all covered catalogue paths
-from the checked-out source, requires canonical JSON equality, and compares
-the downloaded player and guide byte-for-byte with the same exact-head source.
-A reviewer can repeat the same command after downloading the complete package,
-with no network, account, provider, or executor chat history.
+from the checked-out source, requires canonical JSON equality, checks the
+fixed four-file layout and manifest hashes, and compares the downloaded player
+and guide byte-for-byte with the same exact-head source. A reviewer can repeat
+the same command after downloading the complete package, with no network,
+account, provider, or executor chat history.
 
 ## Interactive delivery mapping
 
