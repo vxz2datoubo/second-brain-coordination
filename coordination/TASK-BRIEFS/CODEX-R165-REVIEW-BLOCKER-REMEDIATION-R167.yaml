@@ -1,0 +1,141 @@
+schema: TaskBrief/v1
+project: SECOND_BRAIN
+repository: vxz2datoubo/second-brain-coordination
+task_id: CODEX-R165-REVIEW-BLOCKER-REMEDIATION-R167
+route_epoch: 167
+source_issue: 503
+parent_issue: 499
+reviewed_pr: 502
+reviewed_head: 8438805a1bc1aaad5a46c067ee3be293b7543cd9
+blocking_review: 5059485578
+review_result_ref: issuecomment-5465631619
+executor: CODEX
+implementation_baseline: 729a8c0e0f6b9a190b8defcecb65f16aaba6538e
+branch: codex/r167-r165-review-remediation
+status: READY_PENDING_PREWRITE_SNAPSHOT
+
+objective: >-
+  From the clean canonical baseline, independently reimplement the R165 interactive-film safety behaviors necessary for Issue #503,
+  fix the two exact independent-review blockers, and produce a new exact-head candidate without importing PR #502/#495/#493 commits.
+
+mandatory_blocker_b01_review_ticket:
+  - after engineering completion, first append the successor CODEX_ENGINEERING_HANDOFF/v1 to Issue #503
+  - capture the real returned GitHub issuecomment ID before constructing the review request
+  - then append a NEW REVIEW_REQUEST/v1 to Issue #453
+  - REVIEW_REQUEST/v1 MUST contain the literal exact fields effective_spec_snapshot_id, effective_spec_snapshot_ref, canonical_base, exact_head
+  - aliases prewrite_snapshot_id, prewrite_snapshot_ref, snapshot_canonical_governance_base MUST NOT substitute for those fields
+  - engineering_handoff_ref MUST contain the real successor handoff issuecomment ID and MUST NOT contain PENDING_LOOKUP or another placeholder
+  - review request must bind the successor snapshot and exact current PR head
+
+mandatory_blocker_b02_lossless_migration:
+  - mechanically validate each genuine predecessor v1 event/patch against predecessor semantics
+  - map only to current v2 transitions without weakening current SceneGraph behavior
+  - after applying predecessor and mapped v2 semantics, compare relationships, known_facts, risk_level, and flags mechanically
+  - any divergence is LOSSY_UNREPRESENTABLE and MUST fail closed
+  - genuine v1 sequence listen -> approach -> leave MUST fail closed because mapped current echo_knock adds flags.clue=heard
+  - do not remove or weaken current v2 echo_knock clue=heard semantics
+  - failed migration MUST leave original legacy session.json bytes byte-for-byte unchanged
+  - failed migration MUST create no shadow/default/new save artifact
+  - retain at least one genuine lossless positive terminal path, including canonical approach -> listen if verified lossless
+  - positive terminal bridge MUST remain typed, source-bound, deterministic and replay-verifiable and cannot be forged/reused as a template
+
+carry_forward_required:
+  - caller-minted or recomputable-hash state_patch fails closed before SaveStore load, timeline, DirectorSequence/continuity and review packet consumption
+  - append-only hashes are integrity evidence only and never mint state authority
+  - forged typed migration provenance and copied bridge provenance fail closed
+  - migration receipt/history/provenance persists across continued play, choose, say, repeated save, slot save, slot load and restore
+  - native v2 session is never falsely marked migrated
+  - wrong transition id, wrong resulting_patch, unknown action and second/post-prefix bridge attempts fail closed
+  - no second Ledger/Gateway/Resolver/Authority or canonical knowledge source
+
+required_regressions:
+  - lossy legacy listen_approach_leave rejected
+  - lossy rejection preserves original legacy bytes
+  - lossy rejection creates no shadow/default save
+  - semantic comparison covers relationships
+  - semantic comparison covers known_facts
+  - semantic comparison covers risk_level
+  - semantic comparison covers flags
+  - positive genuine lossless terminal bridge succeeds
+  - positive bridge remains source-bound/replay-verifiable
+  - direct hash-valid state_patch rejected across load/timeline/director/review
+  - forged typed provenance rejected
+  - sibling-slot restore attack rejected
+  - choose/say/repeated-save/slot persistence retained
+  - native-v2 nonlabeling retained
+  - wrong transition/resulting_patch/unknown action retained
+  - review-request schema regression rejects aliases/missing canonical fields/placeholders
+  - review-request schema positive fixture contains exact canonical fields and real handoff-ref shape
+
+allowed_write_paths:
+  - creative_runtime/**
+  - apps/cli/**
+  - tests/**
+  - coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/REVIEW-REMEDIATION-R167/**
+  - .github/workflows/r167-interactive-film-review-remediation.yml
+  - .gitignore
+
+forbidden_paths_and_actions:
+  - coordination/ROUTES/** executor mutation
+  - coordination/TASK-BRIEFS/** executor mutation
+  - coordination/ACTIVE-*.yaml executor mutation
+  - coordination/CONTROL-TOWER/** executor mutation
+  - PR #502 branch mutation, Ready transition or merge
+  - cherry-pick/merge/rebase/import of PR #502 commits
+  - PR #493 mutation or implementation-asset reuse
+  - PR #495 mutation or implementation-asset reuse
+  - retroactive snapshot/authorization
+  - credentials, tokens, accounts or secrets
+  - network/provider/model runtime calls
+  - external or paid generation
+  - deployment/public release/production action
+  - trading/broker/account/order/funds
+  - canonical W3/knowledge/domain-truth write
+  - force-push/rebase/amend/reset/history rewrite
+  - self-review/self-accept/self-merge
+
+clean_start_checks:
+  - git status --short
+  - git rev-parse HEAD
+  - git rev-parse --abbrev-ref HEAD
+  - git merge-base HEAD 729a8c0e0f6b9a190b8defcecb65f16aaba6538e
+  - git log --oneline --decorate --max-count=20
+  - git merge-base --is-ancestor 8438805a1bc1aaad5a46c067ee3be293b7543cd9 HEAD && exit 1 || true
+  - git merge-base --is-ancestor 43785fd2f24e0c9e640bdc7d26d09351c836d8c9 HEAD && exit 1 || true
+
+local_validation_commands:
+  - python -m unittest discover -s tests -p 'test_r167_*.py' -v
+  - python -m unittest discover -s tests -v
+  - python -m compileall -q creative_runtime apps/cli tests
+  - git diff --check 729a8c0e0f6b9a190b8defcecb65f16aaba6538e...HEAD
+  - git status --short
+
+scope_and_provenance_checks:
+  - git diff --name-only 729a8c0e0f6b9a190b8defcecb65f16aaba6538e...HEAD
+  - git rev-list --ancestry-path 729a8c0e0f6b9a190b8defcecb65f16aaba6538e..HEAD
+  - git log --format='%H %P %s' 729a8c0e0f6b9a190b8defcecb65f16aaba6538e..HEAD
+  - verify no commit descends from or has parent from PR #502, PR #495 or PR #493 heads
+  - verify changed paths are within exact allowlist
+  - verify PR #502/#495/#493 state and refs were not mutated
+
+ci_requirement:
+  workflow_path: .github/workflows/r167-interactive-film-review-remediation.yml
+  exact_head_checkout_assertion_required: true
+  python_matrix: ["3.11", "3.13"]
+  required_jobs:
+    - exact-head ancestry/provenance assertion
+    - lossy legacy semantic-equivalence regressions
+    - carry-forward state_patch/bridge/persistence regressions
+    - review-ticket canonical-field contract regressions
+    - full repository-supported tests within bounded runtime
+    - diff hygiene and allowed-path audit
+    - forbidden-capability audit
+  both_python_versions_must_pass: true
+
+handoff_and_review_sequence:
+  - push exact candidate head and wait for exact-head CI success on Python 3.11 and 3.13
+  - append CODEX_ENGINEERING_HANDOFF/v1 to Issue #503 and capture its actual issuecomment ID
+  - append NEW REVIEW_REQUEST/v1 to Issue #453 only after handoff ID is known
+  - REVIEW_REQUEST/v1 must contain effective_spec_snapshot_id, effective_spec_snapshot_ref, canonical_base, exact_head and real engineering_handoff_ref
+  - stop for a genuinely uninvolved GPT_INDEPENDENT_REVIEWER T3
+  - CODEX must not review, accept, mark Ready or merge

@@ -1,0 +1,36 @@
+schema: SourceSelectionProvenance/v1
+project: SECOND_BRAIN
+repository: vxz2datoubo/second-brain-coordination
+task_id: CODEX-R165-REVIEW-BLOCKER-REMEDIATION-R167
+route_epoch: 167
+source_issue: 503
+implementation_baseline: 729a8c0e0f6b9a190b8defcecb65f16aaba6538e
+canonical_sources:
+  - current canonical main at implementation baseline
+  - Issue #503 bounded remediation contract
+  - Issue #499 governance history and effective snapshot as historical evidence
+  - pullrequestreview-5059485578 independent T3 findings
+  - issuecomment-5465631619 REVIEW_RESULT/v1
+  - active SPEC_SNAPSHOT_GATE/v1 issuecomment-5463716847
+historical_evidence_only:
+  pr_502:
+    exact_head: 8438805a1bc1aaad5a46c067ee3be293b7543cd9
+    disposition: FROZEN_REVIEWED_CANDIDATE
+    engineering_handoff: issuecomment-5465456730
+    commit_import_allowed: false
+    cherry_pick_allowed: false
+    merge_rebase_allowed: false
+    branch_mutation_allowed: false
+    ready_merge_allowed: false
+  pr_495:
+    exact_head: 43785fd2f24e0c9e640bdc7d26d09351c836d8c9
+    disposition: FROZEN_UNACCEPTED_EVIDENCE_ONLY
+    implementation_reuse_allowed: false
+    mutation_allowed: false
+  pr_493:
+    disposition: REFERENCE_ONLY_UNACCEPTED_CANDIDATE
+    implementation_reuse_allowed: false
+    mutation_allowed: false
+clean_reimplementation_rule: >-
+  CODEX must author the R167 implementation from the clean canonical baseline. Historical PRs may be inspected as evidence for requirements
+  and adversarial findings only; no commit object, branch ancestry, cherry-pick, merge, rebase or provenance claim may be imported.

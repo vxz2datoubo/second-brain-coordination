@@ -1,0 +1,87 @@
+schema_version: "1.0"
+contract_id: "CODEX-R165-REVIEW-BLOCKER-REMEDIATION-R167"
+status: "READY_PENDING_PREWRITE_SNAPSHOT"
+owner: "GPT_GOVERNANCE_COORDINATOR"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "CODEX"
+task_id: "CODEX-R165-REVIEW-BLOCKER-REMEDIATION-R167"
+route_epoch: 167
+active_issue: 503
+parent_issue: 499
+reviewed_pr: 502
+reviewed_head: "8438805a1bc1aaad5a46c067ee3be293b7543cd9"
+blocking_review: 5059485578
+review_result_ref: "issuecomment-5465631619"
+mode: "clean_nonretroactive_review_remediation"
+execution_allowed: true
+substantive_write_gate: "CLOSED_UNTIL_ISSUE_503_EFFECTIVE_SPEC_SNAPSHOT"
+implementation_baseline: "729a8c0e0f6b9a190b8defcecb65f16aaba6538e"
+planned_branch: "codex/r167-r165-review-remediation"
+planned_draft_pr: true
+merge_authorized: false
+reviewer: "GPT_INDEPENDENT_REVIEWER"
+
+blockers:
+  - id: "B01_REVIEW_REQUEST_CANONICAL_SNAPSHOT_FIELDS"
+    required_fields:
+      - effective_spec_snapshot_id
+      - effective_spec_snapshot_ref
+      - canonical_base
+      - exact_head
+    aliases_forbidden: true
+    historical_handoff_ref: "issuecomment-5465456730"
+    successor_rule: "POST_SUCCESSOR_HANDOFF_FIRST_CAPTURE_REAL_COMMENT_ID_THEN_POST_REVIEW_REQUEST"
+  - id: "B02_LOSSY_LEGACY_ECHO_APPROACH_MIGRATION_ACCEPTED"
+    lossy_sequence: [listen, approach, leave]
+    required_semantic_fields: [relationships, known_facts, risk_level, flags]
+    fail_closed_on_any_divergence: true
+    preserve_v2_echo_knock_clue_heard: true
+    positive_lossless_terminal_path_required: true
+
+carry_forward:
+  - "STATE_PATCH_FAIL_CLOSED_BEFORE_LOAD_TIMELINE_DIRECTOR_REVIEW"
+  - "SOURCE_BOUND_REPLAY_VERIFIABLE_MIGRATION_BRIDGE"
+  - "MIGRATION_RECEIPT_HISTORY_DURABILITY"
+  - "NATIVE_V2_NOT_MISLABELED"
+  - "LEGACY_SOURCE_BYTES_UNCHANGED"
+  - "NO_SHADOW_DEFAULT_ON_MIGRATION_FAILURE"
+  - "WRONG_TRANSITION_RESULTING_PATCH_UNKNOWN_ACTION_FAIL_CLOSED"
+
+allowed_write_paths:
+  - "creative_runtime/**"
+  - "apps/cli/**"
+  - "tests/**"
+  - "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/REVIEW-REMEDIATION-R167/**"
+  - ".github/workflows/r167-interactive-film-review-remediation.yml"
+  - ".gitignore"
+all_other_repository_paths: "READ_ONLY"
+
+hard_locks:
+  - "NO_PR502_BRANCH_WRITES_READY_MERGE"
+  - "NO_PR502_COMMIT_IMPORT_CHERRY_PICK_MERGE_REBASE"
+  - "NO_PR493_MUTATION_OR_ASSET_REUSE"
+  - "NO_PR495_MUTATION_OR_ASSET_REUSE"
+  - "NO_RETROACTIVE_AUTHORIZATION"
+  - "NO_NETWORK_PROVIDER_MODEL_RUNTIME"
+  - "NO_CREDENTIAL_TOKEN_ACCOUNT_INTROSPECTION"
+  - "NO_EXTERNAL_OR_PAID_GENERATION"
+  - "NO_DEPLOYMENT_PUBLIC_RELEASE_PRODUCTION"
+  - "NO_TRADE_BROKER_ACCOUNT_ORDER_FUND"
+  - "NO_CANONICAL_W3_KNOWLEDGE_DOMAIN_TRUTH_WRITE"
+  - "NO_SECOND_LEDGER_GATEWAY_RESOLVER_AUTHORITY"
+  - "NO_SCENEGRAPH_SEMANTIC_WEAKENING"
+  - "NO_SELF_REVIEW_SELF_ACCEPT_SELF_MERGE"
+  - "NO_FORCE_PUSH_REBASE_AMEND_RESET_HISTORY_REWRITE"
+
+review_gate:
+  queue_issue: 453
+  review_schema: "REVIEW_REQUEST/v1"
+  exact_required_fields:
+    - effective_spec_snapshot_id
+    - effective_spec_snapshot_ref
+    - canonical_base
+    - exact_head
+  independent_reviewer: "GPT_INDEPENDENT_REVIEWER"
+  review_depth: "T3"
+  python_matrix: ["3.11", "3.13"]
+  green_ci_is_acceptance_authority: false

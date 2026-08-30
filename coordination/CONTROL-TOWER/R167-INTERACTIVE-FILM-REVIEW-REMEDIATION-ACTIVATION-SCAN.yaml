@@ -1,0 +1,103 @@
+schema: ControlTowerActivationScan/v1
+project: SECOND_BRAIN
+repository: vxz2datoubo/second-brain-coordination
+task_id: CODEX-R165-REVIEW-BLOCKER-REMEDIATION-R167
+route_epoch: 167
+source_issue: 503
+parent_issue: 499
+scan_kind: FRESH_CANONICAL_CONTROL_PLANE_RECONCILIATION
+scanned_main: 729a8c0e0f6b9a190b8defcecb65f16aaba6538e
+scan_result: PASS_PRE_SNAPSHOT
+execution_allowed_by_route_after_canonicalization: true
+substantive_write_allowed_at_scan_time: false
+substantive_write_blocker: ISSUE_503_EFFECTIVE_SPEC_SNAPSHOT_REQUIRED
+
+identity_checks:
+  route_epoch_167_unused_before_release: PASS
+  source_issue_503_matches: PASS
+  executor_agent_type_is_CODEX: PASS
+  worker_slot_exact_match: PASS
+  planned_branch_exact_match: PASS
+  implementation_baseline_exact_match: PASS
+  authorization_witness_matches: PASS
+  source_selection_provenance_matches: PASS
+  r165_codex_execution_frozen: PASS
+  pr502_frozen_after_review: PASS
+  pr495_frozen_unaccepted: PASS
+  pr493_reference_only: PASS
+
+portfolio_checks:
+  codex_active_execution_routes_observed_before_release: 0
+  codex_active_execution_routes_max: 1
+  codex_capacity: PASS
+  r166_gpt_worker_status: ACTIVE_GOVERNED_PREWRITE
+  r166_write_surface: W5_EVENT_COVERAGE_EXACT_SEVEN_FILE_SURFACE
+  r167_write_surface: CREATIVE_RUNTIME_CLI_TESTS_R167_TASK_LOCAL_WORKFLOW
+  r166_r167_write_overlap: NONE
+  lane_a_write_overlap: NONE
+  lane_b_write_overlap: NONE
+  lane_c_projection_at_scan: STALE_R165_BUT_PER_AGENT_EXECUTION_TRUTH_FROZEN
+  lane_c_projection_action: UPDATE_ATOMICALLY_WITH_R167_RELEASE
+  overlap_class: O0_NO_MATERIAL_WRITE_OVERLAP_WITH_R166
+
+review_and_source_checks:
+  blocking_review: 5059485578
+  review_result: 5465631619
+  reviewed_pr: 502
+  reviewed_head: 8438805a1bc1aaad5a46c067ee3be293b7543cd9
+  blocker_b01_review_ticket_schema: CONFIRMED
+  blocker_b02_lossy_legacy_migration: CONFIRMED
+  clean_nonretroactive_successor_required: PASS
+  pr502_mutation_authorized: false
+  pr502_ready_authorized: false
+  pr502_merge_authorized: false
+  pr502_commit_import_authorized: false
+  pr495_mutation_or_asset_reuse_authorized: false
+  pr493_mutation_or_asset_reuse_authorized: false
+
+clean_baseline_checks:
+  implementation_baseline: 729a8c0e0f6b9a190b8defcecb65f16aaba6538e
+  baseline_is_fresh_canonical_main_after_r165_freeze: PASS
+  baseline_contains_pr502_head: false
+  baseline_contains_pr495_head: false
+  branch_must_not_exist_before_snapshot: true
+  branch_must_be_created_directly_from_baseline: true
+  cherry_pick_merge_rebase_from_frozen_candidates: FORBIDDEN
+
+scope_checks:
+  allowed_write_paths:
+    - creative_runtime/**
+    - apps/cli/**
+    - tests/**
+    - coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/REVIEW-REMEDIATION-R167/**
+    - .github/workflows/r167-interactive-film-review-remediation.yml
+    - .gitignore
+  route_task_brief_executor_write: FORBIDDEN
+  active_registry_executor_write: FORBIDDEN
+  control_tower_executor_write: FORBIDDEN
+  canonical_knowledge_write: FORBIDDEN
+  network_provider_runtime: FORBIDDEN
+  credentials_tokens_accounts: FORBIDDEN
+  external_or_paid_generation: FORBIDDEN
+  production_deployment_public_release: FORBIDDEN
+  trade_broker_order_fund_access: FORBIDDEN
+  second_ledger_gateway_resolver_authority: FORBIDDEN
+
+history_and_review_checks:
+  force_push: FORBIDDEN
+  rebase: FORBIDDEN
+  amend: FORBIDDEN
+  reset_shared_history: FORBIDDEN
+  self_review: FORBIDDEN
+  self_accept: FORBIDDEN
+  self_merge: FORBIDDEN
+  independent_exact_head_review_required: true
+  python_3_11_and_3_13_exact_head_ci_required: true
+  merge_authorized: false
+
+freshness_and_gate:
+  effective_spec_snapshot_observed_at_scan: false
+  required_snapshot_issue: 503
+  required_snapshot_binding_review: 5059485578
+  next_required_action: PUBLISH_EFFECTIVE_SPEC_SNAPSHOT_V1_ON_ISSUE_503
+  implementation_gate_after_scan: FAIL_CLOSED_PENDING_SNAPSHOT

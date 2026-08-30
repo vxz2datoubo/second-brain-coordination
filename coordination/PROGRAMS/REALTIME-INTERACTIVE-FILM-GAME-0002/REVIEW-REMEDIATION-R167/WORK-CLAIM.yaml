@@ -1,0 +1,61 @@
+schema: TaskLeaseClaim/v1
+project: SECOND_BRAIN
+repository: vxz2datoubo/second-brain-coordination
+task_id: CODEX-R165-REVIEW-BLOCKER-REMEDIATION-R167
+route_epoch: 167
+source_issue: 503
+parent_issue: 499
+agent_type: CODEX
+executor_role: CODEX
+worker_slot_id: CODEX-R167-INTERACTIVE-FILM-REMEDIATION-1
+status_observed: READY_PENDING_PREWRITE_SNAPSHOT
+execution_allowed_observed: true
+implementation_baseline: 729a8c0e0f6b9a190b8defcecb65f16aaba6538e
+branch: codex/r167-r165-review-remediation
+claim_scope:
+  - creative_runtime/**
+  - apps/cli/**
+  - tests/**
+  - coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/REVIEW-REMEDIATION-R167/**
+  - .github/workflows/r167-interactive-film-review-remediation.yml
+  - .gitignore
+claim_exclusions:
+  - coordination/ROUTES/** executor mutation
+  - coordination/TASK-BRIEFS/** executor mutation
+  - coordination/ACTIVE-*.yaml executor mutation
+  - coordination/CONTROL-TOWER/** executor mutation
+  - PR #502 branch mutation/Ready/merge
+  - PR #502 commit import/cherry-pick/merge/rebase
+  - PR #493 mutation/implementation reuse
+  - PR #495 mutation/implementation reuse
+  - credentials/secrets/accounts/tokens
+  - network/provider/model runtime
+  - external/paid generation
+  - deployment/public release/production
+  - trade/account/order/fund
+  - canonical W3/knowledge/domain-truth write
+freshness_binding:
+  route_path: coordination/ROUTES/CODEX-R165-REVIEW-BLOCKER-REMEDIATION-R167.yaml
+  task_brief_path: coordination/TASK-BRIEFS/CODEX-R165-REVIEW-BLOCKER-REMEDIATION-R167.yaml
+  authorization_witness_path: coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/REVIEW-REMEDIATION-R167/AUTHORIZATION-WITNESS.yaml
+  source_selection_path: coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/REVIEW-REMEDIATION-R167/SOURCE-SELECTION-PROVENANCE.yaml
+  task_lease_path: coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/REVIEW-REMEDIATION-R167/TASK-LEASE.yaml
+  executor_reservation_path: coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/REVIEW-REMEDIATION-R167/EXECUTOR-RESERVATION.yaml
+  active_registry_path: coordination/ACTIVE-CODEX-TASK.yaml
+  control_tower_scan_path: coordination/CONTROL-TOWER/R167-INTERACTIVE-FILM-REVIEW-REMEDIATION-ACTIVATION-SCAN.yaml
+substantive_write_gate:
+  state: CLOSED_UNTIL_EFFECTIVE_SPEC_SNAPSHOT
+  requires:
+    - exact CODEX reservation/lease/claim canonicalized
+    - fresh Control Tower activation scan PASS_PRE_SNAPSHOT
+    - Issue #503 EFFECTIVE_SPEC_SNAPSHOT/v1 binding review 5059485578
+    - snapshot predates branch creation and first substantive write
+    - clean branch parent equals exact implementation baseline
+mismatch_action: FAIL_CLOSED_NO_EDIT
+same_branch_writer_max: 1
+nested_parallelism: FORBIDDEN
+self_review_allowed: false
+self_accept_allowed: false
+self_merge_allowed: false
+history_rewrite_allowed: false
+claim_status: CLAIMED_GOVERNANCE_ONLY_PENDING_SNAPSHOT_GATE
