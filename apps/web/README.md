@@ -9,7 +9,8 @@ customer intake, provider invocation, or story-transition implementation.
 
 1. Download the `creative-runtime-synthetic-experience-<exact SHA>` artifact
    from a successful GitHub Actions run.
-2. Extract both `experience.json` and `verified_experience_player.html`.
+2. Extract `experience.json`, `verified_experience_player.html`, and this
+   `README.md` together. They are one synthetic, repository-bound package.
 3. Open the HTML file locally and select `experience.json`.
 
 The player validates its envelope and then navigates only the precomputed,

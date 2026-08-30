@@ -43,10 +43,12 @@ publish media.
 
 The artifact job does not trust its just-written label: it immediately runs
 `python tools/verify_experience_artifact.py --expected-head <SHA> --artifact
-experience.json`. That verifier rebuilds the fixed demo route and all covered
-catalogue paths from the checked-out source, then requires canonical JSON
-equality. A reviewer can repeat the same command after downloading the
-artifact, with no network, account, provider, or executor chat history.
+experience.json --player verified_experience_player.html --guide README.md`.
+That verifier rebuilds the fixed demo route and all covered catalogue paths
+from the checked-out source, requires canonical JSON equality, and compares
+the downloaded player and guide byte-for-byte with the same exact-head source.
+A reviewer can repeat the same command after downloading the complete package,
+with no network, account, provider, or executor chat history.
 
 ## Interactive delivery mapping
 

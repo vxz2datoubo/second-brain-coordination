@@ -124,7 +124,7 @@ jobs:
         run: |
           set -euo pipefail
           python tools/build_experience_demo.py --expected-head "$EXPECTED_HEAD" --output "$EXPERIENCE_OUTPUT"
-          python tools/verify_experience_artifact.py --expected-head "$EXPECTED_HEAD" --artifact "$EXPERIENCE_OUTPUT"
+          python tools/verify_experience_artifact.py --expected-head "$EXPECTED_HEAD" --artifact "$EXPERIENCE_OUTPUT" --player apps/web/verified_experience_player.html --guide apps/web/README.md
 
       - name: Upload public-safe synthetic experience
         uses: actions/upload-artifact@v4

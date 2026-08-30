@@ -31,6 +31,8 @@ from creative_runtime.sequence import build_verified_sequence
 DEMO_SCENARIO = "night_signal"
 DEMO_ACTIONS = ("listen", "approach", "listen", "listen", "leave")
 DEMO_SLOT = "github_demo"
+PLAYER_SOURCE = ROOT / "apps" / "web" / "verified_experience_player.html"
+PLAYER_GUIDE_SOURCE = ROOT / "apps" / "web" / "README.md"
 
 
 def _git_head() -> str:
@@ -72,11 +74,26 @@ def expected_artifact(head_sha: str) -> dict[str, Any]:
     }
 
 
+def _verify_exact_package_file(path: Path, source: Path, label: str) -> str:
+    """Require a downloaded package member to equal the checked-out source."""
+
+    try:
+        supplied = path.read_bytes()
+        expected = source.read_bytes()
+    except OSError as error:
+        raise RuntimeError(label + " is not readable") from error
+    if supplied != expected:
+        raise RuntimeError(label + " does not exactly match the clean exact-head source file")
+    return hashlib.sha256(supplied).hexdigest()
+
+
 def verify_artifact(
     path: Path,
     expected_head: str | None = None,
     *,
     require_clean_worktree: bool = True,
+    player_path: Path | None = None,
+    guide_path: Path | None = None,
 ) -> dict[str, Any]:
     """Return a receipt only when the downloaded bytes match a clean rebuild."""
 
@@ -95,11 +112,16 @@ def verify_artifact(
     expected = expected_artifact(head)
     if canonical_json(supplied) != canonical_json(expected):
         raise RuntimeError("Artifact does not exactly match the clean exact-head synthetic rebuild")
+    player_hash = _verify_exact_package_file(player_path, PLAYER_SOURCE, "Static player") if player_path is not None else None
+    guide_hash = _verify_exact_package_file(guide_path, PLAYER_GUIDE_SOURCE, "Static player guide") if guide_path is not None else None
     return {
         "schema": "CreativeRuntimeExperienceArtifactVerificationReceipt/v1",
         "status": "experience_artifact_exactly_verified",
         "head_sha": head,
         "artifact_sha256": hashlib.sha256(raw).hexdigest(),
+        "player_sha256": player_hash,
+        "guide_sha256": guide_hash,
+        "package_members_verified": player_path is not None and guide_path is not None,
         "scenario": DEMO_SCENARIO,
         "action_count": len(DEMO_ACTIONS),
         "catalog_node_count": len(expected["catalog"]["nodes"]),
@@ -116,10 +138,12 @@ def verify_artifact(
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description="Verify a downloaded synthetic interactive experience artifact at an exact git head.")
     parser.add_argument("--artifact", required=True, type=Path, help="Downloaded experience.json file.")
+    parser.add_argument("--player", type=Path, help="Downloaded verified_experience_player.html file to compare exactly.")
+    parser.add_argument("--guide", type=Path, help="Downloaded player README.md file to compare exactly.")
     parser.add_argument("--expected-head", help="Require this exact commit SHA before verification.")
     args = parser.parse_args(argv)
     try:
-        print(json.dumps(verify_artifact(args.artifact, args.expected_head), ensure_ascii=False, sort_keys=True, indent=2))
+        print(json.dumps(verify_artifact(args.artifact, args.expected_head, player_path=args.player, guide_path=args.guide), ensure_ascii=False, sort_keys=True, indent=2))
     except RuntimeError as error:
         print(json.dumps({"status": "failed", "message": str(error)}, ensure_ascii=False, sort_keys=True))
         return 2
