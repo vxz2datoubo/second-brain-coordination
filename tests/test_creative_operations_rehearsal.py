@@ -22,12 +22,14 @@ class CreativeOperationsRehearsalTests(unittest.TestCase):
         self.assertEqual(report["total_event_count"], 9)
         self.assertEqual(report["idempotent_retry_count"], 3)
         self.assertEqual(report["independent_slot_count"], 3)
-        self.assertEqual(report["all_final_scenes"], ["signal_room"])
+        self.assertEqual(report["scenario_session_counts"], {"harbor_protocol": 1, "night_signal": 2})
+        self.assertEqual(report["all_final_scenes"], ["beacon_room", "signal_room"])
         self.assertEqual(report["operations_metrics"]["verified_slot_count"], 3)
         self.assertEqual(report["operations_metrics"]["active_lock_count"], 0)
         self.assertTrue(report["boundary"]["synthetic_only"])
         self.assertFalse(report["boundary"]["production_capacity_claim"])
         self.assertTrue(all(item["retry_status"] == "command_already_applied" for item in report["sessions"]))
+        self.assertEqual([item["scenario"] for item in report["sessions"]], ["night_signal", "harbor_protocol", "night_signal"])
 
     def test_rehearsal_rejects_unbounded_or_empty_session_counts(self) -> None:
         for value in (0, 17, -1, "3"):

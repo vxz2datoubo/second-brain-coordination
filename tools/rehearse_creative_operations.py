@@ -24,6 +24,7 @@ if str(ROOT) not in sys.path:
 
 MIN_SESSION_COUNT = 1
 MAX_SESSION_COUNT = 16
+REHEARSAL_SCENARIOS = ("night_signal", "harbor_protocol")
 
 
 def _load_cli() -> Any:
@@ -47,8 +48,9 @@ def rehearse_operations(session_count: int = 8) -> dict[str, Any]:
         sessions: list[dict[str, Any]] = []
         for index in range(session_count):
             slot = f"load_{index:02d}"
+            scenario = REHEARSAL_SCENARIOS[index % len(REHEARSAL_SCENARIOS)]
             prefix = ["--workspace", str(workspace), "--slot", slot]
-            initialized = cli.run([*prefix, "init", "--scenario", "night_signal"])
+            initialized = cli.run([*prefix, "init", "--scenario", scenario])
             frame = cli.run([*prefix, "frame"])
             first_command = "cmd_" + format(index, "020x")
             first = cli.run([*prefix, "choose", "listen", "--expected-frame-id", frame["frame_id"], "--command-id", first_command])
@@ -64,6 +66,7 @@ def rehearse_operations(session_count: int = 8) -> dict[str, Any]:
             sessions.append(
                 {
                     "slot_id": slot,
+                    "scenario": scenario,
                     "initialized_status": initialized["status"],
                     "first_command_status": first["status"],
                     "retry_status": retry["status"],
@@ -76,6 +79,11 @@ def rehearse_operations(session_count: int = 8) -> dict[str, Any]:
         operations = cli.run(["--workspace", str(workspace), "operations"])
         if not operations["mutation_safe"] or operations["metrics"]["verified_slot_count"] != session_count:
             raise RuntimeError("Synthetic operation rehearsal operations report is not clean")
+        scenario_session_counts = {
+            scenario: sum(1 for item in sessions if item["scenario"] == scenario)
+            for scenario in REHEARSAL_SCENARIOS
+            if any(item["scenario"] == scenario for item in sessions)
+        }
         return {
             "schema": "CreativeRuntimeSyntheticOperationsRehearsal/v1",
             "status": "synthetic_operations_rehearsal_verified",
@@ -84,6 +92,7 @@ def rehearse_operations(session_count: int = 8) -> dict[str, Any]:
             "total_event_count": session_count * 3,
             "idempotent_retry_count": session_count,
             "independent_slot_count": len({item["slot_id"] for item in sessions}),
+            "scenario_session_counts": scenario_session_counts,
             "all_final_scenes": sorted({item["final_scene_id"] for item in sessions}),
             "operations_metrics": dict(operations["metrics"]),
             "sessions": sessions,
