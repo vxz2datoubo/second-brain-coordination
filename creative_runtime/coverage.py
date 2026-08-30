@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import lru_cache
 import hashlib
 from typing import Any, Iterable, Mapping
 
@@ -330,6 +331,7 @@ def cover_director_states(graph: StoryGraph, initial_state: StoryState, *, max_s
     )
 
 
+@lru_cache(maxsize=4)
 def coverage_for_scenario(scenario: str) -> RouteCoverageReport:
     """Expose only the bounded, synthetic scenarios accepted by the CLI."""
 
@@ -344,6 +346,7 @@ def coverage_for_scenario(scenario: str) -> RouteCoverageReport:
     raise RouteCoverageViolation("Unknown coverage scenario: " + scenario)
 
 
+@lru_cache(maxsize=4)
 def director_coverage_for_scenario(scenario: str) -> DirectorCoverageReport:
     """Return bounded all-prefix director coverage for a supported scenario."""
 
