@@ -32,12 +32,51 @@ jobs:
         python-version: ["3.11", "3.13"]
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install test-only YAML parser
         run: python -m pip install --disable-pip-version-check PyYAML==6.0.2
-      - name: Run targeted regressions
+      - name: Compile CI-isolation helper
+        working-directory: coordination/CONTROL-TOWER
+        run: python -m py_compile integration_state_isolation.py tests/test_integration_state_isolation.py
+      - name: Run CI-isolation focused regressions absolutely
+        working-directory: coordination/CONTROL-TOWER
+        run: python -m unittest discover -s tests -p 'test_integration_state_isolation.py' -v
+      - name: Prove current-main versus exact-candidate Control Tower delta
+        if: ${{ github.event_name == 'pull_request' }}
+        working-directory: coordination/CONTROL-TOWER
+        env:
+          CANDIDATE_BRANCH: ${{ github.head_ref }}
+        run: |
+          python integration_state_isolation.py proof \
+            --repo-root ../.. \
+            --candidate-branch "$CANDIDATE_BRANCH" \
+            --test-dir coordination/CONTROL-TOWER/tests \
+            --output /tmp/control-tower-integration-state-receipt.json
+          python -m json.tool /tmp/control-tower-integration-state-receipt.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          receipt = json.loads(Path('/tmp/control-tower-integration-state-receipt.json').read_text())
+          assert receipt['classification'] == 'PASS_NO_CANDIDATE_REGRESSION', receipt
+          assert receipt['baseline_declared_healthy'] is False
+          assert receipt['authority'] and all(value is False for value in receipt['authority'].values())
+          print('integration_state_isolation=PASS')
+          print('baseline_failures_preserved=', len(receipt['baseline_failures_preserved']))
+          print('candidate_only_tests=', len(receipt['candidate_only_test_ids']))
+          print('receipt_digest=', receipt['receipt_digest'])
+          PY
+      - name: Verify candidate diff whitespace
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          git fetch --no-tags origin main
+          BASE="$(git merge-base origin/main HEAD)"
+          git diff --check "$BASE"...HEAD
+      - name: Run full retained suite on workflow dispatch
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         working-directory: coordination/CONTROL-TOWER
         run: python run_all_tests.py
       - name: Reconcile current canonical control-plane state
