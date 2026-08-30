@@ -1,0 +1,18 @@
+schema: "AI_HANDOFF/v1"
+task_id: "CODEX-R169-IMMUTABLE-LEGACY-SOURCE-BINDING-R170"
+source_agent: "CODEX"
+target_agent: "GPT_INDEPENDENT_REVIEWER"
+reviewer: "UNASSIGNED"
+executor_status: "EXECUTOR_VERIFIED_ONLY"
+base_sha: "3a48f402fedde6fe0e6ecc96708a8dc271ec23e0"
+implementation_head: "PENDING"
+changed_contracts:
+  - "Every migrated-v2 validation rebuilds receipt and deterministic ledger from still-present legacy session.json bytes."
+  - "The persisted migration receipt is untrusted and cannot rebind history."
+  - "Bridge position/event-ID equality remains source-reconstructed."
+tests:
+  - "python -m unittest discover -s tests -v"
+  - "py -3.13 -m unittest discover -s tests -v"
+known_risks:
+  - "Independent review remains required; CI is executor evidence only."
+next_action: "Push exact head, wait for CI, then publish engineering handoff and request independent review."

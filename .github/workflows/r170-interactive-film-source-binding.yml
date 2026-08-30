@@ -1,0 +1,32 @@
+name: R170 immutable migration-source binding
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/r170-interactive-film-source-binding.yml"
+      - "creative_runtime/**"
+      - "apps/cli/**"
+      - "tests/**"
+      - "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/IMMUTABLE-SOURCE-BINDING-R170/**"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exact_head:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: {python: ["3.11", "3.13"]}
+    name: Python ${{ matrix.python }} exact R170 head
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: "${{ github.event.pull_request.head.sha || github.sha }}", fetch-depth: 0}
+      - name: Assert exact candidate object
+        env: {EXPECTED_HEAD: "${{ github.event.pull_request.head.sha || github.sha }}"}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+      - uses: actions/setup-python@v5
+        with: {python-version: "${{ matrix.python }}"}
+      - run: python -m unittest discover -s tests -v
+      - name: Whitespace and delivery surface
+        run: |
+          git diff --check HEAD^ HEAD
+          git diff --name-only HEAD^ HEAD | grep -E '^(creative_runtime/|apps/cli/|tests/|\.github/workflows/r170-interactive-film-source-binding\.yml$|coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/IMMUTABLE-SOURCE-BINDING-R170/)'
