@@ -13,12 +13,13 @@ status: "VALID_FOR_GOVERNANCE_RELEASE_ONLY_UNTIL_PREWRITE_SNAPSHOT_OPENS_CODE_GA
 user_direction_class: "CURRENT_EXPLICIT_MAXIMUM_USEFUL_PROGRESS_WITH_GOVERNED_BOUNDARIES"
 user_authorization_summary: >-
   The user explicitly requested aggressive continued implementation. This witness authorizes governance preparation for a clean
-  R172 GPT successor only; substantive runtime writes remain closed until governance is canonical and Issue #515 publishes a
-  valid EFFECTIVE_SPEC_SNAPSHOT/v1. No retroactive authority is granted to frozen R171 work.
+  R172 GPT successor only; substantive runtime writes remain closed until governance is canonical, Issue #515 publishes a valid
+  post-merge EFFECTIVE_SPEC_SNAPSHOT/v1, and a separate reserved-to-active transition is canonical. No retroactive authority is
+  granted to frozen R171 work and no pipeline-waiting predecessor is treated as an active writer.
 scope_authorized:
   - "prepare one clean GPT migrated-v2 authority successor"
-  - "freeze stale execution identities while preserving audit history"
-  - "after canonical release and pre-write snapshot, independently implement the bounded R172 runtime"
+  - "release completed engineering write surfaces while preserving review/canonicalization audit history"
+  - "after canonical release, post-merge snapshot and reserved-to-active transition, independently implement bounded R172 runtime"
 scope_not_authorized:
   - "copy/cherry-pick/import frozen PR implementation"
   - "network/provider/model runtime or credentials"
@@ -26,17 +27,25 @@ scope_not_authorized:
   - "self-review, Ready transition, merge"
 substantive_write_preconditions:
   - "canonical R172 route/task/claim/witness/lease/reservation/source provenance"
-  - "canonical GPT R172 worker slot and Lane C binding"
-  - "R166 execution frozen; R168 remains the other active GPT slot"
+  - "canonical GPT R172 RESERVED worker slot and Lane C binding"
+  - "R166 engineering execution frozen while exact-head review remains pending or is freshly reconciled"
+  - "R168 engineering execution frozen and canonical comparator available before R172 governance review"
   - "CODEX R171 execution frozen canonically"
   - "fresh R172 Control Tower activation scan"
   - "Issue #515 EFFECTIVE_SPEC_SNAPSHOT/v1 after canonical governance release"
   - "implementation branch absent before snapshot"
+  - "separate reserved-to-active transition canonical before first runtime write"
 parallelism:
-  concurrent_r168_allowed: true
-  concurrent_r166_allowed: false
+  concurrent_active_r168_allowed: false
+  r168_pipeline_state: "ACCEPTED_WAITING_CANONICALIZATION_EXECUTION_FROZEN"
+  concurrent_active_r166_allowed: false
+  r166_pipeline_state: "WAITING_INDEPENDENT_REVIEW_EXECUTION_FROZEN"
   concurrent_codex_r171_allowed: false
-  overlap_reason: "O0_NO_MATERIAL_WRITE_OVERLAP"
+  r172_is_reservation_not_execution: true
+  active_gpt_execution_slots_observed: 0
+  reserved_gpt_slots_observed: 1
+  overlap_reason: "O0_NO_ACTIVE_CONCURRENT_WRITER"
   nested_parallelism: "FORBIDDEN"
+reconciliation_snapshot: 5470439948
 review_authority: "GPT_INDEPENDENT_REVIEWER"
 merge_authorized: false
