@@ -1,4 +1,4 @@
-schema_version: "1.0"
+schema_version: "1.1"
 route_id: "GPT-R171-SINGLE-V2-AUTHORITY-CLEAN-SUCCESSOR-R172"
 repository: "vxz2datoubo/second-brain-coordination"
 status: "GOVERNANCE_ACTIVATION_CANDIDATE / RESERVED_NON_EXECUTABLE_WHEN_CANONICAL_UNTIL_POST_MERGE_SNAPSHOT_GATE"
@@ -27,6 +27,7 @@ binding:
   executor_reservation: "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/SINGLE-V2-AUTHORITY-R172/EXECUTOR-RESERVATION.yaml"
   activation_scan: "coordination/CONTROL-TOWER/R172-SINGLE-V2-AUTHORITY-ACTIVATION-SCAN.yaml"
   review_queue_issue: 453
+  governance_reconciliation_snapshot: 5470439948
 
 executor:
   agent_type: "GPT_ENGINEERING_WORKER"
@@ -82,13 +83,14 @@ source_fence:
   implementation_rule: "INDEPENDENT_REIMPLEMENTATION_NO_CHERRY_PICK_COPY_IMPORT_MERGE_FROM_FROZEN_CANDIDATES"
 
 concurrency:
-  r166_state: "FROZEN_NO_EXECUTION_PENDING_FOUNDATIONAL_R168_PRIMITIVE"
-  r168_state: "ACTIVE_POST_REVIEW_REMEDIATION_004_ON_DISJOINT_CONTROL_TOWER_SURFACE"
+  r166_state: "WAITING_INDEPENDENT_REVIEW_EXECUTION_FROZEN_EXACT_HEAD_CC982F33"
+  r168_state: "WAITING_CANONICALIZATION_ACCEPTED_HEAD_EXECUTION_FROZEN_EXACT_HEAD_F58D63F4"
+  r168_ready_transport_state: "BLOCKED_BY_REPOSITORY_FULLDATABASEID_CONNECTOR_INCIDENT_5470432141"
   codex_r171_state: "FROZEN_EXECUTOR_PROVENANCE_MISMATCH"
   r172_state_when_canonical: "RESERVED_NON_EXECUTABLE"
-  gpt_active_plus_reserved_slots: 2
+  gpt_active_execution_slots_observed: 0
+  gpt_reserved_slots_observed: 1
   gpt_active_slots_max: 2
-  overlap_class_r168: "O0_NO_MATERIAL_WRITE_OVERLAP"
   same_canonical_object_writers_max: 1
   nested_parallelism: "FORBIDDEN"
 
@@ -96,8 +98,8 @@ substantive_write_gate:
   state: "CLOSED_UNTIL_GOVERNANCE_RELEASE_CANONICAL_AND_ISSUE_515_EFFECTIVE_SPEC_SNAPSHOT_AND_EXPLICIT_RESERVED_TO_ACTIVE_TRANSITION"
   requires:
     - "this exact R172 route/task/claim/witness/lease/reservation/source provenance canonical on main"
-    - "R166 execution slot frozen while review evidence remains preserved"
-    - "R168 remains the other disjoint active GPT slot"
+    - "R166 execution remains frozen while exact-head review evidence is preserved"
+    - "R168 engineering execution remains frozen while accepted exact head proceeds through metadata transport and canonicalization"
     - "CODEX R171 execution frozen by canonical correction"
     - "canonical GPT R172 RESERVED worker slot and Lane C reservation"
     - "fresh R172 activation scan"
@@ -122,8 +124,9 @@ review_gate:
   queue_issue: 453
   governance_candidate_independent_review_required: true
   implementation_exact_head_review_required: true
+  canonical_r168_comparator_required_for_governance_candidate_proof: true
   python_matrix: ["3.11", "3.13"]
   green_ci_is_acceptance_authority: false
 
 completion_signal: "R172_SINGLE_V2_AUTHORITY_READY_FOR_INDEPENDENT_REVIEW"
-next_command: "INDEPENDENTLY_REVIEW_AND_CANONICALIZE_GOVERNANCE_THEN_PUBLISH_ISSUE_515_SNAPSHOT_AND_ACTIVATE_RESERVED_SLOT"
+next_command: "WAIT_FOR_R168_CANONICAL_COMPARATOR_THEN_REPROVE_AND_INDEPENDENTLY_REVIEW_GOVERNANCE_BEFORE_POST_MERGE_SNAPSHOT"
