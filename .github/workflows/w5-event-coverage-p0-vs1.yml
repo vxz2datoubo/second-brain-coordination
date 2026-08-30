@@ -151,13 +151,49 @@ jobs:
               value = text.replace(root, '<WORKTREE>')
               value = re.sub(r'/tmp/tmp[A-Za-z0-9_.-]+', '/tmp/<TMP>', value)
               value = re.sub(r'/tmp/w5-r166-[A-Za-z0-9_.-]+', '/tmp/<W5_WORKTREE>', value)
-              value = re.sub(r'0x[0-9A-Fa-f]+', '0x<ADDR>', value)
+              value = re.sub(
+                  r'(<[^>\n]*\bat\s+)0x[0-9A-Fa-f]+(?=>)',
+                  r'\g<1>0x<ADDR>',
+                  value,
+              )
+              value = re.sub(
+                  r'(File\s+"[^"\n]+",\s+line\s+)\d+(\s*,\s+in\s+[^\n]+)',
+                  r'\g<1><LINE>\g<2>',
+                  value,
+              )
               return '\n'.join(line.rstrip() for line in value.strip().splitlines())
 
           def fingerprint(kind: str, test_id: str, text: str) -> str:
               normalized = normalize_traceback(text)
               material = f'{kind}\n{test_id}\n{normalized}'.encode('utf-8')
               return hashlib.sha256(material).hexdigest()
+
+          semantic_left = 'AssertionError: expected mask 0x10, got 0x20'
+          semantic_right = 'AssertionError: expected mask 0x10, got 0x40'
+          if fingerprint('FAIL', 'semantic-mask', semantic_left) == fingerprint(
+              'FAIL', 'semantic-mask', semantic_right
+          ):
+              raise SystemExit('FINGERPRINT_SELF_TEST_FAILED: semantic hex values collapsed')
+
+          semantic_line_left = 'AssertionError: policy violation at line 12'
+          semantic_line_right = 'AssertionError: policy violation at line 99'
+          if fingerprint('FAIL', 'semantic-line', semantic_line_left) == fingerprint(
+              'FAIL', 'semantic-line', semantic_line_right
+          ):
+              raise SystemExit('FINGERPRINT_SELF_TEST_FAILED: semantic line values collapsed')
+
+          volatile_left = (
+              'File "/tmp/w5-r166-main-a/test.py", line 12, in test_x\n'
+              'AssertionError: <Probe object at 0xABCDEF>'
+          )
+          volatile_right = (
+              'File "/tmp/w5-r166-main-b/test.py", line 998, in test_x\n'
+              'AssertionError: <Probe object at 0x123456>'
+          )
+          if fingerprint('FAIL', 'volatile', volatile_left) != fingerprint(
+              'FAIL', 'volatile', volatile_right
+          ):
+              raise SystemExit('FINGERPRINT_SELF_TEST_FAILED: true volatile noise not normalized')
 
           class RecordingResult(unittest.TestResult):
               def __init__(self):
