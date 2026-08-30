@@ -148,7 +148,7 @@
       for (const entry of player.history) {
         const target = player.nodes.get(entry.edge.to_timeline_hash);
         const item = document.createElement("li");
-        item.textContent = entry.edge.action_label + " → " + text(target.state && target.state.scene_id) + " / " + text(target.state && target.state.beat_id) + " · " + consequenceSummary(entry.edge.consequence);
+        item.textContent = entry.edge.action_label + " → " + text(target.state && target.state.scene_id) + " / " + text(target.state && target.state.beat_id) + " · " + consequenceSummary(entry.edge.consequence) + " · transition: " + entry.edge.transition_id;
         journey.append(item);
       }
     }
@@ -222,7 +222,7 @@
         const pill = document.createElement("span"); pill.className = "pill"; pill.textContent = value; meta.append(pill);
       }
       story.textContent = frame.story_text;
-      setPairs(state, [["Scene / beat", text(storyState.scene_id) + " / " + text(storyState.beat_id)], ["Known facts", (frame.accessibility.known_facts_only || []).join("; ") || "none"], ["Risk", storyState.risk_level], ["Relationships", JSON.stringify(storyState.relationships || {})], ["Last verified action", frame.recent_action && frame.recent_action.action_id], ["Last transition", frame.recent_action && frame.recent_action.transition_id], ["Last consequence", consequenceSummary(frame.recent_consequence)]]);
+      setPairs(state, [["Scene / beat", text(storyState.scene_id) + " / " + text(storyState.beat_id)], ["Known facts", (frame.accessibility.known_facts_only || []).join("; ") || "none"], ["Risk", storyState.risk_level], ["Relationships", JSON.stringify(storyState.relationships || {})], ["Last verified action", frame.recent_action && frame.recent_action.action_id], ["Last transition", frame.recent_action && frame.recent_action.transition_id], ["Last consequence", consequenceSummary(frame.recent_consequence)], ["Verified timeline", frame.director && frame.director.source_timeline_hash]]);
       const shots = frame.director && frame.director.shots || [];
       const primaryShot = shots[0] || {};
       const sequenceStep = player.sequenceSteps.get(player.current) || player.nodeSequenceSteps.get(player.current);

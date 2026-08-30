@@ -35,6 +35,8 @@ class CreativeWebPlayerTests(unittest.TestCase):
         self.assertIn("renderJourney", source)
         self.assertIn("Restart verified journey", source)
         self.assertIn("from_timeline_hash", source)
+        self.assertIn("transition: ", source)
+        self.assertIn("Verified timeline", source)
         self.assertIn("interactive_frame_verified", source)
         self.assertIn("client_story_authority === false", source)
         self.assertIn("edge.to_timeline_hash", source)
