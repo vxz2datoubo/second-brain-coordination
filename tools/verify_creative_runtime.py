@@ -82,10 +82,21 @@ def _demo(cli: Any) -> dict[str, Any]:
         }
 
 
-def verify(expected_head: str | None = None, *, run_test_suite: bool = True) -> dict[str, Any]:
+def verify(
+    expected_head: str | None = None,
+    *,
+    run_test_suite: bool = True,
+    require_clean_worktree: bool = True,
+) -> dict[str, Any]:
     actual_head = _git_head()
     if expected_head is not None and actual_head != expected_head:
         raise RuntimeError(f"Exact-head mismatch: expected {expected_head}, actual {actual_head}")
+    if require_clean_worktree:
+        status = _run(["git", "status", "--porcelain"])
+        if status.returncode != 0:
+            raise RuntimeError("Cannot determine git worktree status: " + status.stderr.strip())
+        if status.stdout.strip():
+            raise RuntimeError("Verification requires a clean worktree; use a fresh clone or commit/checkpoint first")
     if run_test_suite:
         tests = _run([sys.executable, "-m", "unittest", "discover", "-s", "tests", "-p", "test_creative*.py"])
         if tests.returncode != 0:
@@ -113,6 +124,7 @@ def verify(expected_head: str | None = None, *, run_test_suite: bool = True) -> 
         "head_sha": actual_head,
         "unit_test_command": f"{sys.executable} -m unittest discover -s tests -p test_creative*.py",
         "unit_test_status": "pass" if run_test_suite else "skipped_for_verifier_self_test",
+        "worktree_status": "clean_required_and_clean" if require_clean_worktree else "not_checked_for_verifier_self_test",
         "diff_check_status": "pass",
         "demonstration": demonstration,
         "authority_note": "Executor reproducibility evidence only; independent acceptance requires a separate reviewer.",

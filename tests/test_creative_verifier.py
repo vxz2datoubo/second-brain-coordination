@@ -21,9 +21,10 @@ class CreativeVerifierTests(unittest.TestCase):
         # test checks its deterministic demo path without recursively starting
         # another copy of the whole suite. The command-line verifier itself is
         # run with its default full-suite setting at clean milestones.
-        receipt = verifier.verify(head, run_test_suite=False)
+        receipt = verifier.verify(head, run_test_suite=False, require_clean_worktree=False)
         self.assertEqual(receipt["head_sha"], head)
         self.assertEqual(receipt["unit_test_status"], "skipped_for_verifier_self_test")
+        self.assertEqual(receipt["worktree_status"], "not_checked_for_verifier_self_test")
         self.assertEqual(receipt["demonstration"]["final_state"]["scene_id"], "interior_archive")
         self.assertEqual(receipt["demonstration"]["knowledge_candidate_status"], "pending_human_review")
 
