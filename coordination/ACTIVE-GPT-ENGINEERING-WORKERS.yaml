@@ -1,4 +1,4 @@
-schema_version: "1.6"
+schema_version: "1.0"
 registry_id: "ACTIVE-GPT-ENGINEERING-WORKERS-0001"
 agent_type: "GPT_ENGINEERING_WORKER"
 parallel_routes_allowed: true
@@ -7,7 +7,7 @@ boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 semantics:
   purpose: >-
     Canonical active route registry for GPT Engineering Worker execution identities. Active slots require exact route, claim,
-    witness, lease, branch and pre-write snapshot bindings. Frozen historical or pipeline-waiting slots remain audit evidence only
+    witness, lease, branch and pre-write snapshot bindings. Released historical or pipeline-waiting slots remain audit evidence only
     and carry no execution authority. A later clean successor never inherits invalid execution provenance merely because its code is similar.
   agent_type: "GPT_ENGINEERING_WORKER"
   slot_is_provenance_not_species: true
@@ -47,8 +47,8 @@ worker_slots:
       five_post_review_commits_disposition: "UNACCEPTED_EVIDENCE_ONLY"
       clean_successor: "CODEX-R163-CLEAN-SUCCESSOR-R165 / Issue #499"
     reviewer_role: "GPT_INDEPENDENT_REVIEWER"
-    activation_state: "FROZEN"
-    closure_state: "SUPERSEDED_BY_CLEAN_CODEX_R165"
+    activation_state: "RELEASED"
+    closure_state: "RELEASED"
 
   - worker_slot_id: "GPT-WORKER-R164-W5-EVENT-COVERAGE-2"
     agent_type: "GPT_ENGINEERING_WORKER"
@@ -75,8 +75,8 @@ worker_slots:
       route_claim_mismatch_discovered_before_review: true
       retroactive_route_repair_forbidden: true
     reviewer_role: "GPT_INDEPENDENT_REVIEWER"
-    activation_state: "FROZEN"
-    closure_state: "SUPERSEDED_BY_R166_CLEAN_GOVERNED_SUCCESSOR"
+    activation_state: "RELEASED"
+    closure_state: "RELEASED"
 
   - worker_slot_id: "GPT-WORKER-R166-W5-EVENT-COVERAGE-2"
     agent_type: "GPT_ENGINEERING_WORKER"
@@ -88,7 +88,7 @@ worker_slots:
     parent_issue: 486
     branch: "gpt/w5-event-coverage-r166-clean-successor"
     pr: 504
-    status: "WAITING_INDEPENDENT_REVIEW_EXECUTION_FROZEN"
+    status: "WAITING_INDEPENDENT_REVIEW_EXECUTION_RELEASED"
     execution_allowed: false
     substantive_write_gate: "CLOSED_AT_ENGINEERING_HANDOFF_EXACT_HEAD_CC982F33"
     route: "coordination/ROUTES/GPT-W5-EVENT-COVERAGE-CLEAN-SUCCESSOR-R166.yaml"
@@ -99,7 +99,7 @@ worker_slots:
     read_domains: []
     write_domains: []
     authority_claims: []
-    resource_class: "FROZEN_WAITING_INDEPENDENT_REVIEW"
+    resource_class: "RELEASED_WAITING_INDEPENDENT_REVIEW"
     provenance:
       source_issue: 501
       binding_snapshot: 5470388488
@@ -112,9 +112,10 @@ worker_slots:
       phase3_ci_run: 33327321364
       prior_source_chain_semantic_blocker_closed: true
       latest_remediation: "PRESERVE_ALL_FLATTENED_HEX_SEMANTICS"
+      pipeline_state: "WAITING_INDEPENDENT_REVIEW"
     reviewer_role: "GPT_INDEPENDENT_REVIEWER"
     reviewer_separation: "EXECUTION_IDENTITY_NOT_ACCEPTANCE_AUTHORITY"
-    activation_state: "FROZEN_WAITING_INDEPENDENT_REVIEW"
+    activation_state: "RELEASED"
     closure_state: null
 
   - worker_slot_id: "GPT-WORKER-R168-CANONICAL-CI-STATE-ISOLATION-1"
@@ -126,7 +127,7 @@ worker_slots:
     issue: 496
     branch: "gpt/canonical-ci-state-isolation-r168"
     pr: 505
-    status: "WAITING_CANONICALIZATION_ACCEPTED_HEAD_EXECUTION_FROZEN"
+    status: "WAITING_CANONICALIZATION_ACCEPTED_HEAD_EXECUTION_RELEASED"
     execution_allowed: false
     substantive_write_gate: "CLOSED_AT_INDEPENDENT_ACCEPT_EXACT_HEAD_F58D63F4"
     route: "coordination/ROUTES/GPT-CANONICAL-CI-STATE-ISOLATION-R168.yaml"
@@ -137,7 +138,7 @@ worker_slots:
     read_domains: []
     write_domains: []
     authority_claims: []
-    resource_class: "FROZEN_WAITING_CANONICALIZATION"
+    resource_class: "RELEASED_WAITING_CANONICALIZATION"
     provenance:
       source_issue: 496
       remediation_004_snapshot: 5469277153
@@ -148,9 +149,10 @@ worker_slots:
       ready_transport_incident: 5470432141
       ready_transport_failure_fingerprint: "Repository.fullDatabaseId"
       canonicalized: false
+      pipeline_state: "WAITING_CANONICALIZATION"
     reviewer_role: "GPT_INDEPENDENT_REVIEWER"
     reviewer_separation: "EXECUTION_IDENTITY_NOT_ACCEPTANCE_AUTHORITY"
-    activation_state: "FROZEN_WAITING_CANONICALIZATION"
+    activation_state: "RELEASED"
     closure_state: null
 
   - worker_slot_id: "GPT-WORKER-R172-SINGLE-V2-AUTHORITY-1"
