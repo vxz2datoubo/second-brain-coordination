@@ -1,4 +1,4 @@
-schema_version: "165.0"
+schema_version: "165.1"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 499
@@ -7,79 +7,41 @@ parent_task_id: "REALTIME-INTERACTIVE-FILM-GAME-0002"
 route_epoch: 165
 mode: "bounded_remediation"
 mode_label: "R165 CODEX clean non-retroactive interactive-film successor"
-status: "ACTIVE_GOVERNED_PREWRITE"
-execution_allowed: true
-automatic_resume_within_task: true
+status: "FROZEN_AFTER_INDEPENDENT_REVIEW_BLOCKED"
+execution_allowed: false
+automatic_resume_within_task: false
 second_user_start_command_required: false
 intermediate_gpt_review_required: false
 merge_authorized: false
-runtime_code_change_allowed: true
-active_executor: "CODEX-R165-INTERACTIVE-FILM-CLEAN-SUCCESSOR-1"
+runtime_code_change_allowed: false
+active_executor: null
 
 canonical_route: "coordination/ROUTES/CODEX-R163-CLEAN-SUCCESSOR-R165.yaml"
 canonical_contract: "coordination/TASK-BRIEFS/CODEX-R163-CLEAN-SUCCESSOR-R165.yaml"
 implementation_baseline: "0665cc0147fe7efae7e9498c36f9a87566ad036c"
 implementation_branch: "codex/r165-r163-clean-successor"
-planned_draft_pr: true
+implementation_pr: 502
+reviewed_exact_head: "8438805a1bc1aaad5a46c067ee3be293b7543cd9"
 
-activation:
-  user_authorization: "Release clean/non-retroactive CODEX successor after independent governance approval."
-  issue: 499
-  parent_issue: 494
-  source_program_issue: 492
-  independent_governance_result: 5465273392
-  independent_review: 5059352209
-  source_executor_intent: 5465075825
-  queue_policy_note: 5465076807
-  release_decision: "PROCEED_R165_CODEX_CLEAN_SUCCESSOR / FREEZE_PR495"
-  prewrite_snapshot_required: true
+independent_review:
+  review: 5059485578
+  result: 5465631619
+  verdict: "BLOCKED"
+  implementation_disposition: "CHANGES_REQUIRED"
+  blockers:
+    - "INVALID_REVIEW_TICKET_SPEC_SNAPSHOT_REQUIRED"
+    - "LOSSY_LEGACY_ECHO_APPROACH_MIGRATION_ACCEPTED"
 
-lease:
-  worker_slot_id: "CODEX-R165-INTERACTIVE-FILM-CLEAN-SUCCESSOR-1"
-  task_lease: "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/CLEAN-SUCCESSOR-R165/TASK-LEASE.yaml"
-  work_claim: "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/CLEAN-SUCCESSOR-R165/WORK-CLAIM.yaml"
-  executor_reservation: "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/CLEAN-SUCCESSOR-R165/EXECUTOR-RESERVATION.yaml"
-  control_tower_scan: "coordination/CONTROL-TOWER/R165-INTERACTIVE-FILM-CLEAN-SUCCESSOR-ACTIVATION-SCAN.yaml"
-  substantive_write_gate: "CLOSED_UNTIL_ISSUE_499_EFFECTIVE_SPEC_SNAPSHOT"
+frozen_boundaries:
+  pr_502_write_allowed: false
+  pr_502_ready_allowed: false
+  pr_502_merge_allowed: false
+  pr_493_mutation_allowed: false
+  pr_495_mutation_allowed: false
+  pr_495_asset_reuse_allowed: false
+  retroactive_authorization_allowed: false
+  history_rewrite_allowed: false
 
-mission:
-  goal: >-
-    Cleanly reimplement the confirmed R163 runtime/save/timeline remediation from canonical main without importing the frozen PR #495
-    remediation commits, preserving fail-closed SceneGraph causality and migration provenance durability.
-
-allowed_write_paths:
-  - "creative_runtime/**"
-  - "apps/cli/**"
-  - "tests/**"
-  - "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/CLEAN-SUCCESSOR-R165/**"
-  - ".github/workflows/r165-interactive-film-clean-successor.yml"
-  - ".gitignore"
-
-hard_locks:
-  - "NO_NETWORK_OR_EXTERNAL_PROVIDER_RUNTIME"
-  - "NO_CREDENTIAL_READ_OR_SECRET_UPLOAD"
-  - "NO_ACCOUNT_INTROSPECTION"
-  - "NO_EXTERNAL_OR_PAID_GENERATION"
-  - "NO_PRODUCTION_OR_PUBLIC_RELEASE"
-  - "NO_TRADE_BROKER_ACCOUNT_ORDER_FUND_ACCESS"
-  - "NO_CANONICAL_W3_KNOWLEDGE_WRITE"
-  - "NO_SECOND_LEDGER_GATEWAY_RESOLVER_AUTHORITY"
-  - "NO_PR493_MUTATION"
-  - "NO_PR495_MUTATION_READY_MERGE"
-  - "NO_PR495_COMMIT_IMPORT_OR_CHERRY_PICK"
-  - "NO_SELF_REVIEW"
-  - "NO_SELF_ACCEPT"
-  - "NO_SELF_MERGE"
-  - "NO_REBASE_RESET_FORCE_PUSH_AMEND_HISTORY_REWRITE"
-
-review_gate:
-  queue_issue: 453
-  independent_reviewer: "GPT_INDEPENDENT_REVIEWER"
-  exact_head_review_required: true
-  python_3_11_and_3_13_required: true
-  new_review_request_required: true
-
-completion_signal: "R165_CODEX_CLEAN_INTERACTIVE_FILM_SUCCESSOR_READY_FOR_INDEPENDENT_REVIEW"
-next_command: "READ_ISSUE_499_EFFECTIVE_SPEC_SNAPSHOT_THEN_EXECUTE_ONE_SHOT_TASK"
+next_path: "NEW_NON_RETROACTIVE_CODEX_ONLY_REMEDIATION_WITH_FRESH_PREWRITE_SNAPSHOT"
+reviewer_role: "GPT_INDEPENDENT_REVIEWER"
 updated_by: "GPT_GOVERNANCE_COORDINATOR"
-updated_at: "2026-08-29T22:53:00Z"
