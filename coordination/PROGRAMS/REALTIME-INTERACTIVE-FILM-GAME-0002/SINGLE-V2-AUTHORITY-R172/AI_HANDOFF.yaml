@@ -1,0 +1,17 @@
+schema: AI_HANDOFF/v1
+task_id: GPT-R171-SINGLE-V2-AUTHORITY-CLEAN-SUCCESSOR-R172
+source_agent: GPT_ENGINEERING_WORKER
+target_agent: GPT_INDEPENDENT_REVIEWER
+reviewer: UNASSIGNED
+executor_status: GOVERNANCE_CANDIDATE_ONLY_NO_RUNTIME_IMPLEMENTATION
+canonical_base: 1a514fe839b1c47a14d7fad4a96e8c9fd2365338
+governance_branch: gpt/r172-single-v2-authority-governance
+implementation_branch: gpt/r172-single-v2-authority
+implementation_branch_required_absent: true
+changed_contracts:
+  - R166 execution slot is released while preserving historical review evidence.
+  - R168 remains the active GPT comparator remediation on Lane A.
+  - CODEX R171 execution is frozen after executor provenance mismatch.
+  - R172 reserves the second GPT slot and Lane C without executable authority.
+  - R172 runtime remains blocked until governance merge, Issue #515 snapshot, and reserved-to-active transition.
+next_action: Run governance CI, independent review, canonicalize governance only; do not implement runtime from this branch.
