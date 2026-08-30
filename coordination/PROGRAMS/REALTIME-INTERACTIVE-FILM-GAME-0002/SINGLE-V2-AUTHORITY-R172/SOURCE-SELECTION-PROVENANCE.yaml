@@ -1,0 +1,44 @@
+schema_version: "1.0"
+provenance_id: "R172-SINGLE-V2-AUTHORITY-SOURCE-SELECTION"
+project: "SECOND_BRAIN"
+repository: "vxz2datoubo/second-brain-coordination"
+task_id: "GPT-R171-SINGLE-V2-AUTHORITY-CLEAN-SUCCESSOR-R172"
+route_epoch: 172
+source_issue: 515
+executor: "GPT_ENGINEERING_WORKER"
+canonical_inputs:
+  - ref: "Issue #515"
+    role: "current clean-successor bounded contract"
+  - ref: "Issue #512"
+    role: "parent remediation problem statement"
+  - ref: "pullrequestreview-5060691960"
+    role: "independent architecture finding that rejected the second continuation authority"
+  - ref: "issuecomment-5469016549"
+    role: "executor-provenance correction freezing R171 GPT-authored writes on CODEX route"
+  - ref: "canonical main creative_runtime/contracts.py"
+    role: "existing stable data contracts"
+  - ref: "canonical main creative_runtime/ledger.py"
+    role: "existing ledger primitive to extend only within bounded scope"
+  - ref: "canonical main apps/cli/creativectl.py"
+    role: "existing canonical CLI entrypoint"
+frozen_candidates:
+  pr_513: {disposition: "FROZEN_EVIDENCE_ONLY_EXECUTOR_PROVENANCE_MISMATCH", commit_import_allowed: false}
+  pr_511: {disposition: "FROZEN_REVIEWED_CANDIDATE", commit_import_allowed: false}
+  pr_508: {disposition: "FROZEN_REVIEWED_CANDIDATE", commit_import_allowed: false}
+  pr_506: {disposition: "FROZEN_REVIEWED_CANDIDATE", commit_import_allowed: false}
+  pr_502: {disposition: "FROZEN_EVIDENCE", commit_import_allowed: false}
+  pr_495: {disposition: "FROZEN_UNACCEPTED_EVIDENCE", commit_import_allowed: false}
+  pr_493: {disposition: "REFERENCE_ONLY", commit_import_allowed: false}
+implementation_rule: >-
+  Independently derive R172 from Issue #515 and canonical-main interfaces after the future pre-write snapshot. Frozen PRs may inform
+  failure cases and externally visible requirements only; no code, diff hunk, branch ancestry, cherry-pick, merge-from, rebase-from,
+  or implementation artifact may be reused.
+binding_invariants:
+  - "one persisted CreativeSession/v2 authority"
+  - "immutable legacy source evidence"
+  - "migration receipt never self-authorizes"
+  - "graph-derived continuation only"
+  - "single validation choke point"
+  - "NO_W3_DOMAIN_TRUTH_WRITE"
+  - "NO_TRADE"
+status: "BOUND_GOVERNANCE_CANDIDATE / READ_ONLY_AFTER_FUTURE_SNAPSHOT"
