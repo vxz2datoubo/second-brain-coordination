@@ -172,14 +172,14 @@ class IntegrationStateIsolationTests(unittest.TestCase):
         self.assertEqual(receipt["classification"], "TEST_ENVIRONMENT_INVALID")
         self.assertIn("PYTHON_RUNTIME_MISMATCH", receipt["environment_errors"])
 
-    def test_volatile_paths_addresses_and_line_numbers_normalize(self):
+    def test_volatile_paths_addresses_and_traceback_line_numbers_normalize(self):
         one = (
             'File "/tmp/a/work/repo/test.py", line 12, in test_x\n'
-            "AssertionError: object 0xABCDEF"
+            "AssertionError: <Probe object at 0xABCDEF>"
         )
         two = (
             'File "/tmp/b/work/repo/test.py", line 998, in test_x\n'
-            "AssertionError: object 0x123456"
+            "AssertionError: <Probe object at 0x123456>"
         )
         normalized_one = normalize_failure_text(one, roots=["/tmp/a/work/repo"])
         normalized_two = normalize_failure_text(two, roots=["/tmp/b/work/repo"])
@@ -188,6 +188,36 @@ class IntegrationStateIsolationTests(unittest.TestCase):
             failure_fingerprint("FAIL", one, roots=["/tmp/a/work/repo"]),
             failure_fingerprint("FAIL", two, roots=["/tmp/b/work/repo"]),
         )
+
+    def test_semantic_hex_values_are_preserved_in_failure_fingerprint(self):
+        left = "AssertionError: expected mask 0x10, got 0x20"
+        right = "AssertionError: expected mask 0x10, got 0x40"
+        self.assertNotEqual(normalize_failure_text(left), normalize_failure_text(right))
+        self.assertNotEqual(
+            failure_fingerprint("FAIL", left),
+            failure_fingerprint("FAIL", right),
+        )
+        before = snapshot([("t.mask", "FAIL", failure_fingerprint("FAIL", left))])
+        after = snapshot([("t.mask", "FAIL", failure_fingerprint("FAIL", right))])
+        receipt = compare_snapshots(before, after)
+        self.assertEqual(
+            receipt["classification"],
+            "CANDIDATE_MODIFIED_BASELINE_FAILURE",
+        )
+
+    def test_semantic_prose_line_values_are_preserved(self):
+        left = "AssertionError: policy violation at line 12"
+        right = "AssertionError: policy violation at line 99"
+        self.assertNotEqual(normalize_failure_text(left), normalize_failure_text(right))
+        self.assertNotEqual(
+            failure_fingerprint("FAIL", left),
+            failure_fingerprint("FAIL", right),
+        )
+
+    def test_non_repr_hex_is_not_treated_as_object_address(self):
+        left = "AssertionError: object token 0xABCDEF"
+        right = "AssertionError: object token 0x123456"
+        self.assertNotEqual(normalize_failure_text(left), normalize_failure_text(right))
 
     def test_semantically_different_failure_messages_change_fingerprint(self):
         left = failure_fingerprint("FAIL", "AssertionError: expected A")
