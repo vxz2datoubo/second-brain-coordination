@@ -52,6 +52,7 @@ from .continuity import (
     verified_director_input,
 )
 from .coverage import RouteCoverageEntry, RouteCoverageReport, RouteCoverageViolation, cover_routes, coverage_for_scenario
+from .experience import ExperienceViolation, VerifiedExperienceManifest, build_verified_experience, verify_verified_experience
 from .presentation import InteractiveFrame, PresentationViolation, build_interactive_frame
 from .understanding import (
     DriftAssessment,
@@ -95,6 +96,7 @@ __all__ = [
     "GraphBeat",
     "GraphTransition",
     "InteractiveFrame",
+    "ExperienceViolation",
     "GovernanceViolation",
     "LedgerViolation",
     "LoadedV2Session",
@@ -120,6 +122,7 @@ __all__ = [
     "StoryBeat",
     "StoryGraph",
     "StoryState",
+    "VerifiedExperienceManifest",
     "SourceProvenance",
     "SessionViolation",
     "TaskGovernance",
@@ -138,6 +141,7 @@ __all__ = [
     "bind_verified_timeline",
     "build_interactive_frame",
     "build_feedback_record",
+    "build_verified_experience",
     "compile_director",
     "compile_verified_director",
     "cover_routes",
@@ -164,6 +168,7 @@ __all__ = [
     "timeline_hash",
     "three_scene_story_graph",
     "verified_director_input",
+    "verify_verified_experience",
     "verify_v2_source_binding",
     "verify_offline_generation_record",
     "validate_slot",

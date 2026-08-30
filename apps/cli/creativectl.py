@@ -24,6 +24,7 @@ from creative_runtime.coverage import RouteCoverageViolation, coverage_for_scena
 from creative_runtime.director import compile_verified_director
 from creative_runtime.generation import GenerationViolation, offline_generation_receipt_path, record_offline_generation, verify_offline_generation_record
 from creative_runtime.feedback import FeedbackViolation, build_feedback_record, feedback_path, load_feedback, record_feedback
+from creative_runtime.experience import ExperienceViolation, build_verified_experience
 from creative_runtime.ledger import CreativeLedger, LedgerViolation
 from creative_runtime.knowledge import KnowledgeBridgeViolation, KnowledgeReviewBridge, correct_from_verified_timeline
 from creative_runtime.presentation import PresentationViolation, build_interactive_frame
@@ -315,6 +316,7 @@ def run(argv: list[str]) -> dict[str, Any]:
     feedback_parser.add_argument("note")
     subparsers.add_parser("audit")
     subparsers.add_parser("frame")
+    subparsers.add_parser("experience")
     coverage_parser = subparsers.add_parser("coverage")
     coverage_parser.add_argument("--scenario", choices=sorted(SCENARIOS), default="three_scene")
     knowledge_parser = subparsers.add_parser("knowledge")
@@ -443,6 +445,8 @@ def run(argv: list[str]) -> dict[str, Any]:
         return _audit_workspace(args.workspace, slot)
     if args.command == "frame":
         return build_interactive_frame(_load_session(args.workspace, slot), slot=slot).to_dict()
+    if args.command == "experience":
+        return build_verified_experience(_load_session(args.workspace, slot), slot=slot).to_dict()
     if args.command == "coverage":
         return coverage_for_scenario(args.scenario).to_dict()
     if args.command == "knowledge":
@@ -472,7 +476,7 @@ def run(argv: list[str]) -> dict[str, Any]:
 def main() -> int:
     try:
         print(json.dumps(run(sys.argv[1:]), ensure_ascii=False, sort_keys=True, indent=2))
-    except (FeedbackViolation, GenerationViolation, LedgerViolation, KnowledgeBridgeViolation, PresentationViolation, RouteCoverageViolation, SessionViolation, TimelineViolation, KeyError, json.JSONDecodeError) as error:
+    except (ExperienceViolation, FeedbackViolation, GenerationViolation, LedgerViolation, KnowledgeBridgeViolation, PresentationViolation, RouteCoverageViolation, SessionViolation, TimelineViolation, KeyError, json.JSONDecodeError) as error:
         print(json.dumps({"status": "error", "message": str(error)}, ensure_ascii=False, sort_keys=True))
         return 2
     return 0

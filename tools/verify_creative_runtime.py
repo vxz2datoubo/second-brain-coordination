@@ -60,6 +60,7 @@ def _demo(cli: Any) -> dict[str, Any]:
         timeline = cli.run(["--workspace", str(workspace), "timeline"])
         director = cli.run(["--workspace", str(workspace), "director"])
         frame = cli.run(["--workspace", str(workspace), "frame"])
+        experience = cli.run(["--workspace", str(workspace), "experience"])
         understanding = cli.run(["--workspace", str(workspace), "understanding"])
         derived = cli.run(
             [
@@ -133,6 +134,9 @@ def _demo(cli: Any) -> dict[str, Any]:
             "frame_choice_count": len(frame["legal_choices"]),
             "frame_slot": frame["slot_id"],
             "frame_director_timeline_hash": frame["director"]["source_timeline_hash"],
+            "experience_status": experience["status"],
+            "experience_frame_count": len(experience["frames"]),
+            "experience_timeline_hash": experience["timeline_hash"],
             "understanding_status": understanding["status"],
             "drift_statuses": [item["status"] for item in understanding["drift_assessments"]],
             "knowledge_status": derived["status"],
@@ -201,6 +205,8 @@ def verify(
         "frame_status": "interactive_frame_verified",
         "frame_choice_count": 1,
         "frame_slot": "default",
+        "experience_status": "experience_manifest_verified",
+        "experience_frame_count": 4,
         "understanding_status": "understanding_mapped",
         "drift_statuses": ["pass"],
         "knowledge_status": "pending_human_review",
@@ -237,6 +243,8 @@ def verify(
         raise RuntimeError("offline generation receipt does not match the verified timeline hash")
     if demonstration["frame_director_timeline_hash"] != demonstration["timeline_hash"]:
         raise RuntimeError("interactive frame director evidence does not match the verified timeline hash")
+    if demonstration["experience_timeline_hash"] != demonstration["timeline_hash"]:
+        raise RuntimeError("interactive experience is not bound to the verified timeline hash")
     return {
         "schema": "CreativeRuntimeVerificationReceipt/v1",
         "head_sha": actual_head,
