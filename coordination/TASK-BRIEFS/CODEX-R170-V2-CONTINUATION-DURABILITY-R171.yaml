@@ -1,0 +1,43 @@
+schema_version: "171.0"
+task_id: CODEX-R170-V2-CONTINUATION-DURABILITY-R171
+route_epoch: 171
+source_issue: 512
+parent_issue: 509
+executor: CODEX
+worker_slot_id: CODEX-R171-INTERACTIVE-FILM-V2-CONTINUATION-1
+review_binding:
+  formal_review: 5059784113
+  review_result: 5466332157
+  reviewed_head: 8ce9cbfccf95afebf44726dc61a09572f9f1eabf
+  verdict: CHANGES_REQUIRED
+  prior_p1_closed: P1_CALLER_REWRITABLE_MIGRATION_RECEIPT_CAN_REBIND_HISTORY
+  sole_open_p1: P1_CANONICAL_CONTINUED_PLAY_MUTATES_BOUND_LEGACY_SOURCE_AND_INVALIDATES_MIGRATED_V2
+mission:
+  - preserve original migrated legacy session.json bytes forever
+  - route post-migration CLI choose/say through validated v2 continuation
+  - preserve migration receipt/history through repeated default save and sibling slot save/load/restore
+  - keep all consumers validating immutable-source binding
+mandatory_e2e:
+  - migrate genuine nonterminal source A
+  - legal choose then legal say on v2 continuation
+  - repeated default save
+  - sibling slot save load restore
+  - source A bytes remain byte-identical
+  - migration receipt/history remains durable
+  - all consumers validate
+  - source-A/source-B v2 receipt+ledger swap remains rejected by load/state/timeline/director/review
+carry_forward:
+  - immutable source digest binding
+  - exact ordered migration_bridge position/event-id equality
+  - genuine terminal bridge only at deterministic position
+  - lossy listen-approach-leave fail-closed with no shadow save
+  - state_patch fail-closed
+  - native-v2 not falsely migrated
+  - exact review-ticket fields and real handoff
+validation:
+  python_matrix: ["3.11", "3.13"]
+  exact_head_required: true
+  independent_review_required: true
+  review_queue_issue: 453
+  handoff_must_precede_review_request: true
+scope_boundary: BOUNDED_REIMPLEMENTATION_FROM_CLEAN_MAIN_NO_FROZEN_ASSET_REUSE

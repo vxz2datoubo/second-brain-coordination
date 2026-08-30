@@ -1,4 +1,4 @@
-schema_version: "3.28"
+schema_version: "3.29"
 registry_id: AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001
 control_tower_issue: 310
 owner: USER
@@ -13,20 +13,20 @@ portfolio_capacity_policy:
   same_canonical_object_writers_max: 1
   nested_parallelism: FORBIDDEN
 current_user_release_policy:
-  decision: R170_CODEX_IMMUTABLE_SOURCE_BINDING + R168_LANE_A_CI_ISOLATION + R166_W5_WAITING_REVIEW
-  rationale: R169 PR #508 is frozen after independent CHANGES_REQUIRED review 5059744286. R170 is a clean CODEX successor from canonical main and writes only interactive-film runtime/test/task-local surfaces; R168 Control Tower and R166 W5 surfaces do not collide.
+  decision: R171_CODEX_V2_CONTINUATION_DURABILITY + R168_LANE_A_CI_ISOLATION + R166_W5_WAITING_REVIEW
+  rationale: R170 PR #511 is frozen after independent CHANGES_REQUIRED review 5059784113. R171 is a clean CODEX successor from current canonical main and writes only interactive-film runtime/test/task-local surfaces; R168 Control Tower and R166 W5 surfaces do not collide.
   auxiliary_bounded_releases:
-    - task_id: CODEX-R169-IMMUTABLE-LEGACY-SOURCE-BINDING-R170
-      route_epoch: 170
-      issue: 509
+    - task_id: CODEX-R170-V2-CONTINUATION-DURABILITY-R171
+      route_epoch: 171
+      issue: 512
       agent_type: CODEX
-      worker_slot_id: CODEX-R170-INTERACTIVE-FILM-SOURCE-BINDING-1
-      route: coordination/ROUTES/CODEX-R169-IMMUTABLE-LEGACY-SOURCE-BINDING-R170.yaml
-      implementation_baseline: 3a48f402fedde6fe0e6ecc96708a8dc271ec23e0
-      branch: codex/r170-r169-immutable-legacy-source-binding
+      worker_slot_id: CODEX-R171-INTERACTIVE-FILM-V2-CONTINUATION-1
+      route: coordination/ROUTES/CODEX-R170-V2-CONTINUATION-DURABILITY-R171.yaml
+      implementation_baseline: 5574ebf4287691aed3f5789e895bb5c55451f209
+      branch: codex/r171-r170-v2-continuation-durability
       status: ACTIVE_GOVERNED_PREWRITE
       execution_allowed: true
-      substantive_write_gate: ISSUE_509_EFFECTIVE_SPEC_SNAPSHOT_REQUIRED
+      substantive_write_gate: ISSUE_512_EFFECTIVE_SPEC_SNAPSHOT_REQUIRED
     - task_id: GPT-CANONICAL-CI-STATE-ISOLATION-R168
       route_epoch: 168
       issue: 496
@@ -39,14 +39,18 @@ current_user_release_policy:
       agent_type: GPT_ENGINEERING_WORKER
       status: WAITING_INDEPENDENT_REVIEW
 historical_execution_refs:
+  r170:
+    issue: 509
+    pr: 511
+    reviewed_head: 8ce9cbfccf95afebf44726dc61a09572f9f1eabf
+    independent_review: 5059784113
+    review_result: 5466332157
+    status: FROZEN_AFTER_INDEPENDENT_CHANGES_REQUIRED
+    successor: R171 CLEAN CODEX V2 CONTINUATION DURABILITY
   r169:
     issue: 507
     pr: 508
-    reviewed_head: 2f04a0e9c9a1ee0af61a77d13f16de92ee2c3bdb
-    independent_review: 5059744286
-    review_result: 5466230853
     status: FROZEN_AFTER_INDEPENDENT_CHANGES_REQUIRED
-    successor: R170 CLEAN CODEX IMMUTABLE SOURCE BINDING
   r167:
     issue: 503
     pr: 506
@@ -57,9 +61,9 @@ historical_execution_refs:
     status: FROZEN_AFTER_INDEPENDENT_REVIEW_BLOCKED
 observed_agent_state:
   CODEX:
-    observed_task_id: CODEX-R169-IMMUTABLE-LEGACY-SOURCE-BINDING-R170
-    observed_route_epoch: 170
-    observed_issue: 509
+    observed_task_id: CODEX-R170-V2-CONTINUATION-DURABILITY-R171
+    observed_route_epoch: 171
+    observed_issue: 512
     execution_allowed: true
   GPT_ENGINEERING_WORKER:
     observed_status: R166_WAITING_REVIEW + R168_ACTIVE_PREWRITE
@@ -72,16 +76,16 @@ program_lanes:
     implementation_owner: GPT_ENGINEERING_WORKER
     trading_authorized: false
   - lane_id: LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP
-    mission: Bounded interactive-film immutable legacy-source provenance binding without W3 canonical write authority.
-    observed_state: R170_CODEX_IMMUTABLE_SOURCE_BINDING_ACTIVE_PREWRITE
-    current_phase: ISSUE_509_EFFECTIVE_SPEC_SNAPSHOT_REQUIRED
-    active_execution_route: coordination/ROUTES/CODEX-R169-IMMUTABLE-LEGACY-SOURCE-BINDING-R170.yaml
+    mission: Bounded interactive-film v2 continuation durability with immutable legacy-source provenance.
+    observed_state: R171_CODEX_V2_CONTINUATION_ACTIVE_PREWRITE
+    current_phase: ISSUE_512_EFFECTIVE_SPEC_SNAPSHOT_REQUIRED
+    active_execution_route: coordination/ROUTES/CODEX-R170-V2-CONTINUATION-DURABILITY-R171.yaml
     implementation_owner: CODEX
-    worker_slot_id: CODEX-R170-INTERACTIVE-FILM-SOURCE-BINDING-1
+    worker_slot_id: CODEX-R171-INTERACTIVE-FILM-V2-CONTINUATION-1
     canonical_knowledge_write_authorized: false
 cross_lane_overlap_matrix:
   - pair: [LANE-A-HARNESS-INTEGRATION, LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP]
     overlap_level: O1_READ_ONLY_COEXISTENCE
   - pair: [LANE-B-A-SHARE-REMEDIATION, LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP]
     overlap_level: O0_NO_MATERIAL_WRITE_OVERLAP
-reconciliation_rule: R170 execution truth is its CODEX route + claim/lease/reservation + witness + Control Tower scan + Issue #509 pre-write snapshot; PR #508/#506/#502/#495/#493 remain frozen/reference evidence only.
+reconciliation_rule: R171 execution truth is its CODEX route + claim/lease/reservation + witness + Control Tower scan + Issue #512 pre-write snapshot; PR #511/#508/#506/#502/#495/#493 remain frozen/reference evidence only.
