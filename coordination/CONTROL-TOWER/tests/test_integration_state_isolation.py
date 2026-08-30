@@ -43,10 +43,10 @@ def snapshot(rows: list[tuple[str, str, str | None]], *, python_version: str = "
 
 class _SubtestProbe(unittest.TestCase):
     def __init__(self, should_fail: bool):
-        super().__init__("test_probe")
+        super().__init__("probe")
         self.should_fail = should_fail
 
-    def test_probe(self):
+    def probe(self):
         for value in (1, 2):
             with self.subTest(value=value):
                 if self.should_fail and value == 2:
