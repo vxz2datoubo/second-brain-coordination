@@ -66,14 +66,11 @@ def normalize_failure_text(text: str, *, roots: Iterable[str | Path] = ()) -> st
         if root:
             normalized = normalized.replace(root, "<ROOT>")
 
-    # Normalize only Python's default object repr identity address, e.g.
-    # ``<Probe object at 0xABCDEF>``. Generic angle-bracket prose such as
-    # ``<mask at 0x20>`` is semantic payload and must remain fingerprint-visible.
-    normalized = re.sub(
-        r"(<[^>\n]*\bobject\s+at\s+)0x[0-9A-Fa-f]+(?=>)",
-        r"\g<1>0x<ADDR>",
-        normalized,
-    )
+    # Flattened failure text does not carry sufficient provenance to prove that
+    # any ``0x...`` token, even text shaped like ``<Foo object at 0x...>``, is a
+    # volatile runtime identity rather than semantic payload. Preserve it. A
+    # resulting fingerprint delta is intentionally fail-closed rather than
+    # laundering a semantic candidate change as a preserved baseline failure.
 
     # Normalize a line number only in a Python traceback frame. Prose such as
     # ``policy violation at line 12`` is semantic payload and must be preserved.
