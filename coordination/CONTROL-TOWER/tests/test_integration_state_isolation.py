@@ -172,15 +172,9 @@ class IntegrationStateIsolationTests(unittest.TestCase):
         self.assertEqual(receipt["classification"], "TEST_ENVIRONMENT_INVALID")
         self.assertIn("PYTHON_RUNTIME_MISMATCH", receipt["environment_errors"])
 
-    def test_volatile_paths_addresses_and_traceback_line_numbers_normalize(self):
-        one = (
-            'File "/tmp/a/work/repo/test.py", line 12, in test_x\n'
-            "AssertionError: <Probe object at 0xABCDEF>"
-        )
-        two = (
-            'File "/tmp/b/work/repo/test.py", line 998, in test_x\n'
-            "AssertionError: <Probe object at 0x123456>"
-        )
+    def test_volatile_paths_and_traceback_line_numbers_normalize(self):
+        one = 'File "/tmp/a/work/repo/test.py", line 12, in test_x\nAssertionError: stable'
+        two = 'File "/tmp/b/work/repo/test.py", line 998, in test_x\nAssertionError: stable'
         normalized_one = normalize_failure_text(one, roots=["/tmp/a/work/repo"])
         normalized_two = normalize_failure_text(two, roots=["/tmp/b/work/repo"])
         self.assertEqual(normalized_one, normalized_two)
@@ -188,6 +182,40 @@ class IntegrationStateIsolationTests(unittest.TestCase):
             failure_fingerprint("FAIL", one, roots=["/tmp/a/work/repo"]),
             failure_fingerprint("FAIL", two, roots=["/tmp/b/work/repo"]),
         )
+
+    def test_unproven_object_repr_addresses_are_preserved_fail_closed(self):
+        left = "AssertionError: <Probe object at 0xABCDEF>"
+        right = "AssertionError: <Probe object at 0x123456>"
+        self.assertNotEqual(normalize_failure_text(left), normalize_failure_text(right))
+        self.assertNotEqual(
+            failure_fingerprint("FAIL", left),
+            failure_fingerprint("FAIL", right),
+        )
+
+    def test_semantic_object_shaped_hex_values_remain_distinct(self):
+        pairs = (
+            (
+                "AssertionError: expected <mask object at 0x20>",
+                "AssertionError: expected <mask object at 0x40>",
+            ),
+            (
+                "AssertionError: expected <capability object at 0x20>",
+                "AssertionError: expected <capability object at 0x40>",
+            ),
+        )
+        for left, right in pairs:
+            with self.subTest(left=left, right=right):
+                left_fp = failure_fingerprint("FAIL", left)
+                right_fp = failure_fingerprint("FAIL", right)
+                self.assertNotEqual(left_fp, right_fp)
+                receipt = compare_snapshots(
+                    snapshot([("t.object", "FAIL", left_fp)]),
+                    snapshot([("t.object", "FAIL", right_fp)]),
+                )
+                self.assertEqual(
+                    receipt["classification"],
+                    "CANDIDATE_MODIFIED_BASELINE_FAILURE",
+                )
 
     def test_semantic_hex_values_are_preserved_in_failure_fingerprint(self):
         left = "AssertionError: expected mask 0x10, got 0x20"
