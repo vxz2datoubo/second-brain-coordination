@@ -21,12 +21,20 @@ if str(ROOT) not in sys.path:
 from creative_runtime.contracts import PlayerAction, StoryState, canonical_json
 from creative_runtime.continuity import TimelineViolation, default_story_graph, graph_for_ledger, replay_timeline, timeline_hash
 from creative_runtime.director import compile_verified_director
-from creative_runtime.generation import GenerationViolation, record_offline_generation, verify_offline_generation_record
-from creative_runtime.feedback import FeedbackViolation, build_feedback_record, load_feedback, record_feedback
+from creative_runtime.generation import GenerationViolation, offline_generation_receipt_path, record_offline_generation, verify_offline_generation_record
+from creative_runtime.feedback import FeedbackViolation, build_feedback_record, feedback_path, load_feedback, record_feedback
 from creative_runtime.ledger import CreativeLedger, LedgerViolation
 from creative_runtime.knowledge import KnowledgeBridgeViolation, KnowledgeReviewBridge, correct_from_verified_timeline
 from creative_runtime.understanding import bind_verified_timeline
-from creative_runtime.session import SessionViolation, migrate_legacy_session, v2_session_path, verify_v2_source_binding
+from creative_runtime.session import (
+    DEFAULT_SLOT,
+    SessionViolation,
+    legacy_session_path,
+    migrate_legacy_session,
+    validate_slot,
+    v2_session_path,
+    verify_v2_source_binding,
+)
 
 
 SCHEMA = "CreativeSession/v1"
@@ -51,20 +59,23 @@ def synthetic_scene() -> dict[str, dict[str, Any]]:
     return default_story_graph().to_cli_scene()
 
 
-def session_path(workspace: Path) -> Path:
-    return workspace / "session.json"
+def session_path(workspace: Path, slot: str = DEFAULT_SLOT) -> Path:
+    """Keep the default v1 filename while isolating validated named slots."""
+
+    return legacy_session_path(workspace, slot)
 
 
-def _write_session(workspace: Path, ledger: CreativeLedger) -> None:
-    workspace.mkdir(parents=True, exist_ok=True)
-    session_path(workspace).write_text(
+def _write_session(workspace: Path, ledger: CreativeLedger, slot: str = DEFAULT_SLOT) -> None:
+    path = session_path(workspace, slot)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
         canonical_json({"schema": SCHEMA, "events": ledger.to_records()}) + "\n",
         encoding="utf-8",
     )
 
 
-def _load_session(workspace: Path) -> CreativeLedger:
-    path = session_path(workspace)
+def _load_session(workspace: Path, slot: str = DEFAULT_SLOT) -> CreativeLedger:
+    path = session_path(workspace, slot)
     if not path.is_file():
         raise LedgerViolation("No session exists; run init first")
     try:
@@ -84,12 +95,15 @@ def _load_session(workspace: Path) -> CreativeLedger:
         raise LedgerViolation("Session event chain is invalid") from error
 
 
-def _knowledge_path(workspace: Path) -> Path:
-    return workspace / "knowledge-review.json"
+def _knowledge_path(workspace: Path, slot: str = DEFAULT_SLOT) -> Path:
+    normalized = validate_slot(slot)
+    if normalized == DEFAULT_SLOT:
+        return workspace / "knowledge-review.json"
+    return workspace / "knowledge-review" / (normalized + ".json")
 
 
-def _load_knowledge(workspace: Path) -> KnowledgeReviewBridge:
-    path = _knowledge_path(workspace)
+def _load_knowledge(workspace: Path, slot: str = DEFAULT_SLOT) -> KnowledgeReviewBridge:
+    path = _knowledge_path(workspace, slot)
     if not path.is_file():
         return KnowledgeReviewBridge()
     try:
@@ -107,23 +121,25 @@ def _load_knowledge(workspace: Path) -> KnowledgeReviewBridge:
         raise KnowledgeBridgeViolation("Knowledge review candidate record is invalid") from error
 
 
-def _write_knowledge(workspace: Path, bridge: KnowledgeReviewBridge) -> None:
-    workspace.mkdir(parents=True, exist_ok=True)
-    _knowledge_path(workspace).write_text(canonical_json({"schema": "CreativeKnowledgeReview/v1", "candidates": bridge.to_records()}) + "\n", encoding="utf-8")
+def _write_knowledge(workspace: Path, bridge: KnowledgeReviewBridge, slot: str = DEFAULT_SLOT) -> None:
+    path = _knowledge_path(workspace, slot)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(canonical_json({"schema": "CreativeKnowledgeReview/v1", "candidates": bridge.to_records()}) + "\n", encoding="utf-8")
 
 
-def _audit_workspace(workspace: Path) -> dict[str, Any]:
+def _audit_workspace(workspace: Path, slot: str = DEFAULT_SLOT) -> dict[str, Any]:
     """Return a read-only, source-bound map of the current local lifecycle."""
 
-    ledger = _load_session(workspace)
+    normalized_slot = validate_slot(slot)
+    ledger = _load_session(workspace, normalized_slot)
     graph = graph_for_ledger(ledger)
     timeline = replay_timeline(ledger, graph)
     compiled = compile_verified_director(ledger, graph=graph)
     final_time = ledger.events[-1].occurred_at
     v2 = {"status": "not_migrated"}
-    if v2_session_path(workspace).is_file():
-        v2 = verify_v2_source_binding(workspace).to_dict()
-    receipt_directory = workspace / "generation-receipts"
+    if v2_session_path(workspace, normalized_slot).is_file():
+        v2 = verify_v2_source_binding(workspace, normalized_slot).to_dict()
+    receipt_directory = offline_generation_receipt_path(workspace, "gen_" + "0" * 20, normalized_slot).parent
     receipts: dict[str, Any] = {}
     for path in sorted(receipt_directory.glob("gen_*.json")) if receipt_directory.is_dir() else ():
         receipt = verify_offline_generation_record(
@@ -131,19 +147,20 @@ def _audit_workspace(workspace: Path) -> dict[str, Any]:
             compiled,
             final_event_occurred_at=final_time,
             receipt_id=path.stem,
+            slot=normalized_slot,
         )
         receipts[receipt.receipt_id] = receipt
-    feedback_directory = workspace / "feedback"
+    feedback_directory = feedback_path(workspace, "fb_" + "0" * 20, normalized_slot).parent
     feedback_items: list[dict[str, Any]] = []
     for path in sorted(feedback_directory.glob("fb_*.json")) if feedback_directory.is_dir() else ():
-        feedback = load_feedback(workspace, path.stem)
+        feedback = load_feedback(workspace, path.stem, normalized_slot)
         receipt = receipts.get(feedback.receipt_id)
         if receipt is None:
             raise FeedbackViolation("Feedback refers to an offline generation receipt that is absent or not verified")
         if feedback.source_timeline_hash != receipt.source_timeline_hash or feedback.source_receipt_hash != receipt.receipt_hash:
             raise FeedbackViolation("Feedback source binding does not match its verified offline generation receipt")
         feedback_items.append(feedback.to_dict())
-    candidates = _load_knowledge(workspace).to_records()
+    candidates = _load_knowledge(workspace, normalized_slot).to_records()
     status_counts: dict[str, int] = {}
     for candidate in candidates:
         status = str(candidate["status"])
@@ -152,6 +169,7 @@ def _audit_workspace(workspace: Path) -> dict[str, Any]:
         "schema": "CreativeRuntimeWorkspaceAudit/v1",
         "status": "workspace_audit_verified",
         "story": {
+            "slot_id": normalized_slot,
             "graph_revision": graph.revision,
             "timeline_hash": timeline_hash(timeline),
             "event_count": len(ledger.events),
@@ -184,9 +202,10 @@ def _view(ledger: CreativeLedger) -> dict[str, Any]:
     return {"status": "ready", "state": state.to_dict(), "text": beat["text"], "options": options}
 
 
-def initialize(workspace: Path, scenario: str = "legacy_archive") -> dict[str, Any]:
-    if session_path(workspace).exists():
-        return {"status": "already_initialized", "session": str(session_path(workspace))}
+def initialize(workspace: Path, scenario: str = "legacy_archive", slot: str = DEFAULT_SLOT) -> dict[str, Any]:
+    normalized_slot = validate_slot(slot)
+    if session_path(workspace, normalized_slot).exists():
+        return {"status": "already_initialized", "session": str(session_path(workspace, normalized_slot)), "slot_id": normalized_slot}
     initial = SCENARIOS.get(scenario)
     if initial is None:
         raise LedgerViolation("Unknown scenario: " + scenario)
@@ -196,12 +215,13 @@ def initialize(workspace: Path, scenario: str = "legacy_archive") -> dict[str, A
         {"state": initial.to_dict()},
         "2030-01-01T00:00:00Z",
     )
-    _write_session(workspace, ledger)
-    return {**_view(ledger), "status": "initialized", "session": str(session_path(workspace))}
+    _write_session(workspace, ledger, normalized_slot)
+    return {**_view(ledger), "status": "initialized", "session": str(session_path(workspace, normalized_slot)), "slot_id": normalized_slot}
 
 
-def choose(workspace: Path, action_id: str, source_text: str | None = None) -> dict[str, Any]:
-    ledger = _load_session(workspace)
+def choose(workspace: Path, action_id: str, source_text: str | None = None, slot: str = DEFAULT_SLOT) -> dict[str, Any]:
+    normalized_slot = validate_slot(slot)
+    ledger = _load_session(workspace, normalized_slot)
     state = ledger.replay()
     graph = graph_for_ledger(ledger)
     beat = graph.to_cli_scene()[state.beat_id]
@@ -222,8 +242,8 @@ def choose(workspace: Path, action_id: str, source_text: str | None = None) -> d
         },
         f"2030-01-01T00:{len(ledger.events):02d}:00Z",
     )
-    _write_session(workspace, ledger)
-    return {**_view(ledger), "status": "chosen", "action_id": action_id}
+    _write_session(workspace, ledger, normalized_slot)
+    return {**_view(ledger), "status": "chosen", "action_id": action_id, "slot_id": normalized_slot}
 
 
 def parse_free_text(text: str, legal_actions: set[str]) -> tuple[str | None, float]:
@@ -248,8 +268,9 @@ def parse_free_text(text: str, legal_actions: set[str]) -> tuple[str | None, flo
     return matches[0], 0.9
 
 
-def say(workspace: Path, text: str) -> dict[str, Any]:
-    ledger = _load_session(workspace)
+def say(workspace: Path, text: str, slot: str = DEFAULT_SLOT) -> dict[str, Any]:
+    normalized_slot = validate_slot(slot)
+    ledger = _load_session(workspace, normalized_slot)
     state = ledger.replay()
     legal = set(graph_for_ledger(ledger).to_cli_scene()[state.beat_id]["options"])
     action, confidence = parse_free_text(text, legal)
@@ -259,12 +280,13 @@ def say(workspace: Path, text: str) -> dict[str, Any]:
             "message": "Use a clear, non-explicit intent or select an available option.",
             "legal_options": sorted(legal),
         }
-    return choose(workspace, action, source_text=text)
+    return choose(workspace, action, source_text=text, slot=normalized_slot)
 
 
 def run(argv: list[str]) -> dict[str, Any]:
     parser = argparse.ArgumentParser(prog="creativectl")
     parser.add_argument("--workspace", type=Path, default=DEFAULT_WORKSPACE)
+    parser.add_argument("--slot", default=DEFAULT_SLOT, help="Validated local story slot; default preserves session.json compatibility.")
     subparsers = parser.add_subparsers(dest="command", required=True)
     init_parser = subparsers.add_parser("init")
     init_parser.add_argument("--scenario", choices=sorted(SCENARIOS), default="legacy_archive")
@@ -305,19 +327,20 @@ def run(argv: list[str]) -> dict[str, Any]:
     knowledge_review.add_argument("--approve", action="store_true")
     knowledge_review.add_argument("--note", default="")
     args = parser.parse_args(argv)
+    slot = validate_slot(args.slot)
     if args.command == "init":
-        return initialize(args.workspace, args.scenario)
+        return initialize(args.workspace, args.scenario, slot)
     if args.command in {"play", "resume"}:
-        return _view(_load_session(args.workspace))
+        return {**_view(_load_session(args.workspace, slot)), "slot_id": slot}
     if args.command == "choose":
-        return choose(args.workspace, args.action_id)
+        return choose(args.workspace, args.action_id, slot=slot)
     if args.command == "say":
-        return say(args.workspace, args.text)
+        return say(args.workspace, args.text, slot)
     if args.command == "replay":
-        ledger = _load_session(args.workspace)
-        return {**_view(ledger), "status": "replayed", "event_count": len(ledger.events)}
+        ledger = _load_session(args.workspace, slot)
+        return {**_view(ledger), "status": "replayed", "event_count": len(ledger.events), "slot_id": slot}
     if args.command == "timeline":
-        ledger = _load_session(args.workspace)
+        ledger = _load_session(args.workspace, slot)
         graph = graph_for_ledger(ledger)
         entries = replay_timeline(ledger, graph)
         return {
@@ -325,9 +348,10 @@ def run(argv: list[str]) -> dict[str, Any]:
             "graph_revision": graph.revision,
             "timeline_hash": timeline_hash(entries),
             "entries": [entry.to_dict() for entry in entries],
+            "slot_id": slot,
         }
     if args.command == "director":
-        ledger = _load_session(args.workspace)
+        ledger = _load_session(args.workspace, slot)
         compiled = compile_verified_director(ledger, graph=graph_for_ledger(ledger))
         return {
             "status": "director_verified",
@@ -335,57 +359,63 @@ def run(argv: list[str]) -> dict[str, Any]:
             "brief": compiled.compilation.brief.to_dict(),
             "shots": [shot.to_dict() for shot in compiled.compilation.shots],
             "quality_report": compiled.compilation.quality_report.to_dict(),
+            "slot_id": slot,
         }
     if args.command == "understanding":
-        ledger = _load_session(args.workspace)
+        ledger = _load_session(args.workspace, slot)
         verified = compile_verified_director(ledger, graph=graph_for_ledger(ledger)).verified_input
         mapped = bind_verified_timeline(verified, len(ledger.events), ledger.events[-1].occurred_at)
         return {
             "status": "understanding_mapped",
             "map": mapped.to_dict(),
             "drift_assessments": [assessment.to_dict() for assessment in mapped.assess()],
+            "slot_id": slot,
         }
     if args.command == "migrate":
-        ledger = _load_session(args.workspace)
-        return migrate_legacy_session(args.workspace, ledger.events[-1].occurred_at).to_dict()
+        ledger = _load_session(args.workspace, slot)
+        return migrate_legacy_session(args.workspace, ledger.events[-1].occurred_at, slot).to_dict()
     if args.command == "verify-v2":
-        return verify_v2_source_binding(args.workspace).to_dict()
+        return verify_v2_source_binding(args.workspace, slot).to_dict()
     if args.command == "generate-offline":
-        ledger = _load_session(args.workspace)
+        ledger = _load_session(args.workspace, slot)
         compiled = compile_verified_director(ledger, graph=graph_for_ledger(ledger))
         return record_offline_generation(
             args.workspace,
             compiled,
             final_event_occurred_at=ledger.events[-1].occurred_at,
             shot_id=args.shot_id,
+            slot=slot,
         ).to_dict()
     if args.command == "verify-generation":
-        ledger = _load_session(args.workspace)
+        ledger = _load_session(args.workspace, slot)
         compiled = compile_verified_director(ledger, graph=graph_for_ledger(ledger))
         receipt = verify_offline_generation_record(
             args.workspace,
             compiled,
             final_event_occurred_at=ledger.events[-1].occurred_at,
             receipt_id=args.receipt_id,
+            slot=slot,
         )
         return {"status": "offline_generation_verified", "receipt": receipt.to_dict()}
     if args.command == "feedback":
-        ledger = _load_session(args.workspace)
+        ledger = _load_session(args.workspace, slot)
         compiled = compile_verified_director(ledger, graph=graph_for_ledger(ledger))
         receipt = verify_offline_generation_record(
             args.workspace,
             compiled,
             final_event_occurred_at=ledger.events[-1].occurred_at,
             receipt_id=args.receipt_id,
+            slot=slot,
         )
         feedback = build_feedback_record(
             receipt,
             rating=args.rating,
             note=args.note,
             submitted_at=ledger.events[-1].occurred_at,
+            slot=slot,
         )
-        status, saved, path = record_feedback(args.workspace, feedback)
-        bridge = _load_knowledge(args.workspace)
+        status, saved, path = record_feedback(args.workspace, feedback, slot)
+        bridge = _load_knowledge(args.workspace, slot)
         candidate = bridge.correct(
             "Offline generation feedback " + saved.feedback_id + ": " + saved.note,
             source_event_ids=(receipt.source_final_event_id,),
@@ -394,36 +424,37 @@ def run(argv: list[str]) -> dict[str, Any]:
                 "timeline_sha256:" + receipt.source_timeline_hash,
             ),
         )
-        _write_knowledge(args.workspace, bridge)
+        _write_knowledge(args.workspace, bridge, slot)
         return {
             "status": status,
             "feedback": saved.to_dict(),
             "feedback_path": str(path),
             "knowledge_candidate": candidate.to_dict(),
             "canonical_write": False,
+            "slot_id": slot,
         }
     if args.command == "audit":
-        return _audit_workspace(args.workspace)
+        return _audit_workspace(args.workspace, slot)
     if args.command == "knowledge":
-        bridge = _load_knowledge(args.workspace)
+        bridge = _load_knowledge(args.workspace, slot)
         if args.knowledge_command == "search":
             return {"status": "searched", "candidates": [item.to_dict() for item in bridge.search(args.query)]}
         if args.knowledge_command == "correct":
             candidate = bridge.correct(args.assertion, source_event_ids=args.source_event_id, source_artifact_ids=args.source_artifact_id)
-            _write_knowledge(args.workspace, bridge)
+            _write_knowledge(args.workspace, bridge, slot)
             return {"status": "pending_human_review", "candidate": candidate.to_dict()}
         if args.knowledge_command == "derive":
             derived = correct_from_verified_timeline(
                 bridge,
                 args.assertion,
-                _load_session(args.workspace),
-                graph_for_ledger(_load_session(args.workspace)),
+                _load_session(args.workspace, slot),
+                graph_for_ledger(_load_session(args.workspace, slot)),
             )
-            _write_knowledge(args.workspace, bridge)
+            _write_knowledge(args.workspace, bridge, slot)
             return {"status": "pending_human_review", "verified_timeline_candidate": derived.to_dict()}
         if args.knowledge_command == "review":
             candidate = bridge.review(args.candidate_id, args.reviewer, args.approve, args.note)
-            _write_knowledge(args.workspace, bridge)
+            _write_knowledge(args.workspace, bridge, slot)
             return {"status": "reviewed", "candidate": candidate.to_dict(), "canonical_write": False}
     raise AssertionError("unreachable")
 

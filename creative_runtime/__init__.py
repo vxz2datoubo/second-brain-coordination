@@ -59,6 +59,7 @@ from .understanding import (
     bind_verified_timeline,
 )
 from .session import (
+    DEFAULT_SLOT,
     LoadedV2Session,
     MigrationResult,
     SessionViolation,
@@ -67,6 +68,7 @@ from .session import (
     load_v2_session,
     migrate_legacy_session,
     verify_v2_source_binding,
+    validate_slot,
     v2_session_path,
 )
 
@@ -79,6 +81,7 @@ __all__ = [
     "DirectorBrief",
     "DirectorSkill",
     "DriftAssessment",
+    "DEFAULT_SLOT",
     "GenerationRequest",
     "GenerationResult",
     "GenerationViolation",
@@ -147,5 +150,6 @@ __all__ = [
     "verified_director_input",
     "verify_v2_source_binding",
     "verify_offline_generation_record",
+    "validate_slot",
     "v2_session_path",
 ]

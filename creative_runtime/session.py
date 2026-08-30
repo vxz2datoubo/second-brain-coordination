@@ -13,6 +13,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 from typing import Any, Mapping
 
 from .continuity import TimelineViolation, graph_for_ledger, verified_director_input
@@ -25,6 +26,9 @@ SESSION_SCHEMA = "CreativeSession/v2"
 LEGACY_FILENAME = "session.json"
 V2_DIRECTORY = "saves"
 V2_FILENAME = "default.json"
+SLOT_DIRECTORY = "slots"
+DEFAULT_SLOT = "default"
+_SLOT_PATTERN = re.compile(r"[a-z0-9][a-z0-9_-]{0,31}")
 
 
 class SessionViolation(ValueError):
@@ -35,12 +39,25 @@ def _sha256_bytes(value: bytes) -> str:
     return hashlib.sha256(value).hexdigest()
 
 
-def legacy_session_path(workspace: Path) -> Path:
-    return workspace / LEGACY_FILENAME
+def validate_slot(slot: str) -> str:
+    """Validate a stable local slot name before it becomes any path segment."""
+
+    if not isinstance(slot, str) or not _SLOT_PATTERN.fullmatch(slot):
+        raise SessionViolation("Slot must match [a-z0-9][a-z0-9_-]{0,31}")
+    return slot
 
 
-def v2_session_path(workspace: Path) -> Path:
-    return workspace / V2_DIRECTORY / V2_FILENAME
+def legacy_session_path(workspace: Path, slot: str = DEFAULT_SLOT) -> Path:
+    normalized = validate_slot(slot)
+    if normalized == DEFAULT_SLOT:
+        return workspace / LEGACY_FILENAME
+    return workspace / SLOT_DIRECTORY / (normalized + ".json")
+
+
+def v2_session_path(workspace: Path, slot: str = DEFAULT_SLOT) -> Path:
+    normalized = validate_slot(slot)
+    filename = V2_FILENAME if normalized == DEFAULT_SLOT else normalized + ".json"
+    return workspace / V2_DIRECTORY / filename
 
 
 def _load_legacy_bytes(path: Path) -> tuple[bytes, CreativeLedger]:
@@ -69,6 +86,7 @@ class MigrationResult:
     timeline_hash: str
     event_count: int
     graph_revision: str
+    slot_id: str = DEFAULT_SLOT
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -79,6 +97,7 @@ class MigrationResult:
             "timeline_hash": self.timeline_hash,
             "event_count": self.event_count,
             "graph_revision": self.graph_revision,
+            "slot_id": self.slot_id,
         }
 
 
@@ -89,6 +108,7 @@ class LoadedV2Session:
     timeline_hash: str
     graph_revision: str
     migrated_at: str
+    slot_id: str = DEFAULT_SLOT
 
 
 @dataclass(frozen=True)
@@ -110,6 +130,7 @@ class V2SourceVerification:
     graph_revision: str
     event_count: int
     state: StoryState
+    slot_id: str = DEFAULT_SLOT
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -121,10 +142,11 @@ class V2SourceVerification:
             "graph_revision": self.graph_revision,
             "event_count": self.event_count,
             "state": self.state.to_dict(),
+            "slot_id": self.slot_id,
         }
 
 
-def _build_v2_record(raw_legacy: bytes, ledger: CreativeLedger, migrated_at: str) -> dict[str, Any]:
+def _build_v2_record(raw_legacy: bytes, ledger: CreativeLedger, migrated_at: str, slot: str) -> dict[str, Any]:
     try:
         verified = verified_director_input(ledger, graph_for_ledger(ledger))
     except (TimelineViolation, LedgerViolation, KeyError, TypeError, ValueError) as error:
@@ -138,6 +160,7 @@ def _build_v2_record(raw_legacy: bytes, ledger: CreativeLedger, migrated_at: str
             "graph_revision": verified.graph_revision,
             "timeline_hash": verified.timeline_hash,
             "migrated_at": str(migrated_at),
+            "slot_id": slot,
         },
         "events": ledger.to_records(),
     }
@@ -166,10 +189,11 @@ def _atomic_write_new(path: Path, content: str) -> None:
         raise
 
 
-def load_v2_session(workspace: Path) -> LoadedV2Session:
+def load_v2_session(workspace: Path, slot: str = DEFAULT_SLOT) -> LoadedV2Session:
     """Validate a v2 envelope against its graph-backed timeline declaration."""
 
-    path = v2_session_path(workspace)
+    normalized_slot = validate_slot(slot)
+    path = v2_session_path(workspace, normalized_slot)
     if not path.is_file():
         raise SessionViolation("No CreativeSession/v2 envelope exists")
     try:
@@ -183,6 +207,13 @@ def load_v2_session(workspace: Path) -> LoadedV2Session:
         raise SessionViolation("v2 session has no migration provenance")
     if migration.get("legacy_schema") != LEGACY_SCHEMA:
         raise SessionViolation("v2 session has an unsupported legacy schema")
+    declared_slot = migration.get("slot_id", DEFAULT_SLOT)
+    try:
+        declared_slot = validate_slot(declared_slot)
+    except SessionViolation as error:
+        raise SessionViolation("v2 session slot is malformed") from error
+    if declared_slot != normalized_slot:
+        raise SessionViolation("v2 session slot does not match the requested slot")
     try:
         ledger = CreativeLedger.from_records(record.get("events", ()))
         verified = verified_director_input(ledger, graph_for_ledger(ledger))
@@ -206,10 +237,11 @@ def load_v2_session(workspace: Path) -> LoadedV2Session:
         timeline_hash=verified.timeline_hash,
         graph_revision=verified.graph_revision,
         migrated_at=str(migration.get("migrated_at", "")),
+        slot_id=normalized_slot,
     )
 
 
-def verify_v2_source_binding(workspace: Path) -> V2SourceVerification:
+def verify_v2_source_binding(workspace: Path, slot: str = DEFAULT_SLOT) -> V2SourceVerification:
     """Fail closed unless the v2 save still exactly represents its v1 source.
 
     The byte hash is the immutable-source identity, while exact event-record
@@ -218,8 +250,9 @@ def verify_v2_source_binding(workspace: Path) -> V2SourceVerification:
     retain the graph/timeline guarantees on both sides of the binding.
     """
 
-    loaded = load_v2_session(workspace)
-    legacy_path = legacy_session_path(workspace)
+    normalized_slot = validate_slot(slot)
+    loaded = load_v2_session(workspace, normalized_slot)
+    legacy_path = legacy_session_path(workspace, normalized_slot)
     raw_legacy, legacy_ledger = _load_legacy_bytes(legacy_path)
     source_hash = _sha256_bytes(raw_legacy)
     if source_hash != loaded.legacy_sha256:
@@ -238,25 +271,27 @@ def verify_v2_source_binding(workspace: Path) -> V2SourceVerification:
     return V2SourceVerification(
         status="v2_source_verified",
         legacy_path=str(legacy_path),
-        v2_path=str(v2_session_path(workspace)),
+        v2_path=str(v2_session_path(workspace, normalized_slot)),
         legacy_sha256=source_hash,
         timeline_hash=loaded.timeline_hash,
         graph_revision=loaded.graph_revision,
         event_count=len(loaded.ledger.events),
         state=v2_verified.state,
+        slot_id=normalized_slot,
     )
 
 
-def migrate_legacy_session(workspace: Path, migrated_at: str) -> MigrationResult:
+def migrate_legacy_session(workspace: Path, migrated_at: str, slot: str = DEFAULT_SLOT) -> MigrationResult:
     """Create an idempotent v2 envelope only when legacy replay is lossless."""
 
-    legacy_path = legacy_session_path(workspace)
+    normalized_slot = validate_slot(slot)
+    legacy_path = legacy_session_path(workspace, normalized_slot)
     before, ledger = _load_legacy_bytes(legacy_path)
-    record = _build_v2_record(before, ledger, migrated_at)
-    target = v2_session_path(workspace)
+    record = _build_v2_record(before, ledger, migrated_at, normalized_slot)
+    target = v2_session_path(workspace, normalized_slot)
     legacy_hash = _sha256_bytes(before)
     if target.exists():
-        loaded = load_v2_session(workspace)
+        loaded = load_v2_session(workspace, normalized_slot)
         if loaded.legacy_sha256 != legacy_hash:
             raise SessionViolation("Existing v2 session refers to a different legacy source")
         if loaded.timeline_hash != record["migration"]["timeline_hash"]:
@@ -271,12 +306,13 @@ def migrate_legacy_session(workspace: Path, migrated_at: str) -> MigrationResult
             loaded.timeline_hash,
             len(ledger.events),
             loaded.graph_revision,
+            normalized_slot,
         )
     content = canonical_json(record) + "\n"
     _atomic_write_new(target, content)
     if legacy_path.read_bytes() != before:
         raise SessionViolation("Legacy source changed during migration")
-    loaded = load_v2_session(workspace)
+    loaded = load_v2_session(workspace, normalized_slot)
     return MigrationResult(
         "migrated",
         str(legacy_path),
@@ -285,4 +321,5 @@ def migrate_legacy_session(workspace: Path, migrated_at: str) -> MigrationResult
         loaded.timeline_hash,
         len(ledger.events),
         loaded.graph_revision,
+        normalized_slot,
     )

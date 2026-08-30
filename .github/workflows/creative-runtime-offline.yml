@@ -1,0 +1,83 @@
+name: Creative runtime offline verification
+
+on:
+  pull_request:
+    paths:
+      - "creative_runtime/**"
+      - "apps/cli/creativectl.py"
+      - "tests/test_creative*.py"
+      - "tools/verify_creative_runtime.py"
+      - "skills/creative-program-understanding-map/**"
+      - "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/**"
+      - ".github/workflows/creative-runtime-offline.yml"
+  push:
+    branches:
+      - "codex/creative-runtime-continuous-build"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-runtime:
+    name: Offline runtime (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - name: Checkout exact event head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 2
+
+      - name: Assert exact checked-out source identity
+        shell: bash
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          test -z "$(git status --porcelain)"
+          echo "CREATIVE_RUNTIME_EXACT_HEAD=$EXPECTED_HEAD"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Run deterministic creative-runtime tests
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: python -m unittest discover -s tests -p "test_creative*.py" -v
+
+      - name: Run complete offline lifecycle verification
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: python tools/verify_creative_runtime.py --expected-head "$EXPECTED_HEAD"
+
+      - name: Verify public-safe runtime boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          if rg -n --glob '*.py' '(requests\.|urllib\.request|httpx|openai|anthropic|os\.environ)' creative_runtime apps/cli tools; then
+            echo "Unexpected network or credential boundary in offline runtime"
+            exit 2
+          fi
+          echo "CREATIVE_RUNTIME_PUBLIC_SAFE_BOUNDARY=PASS"
+
+      - name: Verify whitespace only within event diff
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
+        run: |
+          set -euo pipefail
+          if [ -n "$BASE_SHA" ]; then
+            git fetch --no-tags --depth=1 origin "$BASE_SHA"
+            git diff --check "$BASE_SHA" HEAD
+          else
+            git diff --check HEAD^ HEAD
+          fi

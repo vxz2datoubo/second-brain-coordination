@@ -11,6 +11,7 @@ from typing import Any, Mapping
 
 from .contracts import GenerationRequest, GenerationResult, canonical_json
 from .director import QualityReport, VerifiedDirectorCompilation
+from .session import DEFAULT_SLOT, validate_slot
 
 
 class GenerationViolation(ValueError):
@@ -36,19 +37,23 @@ class OfflineGenerationReceipt:
     quality_metrics: Mapping[str, int]
     created_at: str
     receipt_hash: str
+    source_slot_id: str = DEFAULT_SLOT
 
     def to_dict(self) -> dict[str, Any]:
+        source = {
+            "timeline_hash": self.source_timeline_hash,
+            "graph_revision": self.source_graph_revision,
+            "final_event_id": self.source_final_event_id,
+            "final_transition_id": self.source_final_transition_id,
+        }
+        if self.source_slot_id != DEFAULT_SLOT:
+            source["slot_id"] = self.source_slot_id
         return {
             "schema": GENERATION_RECEIPT_SCHEMA,
             "receipt_id": self.receipt_id,
             "request": self.request.to_dict(),
             "result": self.result.to_dict(),
-            "source": {
-                "timeline_hash": self.source_timeline_hash,
-                "graph_revision": self.source_graph_revision,
-                "final_event_id": self.source_final_event_id,
-                "final_transition_id": self.source_final_transition_id,
-            },
+            "source": source,
             "shot_id": self.shot_id,
             "quality_metrics": dict(self.quality_metrics),
             "created_at": self.created_at,
@@ -129,12 +134,16 @@ def adapter_for(provider: str) -> OfflineGenerationAdapter | ExternalGenerationG
     raise GenerationViolation("Unknown generation provider: " + provider)
 
 
-def offline_generation_receipt_path(workspace: Path, receipt_id: str) -> Path:
+def offline_generation_receipt_path(workspace: Path, receipt_id: str, slot: str = DEFAULT_SLOT) -> Path:
     """Return the task-local, git-ignored location for one safe receipt."""
 
     if not receipt_id.startswith("gen_") or len(receipt_id) != 24:
         raise GenerationViolation("Invalid offline generation receipt identifier")
-    return workspace / GENERATION_RECEIPT_DIRECTORY / (receipt_id + ".json")
+    normalized_slot = validate_slot(slot)
+    directory = workspace / GENERATION_RECEIPT_DIRECTORY
+    if normalized_slot != DEFAULT_SLOT:
+        directory = directory / "slots" / normalized_slot
+    return directory / (receipt_id + ".json")
 
 
 def _digest_record(record: Mapping[str, Any]) -> str:
@@ -175,23 +184,27 @@ def _request_for_verified_compilation(
     )
 
 
-def _offline_receipt_material(compiled: VerifiedDirectorCompilation, shot_id: str | None) -> dict[str, Any]:
+def _offline_receipt_material(compiled: VerifiedDirectorCompilation, shot_id: str | None, slot: str = DEFAULT_SLOT) -> dict[str, Any]:
     """Build the stable content for an offline receipt before its file identity."""
 
     request = _request_for_verified_compilation(compiled, shot_id)
     result = OfflineGenerationAdapter().generate(request, compiled.compilation.quality_report)
     verified = compiled.verified_input
+    normalized_slot = validate_slot(slot)
+    source = {
+        "timeline_hash": verified.timeline_hash,
+        "graph_revision": verified.graph_revision,
+        "final_event_id": verified.final_event_id,
+        "final_transition_id": verified.final_transition_id,
+    }
+    if normalized_slot != DEFAULT_SLOT:
+        source["slot_id"] = normalized_slot
     return {
         "schema": GENERATION_RECEIPT_SCHEMA,
         "receipt_id": "",  # Filled from a stable material hash below.
         "request": request.to_dict(),
         "result": result.to_dict(),
-        "source": {
-            "timeline_hash": verified.timeline_hash,
-            "graph_revision": verified.graph_revision,
-            "final_event_id": verified.final_event_id,
-            "final_transition_id": verified.final_transition_id,
-        },
+        "source": source,
         "shot_id": request.shot_plan.shot_id,
         "quality_metrics": compiled.compilation.quality_report.metrics.to_dict(),
         "created_at": "",  # Replaced by the recorded final event timestamp by the caller.
@@ -235,6 +248,7 @@ def _receipt_from_material(material: Mapping[str, Any], *, created_at: str) -> O
         quality_metrics={str(key): int(value) for key, value in final_material["quality_metrics"].items()},
         created_at=str(final_material["created_at"]),
         receipt_hash=receipt_hash,
+        source_slot_id=str(source.get("slot_id", DEFAULT_SLOT)),
     )
 
 
@@ -307,6 +321,7 @@ def record_offline_generation(
     *,
     final_event_occurred_at: str,
     shot_id: str | None = None,
+    slot: str = DEFAULT_SLOT,
 ) -> OfflineGenerationRecord:
     """Atomically persist a deterministic offline-only generation receipt.
 
@@ -315,10 +330,11 @@ def record_offline_generation(
     it never creates media, reads credentials, or replaces a previous result.
     """
 
-    material = _offline_receipt_material(compiled, shot_id)
+    normalized_slot = validate_slot(slot)
+    material = _offline_receipt_material(compiled, shot_id, normalized_slot)
     # The final ledger event time is part of provenance, not wall-clock time.
     receipt = _receipt_from_material(material, created_at=final_event_occurred_at)
-    path = offline_generation_receipt_path(workspace, receipt.receipt_id)
+    path = offline_generation_receipt_path(workspace, receipt.receipt_id, normalized_slot)
     content = canonical_json(receipt.to_dict()) + "\n"
     stored = _atomic_write_receipt(path, content)
     if not stored:
@@ -338,15 +354,17 @@ def verify_offline_generation_record(
     *,
     final_event_occurred_at: str,
     receipt_id: str,
+    slot: str = DEFAULT_SLOT,
 ) -> OfflineGenerationReceipt:
     """Reconstruct and compare one receipt without writing or repairing files."""
 
-    path = offline_generation_receipt_path(workspace, receipt_id)
+    normalized_slot = validate_slot(slot)
+    path = offline_generation_receipt_path(workspace, receipt_id, normalized_slot)
     if not path.is_file():
         raise GenerationViolation("Offline generation receipt does not exist")
     existing = _load_receipt(path)
     try:
-        expected_material = _offline_receipt_material(compiled, _shot_id_from_record(existing))
+        expected_material = _offline_receipt_material(compiled, _shot_id_from_record(existing), normalized_slot)
     except GenerationViolation as error:
         raise GenerationViolation("Offline generation receipt does not match the current verified story source") from error
     expected = _receipt_from_material(expected_material, created_at=final_event_occurred_at)

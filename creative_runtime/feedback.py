@@ -17,6 +17,7 @@ from typing import Any, Mapping
 
 from .contracts import canonical_json
 from .generation import OfflineGenerationReceipt
+from .session import DEFAULT_SLOT, validate_slot
 
 
 FEEDBACK_SCHEMA = "CreativeFeedback/v1"
@@ -37,9 +38,10 @@ class FeedbackRecord:
     note: str
     submitted_at: str
     feedback_hash: str
+    slot_id: str = DEFAULT_SLOT
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        result = {
             "schema": FEEDBACK_SCHEMA,
             "feedback_id": self.feedback_id,
             "receipt_id": self.receipt_id,
@@ -50,6 +52,9 @@ class FeedbackRecord:
             "submitted_at": self.submitted_at,
             "feedback_hash": self.feedback_hash,
         }
+        if self.slot_id != DEFAULT_SLOT:
+            result["slot_id"] = self.slot_id
+        return result
 
 
 def _feedback_hash(record: Mapping[str, Any]) -> str:
@@ -57,10 +62,14 @@ def _feedback_hash(record: Mapping[str, Any]) -> str:
     return hashlib.sha256(canonical_json(material).encode("utf-8")).hexdigest()
 
 
-def feedback_path(workspace: Path, feedback_id: str) -> Path:
+def feedback_path(workspace: Path, feedback_id: str, slot: str = DEFAULT_SLOT) -> Path:
     if not feedback_id.startswith("fb_") or len(feedback_id) != 23:
         raise FeedbackViolation("Invalid feedback identifier")
-    return workspace / FEEDBACK_DIRECTORY / (feedback_id + ".json")
+    normalized_slot = validate_slot(slot)
+    directory = workspace / FEEDBACK_DIRECTORY
+    if normalized_slot != DEFAULT_SLOT:
+        directory = directory / "slots" / normalized_slot
+    return directory / (feedback_id + ".json")
 
 
 def _validate_input(rating: int, note: str) -> tuple[int, str]:
@@ -80,12 +89,16 @@ def build_feedback_record(
     rating: int,
     note: str,
     submitted_at: str,
+    slot: str = DEFAULT_SLOT,
 ) -> FeedbackRecord:
     """Create a stable feedback identity from explicit, reviewable inputs."""
 
     normalized_rating, normalized_note = _validate_input(rating, note)
     if receipt.result.provider != "offline" or not receipt.result.simulated:
         raise FeedbackViolation("Feedback source must be a verified simulated offline generation receipt")
+    normalized_slot = validate_slot(slot)
+    if receipt.source_slot_id != normalized_slot:
+        raise FeedbackViolation("Feedback slot does not match the verified generation receipt slot")
     material = {
         "schema": FEEDBACK_SCHEMA,
         "feedback_id": "",
@@ -96,6 +109,8 @@ def build_feedback_record(
         "note": normalized_note,
         "submitted_at": str(submitted_at),
     }
+    if normalized_slot != DEFAULT_SLOT:
+        material["slot_id"] = normalized_slot
     identity_material = {key: value for key, value in material.items() if key != "feedback_id"}
     feedback_id = "fb_" + hashlib.sha256(canonical_json(identity_material).encode("utf-8")).hexdigest()[:20]
     material["feedback_id"] = feedback_id
@@ -108,6 +123,7 @@ def build_feedback_record(
         note=normalized_note,
         submitted_at=str(submitted_at),
         feedback_hash=_feedback_hash(material),
+        slot_id=normalized_slot,
     )
 
 
@@ -130,18 +146,23 @@ def _load_feedback(path: Path) -> FeedbackRecord:
         note=note,
         submitted_at=str(record.get("submitted_at", "")),
         feedback_hash=str(record.get("feedback_hash", "")),
+        slot_id=validate_slot(record.get("slot_id", DEFAULT_SLOT)),
     )
-    if feedback_path(path.parent.parent, result.feedback_id) != path:
+    workspace = path.parent.parent if result.slot_id == DEFAULT_SLOT else path.parent.parent.parent.parent
+    if feedback_path(workspace, result.feedback_id, result.slot_id) != path:
         raise FeedbackViolation("Feedback path and identifier do not agree")
     if len(result.source_timeline_hash) != 64 or len(result.source_receipt_hash) != 64:
         raise FeedbackViolation("Feedback source hashes are malformed")
     return result
 
 
-def record_feedback(workspace: Path, record: FeedbackRecord) -> tuple[str, FeedbackRecord, Path]:
+def record_feedback(workspace: Path, record: FeedbackRecord, slot: str = DEFAULT_SLOT) -> tuple[str, FeedbackRecord, Path]:
     """Write one immutable feedback record, or prove an identical prior one."""
 
-    path = feedback_path(workspace, record.feedback_id)
+    normalized_slot = validate_slot(slot)
+    if record.slot_id != normalized_slot:
+        raise FeedbackViolation("Feedback record slot does not match the requested slot")
+    path = feedback_path(workspace, record.feedback_id, normalized_slot)
     content = canonical_json(record.to_dict()) + "\n"
     path.parent.mkdir(parents=True, exist_ok=True)
     if path.exists():
@@ -167,8 +188,12 @@ def record_feedback(workspace: Path, record: FeedbackRecord) -> tuple[str, Feedb
     return "feedback_recorded", record, path
 
 
-def load_feedback(workspace: Path, feedback_id: str) -> FeedbackRecord:
-    path = feedback_path(workspace, feedback_id)
+def load_feedback(workspace: Path, feedback_id: str, slot: str = DEFAULT_SLOT) -> FeedbackRecord:
+    normalized_slot = validate_slot(slot)
+    path = feedback_path(workspace, feedback_id, normalized_slot)
     if not path.is_file():
         raise FeedbackViolation("Feedback record does not exist")
-    return _load_feedback(path)
+    result = _load_feedback(path)
+    if result.slot_id != normalized_slot:
+        raise FeedbackViolation("Feedback record slot does not match the requested slot")
+    return result
