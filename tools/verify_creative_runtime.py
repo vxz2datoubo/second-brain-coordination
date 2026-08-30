@@ -48,6 +48,7 @@ def _demo(cli: Any) -> dict[str, Any]:
     """Run a deterministic route crossing all new runtime integration points."""
 
     from creative_runtime.local_intake import LocalIntakeProjection, local_intake_gate_report
+    from creative_runtime.ledger import LedgerViolation
 
     with tempfile.TemporaryDirectory(prefix="creative-runtime-verify-") as directory:
         workspace = Path(directory)
@@ -102,6 +103,40 @@ def _demo(cli: Any) -> dict[str, Any]:
         slot_migration = cli.run([*slot_prefix, "migrate"])
         slot_v2_binding = cli.run([*slot_prefix, "verify-v2"])
         slot_audit = cli.run([*slot_prefix, "audit"])
+        realtime_workspace = workspace / "realtime-guard"
+        realtime_prefix = ["--workspace", str(realtime_workspace), "--slot", "live_route"]
+        cli.run([*realtime_prefix, "init", "--scenario", "night_signal"])
+        realtime_frame = cli.run([*realtime_prefix, "frame"])
+        realtime_command = "cmd_0123456789abcdef0123"
+        realtime_first = cli.run(
+            [
+                *realtime_prefix,
+                "choose",
+                "listen",
+                "--expected-frame-id",
+                realtime_frame["frame_id"],
+                "--command-id",
+                realtime_command,
+            ]
+        )
+        realtime_retry = cli.run(
+            [
+                *realtime_prefix,
+                "choose",
+                "listen",
+                "--expected-frame-id",
+                realtime_frame["frame_id"],
+                "--command-id",
+                realtime_command,
+            ]
+        )
+        try:
+            cli.run([*realtime_prefix, "choose", "listen", "--expected-frame-id", realtime_frame["frame_id"]])
+        except LedgerViolation:
+            stale_frame_rejected = True
+        else:
+            stale_frame_rejected = False
+        realtime_timeline = cli.run([*realtime_prefix, "timeline"])
         local_intake = local_intake_gate_report(
             LocalIntakeProjection(
                 request_id="req_0123456789abcdef0123",
@@ -165,6 +200,11 @@ def _demo(cli: Any) -> dict[str, Any]:
             "named_slot_v2_slot": slot_v2_binding["slot_id"],
             "named_slot_audit_generation_count": len(slot_audit["evidence"]["verified_offline_generation_receipts"]),
             "named_slot_audit_feedback_count": len(slot_audit["evidence"]["verified_feedback"]),
+            "realtime_first_command_status": realtime_first["status"],
+            "realtime_retry_status": realtime_retry["status"],
+            "realtime_retry_frame_matches": realtime_retry["current_frame_id"] == realtime_first["current_frame_id"],
+            "realtime_stale_frame_rejected": stale_frame_rejected,
+            "realtime_event_count": len(realtime_timeline["entries"]),
             "local_intake_projection_status": local_intake["status"],
             "local_intake_external_authorized": local_intake["external_provider_authorized"],
             "local_intake_vault_accessed": local_intake["customer_vault_accessed"],
@@ -235,6 +275,11 @@ def verify(
         "named_slot_v2_slot": "route_b",
         "named_slot_audit_generation_count": 1,
         "named_slot_audit_feedback_count": 1,
+        "realtime_first_command_status": "chosen",
+        "realtime_retry_status": "command_already_applied",
+        "realtime_retry_frame_matches": True,
+        "realtime_stale_frame_rejected": True,
+        "realtime_event_count": 2,
         "local_intake_projection_status": "local_intake_projection_valid",
         "local_intake_external_authorized": False,
         "local_intake_vault_accessed": False,

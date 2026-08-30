@@ -46,6 +46,11 @@ class CreativeVerifierTests(unittest.TestCase):
         self.assertEqual(receipt["demonstration"]["named_slot_id"], "route_b")
         self.assertEqual(receipt["demonstration"]["named_slot_generation_slot"], "route_b")
         self.assertEqual(receipt["demonstration"]["named_slot_audit_feedback_count"], 1)
+        self.assertEqual(receipt["demonstration"]["realtime_first_command_status"], "chosen")
+        self.assertEqual(receipt["demonstration"]["realtime_retry_status"], "command_already_applied")
+        self.assertTrue(receipt["demonstration"]["realtime_retry_frame_matches"])
+        self.assertTrue(receipt["demonstration"]["realtime_stale_frame_rejected"])
+        self.assertEqual(receipt["demonstration"]["realtime_event_count"], 2)
         self.assertEqual(receipt["demonstration"]["local_intake_projection_status"], "local_intake_projection_valid")
         self.assertFalse(receipt["demonstration"]["local_intake_external_authorized"])
         self.assertEqual(
