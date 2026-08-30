@@ -54,12 +54,25 @@ class CreativeUnderstandingTests(unittest.TestCase):
     def test_verified_timeline_binds_to_understanding_card_and_round_trips(self) -> None:
         ledger, timeline = self.verified_timeline()
         mapped = bind_verified_timeline(timeline, len(ledger.events), "2030-01-01T00:02:00Z")
-        self.assertEqual([assessment.status for assessment in mapped.assess()], ["pass"])
+        self.assertEqual([assessment.status for assessment in mapped.assess()], ["pass", "pass", "pass", "pass"])
         restored = UnderstandingMap.from_dict(mapped.to_dict())
         self.assertEqual(canonical_json(restored.to_dict()), canonical_json(mapped.to_dict()))
-        card = next(iter(restored.cards.values()))
+        self.assertEqual({card.layer for card in restored.cards.values()}, {"explicit_known", "implicit_known", "explainable_unknown", "opaque_unknown"})
+        card = restored.cards["UC-verified-timeline-" + timeline.timeline_hash[:16]]
         self.assertEqual(card.evidence_tier, "E1_deterministic")
         self.assertIn("每一步", card.human_explanation)
+        self.assertTrue(all(assessment.status == "pass" for assessment in restored.assess()))
+
+    def test_understanding_map_makes_director_quality_drift_a_visible_hard_failure(self) -> None:
+        ledger, timeline = self.verified_timeline()
+        mapped = bind_verified_timeline(
+            timeline,
+            len(ledger.events),
+            "2030-01-01T00:02:00Z",
+            director_can_generate=False,
+        )
+        assessment = next(item for item in mapped.assess() if item.metric_id.startswith("M-director-quality-"))
+        self.assertEqual(assessment.status, "fail")
 
     def test_card_cannot_reference_missing_metric_or_unknown_superseded_record(self) -> None:
         mapped = UnderstandingMap()

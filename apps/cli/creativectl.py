@@ -480,8 +480,13 @@ def run(argv: list[str]) -> dict[str, Any]:
         }
     if args.command == "understanding":
         ledger = _load_session(args.workspace, slot)
-        verified = compile_verified_director(ledger, graph=graph_for_ledger(ledger)).verified_input
-        mapped = bind_verified_timeline(verified, len(ledger.events), ledger.events[-1].occurred_at)
+        compiled = compile_verified_director(ledger, graph=graph_for_ledger(ledger))
+        mapped = bind_verified_timeline(
+            compiled.verified_input,
+            len(ledger.events),
+            ledger.events[-1].occurred_at,
+            director_can_generate=compiled.compilation.quality_report.can_generate,
+        )
         return {
             "status": "understanding_mapped",
             "map": mapped.to_dict(),

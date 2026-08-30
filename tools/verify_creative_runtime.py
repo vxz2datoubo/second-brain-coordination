@@ -295,7 +295,7 @@ def verify(
         "harbor_catalog_status": "scenario_catalog_verified",
         "harbor_catalog_transition_count": 12,
         "understanding_status": "understanding_mapped",
-        "drift_statuses": ["pass"],
+        "drift_statuses": ["pass", "pass", "pass", "pass"],
         "knowledge_status": "pending_human_review",
         "knowledge_candidate_status": "pending_human_review",
         "generation_status": "offline_generation_recorded",

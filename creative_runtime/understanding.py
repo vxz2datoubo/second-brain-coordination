@@ -271,17 +271,26 @@ def bind_verified_timeline(
     observed_at: str,
     *,
     owner: str = "CODEX",
+    director_can_generate: bool = True,
 ) -> UnderstandingMap:
-    """Map one verified story timeline into owner-visible evidence records."""
+    """Map runtime truth into the owner's four explicit information layers.
+
+    The returned map distinguishes fixed boundaries, owner-intent inference,
+    explainable replay guarantees, and deliberately opaque implementation
+    details.  Each automated block remains tied to an exact metric; this is a
+    readable explanation layer, never a substitute for the underlying gates.
+    """
 
     if int(event_count) < 1:
         raise UnderstandingViolation("event_count must be at least one")
     digest = _require_text(str(timeline.timeline_hash), "timeline_hash")
     final_event_id = _require_text(str(timeline.final_event_id), "final_event_id")
     graph_revision = _require_text(str(timeline.graph_revision), "graph_revision")
+    if not isinstance(director_can_generate, bool):
+        raise UnderstandingViolation("director_can_generate must be boolean")
     suffix = digest[:16]
     result = UnderstandingMap()
-    anchor = MetricAnchor(
+    timeline_anchor = MetricAnchor(
         metric_id="M-timeline-hash-" + suffix,
         name="Verified creative timeline hash",
         unit="sha256",
@@ -293,7 +302,44 @@ def bind_verified_timeline(
         measured_at=observed_at,
         hard_gate=True,
     )
-    result.add_anchor(anchor)
+    graph_anchor = MetricAnchor(
+        metric_id="M-graph-revision-" + suffix,
+        name="Verified story graph revision",
+        unit="revision",
+        direction="exact_match",
+        baseline=graph_revision,
+        current=graph_revision,
+        target=graph_revision,
+        source_ref="event:" + final_event_id,
+        measured_at=observed_at,
+        hard_gate=True,
+    )
+    boundary_anchor = MetricAnchor(
+        metric_id="M-offline-boundary-" + suffix,
+        name="GitHub runtime external authority",
+        unit="boolean",
+        direction="exact_match",
+        baseline="false",
+        current="false",
+        target="false",
+        source_ref="runtime:offline-boundary",
+        measured_at=observed_at,
+        hard_gate=True,
+    )
+    director_anchor = MetricAnchor(
+        metric_id="M-director-quality-" + suffix,
+        name="Verified director generation eligibility",
+        unit="boolean",
+        direction="exact_match",
+        baseline="true",
+        current=str(director_can_generate).lower(),
+        target="true",
+        source_ref="timeline:" + digest,
+        measured_at=observed_at,
+        hard_gate=True,
+    )
+    for anchor in (timeline_anchor, graph_anchor, boundary_anchor, director_anchor):
+        result.add_anchor(anchor)
     result.add_card(
         UnderstandingCard(
             card_id="UC-verified-timeline-" + suffix,
@@ -304,7 +350,7 @@ def bind_verified_timeline(
             evidence_tier="E1_deterministic",
             confidence=1.0,
             valid_from=observed_at,
-            numeric_anchor_ids=(anchor.metric_id,),
+            numeric_anchor_ids=(timeline_anchor.metric_id, graph_anchor.metric_id, director_anchor.metric_id),
             decision_impact="blocks",
             owner=owner,
             human_explanation=(
@@ -312,6 +358,53 @@ def bind_verified_timeline(
                 "时间线哈希和图版本固定后，任何偷偷改后果的记录都会被拦住。"
                 f" 图版本：{graph_revision}。"
             ),
+        )
+    )
+    result.add_card(
+        UnderstandingCard(
+            card_id="UC-github-boundary-" + suffix,
+            subject="GitHub synthetic runtime boundary",
+            layer="explicit_known",
+            statement="This GitHub runtime is offline and synthetic: it cannot read customer material, credentials, provider accounts, or authorize paid generation.",
+            authority_ref="runtime:offline-boundary",
+            evidence_tier="E1_deterministic",
+            confidence=1.0,
+            valid_from=observed_at,
+            numeric_anchor_ids=(boundary_anchor.metric_id,),
+            decision_impact="blocks",
+            owner=owner,
+            human_explanation="GitHub 现在负责可复现代码和合成验证；真实客户资料与外部调用不在这条链路中。",
+        )
+    )
+    result.add_card(
+        UnderstandingCard(
+            card_id="UC-local-stage-inference-" + suffix,
+            subject="future local operations",
+            layer="implicit_known",
+            statement="The owner intends a later local operations stage, but this intent does not authorize customer intake, deployment, or provider access today.",
+            authority_ref="owner-intent:github-to-local-staging",
+            evidence_tier="E0_observed",
+            confidence=1.0,
+            valid_from=observed_at,
+            decision_impact="informs",
+            owner=owner,
+            human_explanation="本地大规模运营是后续目标，不是当前 GitHub 分支可以自行开启的权限。",
+        )
+    )
+    result.add_card(
+        UnderstandingCard(
+            card_id="UC-hash-mechanics-" + suffix,
+            subject="provenance serialization mechanics",
+            layer="opaque_unknown",
+            statement="Canonical serialization internals are intentionally exposed through exact hashes and failure states rather than treated as a human approval signal.",
+            authority_ref="timeline:" + digest,
+            evidence_tier="E1_deterministic",
+            confidence=1.0,
+            valid_from=observed_at,
+            numeric_anchor_ids=(timeline_anchor.metric_id,),
+            decision_impact="informs",
+            owner=owner,
+            human_explanation="你不需要靠阅读哈希算法来判断剧情是否可信；看到精确哈希匹配或明确失败原因即可。",
         )
     )
     return result
