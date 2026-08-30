@@ -140,6 +140,11 @@ class StoryGraph:
             if key[0] == state.scene_id and key[1] == state.beat_id
         )
 
+    def transitions(self) -> tuple[GraphTransition, ...]:
+        """Return every versioned transition in a stable order for coverage."""
+
+        return tuple(sorted(self._transitions.values(), key=lambda item: item.transition_id))
+
     def beat_for(self, state: StoryState) -> GraphBeat:
         beat = self._beats.get((state.scene_id, state.beat_id))
         if beat is None:

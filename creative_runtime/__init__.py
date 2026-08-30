@@ -49,6 +49,7 @@ from .continuity import (
     timeline_hash,
     verified_director_input,
 )
+from .coverage import RouteCoverageEntry, RouteCoverageReport, RouteCoverageViolation, cover_routes, coverage_for_scenario
 from .understanding import (
     DriftAssessment,
     MetricAnchor,
@@ -75,6 +76,9 @@ from .session import (
 __all__ = [
     "CreativeArtifact",
     "CreativeEvent",
+    "RouteCoverageEntry",
+    "RouteCoverageReport",
+    "RouteCoverageViolation",
     "CreativeLedger",
     "DirectorCompilation",
     "DirectorQualityMetrics",
@@ -128,6 +132,8 @@ __all__ = [
     "build_feedback_record",
     "compile_director",
     "compile_verified_director",
+    "cover_routes",
+    "coverage_for_scenario",
     "correct_from_verified_timeline",
     "create_artifact",
     "default_story_graph",

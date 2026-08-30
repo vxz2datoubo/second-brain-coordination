@@ -49,6 +49,7 @@ def _demo(cli: Any) -> dict[str, Any]:
 
     with tempfile.TemporaryDirectory(prefix="creative-runtime-verify-") as directory:
         workspace = Path(directory)
+        coverage = cli.run(["coverage", "--scenario", "three_scene"])
         cli.run(["--workspace", str(workspace), "init", "--scenario", "three_scene"])
         cli.run(["--workspace", str(workspace), "choose", "listen"])
         cli.run(["--workspace", str(workspace), "choose", "approach"])
@@ -84,6 +85,9 @@ def _demo(cli: Any) -> dict[str, Any]:
         audit = cli.run(["--workspace", str(workspace), "audit"])
         return {
             "scenario": "three_scene",
+            "route_coverage_status": coverage["status"],
+            "route_coverage_count": coverage["route_count"],
+            "route_coverage_transition_count": len(coverage["covered_transition_ids"]),
             "timeline_status": timeline["status"],
             "timeline_hash": timeline["timeline_hash"],
             "timeline_entry_count": len(timeline["entries"]),
@@ -136,6 +140,9 @@ def verify(
     demonstration = _demo(_load_cli())
     expected_demo = {
         "timeline_status": "timeline_verified",
+        "route_coverage_status": "route_coverage_verified",
+        "route_coverage_count": 6,
+        "route_coverage_transition_count": 8,
         "timeline_entry_count": 4,
         "director_status": "director_verified",
         "director_can_generate": True,
