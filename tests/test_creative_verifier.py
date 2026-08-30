@@ -30,6 +30,9 @@ class CreativeVerifierTests(unittest.TestCase):
         self.assertEqual(receipt["demonstration"]["v2_source_binding_status"], "v2_source_verified")
         self.assertEqual(receipt["demonstration"]["generation_status"], "offline_generation_recorded")
         self.assertEqual(receipt["demonstration"]["generation_verification_status"], "offline_generation_verified")
+        self.assertEqual(receipt["demonstration"]["frame_status"], "interactive_frame_verified")
+        self.assertEqual(receipt["demonstration"]["frame_choice_count"], 1)
+        self.assertEqual(receipt["demonstration"]["frame_slot"], "default")
         self.assertEqual(receipt["demonstration"]["feedback_status"], "feedback_recorded")
         self.assertFalse(receipt["demonstration"]["feedback_canonical_write"])
         self.assertEqual(receipt["demonstration"]["audit_status"], "workspace_audit_verified")
@@ -43,6 +46,10 @@ class CreativeVerifierTests(unittest.TestCase):
         self.assertFalse(receipt["demonstration"]["local_intake_external_authorized"])
         self.assertEqual(
             receipt["demonstration"]["v2_source_binding_timeline_hash"],
+            receipt["demonstration"]["timeline_hash"],
+        )
+        self.assertEqual(
+            receipt["demonstration"]["frame_director_timeline_hash"],
             receipt["demonstration"]["timeline_hash"],
         )
 

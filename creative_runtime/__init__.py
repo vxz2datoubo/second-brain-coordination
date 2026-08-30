@@ -52,6 +52,7 @@ from .continuity import (
     verified_director_input,
 )
 from .coverage import RouteCoverageEntry, RouteCoverageReport, RouteCoverageViolation, cover_routes, coverage_for_scenario
+from .presentation import InteractiveFrame, PresentationViolation, build_interactive_frame
 from .understanding import (
     DriftAssessment,
     MetricAnchor,
@@ -93,6 +94,7 @@ __all__ = [
     "GenerationViolation",
     "GraphBeat",
     "GraphTransition",
+    "InteractiveFrame",
     "GovernanceViolation",
     "LedgerViolation",
     "LoadedV2Session",
@@ -110,6 +112,7 @@ __all__ = [
     "OfflineGenerationReceipt",
     "OfflineGenerationRecord",
     "PlayerAction",
+    "PresentationViolation",
     "QualityFinding",
     "QualityReport",
     "ProvenanceViolation",
@@ -133,6 +136,7 @@ __all__ = [
     "adapter_for",
     "assess_anchor",
     "bind_verified_timeline",
+    "build_interactive_frame",
     "build_feedback_record",
     "compile_director",
     "compile_verified_director",
