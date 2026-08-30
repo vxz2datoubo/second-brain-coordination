@@ -4,11 +4,11 @@
 
 `BOUNDED_REFERENCE_IMPLEMENTATION / RESEARCH_ONLY / NO_TRADING / NO_SOURCE_OR_CAUSAL_AUTHORITY`
 
-Source Issue: #501  
-Parent remediation: #486  
-Route epoch: 166  
-Task: `GPT-W5-EVENT-COVERAGE-CLEAN-SUCCESSOR-R166`  
-Worker slot: `GPT-WORKER-R166-W5-EVENT-COVERAGE-2`  
+Source Issue: #501
+Parent remediation: #486
+Route epoch: 166
+Task: `GPT-W5-EVENT-COVERAGE-CLEAN-SUCCESSOR-R166`
+Worker slot: `GPT-WORKER-R166-W5-EVENT-COVERAGE-2`
 Pre-write snapshot: `W5-EVENT-COVERAGE-R166-2026-08-29-001`
 
 R166 is a clean, non-retroactive implementation. PR #487 and PR #497 remain read-only historical/technical evidence and are not acceptance provenance for this branch.
