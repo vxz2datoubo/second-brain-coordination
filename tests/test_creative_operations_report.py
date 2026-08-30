@@ -69,6 +69,21 @@ class CreativeOperationsReportTests(unittest.TestCase):
         self.assertEqual(report["path_findings"][0]["reason"], "invalid_slot_filename")
         self.assertEqual(report["active_locks"][0]["slot_id"], "default")
 
+    def test_report_rejects_a_second_default_slot_path_instead_of_counting_it_twice(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory)
+            creativectl.run(["--workspace", str(workspace), "init"])
+            slots = workspace / "slots"
+            slots.mkdir()
+            (slots / "default.json").write_text((workspace / "session.json").read_text(encoding="utf-8"), encoding="utf-8")
+            report = creativectl.run(["--workspace", str(workspace), "operations"])
+        self.assertEqual(report["status"], "operations_attention_required")
+        self.assertFalse(report["mutation_safe"])
+        self.assertEqual(report["metrics"]["discovered_slot_count"], 1)
+        self.assertEqual(report["metrics"]["verified_slot_count"], 1)
+        self.assertEqual(report["metrics"]["path_finding_count"], 1)
+        self.assertEqual(report["path_findings"][0]["reason"], "default_slot_must_use_root_session_path")
+
 
 if __name__ == "__main__":
     unittest.main()

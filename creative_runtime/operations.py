@@ -70,6 +70,9 @@ def _candidate_slots(workspace: Path) -> tuple[list[tuple[str, Path]], list[dict
         except SessionViolation:
             findings.append({"path": _relative(workspace, path), "reason": "invalid_slot_filename"})
             continue
+        if slot == DEFAULT_SLOT:
+            findings.append({"path": _relative(workspace, path), "reason": "default_slot_must_use_root_session_path"})
+            continue
         candidates.append((slot, path))
     return candidates, findings
 
