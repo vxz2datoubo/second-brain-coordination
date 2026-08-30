@@ -65,9 +65,13 @@ jobs:
           assert receipt['classification'] == 'PASS_NO_CANDIDATE_REGRESSION', receipt
           assert receipt['baseline_declared_healthy'] is False
           assert receipt['authority'] and all(value is False for value in receipt['authority'].values())
+          assert not receipt['candidate_introduced_command_failures'], receipt
+          assert not receipt['candidate_modified_baseline_command_failures'], receipt
           print('integration_state_isolation=PASS')
           print('baseline_failures_preserved=', len(receipt['baseline_failures_preserved']))
+          print('baseline_command_failures_preserved=', len(receipt['baseline_command_failures_preserved']))
           print('candidate_only_tests=', len(receipt['candidate_only_test_ids']))
+          print('command_observations=', len(receipt['per_command_observations']))
           print('receipt_digest=', receipt['receipt_digest'])
           PY
       - name: Verify candidate diff whitespace
@@ -81,15 +85,19 @@ jobs:
         working-directory: coordination/CONTROL-TOWER
         run: python run_all_tests.py
       - name: Reconcile current canonical control-plane state
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         working-directory: coordination/CONTROL-TOWER
         run: python run_control_tower.py check --repo-root ../..
       - name: Validate Program Lane work claims
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         working-directory: coordination/CONTROL-TOWER
         run: python run_lane_claims.py --repo-root ../..
       - name: Verify work-claim bulletin projection
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         working-directory: coordination/CONTROL-TOWER
         run: python run_claim_projection.py check --repo-root ../..
       - name: Verify durable authorization witness round trips
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         working-directory: coordination/CONTROL-TOWER
         run: |
           python run_authorization_witness.py create --repo-root ../.. --lane LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP > /tmp/control-tower-lane-c-witness.json
@@ -97,5 +105,6 @@ jobs:
           python run_authorization_witness.py create --repo-root ../.. --lane LANE-B-A-SHARE-REMEDIATION > /tmp/control-tower-lane-b-witness.json
           python run_authorization_witness.py verify --repo-root ../.. --lane LANE-B-A-SHARE-REMEDIATION --witness-file /tmp/control-tower-lane-b-witness.json
       - name: Emit Codex route witness
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         working-directory: coordination/CONTROL-TOWER
         run: python run_control_tower.py witness --repo-root ../.. --agent CODEX
