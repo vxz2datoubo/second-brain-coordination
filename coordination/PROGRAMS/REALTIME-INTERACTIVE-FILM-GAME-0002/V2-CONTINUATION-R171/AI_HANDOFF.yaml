@@ -1,0 +1,13 @@
+schema: AI_HANDOFF/v1
+task_id: CODEX-R170-V2-CONTINUATION-DURABILITY-R171
+source_agent: CODEX
+target_agent: GPT_INDEPENDENT_REVIEWER
+reviewer: UNASSIGNED
+executor_status: EXECUTOR_VERIFIED_ONLY
+base_sha: 5574ebf4287691aed3f5789e895bb5c55451f209
+changed_contracts:
+  - Migrated session continuation writes v2 saves only.
+  - Legacy session.json remains immutable provenance.
+  - Default and named-slot save/restore retain the source-bound receipt.
+tests: ["python -m unittest discover -s tests -v"]
+next_action: Push, exact-head CI, independent review.

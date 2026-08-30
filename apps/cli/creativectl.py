@@ -21,6 +21,7 @@ if str(ROOT) not in sys.path:
 from creative_runtime.contracts import PlayerAction, StoryState, canonical_json
 from creative_runtime.ledger import CreativeLedger, LedgerViolation
 from creative_runtime.knowledge import KnowledgeBridgeViolation, KnowledgeReviewBridge
+from creative_runtime import continuation
 
 
 SCHEMA = "CreativeSession/v1"
@@ -136,6 +137,9 @@ def initialize(workspace: Path) -> dict[str, Any]:
 
 
 def choose(workspace: Path, action_id: str, source_text: str | None = None) -> dict[str, Any]:
+    if (workspace / "saves" / "default.json").exists():
+        state = continuation.choose(workspace, action_id)
+        return {"status": "chosen", "action_id": action_id, "state": state.to_dict(), "v2": True}
     ledger = _load_session(workspace)
     state = ledger.replay()
     beat = synthetic_scene()[state.beat_id]
@@ -175,6 +179,13 @@ def parse_free_text(text: str, legal_actions: set[str]) -> tuple[str | None, flo
 
 
 def say(workspace: Path, text: str) -> dict[str, Any]:
+    if (workspace / "saves" / "default.json").exists():
+        _, state = continuation.load(workspace)
+        legal = set(synthetic_scene()[state.beat_id]["options"])
+        action, confidence = parse_free_text(text, legal)
+        if action is None or confidence < 0.8:
+            return {"status": "clarification_required", "legal_options": sorted(legal)}
+        return choose(workspace, action, source_text=text)
     ledger = _load_session(workspace)
     state = ledger.replay()
     legal = set(synthetic_scene()[state.beat_id]["options"])
