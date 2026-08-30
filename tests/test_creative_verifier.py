@@ -35,6 +35,9 @@ class CreativeVerifierTests(unittest.TestCase):
         self.assertEqual(receipt["demonstration"]["frame_slot"], "default")
         self.assertEqual(receipt["demonstration"]["experience_status"], "experience_manifest_verified")
         self.assertEqual(receipt["demonstration"]["experience_frame_count"], 4)
+        self.assertEqual(receipt["demonstration"]["sequence_status"], "sequence_plan_verified")
+        self.assertEqual(receipt["demonstration"]["sequence_step_count"], 4)
+        self.assertEqual(receipt["demonstration"]["sequence_total_duration_seconds"], 52)
         self.assertEqual(receipt["demonstration"]["catalog_status"], "scenario_catalog_verified")
         self.assertEqual(receipt["demonstration"]["catalog_transition_count"], 14)
         self.assertEqual(receipt["demonstration"]["feedback_status"], "feedback_recorded")
@@ -63,6 +66,10 @@ class CreativeVerifierTests(unittest.TestCase):
         )
         self.assertEqual(
             receipt["demonstration"]["experience_timeline_hash"],
+            receipt["demonstration"]["timeline_hash"],
+        )
+        self.assertEqual(
+            receipt["demonstration"]["sequence_timeline_hash"],
             receipt["demonstration"]["timeline_hash"],
         )
 

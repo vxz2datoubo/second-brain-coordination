@@ -62,6 +62,7 @@ def _demo(cli: Any) -> dict[str, Any]:
         director = cli.run(["--workspace", str(workspace), "director"])
         frame = cli.run(["--workspace", str(workspace), "frame"])
         experience = cli.run(["--workspace", str(workspace), "experience"])
+        sequence = cli.run(["--workspace", str(workspace), "sequence"])
         catalogue = cli.run(["catalog", "--scenario", "night_signal"])
         understanding = cli.run(["--workspace", str(workspace), "understanding"])
         derived = cli.run(
@@ -173,6 +174,10 @@ def _demo(cli: Any) -> dict[str, Any]:
             "experience_status": experience["status"],
             "experience_frame_count": len(experience["frames"]),
             "experience_timeline_hash": experience["timeline_hash"],
+            "sequence_status": sequence["status"],
+            "sequence_step_count": len(sequence["steps"]),
+            "sequence_total_duration_seconds": sequence["total_duration_seconds"],
+            "sequence_timeline_hash": sequence["timeline_hash"],
             "catalog_status": catalogue["status"],
             "catalog_transition_count": len(catalogue["covered_transition_ids"]),
             "understanding_status": understanding["status"],
@@ -250,6 +255,9 @@ def verify(
         "frame_slot": "default",
         "experience_status": "experience_manifest_verified",
         "experience_frame_count": 4,
+        "sequence_status": "sequence_plan_verified",
+        "sequence_step_count": 4,
+        "sequence_total_duration_seconds": 52,
         "catalog_status": "scenario_catalog_verified",
         "catalog_transition_count": 14,
         "understanding_status": "understanding_mapped",
@@ -295,6 +303,8 @@ def verify(
         raise RuntimeError("interactive frame director evidence does not match the verified timeline hash")
     if demonstration["experience_timeline_hash"] != demonstration["timeline_hash"]:
         raise RuntimeError("interactive experience is not bound to the verified timeline hash")
+    if demonstration["sequence_timeline_hash"] != demonstration["timeline_hash"]:
+        raise RuntimeError("interactive sequence is not bound to the verified timeline hash")
     return {
         "schema": "CreativeRuntimeVerificationReceipt/v1",
         "head_sha": actual_head,

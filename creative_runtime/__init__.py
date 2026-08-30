@@ -62,6 +62,7 @@ from .experience import (
     verify_verified_scenario_catalog,
 )
 from .presentation import InteractiveFrame, PresentationViolation, build_interactive_frame
+from .sequence import SequenceViolation, VerifiedSequencePlan, build_verified_sequence
 from .understanding import (
     DriftAssessment,
     MetricAnchor,
@@ -132,8 +133,10 @@ __all__ = [
     "StoryState",
     "VerifiedExperienceManifest",
     "VerifiedScenarioCatalog",
+    "VerifiedSequencePlan",
     "SourceProvenance",
     "SessionViolation",
+    "SequenceViolation",
     "TaskGovernance",
     "TimelineEntry",
     "TimelineViolation",
@@ -152,6 +155,7 @@ __all__ = [
     "build_feedback_record",
     "build_verified_experience",
     "build_verified_scenario_catalog",
+    "build_verified_sequence",
     "compile_director",
     "compile_verified_director",
     "cover_routes",

@@ -29,6 +29,7 @@ from creative_runtime.experience import ExperienceViolation, build_verified_expe
 from creative_runtime.ledger import CreativeLedger, LedgerViolation
 from creative_runtime.knowledge import KnowledgeBridgeViolation, KnowledgeReviewBridge, correct_from_verified_timeline
 from creative_runtime.presentation import PresentationViolation, build_interactive_frame
+from creative_runtime.sequence import SequenceViolation, build_verified_sequence
 from creative_runtime.understanding import bind_verified_timeline
 from creative_runtime.session import (
     DEFAULT_SLOT,
@@ -411,6 +412,7 @@ def run(argv: list[str]) -> dict[str, Any]:
     subparsers.add_parser("audit")
     subparsers.add_parser("frame")
     subparsers.add_parser("experience")
+    subparsers.add_parser("sequence")
     catalog_parser = subparsers.add_parser("catalog")
     catalog_parser.add_argument("--scenario", choices=sorted(SCENARIOS), default="night_signal")
     coverage_parser = subparsers.add_parser("coverage")
@@ -549,6 +551,8 @@ def run(argv: list[str]) -> dict[str, Any]:
         return build_interactive_frame(_load_session(args.workspace, slot), slot=slot).to_dict()
     if args.command == "experience":
         return build_verified_experience(_load_session(args.workspace, slot), slot=slot).to_dict()
+    if args.command == "sequence":
+        return build_verified_sequence(_load_session(args.workspace, slot), slot=slot).to_dict()
     if args.command == "catalog":
         return build_verified_scenario_catalog(args.scenario).to_dict()
     if args.command == "coverage":
@@ -580,7 +584,7 @@ def run(argv: list[str]) -> dict[str, Any]:
 def main() -> int:
     try:
         print(json.dumps(run(sys.argv[1:]), ensure_ascii=False, sort_keys=True, indent=2))
-    except (ExperienceViolation, FeedbackViolation, GenerationViolation, LedgerViolation, KnowledgeBridgeViolation, PresentationViolation, RouteCoverageViolation, SessionViolation, TimelineViolation, KeyError, json.JSONDecodeError) as error:
+    except (ExperienceViolation, FeedbackViolation, GenerationViolation, LedgerViolation, KnowledgeBridgeViolation, PresentationViolation, RouteCoverageViolation, SequenceViolation, SessionViolation, TimelineViolation, KeyError, json.JSONDecodeError) as error:
         print(json.dumps({"status": "error", "message": str(error)}, ensure_ascii=False, sort_keys=True))
         return 2
     return 0
