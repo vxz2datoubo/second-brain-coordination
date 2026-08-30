@@ -1,0 +1,41 @@
+schema: SourceSelectionProvenance/v1
+task_id: "CODEX-R167-BRIDGE-PROVENANCE-REMEDIATION-R169"
+route_epoch: 169
+issue: 507
+executor: CODEX
+clean_implementation_baseline: "9246e07bff0ed0f194d646cfb901783ed1dbe919"
+canonical_sources:
+  - "canonical main at 9246e07bff0ed0f194d646cfb901783ed1dbe919"
+  - "Issue #507 task contract"
+  - "Issue #503 historical R167 governance/evidence"
+  - "Issue #453 active review protocol and REVIEW_RESULT/v1 5466075081"
+  - "PR review 5059684398 primary finding evidence"
+  - "PR review 5059665927 same-conclusion supporting evidence"
+reference_only_candidates:
+  - pr: 506
+    head: "6ba392adf8520c610eb4387af9089427d6ff3369"
+    disposition: "FROZEN_REVIEWED_EVIDENCE_ONLY"
+    implementation_reuse: false
+  - pr: 502
+    head: "8438805a1bc1aaad5a46c067ee3be293b7543cd9"
+    disposition: "FROZEN_REVIEWED_EVIDENCE_ONLY"
+    implementation_reuse: false
+  - pr: 495
+    head: "43785fd2f24e0c9e640bdc7d26d09351c836d8c9"
+    disposition: "FROZEN_UNACCEPTED_EVIDENCE_ONLY"
+    implementation_reuse: false
+  - pr: 493
+    head: "1dcd15011b02e5452186f178ea77746690d4d6a6"
+    disposition: "REFERENCE_ONLY_UNACCEPTED_CANDIDATE"
+    implementation_reuse: false
+forbidden_provenance_actions:
+  - cherry_pick
+  - merge_from_frozen_candidate
+  - rebase_onto_frozen_candidate
+  - copy_candidate_commit_objects
+  - treat_candidate_implementation_as_authorized_asset
+  - retroactive_authorization
+allowed_evidence_use: >-
+  CODEX may inspect the independent findings, behavioral requirements, tests-as-evidence, and frozen candidates only to understand
+  the defect and required behavior, but must author the successor implementation cleanly from the baseline without importing
+  candidate implementation provenance.

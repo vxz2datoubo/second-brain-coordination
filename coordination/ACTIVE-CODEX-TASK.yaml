@@ -1,12 +1,12 @@
-schema_version: "167.0"
+schema_version: "169.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
-active_issue: 503
-task_id: "CODEX-R165-REVIEW-BLOCKER-REMEDIATION-R167"
+active_issue: 507
+task_id: "CODEX-R167-BRIDGE-PROVENANCE-REMEDIATION-R169"
 parent_task_id: "REALTIME-INTERACTIVE-FILM-GAME-0002"
-route_epoch: 167
+route_epoch: 169
 mode: "clean_nonretroactive_review_remediation"
-mode_label: "R167 CODEX review-ticket schema + lossless legacy migration remediation"
+mode_label: "R169 CODEX post-prefix migration-bridge provenance hardening"
 status: "ACTIVE_GOVERNED_PREWRITE"
 execution_allowed: true
 automatic_resume_within_task: true
@@ -14,47 +14,58 @@ second_user_start_command_required: false
 intermediate_gpt_review_required: false
 merge_authorized: false
 runtime_code_change_allowed: true
-active_executor: "CODEX-R167-INTERACTIVE-FILM-REMEDIATION-1"
+active_executor: "CODEX-R169-INTERACTIVE-FILM-BRIDGE-PROVENANCE-1"
 
-canonical_route: "coordination/ROUTES/CODEX-R165-REVIEW-BLOCKER-REMEDIATION-R167.yaml"
-canonical_contract: "coordination/TASK-BRIEFS/CODEX-R165-REVIEW-BLOCKER-REMEDIATION-R167.yaml"
-implementation_baseline: "729a8c0e0f6b9a190b8defcecb65f16aaba6538e"
-implementation_branch: "codex/r167-r165-review-remediation"
+canonical_route: "coordination/ROUTES/CODEX-R167-BRIDGE-PROVENANCE-REMEDIATION-R169.yaml"
+canonical_contract: "coordination/TASK-BRIEFS/CODEX-R167-BRIDGE-PROVENANCE-REMEDIATION-R169.yaml"
+implementation_baseline: "9246e07bff0ed0f194d646cfb901783ed1dbe919"
+implementation_branch: "codex/r169-r167-bridge-provenance-remediation"
 planned_draft_pr: true
 
 activation:
-  user_authorization: "Release fresh CODEX-only non-retroactive remediation for PR #502 review blockers."
-  issue: 503
-  parent_issue: 499
-  blocking_review: 5059485578
-  review_result: 5465631619
-  release_decision: "PROCEED_R167_CLEAN_REMEDIATION / FREEZE_PR502"
+  user_authorization: "Release fresh CODEX-only non-retroactive remediation for PR #506 exact-head P1."
+  issue: 507
+  parent_issue: 503
+  blocking_review: 5059684398
+  same_conclusion_prior_review: 5059665927
+  review_result: 5466075081
+  prior_r165_blockers_closed: true
+  release_decision: "PROCEED_R169_CLEAN_REMEDIATION / FREEZE_PR506"
   prewrite_snapshot_required: true
 
+predecessor_r167:
+  task_id: "CODEX-R165-REVIEW-BLOCKER-REMEDIATION-R167"
+  issue: 503
+  pr: 506
+  reviewed_head: "6ba392adf8520c610eb4387af9089427d6ff3369"
+  status: "FROZEN_AFTER_INDEPENDENT_CHANGES_REQUIRED"
+  execution_allowed: false
+  implementation_asset_reuse_allowed: false
+
 lease:
-  worker_slot_id: "CODEX-R167-INTERACTIVE-FILM-REMEDIATION-1"
-  task_lease: "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/REVIEW-REMEDIATION-R167/TASK-LEASE.yaml"
-  work_claim: "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/REVIEW-REMEDIATION-R167/WORK-CLAIM.yaml"
-  executor_reservation: "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/REVIEW-REMEDIATION-R167/EXECUTOR-RESERVATION.yaml"
-  control_tower_scan: "coordination/CONTROL-TOWER/R167-INTERACTIVE-FILM-REVIEW-REMEDIATION-ACTIVATION-SCAN.yaml"
-  substantive_write_gate: "CLOSED_UNTIL_ISSUE_503_EFFECTIVE_SPEC_SNAPSHOT"
+  worker_slot_id: "CODEX-R169-INTERACTIVE-FILM-BRIDGE-PROVENANCE-1"
+  task_lease: "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/BRIDGE-PROVENANCE-R169/TASK-LEASE.yaml"
+  work_claim: "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/BRIDGE-PROVENANCE-R169/WORK-CLAIM.yaml"
+  executor_reservation: "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/BRIDGE-PROVENANCE-R169/EXECUTOR-RESERVATION.yaml"
+  control_tower_scan: "coordination/CONTROL-TOWER/R169-INTERACTIVE-FILM-BRIDGE-PROVENANCE-ACTIVATION-SCAN.yaml"
+  substantive_write_gate: "CLOSED_UNTIL_ISSUE_507_EFFECTIVE_SPEC_SNAPSHOT_AND_BRANCH_PARENT_VERIFY"
 
 mission:
   goal: >-
-    Cleanly reimplement the required R165 safety envelope from canonical main, enforce lossless predecessor-to-v2 semantic migration,
-    and produce a canonical review ticket using the exact SPEC_SNAPSHOT_GATE/v1 field names.
+    Cleanly reimplement the bounded interactive-film safety envelope from canonical main and close only the
+    post-prefix forged migration_bridge provenance P1 without importing any frozen candidate implementation.
 
 allowed_write_paths:
   - "creative_runtime/**"
   - "apps/cli/**"
   - "tests/**"
-  - "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/REVIEW-REMEDIATION-R167/**"
-  - ".github/workflows/r167-interactive-film-review-remediation.yml"
+  - "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/BRIDGE-PROVENANCE-R169/**"
+  - ".github/workflows/r169-interactive-film-bridge-provenance.yml"
   - ".gitignore"
 
 hard_locks:
-  - "NO_PR502_BRANCH_WRITE_READY_MERGE"
-  - "NO_PR502_PR495_PR493_COMMIT_IMPORT_OR_ASSET_REUSE"
+  - "NO_PR506_PR502_PR495_PR493_WRITE_READY_MERGE"
+  - "NO_PR506_PR502_PR495_PR493_COMMIT_IMPORT_OR_ASSET_REUSE"
   - "NO_RETROACTIVE_AUTHORIZATION"
   - "NO_NETWORK_PROVIDER_MODEL_RUNTIME"
   - "NO_CREDENTIAL_TOKEN_ACCOUNT_INTROSPECTION"
@@ -63,7 +74,6 @@ hard_locks:
   - "NO_TRADE_BROKER_ACCOUNT_ORDER_FUND_ACCESS"
   - "NO_CANONICAL_W3_KNOWLEDGE_WRITE"
   - "NO_SECOND_LEDGER_GATEWAY_RESOLVER_AUTHORITY"
-  - "NO_SCENEGRAPH_SEMANTIC_WEAKENING"
   - "NO_SELF_REVIEW_SELF_ACCEPT_SELF_MERGE"
   - "NO_REBASE_RESET_FORCE_PUSH_AMEND_HISTORY_REWRITE"
 
@@ -76,6 +86,6 @@ review_gate:
   python_3_11_and_3_13_required: true
   new_review_request_required: true
 
-completion_signal: "R167_CODEX_REVIEW_BLOCKER_REMEDIATION_READY_FOR_INDEPENDENT_REVIEW"
-next_command: "READ_ISSUE_503_EFFECTIVE_SPEC_SNAPSHOT_THEN_EXECUTE_ONE_SHOT_TASK"
+completion_signal: "R169_CODEX_BRIDGE_PROVENANCE_REMEDIATION_READY_FOR_INDEPENDENT_REVIEW"
+next_command: "READ_ISSUE_507_EFFECTIVE_SPEC_SNAPSHOT_THEN_EXECUTE_ONE_SHOT_TASK"
 updated_by: "GPT_GOVERNANCE_COORDINATOR"

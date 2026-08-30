@@ -1,0 +1,54 @@
+schema_version: "169.0"
+task_id: "CODEX-R167-BRIDGE-PROVENANCE-REMEDIATION-R169"
+issue: 507
+parent_issue: 503
+route_epoch: 169
+executor: CODEX
+worker_slot_id: "CODEX-R169-INTERACTIVE-FILM-BRIDGE-PROVENANCE-1"
+implementation_baseline: "9246e07bff0ed0f194d646cfb901783ed1dbe919"
+branch: "codex/r169-r167-bridge-provenance-remediation"
+
+objective: >-
+  Close only P1_POST_PREFIX_FORGED_MIGRATION_BRIDGE_ACCEPTED_WHEN_REGENERATED_PREFIX_HAS_NO_BRIDGE
+  through exact deterministic bridge-set equality while preserving all R167 protections already independently closed.
+
+required_changes:
+  - "In SavedSession.validate, derive permitted migration_bridge events solely from deterministic legacy regeneration."
+  - "Require every actual migration_bridge event to match the regenerated prefix bridge set exactly by position and event identity."
+  - "If regenerated prefix bridge set is empty, reject any actual migration_bridge anywhere in the ledger."
+  - "Reject moved, duplicated, copied, or post-prefix bridges even when hashes and payload fields are recomputed/canonical-looking."
+  - "Do not weaken SceneGraph semantics or redesign persistence."
+
+required_adversarial_regression:
+  source: "legitimate legacy [approach]"
+  attack: "append recomputed-hash canonical-looking migration_bridge with correct kind/source_digest/empty patch"
+  must_reject_at:
+    - SaveStore.load
+    - SavedSession.state
+    - timeline
+    - director_sequence
+    - review_packet
+
+carry_forward_must_pass:
+  - "genuine approach -> listen positive terminal bridge remains deterministic/source-bound/replay-verifiable"
+  - "lossy listen -> approach -> leave remains LOSSY_UNREPRESENTABLE"
+  - "legacy source bytes unchanged on failed migration"
+  - "no shadow/default save on failed migration"
+  - "caller/recomputed-hash state_patch rejected before all consumers"
+  - "receipt/history persists across continuation/repeated save/sibling slot"
+  - "native v2 remains unmarked"
+  - "review ticket uses exact canonical snapshot fields and real handoff ref"
+
+completion_sequence:
+  - "implement and test from clean branch only"
+  - "push exact head"
+  - "run exact-head Python 3.11 and 3.13 CI"
+  - "append CODEX_ENGINEERING_HANDOFF/v1 to Issue #507 and capture actual comment ID"
+  - "append new #453 REVIEW_REQUEST/v1 with effective_spec_snapshot_id/effective_spec_snapshot_ref/canonical_base/exact_head and real engineering_handoff_ref"
+  - "stop for uninvolved GPT_INDEPENDENT_REVIEWER"
+
+forbidden:
+  - "modify/Ready/merge/import/reuse PR #506/#502/#495/#493"
+  - "network/provider/credentials/deploy/trade/canonical knowledge write"
+  - "self review/self accept/self merge"
+  - "rebase/reset/force-push/amend/history rewrite"

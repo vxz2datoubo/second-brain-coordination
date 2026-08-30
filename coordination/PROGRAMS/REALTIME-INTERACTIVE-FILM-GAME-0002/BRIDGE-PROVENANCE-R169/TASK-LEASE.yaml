@@ -1,0 +1,27 @@
+schema: TaskLease/v1
+task_id: "CODEX-R167-BRIDGE-PROVENANCE-REMEDIATION-R169"
+route_epoch: 169
+issue: 507
+executor: CODEX
+worker_slot_id: "CODEX-R169-INTERACTIVE-FILM-BRIDGE-PROVENANCE-1"
+lease_state: RESERVED_PENDING_PREWRITE_SNAPSHOT
+execution_allowed_after_snapshot: true
+implementation_baseline: "9246e07bff0ed0f194d646cfb901783ed1dbe919"
+branch: "codex/r169-r167-bridge-provenance-remediation"
+same_branch_writer_max: 1
+codex_active_route_max: 1
+nested_parallelism: FORBIDDEN
+lease_scope:
+  - creative_runtime/**
+  - apps/cli/**
+  - tests/**
+  - coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/BRIDGE-PROVENANCE-R169/**
+  - .github/workflows/r169-interactive-film-bridge-provenance.yml
+  - .gitignore
+prewrite_requirements:
+  - "Control Tower scan PASS"
+  - "EFFECTIVE_SPEC_SNAPSHOT/v1 binds review 5059684398"
+  - "branch does not exist before snapshot"
+  - "branch parent equals implementation baseline exactly"
+termination_gate: "engineering handoff + compliant #453 REVIEW_REQUEST then stop"
+merge_authorized: false

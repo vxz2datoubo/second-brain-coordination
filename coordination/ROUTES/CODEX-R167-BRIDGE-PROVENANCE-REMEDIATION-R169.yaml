@@ -1,0 +1,79 @@
+schema_version: "169.0"
+route_id: "CODEX-R167-BRIDGE-PROVENANCE-REMEDIATION-R169"
+repository: "vxz2datoubo/second-brain-coordination"
+issue: 507
+parent_issue: 503
+route_epoch: 169
+executor: CODEX
+worker_slot_id: "CODEX-R169-INTERACTIVE-FILM-BRIDGE-PROVENANCE-1"
+status: READY_PREWRITE
+execution_allowed: true
+substantive_write_allowed: false
+substantive_write_gate: "ISSUE_507_EFFECTIVE_SPEC_SNAPSHOT_AND_EXACT_BRANCH_PARENT_REQUIRED"
+automatic_resume_within_task: true
+second_user_start_command_required: false
+merge_authorized: false
+implementation_baseline: "9246e07bff0ed0f194d646cfb901783ed1dbe919"
+implementation_branch: "codex/r169-r167-bridge-provenance-remediation"
+
+binding_review:
+  pr: 506
+  exact_head: "6ba392adf8520c610eb4387af9089427d6ff3369"
+  formal_review: 5059684398
+  supporting_same_conclusion_review: 5059665927
+  review_result: 5466075081
+  verdict: CHANGES_REQUIRED
+  sole_blocker: "P1_POST_PREFIX_FORGED_MIGRATION_BRIDGE_ACCEPTED_WHEN_REGENERATED_PREFIX_HAS_NO_BRIDGE"
+  prior_r165_b01_b02_closed: true
+
+mission:
+  - "SavedSession.validate MUST require actual migration_bridge positions/event identities to exactly equal deterministic regenerated prefix bridge positions/event identities."
+  - "If regenerated prefix contains no bridge, any bridge anywhere fails closed."
+  - "Allowed bridges may not move, duplicate, copy, or appear as suffix additions."
+  - "Adversarial legacy [approach] + recomputed-hash canonical-looking suffix bridge must fail through SaveStore.load, SavedSession.state, timeline, director sequence, review packet."
+  - "Preserve R167 closed protections: positive approach->listen bridge, lossy listen->approach->leave fail closed, state_patch fail closed, receipt/history durability, native-v2 unmarked, canonical ticket fields."
+
+allowed_write_paths:
+  - "creative_runtime/**"
+  - "apps/cli/**"
+  - "tests/**"
+  - "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/BRIDGE-PROVENANCE-R169/**"
+  - ".github/workflows/r169-interactive-film-bridge-provenance.yml"
+  - ".gitignore"
+
+read_only_evidence:
+  - "Issue #507"
+  - "Issue #503"
+  - "Issue #453 and SPEC_SNAPSHOT_GATE/v1"
+  - "pullrequestreview-5059684398"
+  - "pullrequestreview-5059665927"
+  - "issuecomment-5466075081"
+  - "PR #506 exact head 6ba392adf8520c610eb4387af9089427d6ff3369"
+  - "PR #502/#495/#493 frozen evidence"
+
+source_fence:
+  pr_506: "FROZEN_REVIEWED_CANDIDATE_NO_WRITE_READY_MERGE_IMPORT_REUSE"
+  pr_502: "FROZEN_REVIEWED_EVIDENCE_NO_WRITE_READY_MERGE_IMPORT_REUSE"
+  pr_495: "FROZEN_UNACCEPTED_EVIDENCE_ONLY_NO_MUTATION_OR_REUSE"
+  pr_493: "REFERENCE_ONLY_UNACCEPTED_CANDIDATE_NO_MUTATION_OR_REUSE"
+  retroactive_authorization: false
+
+hard_locks:
+  - NO_NETWORK_PROVIDER_MODEL_RUNTIME
+  - NO_CREDENTIAL_TOKEN_ACCOUNT_INTROSPECTION
+  - NO_EXTERNAL_OR_PAID_GENERATION
+  - NO_DEPLOYMENT_PUBLIC_RELEASE_PRODUCTION
+  - NO_TRADE_BROKER_ACCOUNT_ORDER_FUND
+  - NO_CANONICAL_W3_KNOWLEDGE_DOMAIN_TRUTH_WRITE
+  - NO_SECOND_LEDGER_GATEWAY_RESOLVER_AUTHORITY
+  - NO_SELF_REVIEW_SELF_ACCEPT_SELF_MERGE
+  - NO_REBASE_RESET_FORCE_PUSH_AMEND_HISTORY_REWRITE
+
+validation:
+  exact_head_ci: true
+  python_matrix: ["3.11", "3.13"]
+  workflow: ".github/workflows/r169-interactive-film-bridge-provenance.yml"
+  successor_handoff_must_precede_review_request: true
+  review_request_required_fields: [effective_spec_snapshot_id, effective_spec_snapshot_ref, canonical_base, exact_head]
+  review_request_handoff_must_be_real_comment_id: true
+  stop_after_review_request: true
