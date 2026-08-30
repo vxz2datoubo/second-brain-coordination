@@ -31,7 +31,6 @@ class IsolationError(RuntimeError):
     """Fail-closed integration proof error."""
 
 
-
 def _stable_json(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
@@ -195,7 +194,7 @@ def compare_snapshots(
 
     missing = sorted(set(baseline_index) - set(integrated_index))
     if missing:
-        env.extend(f"MISSING_BASELINE_TEST_ID:{test_id}" for test_id in missing)
+        env.update(f"MISSING_BASELINE_TEST_ID:{test_id}" for test_id in missing)
 
     candidate_only = sorted(set(integrated_index) - set(baseline_index))
     candidate_only_failures = [test_id for test_id in candidate_only if integrated_index[test_id]["status"] != PASS]
