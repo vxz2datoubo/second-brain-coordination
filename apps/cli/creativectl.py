@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import re
 import sys
 from typing import Any, Mapping
 
@@ -52,6 +53,7 @@ UNSAFE_PHRASES = {
     "sex", "sexual", "nude", "blood", "gore", "torture",
     "性爱", "性行为", "色情", "裸露", "裸体", "露骨", "血腥", "酷刑", "虐待",
 }
+_COMMAND_ID_PATTERN = re.compile(r"cmd_[a-f0-9]{20}")
 SCENARIOS = {
     "legacy_archive": StoryState(scene_id="synthetic_archive", beat_id="arrival", relationships={"mira": 0}),
     "three_scene": StoryState(scene_id="archive_gate", beat_id="arrival", relationships={"mira": 0}),
@@ -203,6 +205,55 @@ def _view(ledger: CreativeLedger) -> dict[str, Any]:
     return {"status": "ready", "state": state.to_dict(), "text": beat["text"], "options": options}
 
 
+def _validate_command_id(command_id: str | None) -> str | None:
+    """Accept only opaque, caller-generated IDs safe to persist in the ledger."""
+
+    if command_id is None:
+        return None
+    if not isinstance(command_id, str) or not _COMMAND_ID_PATTERN.fullmatch(command_id):
+        raise LedgerViolation("command_id must be a stable opaque cmd_<20 lowercase hex> identifier")
+    return command_id
+
+
+def _previous_and_result_frames(ledger: CreativeLedger, sequence: int, slot: str) -> tuple[str, str]:
+    """Reconstruct the exact command boundary from immutable event prefixes."""
+
+    if sequence < 1 or sequence >= len(ledger.events):
+        raise LedgerViolation("command event sequence is outside the story ledger")
+    previous = build_interactive_frame(CreativeLedger(ledger.events[:sequence]), slot=slot)
+    result = build_interactive_frame(CreativeLedger(ledger.events[: sequence + 1]), slot=slot)
+    return previous.frame_id, result.frame_id
+
+
+def _existing_command_result(ledger: CreativeLedger, command_id: str, action_id: str, slot: str) -> dict[str, Any] | None:
+    """Find a prior command without trusting mutable client-side state."""
+
+    matches = [
+        event for event in ledger.events[1:]
+        if event.event_type == "player_action" and event.payload.get("command_id") == command_id
+    ]
+    if not matches:
+        return None
+    if len(matches) != 1:
+        raise LedgerViolation("command_id appears more than once in the immutable story ledger")
+    event = matches[0]
+    recorded_action = event.payload.get("action")
+    if not isinstance(recorded_action, Mapping) or recorded_action.get("action_id") != action_id:
+        raise LedgerViolation("command_id was already used for a different action")
+    prior_frame_id, current_frame_id = _previous_and_result_frames(ledger, event.sequence, slot)
+    latest_frame_id = build_interactive_frame(ledger, slot=slot).frame_id
+    return {
+        "status": "command_already_applied",
+        "command_id": command_id,
+        "action_id": action_id,
+        "slot_id": slot,
+        "prior_frame_id": prior_frame_id,
+        "current_frame_id": current_frame_id,
+        "latest_frame_id": latest_frame_id,
+        "event_id": event.event_id,
+    }
+
+
 def initialize(workspace: Path, scenario: str = "legacy_archive", slot: str = DEFAULT_SLOT) -> dict[str, Any]:
     normalized_slot = validate_slot(slot)
     with session_mutation_lock(workspace, normalized_slot):
@@ -227,12 +278,18 @@ def choose(
     source_text: str | None = None,
     slot: str = DEFAULT_SLOT,
     expected_frame_id: str | None = None,
+    command_id: str | None = None,
 ) -> dict[str, Any]:
     normalized_slot = validate_slot(slot)
+    normalized_command_id = _validate_command_id(command_id)
     if expected_frame_id is not None and (not isinstance(expected_frame_id, str) or not expected_frame_id.startswith("frame_")):
         raise LedgerViolation("expected_frame_id must be a frame_<stable digest> identity")
     with session_mutation_lock(workspace, normalized_slot):
         ledger = _load_session(workspace, normalized_slot)
+        if normalized_command_id is not None:
+            existing = _existing_command_result(ledger, normalized_command_id, action_id, normalized_slot)
+            if existing is not None:
+                return existing
         state = ledger.replay()
         graph = graph_for_ledger(ledger)
         prior_frame = build_interactive_frame(ledger, slot=normalized_slot)
@@ -253,6 +310,7 @@ def choose(
                 "resulting_patch": option["patch"],
                 "transition_id": option["transition_id"],
                 "graph_revision": graph.revision,
+                **({"command_id": normalized_command_id} if normalized_command_id is not None else {}),
             },
             f"2030-01-01T00:{len(ledger.events):02d}:00Z",
         )
@@ -263,6 +321,7 @@ def choose(
             "status": "chosen",
             "action_id": action_id,
             "slot_id": normalized_slot,
+            "command_id": normalized_command_id,
             "prior_frame_id": prior_frame.frame_id,
             "current_frame_id": current_frame.frame_id,
         }
@@ -290,7 +349,13 @@ def parse_free_text(text: str, legal_actions: set[str]) -> tuple[str | None, flo
     return matches[0], 0.9
 
 
-def say(workspace: Path, text: str, slot: str = DEFAULT_SLOT, expected_frame_id: str | None = None) -> dict[str, Any]:
+def say(
+    workspace: Path,
+    text: str,
+    slot: str = DEFAULT_SLOT,
+    expected_frame_id: str | None = None,
+    command_id: str | None = None,
+) -> dict[str, Any]:
     normalized_slot = validate_slot(slot)
     ledger = _load_session(workspace, normalized_slot)
     state = ledger.replay()
@@ -302,7 +367,14 @@ def say(workspace: Path, text: str, slot: str = DEFAULT_SLOT, expected_frame_id:
             "message": "Use a clear, non-explicit intent or select an available option.",
             "legal_options": sorted(legal),
         }
-    return choose(workspace, action, source_text=text, slot=normalized_slot, expected_frame_id=expected_frame_id)
+    return choose(
+        workspace,
+        action,
+        source_text=text,
+        slot=normalized_slot,
+        expected_frame_id=expected_frame_id,
+        command_id=command_id,
+    )
 
 
 def run(argv: list[str]) -> dict[str, Any]:
@@ -316,9 +388,11 @@ def run(argv: list[str]) -> dict[str, Any]:
     choose_parser = subparsers.add_parser("choose")
     choose_parser.add_argument("action_id")
     choose_parser.add_argument("--expected-frame-id")
+    choose_parser.add_argument("--command-id")
     say_parser = subparsers.add_parser("say")
     say_parser.add_argument("text")
     say_parser.add_argument("--expected-frame-id")
+    say_parser.add_argument("--command-id")
     subparsers.add_parser("resume")
     subparsers.add_parser("replay")
     subparsers.add_parser("timeline")
@@ -363,9 +437,15 @@ def run(argv: list[str]) -> dict[str, Any]:
     if args.command in {"play", "resume"}:
         return {**_view(_load_session(args.workspace, slot)), "slot_id": slot}
     if args.command == "choose":
-        return choose(args.workspace, args.action_id, slot=slot, expected_frame_id=args.expected_frame_id)
+        return choose(
+            args.workspace,
+            args.action_id,
+            slot=slot,
+            expected_frame_id=args.expected_frame_id,
+            command_id=args.command_id,
+        )
     if args.command == "say":
-        return say(args.workspace, args.text, slot, args.expected_frame_id)
+        return say(args.workspace, args.text, slot, args.expected_frame_id, args.command_id)
     if args.command == "replay":
         ledger = _load_session(args.workspace, slot)
         return {**_view(ledger), "status": "replayed", "event_count": len(ledger.events), "slot_id": slot}

@@ -78,7 +78,7 @@ customer content:
 
 ```text
 client reads InteractiveFrame.frame_id
-  -> client submits choice plus --expected-frame-id
+  -> client submits choice plus --expected-frame-id and optional opaque command_id
   -> slot-scoped non-blocking mutation lease
   -> runtime reloads ledger and compares exact prior frame ID
   -> append legal graph event + atomically replace complete session JSON
@@ -91,6 +91,14 @@ session bytes are preserved. The correct recovery is to reload the verified
 frame, not to retry a blind action. The command remains optional for simple
 single-user CLI use, but a future local client gateway should require
 `--expected-frame-id` (or its protocol-equivalent field) on every mutation.
+
+For network retry safety, callers may also use `cmd_<20 lowercase hex>` as a
+`command_id`. It is included in the immutable player-action event itself. A
+repeated identical command returns its original frame boundary without
+appending a second event; reusing the same ID for a different action is a hard
+error. This is intentionally ledger-backed rather than a separate mutable
+receipt cache, so replay, migration, audit, and evidence verification retain
+the same operation identity.
 
 ## Four-layer operational map
 

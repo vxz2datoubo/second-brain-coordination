@@ -70,6 +70,36 @@ class CreativeStaleFrameGuardTests(unittest.TestCase):
                     ["--workspace", str(workspace), "say", "approach carefully", "--expected-frame-id", frame["frame_id"]]
                 )
 
+    def test_command_id_is_idempotent_and_cannot_be_reused_for_another_action(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory)
+            command_id = "cmd_0123456789abcdef0123"
+            creativectl.run(["--workspace", str(workspace), "init", "--scenario", "night_signal"])
+            frame = creativectl.run(["--workspace", str(workspace), "frame"])
+            first = creativectl.run(
+                [
+                    "--workspace", str(workspace), "choose", "listen", "--expected-frame-id", frame["frame_id"],
+                    "--command-id", command_id,
+                ]
+            )
+            after_first = (workspace / "session.json").read_bytes()
+            replay = creativectl.run(
+                [
+                    "--workspace", str(workspace), "choose", "listen", "--expected-frame-id", frame["frame_id"],
+                    "--command-id", command_id,
+                ]
+            )
+            self.assertEqual(replay["status"], "command_already_applied")
+            self.assertEqual(replay["current_frame_id"], first["current_frame_id"])
+            self.assertEqual((workspace / "session.json").read_bytes(), after_first)
+            self.assertEqual(creativectl.run(["--workspace", str(workspace), "timeline"])["entries"].__len__(), 2)
+            with self.assertRaisesRegex(LedgerViolation, "different action"):
+                creativectl.run(
+                    ["--workspace", str(workspace), "choose", "approach", "--command-id", command_id]
+                )
+            with self.assertRaisesRegex(LedgerViolation, "cmd_<20"):
+                creativectl.run(["--workspace", str(workspace), "choose", "approach", "--command-id", "bad-id"])
+
 
 if __name__ == "__main__":
     unittest.main()
