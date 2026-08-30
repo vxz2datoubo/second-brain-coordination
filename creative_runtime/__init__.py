@@ -51,8 +51,16 @@ from .continuity import (
     timeline_hash,
     verified_director_input,
 )
-from .coverage import RouteCoverageEntry, RouteCoverageReport, RouteCoverageViolation, cover_routes, coverage_for_scenario
-from .experience import ExperienceViolation, VerifiedExperienceManifest, build_verified_experience, verify_verified_experience
+from .coverage import RouteCoverageEntry, RouteCoverageReport, RouteCoverageViolation, cover_routes, coverage_for_scenario, ledger_for_route
+from .experience import (
+    ExperienceViolation,
+    VerifiedExperienceManifest,
+    VerifiedScenarioCatalog,
+    build_verified_experience,
+    build_verified_scenario_catalog,
+    verify_verified_experience,
+    verify_verified_scenario_catalog,
+)
 from .presentation import InteractiveFrame, PresentationViolation, build_interactive_frame
 from .understanding import (
     DriftAssessment,
@@ -123,6 +131,7 @@ __all__ = [
     "StoryGraph",
     "StoryState",
     "VerifiedExperienceManifest",
+    "VerifiedScenarioCatalog",
     "SourceProvenance",
     "SessionViolation",
     "TaskGovernance",
@@ -142,10 +151,12 @@ __all__ = [
     "build_interactive_frame",
     "build_feedback_record",
     "build_verified_experience",
+    "build_verified_scenario_catalog",
     "compile_director",
     "compile_verified_director",
     "cover_routes",
     "coverage_for_scenario",
+    "ledger_for_route",
     "correct_from_verified_timeline",
     "create_artifact",
     "default_story_graph",
@@ -169,6 +180,7 @@ __all__ = [
     "three_scene_story_graph",
     "verified_director_input",
     "verify_verified_experience",
+    "verify_verified_scenario_catalog",
     "verify_v2_source_binding",
     "verify_offline_generation_record",
     "validate_slot",

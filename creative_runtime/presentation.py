@@ -32,6 +32,7 @@ class InteractiveFrame:
     state: Mapping[str, Any]
     story_text: str
     legal_choices: tuple[Mapping[str, str], ...]
+    recent_action: Mapping[str, Any]
     recent_consequence: Mapping[str, Any]
     director: Mapping[str, Any]
     accessibility: Mapping[str, Any]
@@ -47,6 +48,7 @@ class InteractiveFrame:
             "state": dict(self.state),
             "story_text": self.story_text,
             "legal_choices": [dict(choice) for choice in self.legal_choices],
+            "recent_action": dict(self.recent_action),
             "recent_consequence": dict(self.recent_consequence),
             "director": dict(self.director),
             "accessibility": dict(self.accessibility),
@@ -72,6 +74,11 @@ def build_interactive_frame(ledger: CreativeLedger, *, slot: str = DEFAULT_SLOT)
         for transition in graph.legal_actions(state)
     )
     recent = timeline[-1]
+    recent_action = {
+        "event_id": recent.event_id,
+        "action_id": recent.action_id,
+        "transition_id": recent.transition_id,
+    }
     director = {
         "brief_id": compiled.compilation.brief.brief_id,
         "content_rating": compiled.compilation.brief.content_rating,
@@ -95,6 +102,7 @@ def build_interactive_frame(ledger: CreativeLedger, *, slot: str = DEFAULT_SLOT)
         "state": state.to_dict(),
         "story_text": beat.text,
         "legal_choices": list(choices),
+        "recent_action": recent_action,
         "recent_consequence": recent.consequence,
         "director": director,
         "accessibility": accessibility,
@@ -108,6 +116,7 @@ def build_interactive_frame(ledger: CreativeLedger, *, slot: str = DEFAULT_SLOT)
         state=state.to_dict(),
         story_text=beat.text,
         legal_choices=choices,
+        recent_action=recent_action,
         recent_consequence=recent.consequence,
         director=director,
         accessibility=accessibility,

@@ -35,6 +35,8 @@ class CreativeVerifierTests(unittest.TestCase):
         self.assertEqual(receipt["demonstration"]["frame_slot"], "default")
         self.assertEqual(receipt["demonstration"]["experience_status"], "experience_manifest_verified")
         self.assertEqual(receipt["demonstration"]["experience_frame_count"], 4)
+        self.assertEqual(receipt["demonstration"]["catalog_status"], "scenario_catalog_verified")
+        self.assertEqual(receipt["demonstration"]["catalog_transition_count"], 14)
         self.assertEqual(receipt["demonstration"]["feedback_status"], "feedback_recorded")
         self.assertFalse(receipt["demonstration"]["feedback_canonical_write"])
         self.assertEqual(receipt["demonstration"]["audit_status"], "workspace_audit_verified")

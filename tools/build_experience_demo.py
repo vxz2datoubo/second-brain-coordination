@@ -53,6 +53,7 @@ def build_demo_artifact(expected_head: str | None = None) -> dict[str, Any]:
         for action_id in ("listen", "approach", "listen", "listen", "leave"):
             cli.run([*prefix, "choose", action_id])
         experience = cli.run([*prefix, "experience"])
+        catalogue = cli.run(["catalog", "--scenario", "night_signal"])
     return {
         "schema": "CreativeRuntimeExperienceArtifact/v1",
         "status": "experience_artifact_verified",
@@ -60,6 +61,7 @@ def build_demo_artifact(expected_head: str | None = None) -> dict[str, Any]:
         "scenario": "night_signal",
         "actions": ["listen", "approach", "listen", "listen", "leave"],
         "experience": experience,
+        "catalog": catalogue,
         "boundary": {
             "synthetic_only": True,
             "customer_data_present": False,

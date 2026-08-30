@@ -27,9 +27,41 @@ today.
 | Offline end-to-end route | `tools/verify_creative_runtime.py` | play → replay → director → simulated generation → feedback → audit is reproducible | any external provider is safe or approved |
 | Safety boundary | static scan and no-provider offline adapter | this lane reads no credentials and makes no network/media request | all future local adapters are automatically safe |
 | Durable evidence | ledger, v2 migration, receipts, feedback, workspace audit | every demo result has a source chain | an independent product reviewer has accepted it |
+| Verified client projection | `InteractiveFrame/v1` and exhaustive `VerifiedInteractiveScenarioCatalog/v1` | a static player can navigate only source-bound, graph-covered choices | a browser has story authority or can accept customer data |
+| Downloadable synthetic demo | Actions uploads `creative-runtime-synthetic-experience-<SHA>` with `experience.json` and a static player | GitHub produced a frame/catalogue artifact bound to the exact commit | public release, deployment, live media, or a signed production attestation |
 
 The workflow is intentionally read-only and has `contents: read`. It cannot
 publish, deploy, use an account, upload a secret, or call a paid generator.
+The only uploaded result is a short-retention, repository-synthetic JSON
+artifact plus its dependency-free static viewer; its envelope explicitly says
+that it has no customer data and no external-provider result.
+
+## Interactive delivery mapping
+
+The runtime now has one-way authority from immutable evidence to presentation:
+
+```text
+append-only CreativeLedger
+  -> exact-prefix timeline replay
+  -> verified director input + hard quality gate
+  -> InteractiveFrame/v1 (one current render state)
+  -> VerifiedInteractiveExperience/v1 (one played route)
+  -> VerifiedInteractiveScenarioCatalog/v1 (every covered legal route)
+  -> static HTML player (renders nodes; follows precomputed edges only)
+```
+
+| Surface | Receives | Can do | Cannot do |
+| --- | --- | --- | --- |
+| `creativectl frame` | existing session ledger | show one verified current frame | decide an action or invent a state |
+| `creativectl experience` | existing session ledger | export every prefix in the played route | expose an alternative branch not earned by that ledger |
+| `creativectl catalog --scenario night_signal` | fixed synthetic graph | export all tested nodes/edges after exhaustive coverage | introduce a transition or state patch |
+| `apps/web/verified_experience_player.html` | GitHub-built artifact | render, go back, and follow evidence-bound edges | make network calls, load a provider, store customer inputs, calculate narrative state |
+
+The browser player validates envelope/status/boundary/node-edge references but
+does **not** become a second verifier. Exact semantic verification remains in
+the Python runtime and GitHub CI. Any mismatch is an error, not a “best effort”
+fallback. This keeps the client simple while retaining a single deterministic
+source of story authority.
 
 ## Four-layer operational map
 

@@ -5,7 +5,13 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from creative_runtime.experience import ExperienceViolation, build_verified_experience, verify_verified_experience
+from creative_runtime.experience import (
+    ExperienceViolation,
+    build_verified_experience,
+    build_verified_scenario_catalog,
+    verify_verified_experience,
+    verify_verified_scenario_catalog,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -47,6 +53,28 @@ class CreativeExperienceTests(unittest.TestCase):
             manifest["frames"][0]["story_text"] = "invented future disclosure"
             with self.assertRaisesRegex(ExperienceViolation, "does not exactly match"):
                 verify_verified_experience(ledger, manifest)
+
+    def test_catalogue_is_exhaustive_and_clients_can_only_follow_verified_edges(self) -> None:
+        catalogue = creativectl.run(["catalog", "--scenario", "night_signal"])
+        nodes = {node["timeline_hash"]: node["frame"] for node in catalogue["nodes"]}
+        edges = {(edge["from_timeline_hash"], edge["action_id"]): edge for edge in catalogue["edges"]}
+        current = catalogue["initial_timeline_hash"]
+
+        self.assertEqual(catalogue["status"], "scenario_catalog_verified")
+        self.assertEqual(catalogue["scenario"], "night_signal")
+        self.assertEqual(len(catalogue["covered_transition_ids"]), 14)
+        self.assertEqual({item["action_id"] for item in nodes[current]["legal_choices"]}, {"listen", "approach", "leave"})
+        for action_id, expected_scene in (("listen", "station_platform"), ("approach", "signal_room"), ("listen", "archive_vault")):
+            current = edges[(current, action_id)]["to_timeline_hash"]
+            self.assertEqual(nodes[current]["state"]["scene_id"], expected_scene)
+        self.assertNotIn((current, "invent_action"), edges)
+        self.assertEqual(
+            verify_verified_scenario_catalog("night_signal", catalogue).catalog_id,
+            catalogue["catalog_id"],
+        )
+        catalogue["edges"][0]["to_timeline_hash"] = "forged"
+        with self.assertRaisesRegex(ExperienceViolation, "does not exactly match"):
+            verify_verified_scenario_catalog("night_signal", catalogue)
 
 
 if __name__ == "__main__":

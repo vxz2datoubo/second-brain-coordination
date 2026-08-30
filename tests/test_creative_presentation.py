@@ -32,6 +32,8 @@ class CreativePresentationTests(unittest.TestCase):
             self.assertEqual(second["state"]["beat_id"], "platform_signal")
             self.assertNotEqual(first["frame_id"], second["frame_id"])
             self.assertEqual(second["recent_consequence"]["new_facts"], ["a protected relay is active"])
+            self.assertEqual(second["recent_action"]["action_id"], "listen")
+            self.assertIsNone(first["recent_action"]["action_id"])
             self.assertEqual(second["accessibility"]["known_facts_only"], ["a protected relay is active"])
             self.assertTrue(second["director"]["shots"])
             self.assertEqual(second["director"]["content_rating"], "non_explicit")

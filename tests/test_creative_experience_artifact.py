@@ -21,6 +21,8 @@ class CreativeExperienceArtifactTests(unittest.TestCase):
         self.assertEqual(artifact["head_sha"], head)
         self.assertEqual(artifact["experience"]["status"], "experience_manifest_verified")
         self.assertEqual(len(artifact["experience"]["frames"]), 6)
+        self.assertEqual(artifact["catalog"]["status"], "scenario_catalog_verified")
+        self.assertEqual(len(artifact["catalog"]["covered_transition_ids"]), 14)
         self.assertTrue(artifact["boundary"]["synthetic_only"])
         self.assertFalse(artifact["boundary"]["customer_data_present"])
         self.assertFalse(artifact["boundary"]["external_provider_called"])

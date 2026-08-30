@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Verified Interactive Experience Player</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; background: #11131b; color: #edf0f8; }
+    body { margin: 0; min-height: 100vh; background: radial-gradient(circle at top, #263758, #11131b 52%); }
+    main { max-width: 900px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+    .card { background: rgba(16, 20, 31, .92); border: 1px solid #44516c; border-radius: 16px; padding: 1.2rem; margin: 1rem 0; box-shadow: 0 18px 45px #0005; }
+    h1, h2, p { margin-top: 0; } h1 { letter-spacing: -.03em; } h2 { font-size: 1rem; color: #a9c8ff; }
+    .muted, code { color: #a8b0c1; } .hidden { display: none; }
+    .warning { border-color: #c6a34a; background: #382c12; } .error { border-color: #e66b7c; background: #421d26; }
+    .story { font-size: 1.22rem; line-height: 1.65; } .meta { display: flex; flex-wrap: wrap; gap: .55rem; }
+    .pill { border: 1px solid #53617a; border-radius: 999px; padding: .25rem .55rem; font-size: .82rem; color: #c9d6ef; }
+    .choices { display: grid; gap: .65rem; } button, .file-label { font: inherit; border: 1px solid #697ba2; border-radius: 10px; background: #26395e; color: #fff; padding: .7rem .85rem; text-align: left; cursor: pointer; }
+    button:hover:not(:disabled), .file-label:hover { background: #355184; } button:disabled { opacity: .5; cursor: not-allowed; }
+    input[type=file] { position: absolute; width: 1px; height: 1px; opacity: 0; }
+    dl { display: grid; grid-template-columns: max-content 1fr; gap: .35rem .8rem; margin: 0; } dt { color: #9badce; } dd { margin: 0; overflow-wrap: anywhere; }
+    pre { white-space: pre-wrap; word-break: break-word; color: #b7c6e2; font-size: .82rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Verified Interactive Experience</h1>
+    <p class="muted">A render-only player for a GitHub-built, synthetic experience artifact. This page does not call a model, network service, account, provider, or customer store. It never calculates story state: every selectable move must be an edge already present in the verified catalogue.</p>
+    <section class="card warning">
+      <strong>Boundary:</strong> private adaptation, synthetic demo only. This is not a public release, production service, media generator, or customer intake tool.
+    </section>
+    <section class="card" id="loader">
+      <h2>Load a GitHub Actions artifact</h2>
+      <p>Choose the <code>experience.json</code> file downloaded with this player from the <code>creative-runtime-synthetic-experience-…</code> Actions artifact.</p>
+      <label class="file-label" for="artifact-file">Choose experience.json</label>
+      <input id="artifact-file" type="file" accept="application/json,.json">
+      <p id="load-status" class="muted" aria-live="polite">No artifact loaded.</p>
+    </section>
+    <section id="experience" class="hidden" aria-live="polite">
+      <section class="card">
+        <div class="meta" id="meta"></div>
+        <p class="story" id="story"></p>
+        <dl id="state"></dl>
+      </section>
+      <section class="card">
+        <h2>Director and accessibility cues</h2>
+        <dl id="director"></dl>
+      </section>
+      <section class="card">
+        <h2>Choose a verified action</h2>
+        <div class="choices" id="choices"></div>
+        <p id="choice-status" class="muted"></p>
+        <button id="back" type="button">Back to previous verified frame</button>
+      </section>
+    </section>
+    <section id="error" class="card error hidden"><strong>Artifact rejected.</strong><pre id="error-text"></pre></section>
+  </main>
+  <script>
+    "use strict";
+    const fileInput = document.querySelector("#artifact-file");
+    const errorBox = document.querySelector("#error");
+    const errorText = document.querySelector("#error-text");
+    const experienceBox = document.querySelector("#experience");
+    const loadStatus = document.querySelector("#load-status");
+    const meta = document.querySelector("#meta");
+    const story = document.querySelector("#story");
+    const state = document.querySelector("#state");
+    const director = document.querySelector("#director");
+    const choices = document.querySelector("#choices");
+    const choiceStatus = document.querySelector("#choice-status");
+    const back = document.querySelector("#back");
+    let player = null;
+
+    function require(condition, message) { if (!condition) throw new Error(message); }
+    function text(value) { return value == null ? "—" : String(value); }
+    function setPairs(element, pairs) {
+      element.replaceChildren();
+      for (const [key, value] of pairs) {
+        const term = document.createElement("dt"); term.textContent = key;
+        const description = document.createElement("dd"); description.textContent = text(value);
+        element.append(term, description);
+      }
+    }
+    function reject(error) {
+      player = null; experienceBox.classList.add("hidden"); errorBox.classList.remove("hidden");
+      errorText.textContent = error instanceof Error ? error.message : String(error);
+      loadStatus.textContent = "The selected file was not accepted.";
+    }
+    function loadArtifact(payload) {
+      require(payload && typeof payload === "object", "Artifact root must be an object.");
+      require(payload.schema === "CreativeRuntimeExperienceArtifact/v1", "Unexpected artifact schema.");
+      require(payload.status === "experience_artifact_verified", "Artifact has not passed the expected build status.");
+      require(typeof payload.head_sha === "string" && /^[0-9a-f]{40}$/.test(payload.head_sha), "Artifact is missing an exact Git head.");
+      const boundary = payload.boundary;
+      require(boundary && boundary.synthetic_only === true, "Artifact is not marked synthetic-only.");
+      require(boundary.customer_data_present === false && boundary.external_provider_called === false && boundary.publication_authorized === false, "Artifact crosses a safety boundary.");
+      const catalog = payload.catalog;
+      require(catalog && catalog.schema === "VerifiedInteractiveScenarioCatalog/v1" && catalog.status === "scenario_catalog_verified", "Verified scenario catalogue is absent.");
+      require(catalog.provenance && catalog.provenance.client_story_authority === false, "Catalogue grants story authority to the client.");
+      require(Array.isArray(catalog.nodes) && Array.isArray(catalog.edges), "Catalogue nodes or edges are malformed.");
+      const nodes = new Map();
+      for (const node of catalog.nodes) {
+        require(node && typeof node.timeline_hash === "string" && node.frame, "Malformed catalogue node.");
+        require(node.frame.status === "interactive_frame_verified", "Catalogue includes an unverified frame.");
+        require(node.frame.timeline_hash === node.timeline_hash, "Frame and node timeline identities differ.");
+        require(!nodes.has(node.timeline_hash), "Catalogue contains duplicate node identity.");
+        nodes.set(node.timeline_hash, node.frame);
+      }
+      require(nodes.has(catalog.initial_timeline_hash), "Catalogue initial node is absent.");
+      const edges = new Map();
+      for (const edge of catalog.edges) {
+        require(edge && typeof edge.from_timeline_hash === "string" && typeof edge.to_timeline_hash === "string" && typeof edge.action_id === "string" && typeof edge.transition_id === "string", "Malformed catalogue edge.");
+        require(nodes.has(edge.from_timeline_hash) && nodes.has(edge.to_timeline_hash), "Catalogue edge points outside verified nodes.");
+        const key = edge.from_timeline_hash + "\u0000" + edge.action_id;
+        require(!edges.has(key), "Catalogue has duplicate action edge."); edges.set(key, edge);
+      }
+      player = { payload, catalog, nodes, edges, current: catalog.initial_timeline_hash, history: [] };
+      errorBox.classList.add("hidden"); experienceBox.classList.remove("hidden");
+      loadStatus.textContent = "Verified synthetic artifact loaded at " + payload.head_sha.slice(0, 12) + ".";
+      render();
+    }
+    function render() {
+      const frame = player.nodes.get(player.current);
+      const storyState = frame.state || {};
+      meta.replaceChildren();
+      for (const value of ["scenario: " + player.catalog.scenario, "graph: " + frame.graph_revision, "frame: " + frame.frame_id.slice(0, 14), "slot: " + frame.slot_id]) {
+        const pill = document.createElement("span"); pill.className = "pill"; pill.textContent = value; meta.append(pill);
+      }
+      story.textContent = frame.story_text;
+      setPairs(state, [["Scene / beat", text(storyState.scene_id) + " / " + text(storyState.beat_id)], ["Known facts", (frame.accessibility.known_facts_only || []).join("; ") || "none"], ["Risk", storyState.risk_level], ["Relationships", JSON.stringify(storyState.relationships || {})], ["Last verified action", frame.recent_action && frame.recent_action.action_id], ["Last transition", frame.recent_action && frame.recent_action.transition_id]]);
+      const shots = frame.director && frame.director.shots || [];
+      const primaryShot = shots[0] || {};
+      setPairs(director, [["Caption", frame.accessibility.caption_text], ["Sound cue", frame.accessibility.sound_cue], ["Content boundary", frame.accessibility.content_rating], ["Shot role", primaryShot.shot_role], ["Camera", primaryShot.camera], ["Performance task", primaryShot.performance_task], ["Source timeline", frame.director.source_timeline_hash]]);
+      choices.replaceChildren();
+      const legal = frame.legal_choices || [];
+      for (const choice of legal) {
+        const edge = player.edges.get(player.current + "\u0000" + choice.action_id);
+        const button = document.createElement("button"); button.type = "button"; button.textContent = choice.label + " (“" + choice.action_id + "”)";
+        button.disabled = !edge;
+        button.addEventListener("click", () => { player.history.push(player.current); player.current = edge.to_timeline_hash; render(); });
+        choices.append(button);
+      }
+      back.disabled = player.history.length === 0;
+      choiceStatus.textContent = legal.length ? "Only the listed, evidence-bound actions are selectable." : "Terminal verified frame; no further action is available.";
+    }
+    back.addEventListener("click", () => { if (player && player.history.length) { player.current = player.history.pop(); render(); } });
+    fileInput.addEventListener("change", async () => {
+      const file = fileInput.files && fileInput.files[0]; if (!file) return;
+      try { loadArtifact(JSON.parse(await file.text())); } catch (error) { reject(error); }
+    });
+  </script>
+</body>
+</html>

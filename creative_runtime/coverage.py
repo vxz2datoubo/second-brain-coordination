@@ -95,7 +95,12 @@ def _terminal_paths(
     return tuple(routes)
 
 
-def _ledger_for_route(graph: StoryGraph, initial_state: StoryState, actions: Iterable[str]) -> CreativeLedger:
+def ledger_for_route(graph: StoryGraph, initial_state: StoryState, actions: Iterable[str]) -> CreativeLedger:
+    """Reconstruct one graph route with the exact production event contract.
+
+    Route catalogues and exhaustive coverage share this helper so no browser
+    demo or test-only serializer can create a shadow action format.
+    """
     ledger = CreativeLedger()
     ledger.append("story_initialized", {"state": initial_state.to_dict()}, "2030-01-01T00:00:00Z")
     state = initial_state
@@ -130,7 +135,7 @@ def cover_routes(graph: StoryGraph, initial_state: StoryState, *, max_steps: int
     entries: list[RouteCoverageEntry] = []
     terminal_counts: dict[str, int] = {}
     for actions, transition_ids, expected_state in paths:
-        ledger = _ledger_for_route(graph, initial_state, actions)
+        ledger = ledger_for_route(graph, initial_state, actions)
         compiled = compile_verified_director(ledger, graph=graph)
         if compiled.verified_input.state != expected_state:
             raise RouteCoverageViolation("Route replay diverges from graph traversal")

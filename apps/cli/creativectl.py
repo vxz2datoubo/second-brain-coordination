@@ -24,7 +24,7 @@ from creative_runtime.coverage import RouteCoverageViolation, coverage_for_scena
 from creative_runtime.director import compile_verified_director
 from creative_runtime.generation import GenerationViolation, offline_generation_receipt_path, record_offline_generation, verify_offline_generation_record
 from creative_runtime.feedback import FeedbackViolation, build_feedback_record, feedback_path, load_feedback, record_feedback
-from creative_runtime.experience import ExperienceViolation, build_verified_experience
+from creative_runtime.experience import ExperienceViolation, build_verified_experience, build_verified_scenario_catalog
 from creative_runtime.ledger import CreativeLedger, LedgerViolation
 from creative_runtime.knowledge import KnowledgeBridgeViolation, KnowledgeReviewBridge, correct_from_verified_timeline
 from creative_runtime.presentation import PresentationViolation, build_interactive_frame
@@ -317,6 +317,8 @@ def run(argv: list[str]) -> dict[str, Any]:
     subparsers.add_parser("audit")
     subparsers.add_parser("frame")
     subparsers.add_parser("experience")
+    catalog_parser = subparsers.add_parser("catalog")
+    catalog_parser.add_argument("--scenario", choices=sorted(SCENARIOS), default="night_signal")
     coverage_parser = subparsers.add_parser("coverage")
     coverage_parser.add_argument("--scenario", choices=sorted(SCENARIOS), default="three_scene")
     knowledge_parser = subparsers.add_parser("knowledge")
@@ -447,6 +449,8 @@ def run(argv: list[str]) -> dict[str, Any]:
         return build_interactive_frame(_load_session(args.workspace, slot), slot=slot).to_dict()
     if args.command == "experience":
         return build_verified_experience(_load_session(args.workspace, slot), slot=slot).to_dict()
+    if args.command == "catalog":
+        return build_verified_scenario_catalog(args.scenario).to_dict()
     if args.command == "coverage":
         return coverage_for_scenario(args.scenario).to_dict()
     if args.command == "knowledge":

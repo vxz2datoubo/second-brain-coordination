@@ -12,8 +12,9 @@ from dataclasses import dataclass
 import hashlib
 from typing import Any, Mapping
 
-from .continuity import TimelineViolation, graph_for_ledger, replay_timeline, timeline_hash
+from .continuity import TimelineViolation, graph_for_initial_state, graph_for_ledger, replay_timeline, timeline_hash
 from .contracts import canonical_json
+from .coverage import coverage_for_scenario, ledger_for_route
 from .ledger import CreativeLedger
 from .presentation import PresentationViolation, build_interactive_frame
 from .session import DEFAULT_SLOT, validate_slot
@@ -109,4 +110,131 @@ def verify_verified_experience(ledger: CreativeLedger, manifest: Mapping[str, An
         raise ExperienceViolation("Experience manifest must be a JSON object") from error
     if canonical_json(supplied) != canonical_json(expected.to_dict()):
         raise ExperienceViolation("Experience manifest does not exactly match the verified ledger")
+    return expected
+
+
+@dataclass(frozen=True)
+class VerifiedScenarioCatalog:
+    """A complete, render-only graph projection for one bounded scenario.
+
+    Nodes are verified presentation frames. Edges merely point to another
+    already-built frame; the client receives no state-patch language and cannot
+    calculate alternate story states itself.
+    """
+
+    catalog_id: str
+    scenario: str
+    graph_revision: str
+    coverage_report_hash: str
+    initial_timeline_hash: str
+    nodes: tuple[Mapping[str, Any], ...]
+    edges: tuple[Mapping[str, str], ...]
+    covered_transition_ids: tuple[str, ...]
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "schema": "VerifiedInteractiveScenarioCatalog/v1",
+            "status": "scenario_catalog_verified",
+            "catalog_id": self.catalog_id,
+            "scenario": self.scenario,
+            "graph_revision": self.graph_revision,
+            "coverage_report_hash": self.coverage_report_hash,
+            "initial_timeline_hash": self.initial_timeline_hash,
+            "nodes": [dict(node) for node in self.nodes],
+            "edges": [dict(edge) for edge in self.edges],
+            "covered_transition_ids": list(self.covered_transition_ids),
+            "provenance": {
+                "class": "private_adaptation",
+                "synthetic_only": True,
+                "public_release_authorized": False,
+                "customer_data_present": False,
+                "external_provider_called": False,
+                "client_story_authority": False,
+            },
+        }
+
+
+def build_verified_scenario_catalog(scenario: str) -> VerifiedScenarioCatalog:
+    """Compile every bounded terminal path into a client-safe navigation map."""
+
+    report = coverage_for_scenario(scenario)
+    if not report.complete:
+        raise ExperienceViolation("Scenario coverage must be complete before a client catalogue is built")
+    graph = graph_for_initial_state(report.initial_state)
+    nodes: dict[str, Mapping[str, Any]] = {}
+    edges: dict[tuple[str, str], Mapping[str, str]] = {}
+    initial_timeline_hash: str | None = None
+    for route in report.routes:
+        ledger = ledger_for_route(graph, report.initial_state, route.action_ids)
+        manifest = build_verified_experience(ledger, slot="catalog")
+        frames = tuple(manifest.frames)
+        if initial_timeline_hash is None:
+            initial_timeline_hash = manifest.timeline_hash if len(frames) == 1 else str(frames[0]["timeline_hash"])
+        for frame in frames:
+            frame_hash = str(frame["timeline_hash"])
+            existing = nodes.get(frame_hash)
+            if existing is not None and canonical_json(existing) != canonical_json(frame):
+                raise ExperienceViolation("A timeline prefix produced conflicting client frames")
+            nodes[frame_hash] = frame
+        for index in range(1, len(frames)):
+            previous_hash = str(frames[index - 1]["timeline_hash"])
+            current_hash = str(frames[index]["timeline_hash"])
+            action_id = frames[index]["recent_action"].get("action_id")
+            transition_id = frames[index]["recent_action"].get("transition_id")
+            if not isinstance(action_id, str) or not action_id or not isinstance(transition_id, str) or not transition_id:
+                raise ExperienceViolation("Scenario catalogue edge lacks verified action provenance")
+            edge = {
+                "from_timeline_hash": previous_hash,
+                "action_id": action_id,
+                "transition_id": transition_id,
+                "to_timeline_hash": current_hash,
+            }
+            key = (previous_hash, action_id)
+            existing = edges.get(key)
+            if existing is not None and canonical_json(existing) != canonical_json(edge):
+                raise ExperienceViolation("Scenario catalogue contains a conflicting action edge")
+            edges[key] = edge
+    if initial_timeline_hash is None or initial_timeline_hash not in nodes:
+        raise ExperienceViolation("Scenario catalogue has no verified initial frame")
+    ordered_nodes = tuple(
+        {"timeline_hash": key, "frame": dict(nodes[key])}
+        for key in sorted(nodes)
+    )
+    ordered_edges = tuple(edges[key] for key in sorted(edges))
+    covered_transition_ids = tuple(sorted({str(edge["transition_id"]) for edge in ordered_edges}))
+    if covered_transition_ids != report.covered_transition_ids:
+        raise ExperienceViolation("Scenario catalogue does not cover the verified transition set")
+    material = {
+        "schema": "VerifiedInteractiveScenarioCatalog/v1",
+        "scenario": scenario,
+        "graph_revision": report.graph_revision,
+        "coverage_report_hash": report.report_hash,
+        "initial_timeline_hash": initial_timeline_hash,
+        "nodes": list(ordered_nodes),
+        "edges": list(ordered_edges),
+        "covered_transition_ids": list(covered_transition_ids),
+    }
+    catalog_id = "catalog_" + hashlib.sha256(canonical_json(material).encode("utf-8")).hexdigest()[:20]
+    return VerifiedScenarioCatalog(
+        catalog_id=catalog_id,
+        scenario=scenario,
+        graph_revision=report.graph_revision,
+        coverage_report_hash=report.report_hash,
+        initial_timeline_hash=initial_timeline_hash,
+        nodes=ordered_nodes,
+        edges=ordered_edges,
+        covered_transition_ids=covered_transition_ids,
+    )
+
+
+def verify_verified_scenario_catalog(scenario: str, catalog: Mapping[str, Any]) -> VerifiedScenarioCatalog:
+    """Reject a tampered or stale static client catalogue."""
+
+    expected = build_verified_scenario_catalog(scenario)
+    try:
+        supplied = dict(catalog)
+    except (TypeError, ValueError) as error:
+        raise ExperienceViolation("Scenario catalogue must be a JSON object") from error
+    if canonical_json(supplied) != canonical_json(expected.to_dict()):
+        raise ExperienceViolation("Scenario catalogue does not exactly match exhaustive verified coverage")
     return expected
