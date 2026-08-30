@@ -36,14 +36,20 @@ freshness_binding:
   active_registry: "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
   program_lanes: "coordination/ACTIVE-PROGRAM-LANES.yaml"
   activation_scan: "coordination/CONTROL-TOWER/R172-SINGLE-V2-AUTHORITY-ACTIVATION-SCAN.yaml"
+  governance_reconciliation_snapshot: 5470439948
 parallelism:
-  concurrent_gpt_r168: true
-  concurrent_gpt_r166: false
+  concurrent_active_gpt_r168: false
+  r168_pipeline_state: "ACCEPTED_WAITING_CANONICALIZATION_EXECUTION_FROZEN_F58D63F4"
+  concurrent_active_gpt_r166: false
+  r166_pipeline_state: "WAITING_INDEPENDENT_REVIEW_EXECUTION_FROZEN_CC982F33"
   concurrent_codex_r171: false
-  overlap_class: "O0_NO_MATERIAL_WRITE_OVERLAP"
+  r172_reservation_is_active_execution: false
+  active_gpt_execution_slots_observed: 0
+  reserved_gpt_slots_observed: 1
+  overlap_class: "O0_NO_ACTIVE_CONCURRENT_WRITER"
   same_surface_second_writer_forbidden: true
 substantive_write_gate:
-  state: "CLOSED_UNTIL_GOVERNANCE_CANONICAL_AND_ISSUE_515_EFFECTIVE_SPEC_SNAPSHOT"
+  state: "CLOSED_UNTIL_GOVERNANCE_CANONICAL_AND_ISSUE_515_EFFECTIVE_SPEC_SNAPSHOT_AND_RESERVED_TO_ACTIVE_TRANSITION"
   mismatch_action: "FAIL_CLOSED_NO_EDIT"
 self_review_allowed: false
 self_accept_allowed: false
