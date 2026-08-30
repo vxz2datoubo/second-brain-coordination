@@ -87,6 +87,7 @@ from .director_review import (
     verify_director_review_board,
 )
 from .presentation import InteractiveFrame, PresentationViolation, build_interactive_frame
+from .replay_capsule import ReplayCapsuleViolation, VerifiedReplayCapsule, build_verified_replay_capsule, verify_verified_replay_capsule
 from .sequence import SequenceViolation, VerifiedSequencePlan, build_verified_sequence, verify_verified_sequence
 from .understanding import (
     DriftAssessment,
@@ -158,6 +159,7 @@ __all__ = [
     "OfflineGenerationRecord",
     "PlayerAction",
     "PresentationViolation",
+    "ReplayCapsuleViolation",
     "QualityFinding",
     "QualityReport",
     "ProvenanceViolation",
@@ -166,6 +168,7 @@ __all__ = [
     "StoryGraph",
     "StoryState",
     "VerifiedExperienceManifest",
+    "VerifiedReplayCapsule",
     "VerifiedExperienceLibrary",
     "VerifiedScenarioCatalog",
     "VerifiedSequencePlan",
@@ -194,6 +197,7 @@ __all__ = [
     "bind_verified_timeline",
     "build_verified_session_receipt",
     "build_interactive_frame",
+    "build_verified_replay_capsule",
     "build_feedback_record",
     "build_verified_experience",
     "build_director_review_board",
@@ -241,6 +245,7 @@ __all__ = [
     "verify_verified_scenario_catalog",
     "verify_v2_source_binding",
     "verify_offline_generation_record",
+    "verify_verified_replay_capsule",
     "validate_slot",
     "validate_local_intake",
     "v2_session_path",

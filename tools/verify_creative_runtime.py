@@ -70,6 +70,7 @@ def _demo(cli: Any) -> dict[str, Any]:
         frame = cli.run(["--workspace", str(workspace), "frame"])
         experience = cli.run(["--workspace", str(workspace), "experience"])
         sequence = cli.run(["--workspace", str(workspace), "sequence"])
+        replay_capsule = cli.run(["--workspace", str(workspace), "replay-capsule"])
         catalogue = cli.run(["catalog", "--scenario", "night_signal"])
         harbor_catalogue = cli.run(["catalog", "--scenario", "harbor_protocol"])
         understanding = cli.run(["--workspace", str(workspace), "understanding"])
@@ -208,6 +209,11 @@ def _demo(cli: Any) -> dict[str, Any]:
             "sequence_total_duration_seconds": sequence["total_duration_seconds"],
             "sequence_timeline_hash": sequence["timeline_hash"],
             "sequence_cut_relations": [step["cut_contract"]["axis_relation"] for step in sequence["steps"]],
+            "replay_capsule_status": replay_capsule["status"],
+            "replay_capsule_id": replay_capsule["capsule_id"],
+            "replay_capsule_timeline_hash": replay_capsule["timeline_hash"],
+            "replay_capsule_event_count": replay_capsule["source"]["event_count"],
+            "replay_capsule_contains_caller_free_text": replay_capsule["boundary"]["contains_caller_free_text"],
             "catalog_status": catalogue["status"],
             "catalog_transition_count": len(catalogue["covered_transition_ids"]),
             "harbor_catalog_status": harbor_catalogue["status"],
