@@ -90,6 +90,8 @@ class DirectorBrief:
     knowledge_boundaries: Mapping[str, tuple[str, ...]]
     spatial_facts: tuple[str, ...]
     content_rating: str = "non_explicit"
+    activated_skill_ids: tuple[str, ...] = ()
+    skill_trigger_reasons: Mapping[str, str] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return _json_value(self)

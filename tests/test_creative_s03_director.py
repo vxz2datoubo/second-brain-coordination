@@ -4,7 +4,7 @@ from dataclasses import replace
 import unittest
 
 from creative_runtime.contracts import DirectorBrief, StoryState
-from creative_runtime.director import compile_director, compile_shots, synthetic_asset_index, validate_compilation
+from creative_runtime.director import compile_director, compile_shots, select_director_skills, synthetic_asset_index, validate_compilation
 
 
 class CreativeS03DirectorTests(unittest.TestCase):
@@ -23,6 +23,25 @@ class CreativeS03DirectorTests(unittest.TestCase):
         self.assertTrue(compilation.quality_report.can_generate)
         self.assertTrue(all(shot.axis == "entry-hall-to-record-room" for shot in compilation.shots))
         self.assertTrue(all("art_scene_interior_archive" in shot.reference_artifact_ids for shot in compilation.shots))
+
+    def test_skill_activation_is_minimal_and_has_recorded_reasons(self) -> None:
+        initial = StoryState(scene_id="archive_gate", beat_id="arrival")
+        initial_ids, initial_reasons = select_director_skills(initial)
+        self.assertEqual(initial_ids, ("scene_continuity",))
+        self.assertEqual(set(initial_reasons), {"scene_continuity"})
+        state = StoryState(
+            scene_id="interior_archive",
+            beat_id="accord",
+            relationships={"mira": 2},
+            known_facts=("a witness is inside",),
+            flags={"handoff": "promised"},
+        )
+        compiled = compile_director(state)
+        self.assertEqual(
+            compiled.brief.activated_skill_ids,
+            ("handoff_consequence", "knowledge_boundary", "relationship_consequence", "scene_continuity"),
+        )
+        self.assertEqual(set(compiled.brief.skill_trigger_reasons), set(compiled.brief.activated_skill_ids))
 
     def test_missing_asset_and_non_adult_identity_block_generation(self) -> None:
         state = StoryState(scene_id="synthetic_archive", beat_id="arrival")
@@ -61,6 +80,18 @@ class CreativeS03DirectorTests(unittest.TestCase):
         codes = {finding.code for finding in report.findings}
         self.assertFalse(report.can_generate)
         self.assertTrue({"duplicate_shot_id", "duration_budget_exceeded", "spatial_axis_mismatch", "shot_beat_mismatch", "scene_reference_missing", "scene_reference_mismatch", "character_reference_missing"} <= codes)
+
+    def test_unjustified_or_missing_director_skill_fails_closed(self) -> None:
+        valid = compile_director(StoryState(scene_id="archive_gate", beat_id="arrival"))
+        invalid = replace(
+            valid.brief,
+            activated_skill_ids=("knowledge_boundary", "scene_continuity"),
+            skill_trigger_reasons={"knowledge_boundary": "invented", "scene_continuity": "invented"},
+        )
+        report = validate_compilation(invalid, valid.shots, synthetic_asset_index())
+        codes = {finding.code for finding in report.findings}
+        self.assertFalse(report.can_generate)
+        self.assertTrue({"skill_activation_mismatch", "skill_trigger_reason_mismatch"} <= codes)
 
 
 if __name__ == "__main__":

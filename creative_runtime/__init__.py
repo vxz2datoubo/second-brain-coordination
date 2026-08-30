@@ -19,7 +19,7 @@ from .contracts import (
     canonical_json,
 )
 from .ledger import CreativeLedger, LedgerViolation, create_artifact
-from .director import DirectorCompilation, QualityFinding, QualityReport, VerifiedDirectorCompilation, compile_director, compile_verified_director
+from .director import DirectorCompilation, DirectorSkill, QualityFinding, QualityReport, VerifiedDirectorCompilation, compile_director, compile_verified_director, select_director_skills
 from .knowledge import KnowledgeBridgeViolation, KnowledgeCandidate, KnowledgeReviewBridge, VerifiedKnowledgeCandidate, correct_from_verified_timeline
 from .generation import ExternalGenerationGuard, GenerationViolation, OfflineGenerationAdapter, adapter_for
 from .provenance import ProvenanceViolation, SourceProvenance, require_reusable_source
@@ -63,6 +63,7 @@ __all__ = [
     "CreativeLedger",
     "DirectorCompilation",
     "DirectorBrief",
+    "DirectorSkill",
     "DriftAssessment",
     "GenerationRequest",
     "GenerationResult",
@@ -110,6 +111,7 @@ __all__ = [
     "graph_for_initial_state",
     "graph_for_ledger",
     "require_reusable_source",
+    "select_director_skills",
     "load_task_governance",
     "legacy_session_path",
     "load_v2_session",

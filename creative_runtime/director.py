@@ -24,6 +24,8 @@ HARD_CODES = {
     "scene_reference_missing",
     "scene_reference_mismatch",
     "character_reference_missing",
+    "skill_activation_mismatch",
+    "skill_trigger_reason_mismatch",
 }
 
 
@@ -54,6 +56,37 @@ class DirectorCompilation:
     brief: DirectorBrief
     shots: tuple[ShotPlan, ...]
     quality_report: QualityReport
+
+
+@dataclass(frozen=True)
+class DirectorSkill:
+    """A narrowly activated directing responsibility, not a prompt blob."""
+
+    skill_id: str
+    responsibility: str
+
+
+DIRECTOR_SKILLS = {
+    "scene_continuity": DirectorSkill("scene_continuity", "Maintain scene asset, spatial axis, and adult-character placement."),
+    "knowledge_boundary": DirectorSkill("knowledge_boundary", "Show only facts already earned by the story state."),
+    "relationship_consequence": DirectorSkill("relationship_consequence", "Express a recorded relationship change through performance, not narration."),
+    "handoff_consequence": DirectorSkill("handoff_consequence", "Show the consequence of a documented handoff, meeting, or preserved record."),
+}
+
+
+def select_director_skills(state: StoryState) -> tuple[tuple[str, ...], dict[str, str]]:
+    """Select the smallest skill set justified by recorded story state."""
+
+    reasons: dict[str, str] = {
+        "scene_continuity": "Every director plan needs the current scene's established spatial axis.",
+    }
+    if state.known_facts:
+        reasons["knowledge_boundary"] = "The state contains earned facts that must not leak beyond character knowledge."
+    if any(value != 0 for value in state.relationships.values()):
+        reasons["relationship_consequence"] = "The state contains a non-zero recorded relationship consequence."
+    if any(key in state.flags for key in {"handoff", "meeting", "record"}):
+        reasons["handoff_consequence"] = "The state records a handoff, meeting, or preserved-record consequence."
+    return tuple(sorted(reasons)), {key: reasons[key] for key in sorted(reasons)}
 
 
 @dataclass(frozen=True)
@@ -92,6 +125,7 @@ def compile_director_brief(state: StoryState) -> DirectorBrief:
         "dawn_courtyard": ("axis:courtyard-path-to-gate", "mira:gate-side", "player:path-side"),
     }
     spatial_facts = spatial_by_scene.get(state.scene_id, ())
+    skill_ids, skill_reasons = select_director_skills(state)
     return DirectorBrief(
         brief_id="brief_" + state.scene_id + "_" + state.beat_id,
         story_state=state,
@@ -99,6 +133,8 @@ def compile_director_brief(state: StoryState) -> DirectorBrief:
         knowledge_boundaries={"mira": tuple(state.known_facts), "player": tuple(state.known_facts)},
         spatial_facts=spatial_facts,
         content_rating="non_explicit",
+        activated_skill_ids=skill_ids,
+        skill_trigger_reasons=skill_reasons,
     )
 
 
@@ -146,6 +182,11 @@ def validate_compilation(
     if not any(item.startswith("axis:") for item in brief.spatial_facts):
         findings.append(QualityFinding("spatial_axis_missing", "Brief omits a spatial axis."))
     known = set(brief.story_state.known_facts)
+    expected_skill_ids, expected_skill_reasons = select_director_skills(brief.story_state)
+    if brief.activated_skill_ids != expected_skill_ids:
+        findings.append(QualityFinding("skill_activation_mismatch", "Activated director skills are not the minimal state-justified set."))
+    if dict(brief.skill_trigger_reasons) != expected_skill_reasons:
+        findings.append(QualityFinding("skill_trigger_reason_mismatch", "Director skill trigger reasons do not match the recorded story state."))
     expected_axis = next((item.removeprefix("axis:") for item in brief.spatial_facts if item.startswith("axis:")), "")
     expected_scene_asset = "art_scene_" + brief.story_state.scene_id
     if len({shot.shot_id for shot in shots}) != len(shots):
