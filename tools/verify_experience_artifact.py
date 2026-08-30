@@ -24,13 +24,13 @@ if str(ROOT) not in sys.path:
 from creative_runtime.continuity import graph_for_initial_state
 from creative_runtime.contracts import canonical_json
 from creative_runtime.coverage import coverage_for_scenario, ledger_for_route
+from creative_runtime.demo_routes import github_demo_actions
 from creative_runtime.experience import build_verified_experience, build_verified_scenario_catalog
 from creative_runtime.experience_package import PACKAGE_MANIFEST_NAME, PACKAGE_MEMBER_NAMES, build_package_manifest, sha256_hex
 from creative_runtime.sequence import build_verified_sequence
 
 
-DEMO_SCENARIO = "night_signal"
-DEMO_ACTIONS = ("listen", "approach", "listen", "listen", "leave")
+DEFAULT_DEMO_SCENARIO = "night_signal"
 DEMO_SLOT = "github_demo"
 PLAYER_SOURCE = ROOT / "apps" / "web" / "verified_experience_player.html"
 PLAYER_GUIDE_SOURCE = ROOT / "apps" / "web" / "README.md"
@@ -51,21 +51,25 @@ def _require_clean_worktree() -> None:
         raise RuntimeError("Artifact verification requires a clean worktree; use a fresh clone or checkpoint first")
 
 
-def expected_artifact(head_sha: str) -> dict[str, Any]:
+def expected_artifact(head_sha: str, scenario: str = DEFAULT_DEMO_SCENARIO) -> dict[str, Any]:
     """Build the sole fixed Actions demonstration without writing an artifact."""
 
-    report = coverage_for_scenario(DEMO_SCENARIO)
+    try:
+        actions = github_demo_actions(scenario)
+    except ValueError as error:
+        raise RuntimeError("Artifact declares an unsupported GitHub demo scenario") from error
+    report = coverage_for_scenario(scenario)
     graph = graph_for_initial_state(report.initial_state)
-    ledger = ledger_for_route(graph, report.initial_state, DEMO_ACTIONS)
+    ledger = ledger_for_route(graph, report.initial_state, actions)
     return {
         "schema": "CreativeRuntimeExperienceArtifact/v1",
         "status": "experience_artifact_verified",
         "head_sha": head_sha,
-        "scenario": DEMO_SCENARIO,
-        "actions": list(DEMO_ACTIONS),
+        "scenario": scenario,
+        "actions": list(actions),
         "experience": build_verified_experience(ledger, slot=DEMO_SLOT).to_dict(),
         "sequence": build_verified_sequence(ledger, slot=DEMO_SLOT).to_dict(),
-        "catalog": build_verified_scenario_catalog(DEMO_SCENARIO).to_dict(),
+        "catalog": build_verified_scenario_catalog(scenario).to_dict(),
         "boundary": {
             "synthetic_only": True,
             "customer_data_present": False,
@@ -86,6 +90,17 @@ def _verify_exact_package_file(path: Path, source: Path, label: str) -> str:
     if supplied != expected:
         raise RuntimeError(label + " does not exactly match the clean exact-head source file")
     return hashlib.sha256(supplied).hexdigest()
+
+
+def _artifact_scenario(payload: Mapping[str, Any]) -> str:
+    scenario = payload.get("scenario")
+    if not isinstance(scenario, str):
+        raise RuntimeError("Artifact must declare a string synthetic scenario")
+    try:
+        github_demo_actions(scenario)
+    except ValueError as error:
+        raise RuntimeError("Artifact declares an unsupported GitHub demo scenario") from error
+    return scenario
 
 
 def _read_fixed_package_member(package_dir: Path, name: str) -> bytes:
@@ -131,7 +146,8 @@ def verify_artifact(
         raise RuntimeError("Artifact is not readable UTF-8 JSON") from error
     if not isinstance(supplied, Mapping):
         raise RuntimeError("Artifact root must be a JSON object")
-    expected = expected_artifact(head)
+    scenario = _artifact_scenario(supplied)
+    expected = expected_artifact(head, scenario)
     if canonical_json(supplied) != canonical_json(expected):
         raise RuntimeError("Artifact does not exactly match the clean exact-head synthetic rebuild")
     player_hash = _verify_exact_package_file(player_path, PLAYER_SOURCE, "Static player") if player_path is not None else None
@@ -144,8 +160,8 @@ def verify_artifact(
         "player_sha256": player_hash,
         "guide_sha256": guide_hash,
         "package_members_verified": player_path is not None and guide_path is not None,
-        "scenario": DEMO_SCENARIO,
-        "action_count": len(DEMO_ACTIONS),
+        "scenario": scenario,
+        "action_count": len(expected["actions"]),
         "catalog_node_count": len(expected["catalog"]["nodes"]),
         "catalog_edge_count": len(expected["catalog"]["edges"]),
         "catalog_transition_count": len(expected["catalog"]["covered_transition_ids"]),
@@ -179,11 +195,14 @@ def verify_package(
     expected_manifest = build_package_manifest(head, members)
     if canonical_json(supplied_manifest) != canonical_json(expected_manifest):
         raise RuntimeError("Experience package manifest does not exactly match its fixed members and exact head")
-    expected = expected_artifact(head)
     try:
         supplied_artifact = json.loads(members["experience.json"].decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as error:
         raise RuntimeError("Experience package artifact is not readable UTF-8 JSON") from error
+    if not isinstance(supplied_artifact, Mapping):
+        raise RuntimeError("Experience package artifact root must be a JSON object")
+    scenario = _artifact_scenario(supplied_artifact)
+    expected = expected_artifact(head, scenario)
     if canonical_json(supplied_artifact) != canonical_json(expected):
         raise RuntimeError("Experience package artifact does not exactly match the clean exact-head synthetic rebuild")
     player_hash = _verify_exact_package_file(package_dir / "verified_experience_player.html", PLAYER_SOURCE, "Static player")
@@ -192,6 +211,7 @@ def verify_package(
         "schema": "CreativeRuntimeExperiencePackageVerificationReceipt/v1",
         "status": "experience_package_exactly_verified",
         "head_sha": head,
+        "scenario": scenario,
         "manifest_sha256": sha256_hex(manifest_bytes),
         "artifact_sha256": sha256_hex(members["experience.json"]),
         "player_sha256": player_hash,
@@ -199,6 +219,7 @@ def verify_package(
         "package_member_count": len(PACKAGE_MEMBER_NAMES),
         "catalog_node_count": len(expected["catalog"]["nodes"]),
         "catalog_edge_count": len(expected["catalog"]["edges"]),
+        "catalog_transition_count": len(expected["catalog"]["covered_transition_ids"]),
         "sequence_step_count": len(expected["sequence"]["steps"]),
         "sequence_total_duration_seconds": expected["sequence"]["total_duration_seconds"],
         "worktree_status": "clean_required_and_clean" if require_clean_worktree else "not_checked_for_verifier_self_test",

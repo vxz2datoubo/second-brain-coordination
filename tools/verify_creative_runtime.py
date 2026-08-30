@@ -54,6 +54,7 @@ def _demo(cli: Any) -> dict[str, Any]:
         workspace = Path(directory)
         coverage = cli.run(["coverage", "--scenario", "three_scene"])
         night_coverage = cli.run(["coverage", "--scenario", "night_signal"])
+        harbor_coverage = cli.run(["coverage", "--scenario", "harbor_protocol"])
         cli.run(["--workspace", str(workspace), "init", "--scenario", "three_scene"])
         cli.run(["--workspace", str(workspace), "choose", "listen"])
         cli.run(["--workspace", str(workspace), "choose", "approach"])
@@ -64,6 +65,7 @@ def _demo(cli: Any) -> dict[str, Any]:
         experience = cli.run(["--workspace", str(workspace), "experience"])
         sequence = cli.run(["--workspace", str(workspace), "sequence"])
         catalogue = cli.run(["catalog", "--scenario", "night_signal"])
+        harbor_catalogue = cli.run(["catalog", "--scenario", "harbor_protocol"])
         understanding = cli.run(["--workspace", str(workspace), "understanding"])
         derived = cli.run(
             [
@@ -161,6 +163,9 @@ def _demo(cli: Any) -> dict[str, Any]:
             "night_signal_coverage_status": night_coverage["status"],
             "night_signal_route_count": night_coverage["route_count"],
             "night_signal_transition_count": len(night_coverage["covered_transition_ids"]),
+            "harbor_protocol_coverage_status": harbor_coverage["status"],
+            "harbor_protocol_route_count": harbor_coverage["route_count"],
+            "harbor_protocol_transition_count": len(harbor_coverage["covered_transition_ids"]),
             "timeline_status": timeline["status"],
             "timeline_hash": timeline["timeline_hash"],
             "timeline_entry_count": len(timeline["entries"]),
@@ -180,6 +185,8 @@ def _demo(cli: Any) -> dict[str, Any]:
             "sequence_timeline_hash": sequence["timeline_hash"],
             "catalog_status": catalogue["status"],
             "catalog_transition_count": len(catalogue["covered_transition_ids"]),
+            "harbor_catalog_status": harbor_catalogue["status"],
+            "harbor_catalog_transition_count": len(harbor_catalogue["covered_transition_ids"]),
             "understanding_status": understanding["status"],
             "drift_statuses": [item["status"] for item in understanding["drift_assessments"]],
             "knowledge_status": derived["status"],
@@ -247,6 +254,9 @@ def verify(
         "night_signal_coverage_status": "route_coverage_verified",
         "night_signal_route_count": 12,
         "night_signal_transition_count": 14,
+        "harbor_protocol_coverage_status": "route_coverage_verified",
+        "harbor_protocol_route_count": 14,
+        "harbor_protocol_transition_count": 12,
         "timeline_entry_count": 4,
         "director_status": "director_verified",
         "director_can_generate": True,
@@ -260,6 +270,8 @@ def verify(
         "sequence_total_duration_seconds": 52,
         "catalog_status": "scenario_catalog_verified",
         "catalog_transition_count": 14,
+        "harbor_catalog_status": "scenario_catalog_verified",
+        "harbor_catalog_transition_count": 12,
         "understanding_status": "understanding_mapped",
         "drift_statuses": ["pass"],
         "knowledge_status": "pending_human_review",

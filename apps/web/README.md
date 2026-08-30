@@ -7,7 +7,8 @@ customer intake, provider invocation, or story-transition implementation.
 
 ## Run it
 
-1. Download the `creative-runtime-synthetic-experience-<exact SHA>` artifact
+1. Download either the `night_signal` or `harbor_protocol`
+   `creative-runtime-synthetic-experience-<scenario>-<exact SHA>` artifact
    from a successful GitHub Actions run.
 2. Extract the complete four-file package: `experience.json`,
    `verified_experience_player.html`, this `README.md`, and

@@ -6,7 +6,7 @@ from dataclasses import dataclass
 import hashlib
 from typing import Any, Iterable, Mapping
 
-from .continuity import StoryGraph, TimelineViolation, default_story_graph, night_signal_story_graph, three_scene_story_graph
+from .continuity import StoryGraph, TimelineViolation, default_story_graph, harbor_protocol_story_graph, night_signal_story_graph, three_scene_story_graph
 from .contracts import PlayerAction, StoryState, canonical_json
 from .director import compile_verified_director
 from .ledger import CreativeLedger, apply_state_patch
@@ -185,7 +185,7 @@ def cover_routes(graph: StoryGraph, initial_state: StoryState, *, max_steps: int
 
 
 def coverage_for_scenario(scenario: str) -> RouteCoverageReport:
-    """Expose only the two bounded, synthetic scenarios accepted by the CLI."""
+    """Expose only the bounded, synthetic scenarios accepted by the CLI."""
 
     if scenario == "legacy_archive":
         return cover_routes(default_story_graph(), StoryState("synthetic_archive", "arrival", {"mira": 0}))
@@ -193,4 +193,6 @@ def coverage_for_scenario(scenario: str) -> RouteCoverageReport:
         return cover_routes(three_scene_story_graph(), StoryState("archive_gate", "arrival", {"mira": 0}))
     if scenario == "night_signal":
         return cover_routes(night_signal_story_graph(), StoryState("station_platform", "platform_arrival", {"mira": 0}))
+    if scenario == "harbor_protocol":
+        return cover_routes(harbor_protocol_story_graph(), StoryState("harbor_observatory", "dock_arrival", {"mira": 0}))
     raise RouteCoverageViolation("Unknown coverage scenario: " + scenario)

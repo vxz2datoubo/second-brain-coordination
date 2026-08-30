@@ -20,6 +20,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from creative_runtime.contracts import canonical_json
+from creative_runtime.demo_routes import GITHUB_DEMO_ROUTES, github_demo_actions
 
 
 def _git_head() -> str:
@@ -39,7 +40,7 @@ def _load_cli() -> Any:
     return module
 
 
-def build_demo_artifact(expected_head: str | None = None) -> dict[str, Any]:
+def build_demo_artifact(expected_head: str | None = None, scenario: str = "night_signal") -> dict[str, Any]:
     """Create a deterministic multi-scene example without touching user data."""
 
     head = _git_head()
@@ -49,18 +50,19 @@ def build_demo_artifact(expected_head: str | None = None) -> dict[str, Any]:
     with tempfile.TemporaryDirectory(prefix="creative-runtime-experience-") as directory:
         workspace = Path(directory)
         prefix = ["--workspace", str(workspace), "--slot", "github_demo"]
-        cli.run([*prefix, "init", "--scenario", "night_signal"])
-        for action_id in ("listen", "approach", "listen", "listen", "leave"):
+        actions = github_demo_actions(scenario)
+        cli.run([*prefix, "init", "--scenario", scenario])
+        for action_id in actions:
             cli.run([*prefix, "choose", action_id])
         experience = cli.run([*prefix, "experience"])
         sequence = cli.run([*prefix, "sequence"])
-        catalogue = cli.run(["catalog", "--scenario", "night_signal"])
+        catalogue = cli.run(["catalog", "--scenario", scenario])
     return {
         "schema": "CreativeRuntimeExperienceArtifact/v1",
         "status": "experience_artifact_verified",
         "head_sha": head,
-        "scenario": "night_signal",
-        "actions": ["listen", "approach", "listen", "listen", "leave"],
+        "scenario": scenario,
+        "actions": list(actions),
         "experience": experience,
         "sequence": sequence,
         "catalog": catalogue,
@@ -76,10 +78,11 @@ def build_demo_artifact(expected_head: str | None = None) -> dict[str, Any]:
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description="Build a deterministic synthetic interactive-film experience artifact.")
     parser.add_argument("--expected-head", help="Require this exact commit SHA before building.")
+    parser.add_argument("--scenario", choices=sorted(GITHUB_DEMO_ROUTES), default="night_signal", help="Reviewed synthetic scenario to package.")
     parser.add_argument("--output", required=True, type=Path, help="Output JSON file; intended for a temporary or artifact directory.")
     args = parser.parse_args(argv)
     try:
-        artifact = build_demo_artifact(args.expected_head)
+        artifact = build_demo_artifact(args.expected_head, args.scenario)
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(canonical_json(artifact) + "\n", encoding="utf-8")
         print(json.dumps({"status": artifact["status"], "head_sha": artifact["head_sha"], "output": str(args.output)}, sort_keys=True))

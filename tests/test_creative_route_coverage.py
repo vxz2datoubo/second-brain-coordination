@@ -58,6 +58,37 @@ class CreativeRouteCoverageTests(unittest.TestCase):
                 self.assertTrue(director["quality_report"]["can_generate"])
                 self.assertIn("art_scene_riverside_dawn", director["shots"][0]["reference_artifact_ids"])
 
+    def test_harbor_protocol_is_a_second_multi_space_interactive_film_with_exhaustive_coverage(self) -> None:
+        report = coverage_for_scenario("harbor_protocol")
+        self.assertTrue(report.complete)
+        self.assertEqual(report.graph_revision, "HarborProtocolGraph/v1")
+        self.assertEqual(len(report.routes), 14)
+        self.assertEqual(len(report.covered_transition_ids), 12)
+        self.assertEqual(report.terminal_state_counts, {"sunrise_pier/daylight_return": 14})
+        self.assertTrue(all(route.director_can_generate for route in report.routes))
+        self.assertTrue(all(route.director_metrics["hard_finding_count"] == 0 for route in report.routes))
+
+        with self.subTest("playable route with visible earned consequences"):
+            import tempfile
+
+            with tempfile.TemporaryDirectory() as directory:
+                workspace = Path(directory)
+                creativectl.run(["--workspace", str(workspace), "init", "--scenario", "harbor_protocol"])
+                for action in ("listen", "approach", "listen", "approach", "listen"):
+                    creativectl.run(["--workspace", str(workspace), "choose", action])
+                final = creativectl.run(["--workspace", str(workspace), "replay"])
+                timeline = creativectl.run(["--workspace", str(workspace), "timeline"])
+                director = creativectl.run(["--workspace", str(workspace), "director"])
+                catalogue = creativectl.run(["catalog", "--scenario", "harbor_protocol"])
+                self.assertEqual(final["state"]["scene_id"], "sunrise_pier")
+                self.assertEqual(final["state"]["flags"]["forum"], "witnessed")
+                self.assertEqual(timeline["entries"][-1]["consequence"]["relationship_delta"], {"mira": 1})
+                self.assertTrue(director["quality_report"]["can_generate"])
+                self.assertIn("art_scene_sunrise_pier", director["shots"][0]["reference_artifact_ids"])
+                self.assertEqual(catalogue["status"], "scenario_catalog_verified")
+                self.assertEqual(len(catalogue["covered_transition_ids"]), 12)
+                self.assertTrue(all(edge["target_frame_id"] for edge in catalogue["edges"]))
+
     def test_cli_coverage_is_read_only_and_rejects_an_unbounded_cycle(self) -> None:
         cli_report = creativectl.run(["coverage", "--scenario", "three_scene"])
         self.assertEqual(cli_report["status"], "route_coverage_verified")

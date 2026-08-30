@@ -15,11 +15,12 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from creative_runtime.contracts import canonical_json
+from creative_runtime.demo_routes import GITHUB_DEMO_ROUTES
 from creative_runtime.experience_package import PACKAGE_MANIFEST_NAME, PACKAGE_MEMBER_NAMES, build_package_manifest, sha256_hex
 from build_experience_demo import build_demo_artifact
 
 
-def build_package(output_dir: Path, expected_head: str | None = None) -> dict[str, object]:
+def build_package(output_dir: Path, expected_head: str | None = None, scenario: str = "night_signal") -> dict[str, object]:
     """Create a new package directory atomically; refuse to overwrite an output."""
 
     if output_dir.exists():
@@ -28,7 +29,7 @@ def build_package(output_dir: Path, expected_head: str | None = None) -> dict[st
     temporary = output_dir.with_name(output_dir.name + ".building-" + uuid.uuid4().hex)
     try:
         temporary.mkdir()
-        artifact = build_demo_artifact(expected_head)
+        artifact = build_demo_artifact(expected_head, scenario)
         members = {
             "experience.json": (canonical_json(artifact) + "\n").encode("utf-8"),
             "verified_experience_player.html": (ROOT / "apps" / "web" / "verified_experience_player.html").read_bytes(),
@@ -45,6 +46,7 @@ def build_package(output_dir: Path, expected_head: str | None = None) -> dict[st
     return {
         "status": "experience_package_built",
         "head_sha": artifact["head_sha"],
+        "scenario": scenario,
         "output_dir": str(output_dir),
         "member_count": len(PACKAGE_MEMBER_NAMES),
         "manifest_sha256": sha256_hex(manifest_bytes),
@@ -55,10 +57,11 @@ def build_package(output_dir: Path, expected_head: str | None = None) -> dict[st
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description="Build a deterministic synthetic interactive-film package directory.")
     parser.add_argument("--expected-head", help="Require this exact commit SHA before building.")
+    parser.add_argument("--scenario", choices=sorted(GITHUB_DEMO_ROUTES), default="night_signal", help="Reviewed synthetic scenario to package.")
     parser.add_argument("--output-dir", required=True, type=Path, help="New output directory; it must not already exist.")
     args = parser.parse_args(argv)
     try:
-        print(json.dumps(build_package(args.output_dir, args.expected_head), ensure_ascii=False, sort_keys=True))
+        print(json.dumps(build_package(args.output_dir, args.expected_head, args.scenario), ensure_ascii=False, sort_keys=True))
     except (RuntimeError, ValueError) as error:
         print(json.dumps({"status": "failed", "message": str(error)}, ensure_ascii=False, sort_keys=True))
         return 2

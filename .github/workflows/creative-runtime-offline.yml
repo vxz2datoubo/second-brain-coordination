@@ -97,11 +97,15 @@ jobs:
           fi
 
   synthetic-experience-artifact:
-    name: Synthetic experience artifact
+    name: Synthetic experience artifact (${{ matrix.scenario }})
     runs-on: ubuntu-latest
     needs: offline-runtime
     permissions:
       contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario: [night_signal, harbor_protocol]
     steps:
       - name: Checkout exact event head
         uses: actions/checkout@v4
@@ -127,16 +131,16 @@ jobs:
         shell: bash
         env:
           EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
-          EXPERIENCE_PACKAGE: ${{ runner.temp }}/creative-runtime-experience
+          EXPERIENCE_PACKAGE: ${{ runner.temp }}/creative-runtime-experience-${{ matrix.scenario }}
         run: |
           set -euo pipefail
-          python tools/build_experience_package.py --expected-head "$EXPECTED_HEAD" --output-dir "$EXPERIENCE_PACKAGE"
+          python tools/build_experience_package.py --expected-head "$EXPECTED_HEAD" --scenario "${{ matrix.scenario }}" --output-dir "$EXPERIENCE_PACKAGE"
           python tools/verify_experience_artifact.py --expected-head "$EXPECTED_HEAD" --package-dir "$EXPERIENCE_PACKAGE"
 
       - name: Upload public-safe synthetic experience
         uses: actions/upload-artifact@v4
         with:
-          name: creative-runtime-synthetic-experience-${{ github.event.pull_request.head.sha || github.sha }}
-          path: ${{ runner.temp }}/creative-runtime-experience
+          name: creative-runtime-synthetic-experience-${{ matrix.scenario }}-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/creative-runtime-experience-${{ matrix.scenario }}
           if-no-files-found: error
           retention-days: 7

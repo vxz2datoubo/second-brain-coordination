@@ -28,7 +28,7 @@ today.
 | Safety boundary | static scan and no-provider offline adapter | this lane reads no credentials and makes no network/media request | all future local adapters are automatically safe |
 | Durable evidence | ledger, v2 migration, receipts, feedback, workspace audit | every demo result has a source chain | an independent product reviewer has accepted it |
 | Verified client projection | `InteractiveFrame/v1` and exhaustive `VerifiedInteractiveScenarioCatalog/v1` | a static player can navigate only source-bound, graph-covered choices | a browser has story authority or can accept customer data |
-| Downloadable synthetic demo | Actions uploads `creative-runtime-synthetic-experience-<SHA>` with `experience.json` and a static player | GitHub produced a frame/catalogue artifact bound to the exact commit | public release, deployment, live media, or a signed production attestation |
+| Downloadable synthetic demos | Actions uploads one four-file package each for `night_signal` and `harbor_protocol`, named `creative-runtime-synthetic-experience-<scenario>-<SHA>` | GitHub produced scenario-specific frame/catalogue artifacts bound to the exact commit | public release, deployment, live media, or a signed production attestation |
 
 The workflow is intentionally read-only and has `contents: read`. It cannot
 publish, deploy, use an account, upload a secret, or call a paid generator.

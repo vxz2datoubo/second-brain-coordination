@@ -34,6 +34,13 @@ class CreativeS03DirectorTests(unittest.TestCase):
         self.assertTrue(all(shot.axis == "entry-hall-to-record-room" for shot in compilation.shots))
         self.assertTrue(all("art_scene_interior_archive" in shot.reference_artifact_ids for shot in compilation.shots))
 
+    def test_harbor_protocol_scene_compiles_only_with_its_matching_asset_and_axis(self) -> None:
+        compilation = compile_director(StoryState(scene_id="public_forum", beat_id="witnessed_record", relationships={"mira": 2}, known_facts=("the public chart index confirms the beacon route",), flags={"record": "verified"}))
+        self.assertTrue(compilation.quality_report.can_generate)
+        self.assertTrue(all(shot.axis == "forum-table-to-exit" for shot in compilation.shots))
+        self.assertTrue(all("art_scene_public_forum" in shot.reference_artifact_ids for shot in compilation.shots))
+        self.assertIn("handoff_consequence", compilation.brief.activated_skill_ids)
+
     def test_skill_activation_is_minimal_and_has_recorded_reasons(self) -> None:
         initial = StoryState(scene_id="archive_gate", beat_id="arrival")
         initial_ids, initial_reasons = select_director_skills(initial)

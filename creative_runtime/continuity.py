@@ -304,6 +304,41 @@ def night_signal_story_graph() -> StoryGraph:
     return StoryGraph(revision, beats, transitions)
 
 
+def harbor_protocol_story_graph() -> StoryGraph:
+    """A second substantial synthetic interactive-film route.
+
+    The route is deliberately original and public-safe: adult characters make
+    documented, non-explicit choices about a civic beacon record.  Its branches
+    exercise earned facts, risk, relationships, public handoff and multiple
+    physical spaces without importing any external story or media asset.
+    """
+
+    revision = "HarborProtocolGraph/v1"
+    beats = (
+        GraphBeat("harbor_observatory", "dock_arrival", "Two adult archivists reach a quiet harbor observatory after a civic beacon repeats an old chart number."),
+        GraphBeat("harbor_observatory", "beacon_echo", "The beacon answers once more. Mira keeps the pier exit visible while the player decides how to document the signal."),
+        GraphBeat("beacon_room", "lens_console", "In the staffed beacon room, a keeper offers a read-only light log and waits for a careful request."),
+        GraphBeat("map_archive", "chart_crosscheck", "At the map archive, a public chart index can be compared without opening a private harbor record."),
+        GraphBeat("public_forum", "witnessed_record", "At the public forum, the group can state only verified facts and schedule a witnessed daylight handoff."),
+        GraphBeat("sunrise_pier", "daylight_return", "At sunrise on the pier, the beacon case is paused with an accountable, public-safe next step."),
+    )
+    transitions = (
+        _transition(revision, "harbor_observatory", "dock_arrival", "listen", "Listen to the beacon cadence", {"beat_id": "beacon_echo", "reveal_facts": ["a civic beacon is repeating a chart number"], "risk_delta": 1}),
+        _transition(revision, "harbor_observatory", "dock_arrival", "approach", "Ask the harbor keeper for a safe route", {"scene_id": "beacon_room", "beat_id": "lens_console", "relationship_delta": {"mira": 1}, "flags": {"arrival": "announced"}}),
+        _transition(revision, "harbor_observatory", "dock_arrival", "leave", "Leave a public daylight callback route", {"scene_id": "sunrise_pier", "beat_id": "daylight_return", "risk_delta": -1, "flags": {"route": "deferred"}}),
+        _transition(revision, "harbor_observatory", "beacon_echo", "approach", "Document the signal before entering", {"scene_id": "beacon_room", "beat_id": "lens_console", "relationship_delta": {"mira": 1}, "flags": {"beacon": "logged"}}),
+        _transition(revision, "harbor_observatory", "beacon_echo", "leave", "Record the beacon and withdraw", {"scene_id": "sunrise_pier", "beat_id": "daylight_return", "flags": {"beacon": "recorded"}}),
+        _transition(revision, "beacon_room", "lens_console", "listen", "Compare the light log with Mira", {"scene_id": "map_archive", "beat_id": "chart_crosscheck", "reveal_facts": ["the public chart index confirms the beacon route"], "relationship_delta": {"mira": 1}, "risk_delta": -1, "flags": {"handoff": "scoped"}}),
+        _transition(revision, "beacon_room", "lens_console", "leave", "Keep the discussion at the public pier", {"scene_id": "sunrise_pier", "beat_id": "daylight_return", "flags": {"meeting": "offered"}}),
+        _transition(revision, "map_archive", "chart_crosscheck", "listen", "Read the public chart index into the record", {"scene_id": "public_forum", "beat_id": "witnessed_record", "relationship_delta": {"mira": 1}, "flags": {"record": "verified"}}),
+        _transition(revision, "map_archive", "chart_crosscheck", "approach", "Ask for a witnessed public handoff", {"scene_id": "public_forum", "beat_id": "witnessed_record", "risk_delta": -1, "flags": {"handoff": "requested"}}),
+        _transition(revision, "map_archive", "chart_crosscheck", "leave", "Seal the chart and return at sunrise", {"scene_id": "sunrise_pier", "beat_id": "daylight_return", "flags": {"chart": "sealed"}}),
+        _transition(revision, "public_forum", "witnessed_record", "listen", "Confirm the witnessed record before dawn", {"scene_id": "sunrise_pier", "beat_id": "daylight_return", "relationship_delta": {"mira": 1}, "flags": {"forum": "witnessed"}}),
+        _transition(revision, "public_forum", "witnessed_record", "leave", "Adjourn the public forum for daylight review", {"scene_id": "sunrise_pier", "beat_id": "daylight_return", "flags": {"forum": "adjourned"}}),
+    )
+    return StoryGraph(revision, beats, transitions)
+
+
 def graph_for_initial_state(initial: StoryState) -> StoryGraph:
     """Select the sole graph that can interpret a session's initial state."""
 
@@ -313,6 +348,8 @@ def graph_for_initial_state(initial: StoryState) -> StoryGraph:
         return three_scene_story_graph()
     if initial.scene_id == "station_platform" and initial.beat_id == "platform_arrival":
         return night_signal_story_graph()
+    if initial.scene_id == "harbor_observatory" and initial.beat_id == "dock_arrival":
+        return harbor_protocol_story_graph()
     raise TimelineViolation(
         "No registered story graph for initial state " + initial.scene_id + "/" + initial.beat_id
     )

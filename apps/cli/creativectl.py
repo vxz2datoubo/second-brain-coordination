@@ -60,6 +60,7 @@ SCENARIOS = {
     "legacy_archive": StoryState(scene_id="synthetic_archive", beat_id="arrival", relationships={"mira": 0}),
     "three_scene": StoryState(scene_id="archive_gate", beat_id="arrival", relationships={"mira": 0}),
     "night_signal": StoryState(scene_id="station_platform", beat_id="platform_arrival", relationships={"mira": 0}),
+    "harbor_protocol": StoryState(scene_id="harbor_observatory", beat_id="dock_arrival", relationships={"mira": 0}),
 }
 
 

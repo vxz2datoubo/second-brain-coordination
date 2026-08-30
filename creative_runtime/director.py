@@ -148,6 +148,11 @@ def synthetic_asset_index() -> dict[str, dict[str, Any]]:
         "art_scene_archive_vault": synthetic_asset(role="scene", source="synthetic_fixture"),
         "art_scene_control_room": synthetic_asset(role="scene", source="synthetic_fixture"),
         "art_scene_riverside_dawn": synthetic_asset(role="scene", source="synthetic_fixture"),
+        "art_scene_harbor_observatory": synthetic_asset(role="scene", source="synthetic_fixture"),
+        "art_scene_beacon_room": synthetic_asset(role="scene", source="synthetic_fixture"),
+        "art_scene_map_archive": synthetic_asset(role="scene", source="synthetic_fixture"),
+        "art_scene_public_forum": synthetic_asset(role="scene", source="synthetic_fixture"),
+        "art_scene_sunrise_pier": synthetic_asset(role="scene", source="synthetic_fixture"),
         "art_character_mira": synthetic_asset(role="character", name="mira", adult=True, source="synthetic_fixture"),
         "art_character_player": synthetic_asset(role="character", name="player", adult=True, source="synthetic_fixture"),
     }
@@ -180,6 +185,11 @@ def compile_director_brief(
         "archive_vault": ("axis:vault-index-to-threshold", "mira:threshold-side", "player:index-side"),
         "control_room": ("axis:relay-console-to-observation-window", "mira:window-side", "player:console-side"),
         "riverside_dawn": ("axis:river-path-to-street", "mira:street-side", "player:river-side"),
+        "harbor_observatory": ("axis:observatory-door-to-pier", "mira:pier-side", "player:door-side"),
+        "beacon_room": ("axis:lens-console-to-door", "mira:door-side", "player:console-side"),
+        "map_archive": ("axis:chart-index-to-threshold", "mira:threshold-side", "player:index-side"),
+        "public_forum": ("axis:forum-table-to-exit", "mira:table-side", "player:exit-side"),
+        "sunrise_pier": ("axis:pier-rail-to-street", "mira:street-side", "player:rail-side"),
     }
     spatial_facts = spatial_by_scene.get(state.scene_id, ())
     skill_ids, skill_reasons = select_director_skills(state)

@@ -18,11 +18,11 @@ SPEC.loader.exec_module(artifact_verifier)
 
 
 class CreativeExperienceArtifactVerifierTests(unittest.TestCase):
-    def _write_exact_package(self, directory: Path, head: str) -> Path:
+    def _write_exact_package(self, directory: Path, head: str, scenario: str = "night_signal") -> Path:
         package = directory / "experience-package"
         package.mkdir()
         members = {
-            "experience.json": (canonical_json(artifact_verifier.expected_artifact(head)) + "\n").encode("utf-8"),
+            "experience.json": (canonical_json(artifact_verifier.expected_artifact(head, scenario)) + "\n").encode("utf-8"),
             "verified_experience_player.html": (ROOT / "apps" / "web" / "verified_experience_player.html").read_bytes(),
             "README.md": (ROOT / "apps" / "web" / "README.md").read_bytes(),
         }
@@ -91,6 +91,16 @@ class CreativeExperienceArtifactVerifierTests(unittest.TestCase):
             (package / "README.md").write_text("forged guide", encoding="utf-8")
             with self.assertRaisesRegex(RuntimeError, "manifest does not exactly match"):
                 artifact_verifier.verify_package(package, head, require_clean_worktree=False)
+
+    def test_verifier_rebuilds_the_harbor_protocol_package_from_its_declared_scenario(self) -> None:
+        head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, check=True, text=True, capture_output=True).stdout.strip()
+        with tempfile.TemporaryDirectory() as directory:
+            package = self._write_exact_package(Path(directory), head, "harbor_protocol")
+            receipt = artifact_verifier.verify_package(package, head, require_clean_worktree=False)
+        self.assertEqual(receipt["status"], "experience_package_exactly_verified")
+        self.assertEqual(receipt["scenario"], "harbor_protocol")
+        self.assertEqual(receipt["catalog_transition_count"], 12)
+        self.assertEqual(receipt["sequence_step_count"], 6)
 
 
 if __name__ == "__main__":
