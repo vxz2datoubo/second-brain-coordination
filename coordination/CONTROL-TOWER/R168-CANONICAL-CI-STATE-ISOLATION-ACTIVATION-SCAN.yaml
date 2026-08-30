@@ -1,0 +1,94 @@
+schema_version: "1.0"
+scan_id: "R168-CANONICAL-CI-STATE-ISOLATION-ACTIVATION-SCAN"
+project: "SECOND_BRAIN"
+repository: "vxz2datoubo/second-brain-coordination"
+source_issue: 496
+task_id: "GPT-CANONICAL-CI-STATE-ISOLATION-R168"
+route_epoch: 168
+worker_slot_id: "GPT-WORKER-R168-CANONICAL-CI-STATE-ISOLATION-1"
+observed_main_before_scan: "4ccafee4440dbf4e620c3412a047c3d839de056b"
+scan_result: "PASS_PRE_SNAPSHOT"
+
+canonical_bindings_observed:
+  route: "coordination/ROUTES/GPT-CANONICAL-CI-STATE-ISOLATION-R168.yaml"
+  task_brief: "coordination/TASK-BRIEFS/GPT-CANONICAL-CI-STATE-ISOLATION-R168.yaml"
+  work_claim: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/WORK-CLAIM.yaml"
+  authorization_witness: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/AUTHORIZATION-WITNESS.yaml"
+  source_selection_provenance: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/SOURCE-SELECTION-PROVENANCE.yaml"
+  task_lease: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/TASK-LEASE.yaml"
+  executor_reservation: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/EXECUTOR-RESERVATION.yaml"
+  worker_registry: "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+  program_lanes: "coordination/ACTIVE-PROGRAM-LANES.yaml"
+
+branch_precondition:
+  required_branch: "gpt/canonical-ci-state-isolation-r168"
+  observed_before_scan: "ABSENT"
+  branch_creation_allowed_now: false
+  branch_creation_gate: "AFTER_ISSUE_496_EFFECTIVE_SPEC_SNAPSHOT"
+
+capacity_scan:
+  gpt_parallel_routes_allowed: true
+  gpt_active_slots_max: 2
+  r166_execution_slot: "GPT-WORKER-R166-W5-EVENT-COVERAGE-2"
+  r168_execution_slot: "GPT-WORKER-R168-CANONICAL-CI-STATE-ISOLATION-1"
+  frozen_r163_counts_active: false
+  frozen_r164_counts_active: false
+  active_gpt_slot_count_after_r168: 2
+  gpt_capacity: "PASS_AT_LIMIT"
+  codex_singleton_separate_agent_type: true
+  active_codex_task: "CODEX-R165-REVIEW-BLOCKER-REMEDIATION-R167"
+
+parallel_execution_scan:
+  r166_surface:
+    - ".github/workflows/w5-event-coverage-p0-vs1.yml"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/** bounded allowlist"
+  r168_surface:
+    - ".github/workflows/program-control-tower.yml"
+    - "coordination/CONTROL-TOWER/integration_state_isolation.py"
+    - "coordination/CONTROL-TOWER/integration_state_isolation.schema.json"
+    - "coordination/CONTROL-TOWER/tests/test_integration_state_isolation.py"
+  r167_surface:
+    - "creative_runtime/**"
+    - "apps/cli/**"
+    - "tests/**"
+    - "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/REVIEW-REMEDIATION-R167/**"
+    - ".github/workflows/r167-interactive-film-review-remediation.yml"
+  r166_r168_path_overlap: false
+  r166_reads_control_tower: true
+  r168_writes_control_tower_helper: true
+  r166_r168_overlap_class: "O1_READ_ONLY_COEXISTENCE"
+  r167_r168_path_overlap: false
+  r167_reads_shared_governance: true
+  r167_r168_overlap_class: "O1_READ_ONLY_COEXISTENCE"
+  same_canonical_object_writers_max: 1
+  nested_parallelism: "FORBIDDEN"
+
+lane_scan:
+  lane_a: "R168_CANONICAL_CI_STATE_ISOLATION"
+  lane_b: "R166_W5_WAITING_INDEPENDENT_REVIEW"
+  lane_c: "R167_CODEX_REMEDIATION"
+  lane_count: 3
+  lane_limit: 3
+  result: "PASS"
+
+trust_boundary_scan:
+  existing_control_tower_test_semantics_mutation_authorized: false
+  skip_xfail_blanket_ignore_authorized: false
+  review_authority_created: false
+  merge_authority_created: false
+  release_authority_created: false
+  w3_write_authority: false
+  domain_truth_write_authority: false
+  trading_authority: false
+  credential_or_account_access: false
+  production_or_deployment: false
+
+required_next_gate:
+  action: "PUBLISH_EFFECTIVE_SPEC_SNAPSHOT_ON_ISSUE_496"
+  snapshot_must_bind_final_main_after_this_scan: true
+  branch_must_remain_absent_until_snapshot: true
+  substantive_write_allowed_before_snapshot: false
+  on_any_mismatch: "FAIL_CLOSED_RESCAN_AND_SUCCESSOR_SNAPSHOT"
+
+merge_authorized: false
+review_authority: "GPT_INDEPENDENT_REVIEWER_ONLY_AFTER_ENGINEERING_HANDOFF"
