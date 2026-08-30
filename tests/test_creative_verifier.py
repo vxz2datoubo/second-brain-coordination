@@ -34,6 +34,8 @@ class CreativeVerifierTests(unittest.TestCase):
         self.assertFalse(receipt["demonstration"]["feedback_canonical_write"])
         self.assertEqual(receipt["demonstration"]["audit_status"], "workspace_audit_verified")
         self.assertEqual(receipt["demonstration"]["route_coverage_status"], "route_coverage_verified")
+        self.assertEqual(receipt["demonstration"]["night_signal_coverage_status"], "route_coverage_verified")
+        self.assertEqual(receipt["demonstration"]["night_signal_route_count"], 12)
         self.assertEqual(receipt["demonstration"]["named_slot_id"], "route_b")
         self.assertEqual(receipt["demonstration"]["named_slot_generation_slot"], "route_b")
         self.assertEqual(receipt["demonstration"]["named_slot_audit_feedback_count"], 1)

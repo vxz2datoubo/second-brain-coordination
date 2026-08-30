@@ -35,6 +35,29 @@ class CreativeRouteCoverageTests(unittest.TestCase):
         self.assertEqual(len(report.covered_transition_ids), 7)
         self.assertEqual(report.terminal_state_counts, {"synthetic_archive/courtyard": 4, "synthetic_archive/resolution": 2})
 
+    def test_night_signal_is_a_longer_multi_space_route_with_all_branches_covered(self) -> None:
+        report = coverage_for_scenario("night_signal")
+        self.assertTrue(report.complete)
+        self.assertEqual(report.graph_revision, "NightSignalGraph/v1")
+        self.assertEqual(len(report.routes), 12)
+        self.assertEqual(len(report.covered_transition_ids), 14)
+        self.assertEqual(report.terminal_state_counts, {"riverside_dawn/dawn_return": 12})
+        self.assertTrue(all(route.director_can_generate for route in report.routes))
+
+        with self.subTest("playable route"):
+            import tempfile
+
+            with tempfile.TemporaryDirectory() as directory:
+                workspace = Path(directory)
+                creativectl.run(["--workspace", str(workspace), "init", "--scenario", "night_signal"])
+                for action in ("listen", "approach", "listen", "approach", "listen", "leave"):
+                    creativectl.run(["--workspace", str(workspace), "choose", action])
+                final = creativectl.run(["--workspace", str(workspace), "replay"])
+                director = creativectl.run(["--workspace", str(workspace), "director"])
+                self.assertEqual(final["state"]["scene_id"], "riverside_dawn")
+                self.assertTrue(director["quality_report"]["can_generate"])
+                self.assertIn("art_scene_riverside_dawn", director["shots"][0]["reference_artifact_ids"])
+
     def test_cli_coverage_is_read_only_and_rejects_an_unbounded_cycle(self) -> None:
         cli_report = creativectl.run(["coverage", "--scenario", "three_scene"])
         self.assertEqual(cli_report["status"], "route_coverage_verified")

@@ -52,6 +52,7 @@ def _demo(cli: Any) -> dict[str, Any]:
     with tempfile.TemporaryDirectory(prefix="creative-runtime-verify-") as directory:
         workspace = Path(directory)
         coverage = cli.run(["coverage", "--scenario", "three_scene"])
+        night_coverage = cli.run(["coverage", "--scenario", "night_signal"])
         cli.run(["--workspace", str(workspace), "init", "--scenario", "three_scene"])
         cli.run(["--workspace", str(workspace), "choose", "listen"])
         cli.run(["--workspace", str(workspace), "choose", "approach"])
@@ -118,6 +119,9 @@ def _demo(cli: Any) -> dict[str, Any]:
             "route_coverage_status": coverage["status"],
             "route_coverage_count": coverage["route_count"],
             "route_coverage_transition_count": len(coverage["covered_transition_ids"]),
+            "night_signal_coverage_status": night_coverage["status"],
+            "night_signal_route_count": night_coverage["route_count"],
+            "night_signal_transition_count": len(night_coverage["covered_transition_ids"]),
             "timeline_status": timeline["status"],
             "timeline_hash": timeline["timeline_hash"],
             "timeline_entry_count": len(timeline["entries"]),
@@ -183,6 +187,9 @@ def verify(
         "route_coverage_status": "route_coverage_verified",
         "route_coverage_count": 6,
         "route_coverage_transition_count": 8,
+        "night_signal_coverage_status": "route_coverage_verified",
+        "night_signal_route_count": 12,
+        "night_signal_transition_count": 14,
         "timeline_entry_count": 4,
         "director_status": "director_verified",
         "director_can_generate": True,

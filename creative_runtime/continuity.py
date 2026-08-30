@@ -243,6 +243,44 @@ def three_scene_story_graph() -> StoryGraph:
     return StoryGraph(revision, beats, transitions)
 
 
+def night_signal_story_graph() -> StoryGraph:
+    """A longer synthetic adult-only route with multiple earned exits.
+
+    It provides a more substantial interactive-film fixture without importing
+    any third-party story, character, or media material.  Every exit uses the
+    same constrained action language and is therefore replayable offline.
+    """
+
+    revision = "NightSignalGraph/v1"
+    beats = (
+        GraphBeat("station_platform", "platform_arrival", "Two adult archivists reach an empty night platform after a protected relay starts repeating a case number."),
+        GraphBeat("station_platform", "platform_signal", "The relay repeats once. Mira keeps the platform exit in view while the player decides how to document the signal."),
+        GraphBeat("signal_room", "signal_console", "Inside the staffed signal room, a clerk offers a read-only relay log and waits for a careful request."),
+        GraphBeat("archive_vault", "vault_crosscheck", "At the archive vault, the log and a sealed index can be compared without opening any private record."),
+        GraphBeat("archive_vault", "vault_accord", "The group agrees on a daylight handoff and a minimal written record."),
+        GraphBeat("control_room", "relay_console", "In the control room, the relay can be paused while its public-safe audit trail is preserved."),
+        GraphBeat("control_room", "relay_accord", "The team confirms the relay is paused and schedules a witnessed daylight review."),
+        GraphBeat("riverside_dawn", "dawn_return", "At dawn beside the river, the case is paused with an accountable next step and no private record exposed."),
+    )
+    transitions = (
+        _transition(revision, "station_platform", "platform_arrival", "listen", "Listen to the relay cadence", {"beat_id": "platform_signal", "reveal_facts": ["a protected relay is active"], "risk_delta": 1}),
+        _transition(revision, "station_platform", "platform_arrival", "approach", "Ask the station clerk for a safe route", {"scene_id": "signal_room", "beat_id": "signal_console", "relationship_delta": {"mira": 1}, "flags": {"arrival": "announced"}}),
+        _transition(revision, "station_platform", "platform_arrival", "leave", "Leave a daylight callback route", {"scene_id": "riverside_dawn", "beat_id": "dawn_return", "risk_delta": -1, "flags": {"route": "deferred"}}),
+        _transition(revision, "station_platform", "platform_signal", "approach", "Document the relay before entering", {"scene_id": "signal_room", "beat_id": "signal_console", "relationship_delta": {"mira": 1}, "flags": {"signal": "logged"}}),
+        _transition(revision, "station_platform", "platform_signal", "leave", "Record the signal and withdraw", {"scene_id": "riverside_dawn", "beat_id": "dawn_return", "flags": {"signal": "recorded"}}),
+        _transition(revision, "signal_room", "signal_console", "listen", "Compare the relay log with Mira", {"scene_id": "archive_vault", "beat_id": "vault_crosscheck", "reveal_facts": ["the archive key is mirrored"], "relationship_delta": {"mira": 1}, "risk_delta": -1, "flags": {"handoff": "scoped"}}),
+        _transition(revision, "signal_room", "signal_console", "leave", "Decline the log and keep the meeting public", {"scene_id": "riverside_dawn", "beat_id": "dawn_return", "flags": {"meeting": "offered"}}),
+        _transition(revision, "archive_vault", "vault_crosscheck", "listen", "Read the index aloud and preserve a minimal record", {"beat_id": "vault_accord", "relationship_delta": {"mira": 1}, "flags": {"record": "verified"}}),
+        _transition(revision, "archive_vault", "vault_crosscheck", "approach", "Ask control to pause the relay", {"scene_id": "control_room", "beat_id": "relay_console", "risk_delta": -1, "flags": {"relay": "escalated"}}),
+        _transition(revision, "archive_vault", "vault_crosscheck", "leave", "Seal the index and return at dawn", {"scene_id": "riverside_dawn", "beat_id": "dawn_return", "flags": {"vault": "sealed"}}),
+        _transition(revision, "archive_vault", "vault_accord", "leave", "Carry the witnessed handoff to dawn", {"scene_id": "riverside_dawn", "beat_id": "dawn_return", "flags": {"handoff": "scheduled"}}),
+        _transition(revision, "control_room", "relay_console", "listen", "Pause the relay with a witness", {"beat_id": "relay_accord", "relationship_delta": {"mira": 1}, "flags": {"relay": "paused"}}),
+        _transition(revision, "control_room", "relay_console", "leave", "Keep the relay live and return at dawn", {"scene_id": "riverside_dawn", "beat_id": "dawn_return", "flags": {"relay": "deferred"}}),
+        _transition(revision, "control_room", "relay_accord", "leave", "Close the control log for daylight review", {"scene_id": "riverside_dawn", "beat_id": "dawn_return", "flags": {"review": "scheduled"}}),
+    )
+    return StoryGraph(revision, beats, transitions)
+
+
 def graph_for_initial_state(initial: StoryState) -> StoryGraph:
     """Select the sole graph that can interpret a session's initial state."""
 
@@ -250,6 +288,8 @@ def graph_for_initial_state(initial: StoryState) -> StoryGraph:
         return default_story_graph()
     if initial.scene_id == "archive_gate" and initial.beat_id == "arrival":
         return three_scene_story_graph()
+    if initial.scene_id == "station_platform" and initial.beat_id == "platform_arrival":
+        return night_signal_story_graph()
     raise TimelineViolation(
         "No registered story graph for initial state " + initial.scene_id + "/" + initial.beat_id
     )

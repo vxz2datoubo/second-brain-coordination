@@ -143,6 +143,11 @@ def synthetic_asset_index() -> dict[str, dict[str, Any]]:
         "art_scene_archive_gate": synthetic_asset(role="scene", source="synthetic_fixture"),
         "art_scene_interior_archive": synthetic_asset(role="scene", source="synthetic_fixture"),
         "art_scene_dawn_courtyard": synthetic_asset(role="scene", source="synthetic_fixture"),
+        "art_scene_station_platform": synthetic_asset(role="scene", source="synthetic_fixture"),
+        "art_scene_signal_room": synthetic_asset(role="scene", source="synthetic_fixture"),
+        "art_scene_archive_vault": synthetic_asset(role="scene", source="synthetic_fixture"),
+        "art_scene_control_room": synthetic_asset(role="scene", source="synthetic_fixture"),
+        "art_scene_riverside_dawn": synthetic_asset(role="scene", source="synthetic_fixture"),
         "art_character_mira": synthetic_asset(role="character", name="mira", adult=True, source="synthetic_fixture"),
         "art_character_player": synthetic_asset(role="character", name="player", adult=True, source="synthetic_fixture"),
     }
@@ -170,6 +175,11 @@ def compile_director_brief(
         "archive_gate": ("axis:archive-gate-to-street", "mira:street-side", "player:gate-side"),
         "interior_archive": ("axis:entry-hall-to-record-room", "mira:left-of-hall", "player:right-of-hall"),
         "dawn_courtyard": ("axis:courtyard-path-to-gate", "mira:gate-side", "player:path-side"),
+        "station_platform": ("axis:platform-edge-to-exit", "mira:exit-side", "player:platform-side"),
+        "signal_room": ("axis:console-to-door", "mira:door-side", "player:console-side"),
+        "archive_vault": ("axis:vault-index-to-threshold", "mira:threshold-side", "player:index-side"),
+        "control_room": ("axis:relay-console-to-observation-window", "mira:window-side", "player:console-side"),
+        "riverside_dawn": ("axis:river-path-to-street", "mira:street-side", "player:river-side"),
     }
     spatial_facts = spatial_by_scene.get(state.scene_id, ())
     skill_ids, skill_reasons = select_director_skills(state)
