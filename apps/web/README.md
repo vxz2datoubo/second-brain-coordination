@@ -16,8 +16,11 @@ customer intake, provider invocation, or story-transition implementation.
 3. Open the HTML file locally and select `experience.json`.
 
 The player validates its envelope and then navigates only the precomputed,
-verified catalogue edges. It also displays the verified director sequence's
-cut policy, duration, and the verified consequence of the most recent choice.
+verified catalogue edges. Each selectable button also shows the edge's
+already-bound **Verified impact** before it is selected: scene/beat movement,
+risk or relationship change, earned fact, and/or flag change when applicable.
+It also displays the verified director sequence's cut policy, duration, and
+the verified consequence of the most recent choice.
 At load time it rejects a catalogue whenever a legal button label, transition
 identifier, target frame, or reported consequence is not the exact one bound
 to that frame. It remains a renderer: it cannot calculate a different story

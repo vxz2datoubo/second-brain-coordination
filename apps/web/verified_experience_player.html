@@ -16,6 +16,7 @@
     .pill { border: 1px solid #53617a; border-radius: 999px; padding: .25rem .55rem; font-size: .82rem; color: #c9d6ef; }
     .choices { display: grid; gap: .65rem; } button, .file-label { font: inherit; border: 1px solid #697ba2; border-radius: 10px; background: #26395e; color: #fff; padding: .7rem .85rem; text-align: left; cursor: pointer; }
     button:hover:not(:disabled), .file-label:hover { background: #355184; } button:disabled { opacity: .5; cursor: not-allowed; }
+    .choice-title { display: block; font-weight: 700; } .choice-preview { display: block; color: #c7d6fb; font-size: .88rem; line-height: 1.35; margin-top: .28rem; }
     input[type=file] { position: absolute; width: 1px; height: 1px; opacity: 0; }
     dl { display: grid; grid-template-columns: max-content 1fr; gap: .35rem .8rem; margin: 0; } dt { color: #9badce; } dd { margin: 0; overflow-wrap: anywhere; }
     pre { white-space: pre-wrap; word-break: break-word; color: #b7c6e2; font-size: .82rem; }
@@ -103,6 +104,10 @@
       const flags = consequence.flag_changes || {};
       for (const [name, value] of Object.entries(flags)) parts.push(name + " = " + text(value));
       return parts.length ? parts.join(" · ") : "Verified choice produced no visible state delta.";
+    }
+    function choiceImpactPreview(edge) {
+      require(edge && edge.consequence && typeof edge.consequence === "object", "Choice has no verified consequence preview.");
+      return "Verified impact: " + consequenceSummary(edge.consequence);
     }
     function validateCutContract(step, frame, label) {
       const contract = step && step.cut_contract;
@@ -226,7 +231,10 @@
       const legal = frame.legal_choices || [];
       for (const choice of legal) {
         const edge = player.edges.get(player.current + "\u0000" + choice.action_id);
-        const button = document.createElement("button"); button.type = "button"; button.textContent = choice.label + " (“" + choice.action_id + "”)";
+        const button = document.createElement("button"); button.type = "button";
+        const title = document.createElement("span"); title.className = "choice-title"; title.textContent = choice.label + " (“" + choice.action_id + "”)";
+        const preview = document.createElement("span"); preview.className = "choice-preview"; preview.textContent = edge ? choiceImpactPreview(edge) : "Verified impact is unavailable.";
+        button.append(title, preview);
         button.disabled = !edge;
         button.addEventListener("click", () => { player.history.push({ from_timeline_hash: player.current, edge }); player.current = edge.to_timeline_hash; player.lastConsequence = edge.consequence; render(); });
         choices.append(button);
