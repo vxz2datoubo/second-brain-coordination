@@ -3,15 +3,40 @@ task_id: GPT-R171-SINGLE-V2-AUTHORITY-CLEAN-SUCCESSOR-R172
 source_agent: GPT_ENGINEERING_WORKER
 target_agent: GPT_INDEPENDENT_REVIEWER
 reviewer: UNASSIGNED
-executor_status: GOVERNANCE_CANDIDATE_ONLY_NO_RUNTIME_IMPLEMENTATION
-canonical_base: 1a514fe839b1c47a14d7fad4a96e8c9fd2365338
+executor_status: GOVERNANCE_RECONCILIATION_CANDIDATE_ONLY_NO_RUNTIME_IMPLEMENTATION
+canonical_base_observed_before_reconciliation: 1a514fe839b1c47a14d7fad4a96e8c9fd2365338
 governance_branch: gpt/r172-single-v2-authority-governance
 implementation_branch: gpt/r172-single-v2-authority
 implementation_branch_required_absent: true
+reconciliation_snapshot: 5470439948
+pipeline_state:
+  r168:
+    pr: 505
+    exact_head: f58d63f4ea1db935de8005ffb710f50394ce6062
+    state: ACCEPTED_WAITING_CANONICALIZATION_EXECUTION_FROZEN
+    independent_review: 5061226434
+    ready_transport_incident: 5470432141
+  r166:
+    pr: 504
+    exact_head: cc982f33ad87601a0327e595125272ea4954cdce
+    state: WAITING_INDEPENDENT_REVIEW_EXECUTION_FROZEN
+    review_request: 5470409826
+    exact_head_ci_run: 33327321346
+  r171:
+    pr: 513
+    state: FROZEN_EXECUTOR_PROVENANCE_MISMATCH
+    correction_comment: 5469016549
+  r172:
+    state: RESERVED_GOVERNANCE_ONLY_NONEXECUTABLE
+    active_execution_authority: false
 changed_contracts:
-  - R166 execution slot is released while preserving historical review evidence.
-  - R168 remains the active GPT comparator remediation on Lane A.
-  - CODEX R171 execution is frozen after executor provenance mismatch.
-  - R172 reserves the second GPT slot and Lane C without executable authority.
-  - R172 runtime remains blocked until governance merge, Issue #515 snapshot, and reserved-to-active transition.
-next_action: Run governance CI, independent review, canonicalize governance only; do not implement runtime from this branch.
+  - R168 accepted engineering execution is released while exact accepted evidence remains bound for metadata transport and canonicalization.
+  - R166 engineering execution is released at exact head cc982f33 while independent review remains pending.
+  - CODEX R171 execution remains frozen after executor provenance mismatch.
+  - R172 holds one non-executable GPT reservation and Lane C reservation; reservation is not active runtime authority.
+  - R172 runtime remains blocked until R168 canonical comparator exists, governance successor is independently accepted/merged, Issue #515 post-merge snapshot exists, and a separate reserved-to-active transition is canonical.
+review_preconditions:
+  - Fresh reconcile current main and all pipeline states; this handoff is not acceptance authority.
+  - Do not review a stale exact head after main/R168/R166 state changes without a successor synchronization proof.
+  - Canonical R168 current-main-vs-candidate comparator must be used before governance acceptance.
+next_action: WAIT_FOR_R168_READY_AND_CANONICALIZATION_THEN_SYNCHRONIZE_AND_REPROVE_GOVERNANCE; DO_NOT_IMPLEMENT_RUNTIME_FROM_THIS_BRANCH
