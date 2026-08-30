@@ -9,11 +9,16 @@ customer intake, provider invocation, or story-transition implementation.
 
 1. Download either the `night_signal` or `harbor_protocol`
    `creative-runtime-synthetic-experience-<scenario>-<exact SHA>` artifact
-   from a successful GitHub Actions run.
+   from a successful GitHub Actions run. For a single local chooser containing
+   both scenarios, download the
+   `creative-runtime-synthetic-experience-library-<exact SHA>` artifact
+   instead.
 2. Extract the complete four-file package: `experience.json`,
    `verified_experience_player.html`, this `README.md`, and
    `package_manifest.json`. They are one synthetic, repository-bound package.
-3. Open the HTML file locally and select `experience.json`.
+   A library package has the corresponding fixed names
+   `experience_library.json` and `library_package_manifest.json`.
+3. Open the HTML file locally and select the package's JSON file.
 
 The player validates its envelope and then navigates only the precomputed,
 verified catalogue edges. Each selectable button also shows the edge's
@@ -34,3 +39,14 @@ customer record.
 cut policy and planned duration whenever the currently selected catalogue node
 belongs to the fixed demo route. It is a GitHub-first synthetic demonstration,
 not a deployment or a local customer operations service.
+
+When it receives an `experience_library.json`, the player rejects the whole
+library if any entry is malformed, duplicates a scenario, crosses the fixed
+safety boundary, or binds an entry to a different exact head. Once loaded,
+the scenario switcher changes only between complete precomputed catalogues; it
+does not combine histories, save browser state, or calculate a new transition.
+For source-level verification of downloaded bytes, run the accompanying
+repository command `python tools/verify_experience_library.py --expected-head
+<SHA> --package-dir <directory>` from a clean exact-head checkout. That command
+is reproducibility evidence, not an authorization to publish or accept customer
+information.

@@ -31,10 +31,15 @@
     </section>
     <section class="card" id="loader">
       <h2>Load a GitHub Actions artifact</h2>
-      <p>Choose the <code>experience.json</code> file downloaded with this player from the <code>creative-runtime-synthetic-experience-…</code> Actions artifact.</p>
-      <label class="file-label" for="artifact-file">Choose experience.json</label>
+      <p>Choose either an exact-head <code>experience.json</code> package or an <code>experience_library.json</code> package downloaded with this player from the offline GitHub Actions artifacts.</p>
+      <label class="file-label" for="artifact-file">Choose verified JSON</label>
       <input id="artifact-file" type="file" accept="application/json,.json">
       <p id="load-status" class="muted" aria-live="polite">No artifact loaded.</p>
+    </section>
+    <section class="card hidden" id="library-picker">
+      <h2>Verified scenarios</h2>
+      <p class="muted">Changing scenario only switches to another fully precomputed, source-checked catalogue. It does not save, combine, or invent a story state.</p>
+      <div class="choices" id="scenario-choices"></div>
     </section>
     <section id="experience" class="hidden" aria-live="polite">
       <section class="card">
@@ -77,7 +82,10 @@
     const back = document.querySelector("#back");
     const restart = document.querySelector("#restart");
     const journey = document.querySelector("#journey");
+    const libraryPicker = document.querySelector("#library-picker");
+    const scenarioChoices = document.querySelector("#scenario-choices");
     let player = null;
+    let library = null;
 
     function require(condition, message) { if (!condition) throw new Error(message); }
     function text(value) { return value == null ? "—" : String(value); }
@@ -135,7 +143,8 @@
       }
     }
     function reject(error) {
-      player = null; experienceBox.classList.add("hidden"); errorBox.classList.remove("hidden");
+      player = null; library = null; experienceBox.classList.add("hidden"); errorBox.classList.remove("hidden");
+      renderLibraryPicker();
       errorText.textContent = error instanceof Error ? error.message : String(error);
       loadStatus.textContent = "The selected file was not accepted.";
     }
@@ -152,7 +161,7 @@
         journey.append(item);
       }
     }
-    function loadArtifact(payload) {
+    function prepareArtifact(payload) {
       require(payload && typeof payload === "object", "Artifact root must be an object.");
       require(payload.schema === "CreativeRuntimeExperienceArtifact/v1", "Unexpected artifact schema.");
       require(payload.status === "experience_artifact_verified", "Artifact has not passed the expected build status.");
@@ -209,10 +218,57 @@
         require(!sequenceSteps.has(step.timeline_hash), "Director sequence repeats a timeline prefix.");
         sequenceSteps.set(step.timeline_hash, step);
       }
-      player = { payload, catalog, sequence, nodes, edges, sequenceSteps, nodeSequenceSteps, current: catalog.initial_timeline_hash, history: [], lastConsequence: null };
+      return { payload, catalog, sequence, nodes, edges, sequenceSteps, nodeSequenceSteps, current: catalog.initial_timeline_hash, history: [], lastConsequence: null };
+    }
+    function activatePlayer(nextPlayer) {
+      player = nextPlayer;
       errorBox.classList.add("hidden"); experienceBox.classList.remove("hidden");
-      loadStatus.textContent = "Verified synthetic artifact loaded at " + payload.head_sha.slice(0, 12) + ".";
+      loadStatus.textContent = "Verified synthetic artifact loaded at " + player.payload.head_sha.slice(0, 12) + ".";
       render();
+    }
+    function renderLibraryPicker() {
+      scenarioChoices.replaceChildren();
+      if (!library) { libraryPicker.classList.add("hidden"); return; }
+      libraryPicker.classList.remove("hidden");
+      for (const [scenario, prepared] of library.players) {
+        const button = document.createElement("button"); button.type = "button";
+        const active = player === prepared;
+        button.textContent = (active ? "Viewing: " : "Open: ") + scenario + " · " + prepared.catalog.graph_revision;
+        button.disabled = active;
+        button.addEventListener("click", () => { activatePlayer(prepared); renderLibraryPicker(); });
+        scenarioChoices.append(button);
+      }
+    }
+    function loadArtifact(payload) {
+      library = null;
+      activatePlayer(prepareArtifact(payload));
+      renderLibraryPicker();
+    }
+    function loadLibrary(payload) {
+      require(payload && typeof payload === "object", "Library root must be an object.");
+      require(payload.schema === "CreativeRuntimeExperienceLibrary/v1" && payload.status === "experience_library_verified", "Unexpected or unverified experience library schema.");
+      require(typeof payload.library_id === "string" && typeof payload.head_sha === "string" && /^[0-9a-f]{40}$/.test(payload.head_sha), "Library is missing an exact identity.");
+      const boundary = payload.boundary;
+      require(boundary && boundary.synthetic_only === true && boundary.customer_data_present === false && boundary.external_provider_called === false && boundary.publication_authorized === false && boundary.client_story_authority === false, "Library crosses a safety boundary.");
+      require(Array.isArray(payload.entries) && payload.entries.length > 0 && payload.entry_count === payload.entries.length && Array.isArray(payload.scenario_ids), "Library entry count is malformed.");
+      const players = new Map();
+      for (const entry of payload.entries) {
+        require(entry && typeof entry.scenario === "string" && typeof entry.graph_revision === "string" && typeof entry.catalog_id === "string" && typeof entry.artifact_sha256 === "string" && /^[0-9a-f]{64}$/.test(entry.artifact_sha256) && entry.artifact && typeof entry.artifact === "object", "Library entry is malformed.");
+        require(!players.has(entry.scenario), "Library contains a duplicate scenario.");
+        require(entry.artifact.scenario === entry.scenario && entry.artifact.head_sha === payload.head_sha, "Library entry does not bind its artifact to the declared scenario and exact head.");
+        const prepared = prepareArtifact(entry.artifact);
+        require(prepared.catalog.graph_revision === entry.graph_revision && prepared.catalog.catalog_id === entry.catalog_id, "Library entry catalogue identity does not match its verified artifact.");
+        players.set(entry.scenario, prepared);
+      }
+      require(canonicalJson(payload.scenario_ids) === canonicalJson(Array.from(players.keys())), "Library scenario registry does not match its entries.");
+      library = { libraryId: payload.library_id, headSha: payload.head_sha, players };
+      activatePlayer(players.get(Array.from(players.keys()).sort()[0]));
+      loadStatus.textContent = "Verified synthetic library loaded at " + payload.head_sha.slice(0, 12) + " with " + players.size + " scenarios.";
+      renderLibraryPicker();
+    }
+    function loadPayload(payload) {
+      if (payload && payload.schema === "CreativeRuntimeExperienceLibrary/v1") { loadLibrary(payload); }
+      else { loadArtifact(payload); }
     }
     function render() {
       const frame = player.nodes.get(player.current);
@@ -248,7 +304,7 @@
     restart.addEventListener("click", () => { if (player) { player.current = player.catalog.initial_timeline_hash; player.history = []; player.lastConsequence = null; render(); } });
     fileInput.addEventListener("change", async () => {
       const file = fileInput.files && fileInput.files[0]; if (!file) return;
-      try { loadArtifact(JSON.parse(await file.text())); } catch (error) { reject(error); }
+      try { loadPayload(JSON.parse(await file.text())); } catch (error) { reject(error); }
     });
   </script>
 </body>

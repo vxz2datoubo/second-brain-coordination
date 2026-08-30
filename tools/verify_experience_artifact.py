@@ -21,13 +21,10 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from creative_runtime.continuity import graph_for_initial_state
 from creative_runtime.contracts import canonical_json
-from creative_runtime.coverage import coverage_for_scenario, ledger_for_route
 from creative_runtime.demo_routes import github_demo_actions
-from creative_runtime.experience import build_verified_experience, build_verified_scenario_catalog
+from creative_runtime.experience_library import build_synthetic_experience_artifact
 from creative_runtime.experience_package import PACKAGE_MANIFEST_NAME, PACKAGE_MEMBER_NAMES, build_package_manifest, sha256_hex
-from creative_runtime.sequence import build_verified_sequence
 
 
 DEFAULT_DEMO_SCENARIO = "night_signal"
@@ -55,28 +52,10 @@ def expected_artifact(head_sha: str, scenario: str = DEFAULT_DEMO_SCENARIO) -> d
     """Build the sole fixed Actions demonstration without writing an artifact."""
 
     try:
-        actions = github_demo_actions(scenario)
+        github_demo_actions(scenario)
     except ValueError as error:
         raise RuntimeError("Artifact declares an unsupported GitHub demo scenario") from error
-    report = coverage_for_scenario(scenario)
-    graph = graph_for_initial_state(report.initial_state)
-    ledger = ledger_for_route(graph, report.initial_state, actions)
-    return {
-        "schema": "CreativeRuntimeExperienceArtifact/v1",
-        "status": "experience_artifact_verified",
-        "head_sha": head_sha,
-        "scenario": scenario,
-        "actions": list(actions),
-        "experience": build_verified_experience(ledger, slot=DEMO_SLOT).to_dict(),
-        "sequence": build_verified_sequence(ledger, slot=DEMO_SLOT).to_dict(),
-        "catalog": build_verified_scenario_catalog(scenario).to_dict(),
-        "boundary": {
-            "synthetic_only": True,
-            "customer_data_present": False,
-            "external_provider_called": False,
-            "publication_authorized": False,
-        },
-    }
+    return build_synthetic_experience_artifact(head_sha, scenario)
 
 
 def _verify_exact_package_file(path: Path, source: Path, label: str) -> str:

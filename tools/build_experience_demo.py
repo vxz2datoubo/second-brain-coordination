@@ -8,12 +8,10 @@ a customer workspace, provider request, or publication payload.
 from __future__ import annotations
 
 import argparse
-import importlib.util
 import json
 from pathlib import Path
 import subprocess
 import sys
-import tempfile
 from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -21,6 +19,7 @@ if str(ROOT) not in sys.path:
 
 from creative_runtime.contracts import canonical_json
 from creative_runtime.demo_routes import GITHUB_DEMO_ROUTES, github_demo_actions
+from creative_runtime.experience_library import build_synthetic_experience_artifact
 
 
 def _git_head() -> str:
@@ -30,49 +29,20 @@ def _git_head() -> str:
     return result.stdout.strip()
 
 
-def _load_cli() -> Any:
-    path = ROOT / "apps" / "cli" / "creativectl.py"
-    spec = importlib.util.spec_from_file_location("creative_runtime_experience_demo_cli", path)
-    if spec is None or spec.loader is None:
-        raise RuntimeError("Cannot load creativectl")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
 def build_demo_artifact(expected_head: str | None = None, scenario: str = "night_signal") -> dict[str, Any]:
-    """Create a deterministic multi-scene example without touching user data."""
+    """Create a deterministic multi-scene example without touching user data.
+
+    The runtime-owned factory is also used by the multi-scenario library and
+    clean verifier, keeping one exact artifact reconstruction contract.
+    """
 
     head = _git_head()
     if expected_head is not None and head != expected_head:
         raise RuntimeError(f"Exact-head mismatch: expected {expected_head}, actual {head}")
-    cli = _load_cli()
-    with tempfile.TemporaryDirectory(prefix="creative-runtime-experience-") as directory:
-        workspace = Path(directory)
-        prefix = ["--workspace", str(workspace), "--slot", "github_demo"]
-        actions = github_demo_actions(scenario)
-        cli.run([*prefix, "init", "--scenario", scenario])
-        for action_id in actions:
-            cli.run([*prefix, "choose", action_id])
-        experience = cli.run([*prefix, "experience"])
-        sequence = cli.run([*prefix, "sequence"])
-        catalogue = cli.run(["catalog", "--scenario", scenario])
-    return {
-        "schema": "CreativeRuntimeExperienceArtifact/v1",
-        "status": "experience_artifact_verified",
-        "head_sha": head,
-        "scenario": scenario,
-        "actions": list(actions),
-        "experience": experience,
-        "sequence": sequence,
-        "catalog": catalogue,
-        "boundary": {
-            "synthetic_only": True,
-            "customer_data_present": False,
-            "external_provider_called": False,
-            "publication_authorized": False,
-        },
-    }
+    # Preserve this explicit lookup so a malformed scenario fails with the
+    # same public-safe route registry that the CLI and Actions matrix use.
+    github_demo_actions(scenario)
+    return build_synthetic_experience_artifact(head, scenario)
 
 
 def main(argv: list[str]) -> int:

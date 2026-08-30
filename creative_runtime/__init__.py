@@ -62,6 +62,15 @@ from .experience import (
     verify_verified_experience,
     verify_verified_scenario_catalog,
 )
+from .experience_library import (
+    DEMO_SLOT,
+    ExperienceLibraryViolation,
+    VerifiedExperienceLibrary,
+    artifact_sha256,
+    build_synthetic_experience_artifact,
+    build_verified_experience_library,
+    verify_verified_experience_library,
+)
 from .presentation import InteractiveFrame, PresentationViolation, build_interactive_frame
 from .sequence import SequenceViolation, VerifiedSequencePlan, build_verified_sequence, verify_verified_sequence
 from .understanding import (
@@ -111,6 +120,7 @@ __all__ = [
     "GraphTransition",
     "InteractiveFrame",
     "ExperienceViolation",
+    "ExperienceLibraryViolation",
     "GovernanceViolation",
     "LedgerViolation",
     "LoadedV2Session",
@@ -138,6 +148,7 @@ __all__ = [
     "StoryGraph",
     "StoryState",
     "VerifiedExperienceManifest",
+    "VerifiedExperienceLibrary",
     "VerifiedScenarioCatalog",
     "VerifiedSequencePlan",
     "SourceProvenance",
@@ -156,6 +167,7 @@ __all__ = [
     "V2SourceVerification",
     "VerifiedSessionReceipt",
     "canonical_json",
+    "artifact_sha256",
     "adapter_for",
     "assess_anchor",
     "bind_verified_timeline",
@@ -163,6 +175,8 @@ __all__ = [
     "build_interactive_frame",
     "build_feedback_record",
     "build_verified_experience",
+    "build_synthetic_experience_artifact",
+    "build_verified_experience_library",
     "build_verified_scenario_catalog",
     "build_verified_sequence",
     "compile_director",
@@ -196,6 +210,7 @@ __all__ = [
     "three_scene_story_graph",
     "verified_director_input",
     "verify_verified_experience",
+    "verify_verified_experience_library",
     "verify_verified_sequence",
     "verify_verified_scenario_catalog",
     "verify_v2_source_binding",

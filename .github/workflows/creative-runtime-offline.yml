@@ -10,8 +10,10 @@ on:
       - "tools/verify_creative_runtime.py"
       - "tools/build_experience_demo.py"
       - "tools/build_experience_package.py"
+      - "tools/build_experience_library_package.py"
       - "tools/rehearse_creative_operations.py"
       - "tools/verify_experience_artifact.py"
+      - "tools/verify_experience_library.py"
       - "skills/creative-program-understanding-map/**"
       - "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/**"
       - ".github/workflows/creative-runtime-offline.yml"
@@ -154,5 +156,50 @@ jobs:
         with:
           name: creative-runtime-synthetic-experience-${{ matrix.scenario }}-${{ github.event.pull_request.head.sha || github.sha }}
           path: ${{ runner.temp }}/creative-runtime-experience-${{ matrix.scenario }}
+          if-no-files-found: error
+          retention-days: 7
+
+  synthetic-experience-library:
+    name: Synthetic experience library
+    runs-on: ubuntu-latest
+    needs: offline-runtime
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout exact event head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 2
+
+      - name: Assert exact checked-out source identity
+        shell: bash
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          test -z "$(git status --porcelain)"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Build and verify exact-head multi-scenario library
+        shell: bash
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+          LIBRARY_PACKAGE: ${{ runner.temp }}/creative-runtime-experience-library
+        run: |
+          set -euo pipefail
+          python tools/build_experience_library_package.py --expected-head "$EXPECTED_HEAD" --output-dir "$LIBRARY_PACKAGE"
+          python tools/verify_experience_library.py --expected-head "$EXPECTED_HEAD" --package-dir "$LIBRARY_PACKAGE"
+
+      - name: Upload public-safe synthetic experience library
+        uses: actions/upload-artifact@v4
+        with:
+          name: creative-runtime-synthetic-experience-library-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/creative-runtime-experience-library
           if-no-files-found: error
           retention-days: 7
