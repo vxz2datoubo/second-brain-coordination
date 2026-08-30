@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import unittest
 
 from creative_runtime.continuity import default_story_graph, verified_director_input
@@ -82,6 +83,15 @@ class CreativeUnderstandingTests(unittest.TestCase):
         self.assertEqual(derived.timeline_hash, timeline.timeline_hash)
         self.assertEqual(derived.candidate.source_event_ids, (timeline.final_event_id,))
         self.assertEqual(derived.candidate.source_artifact_ids, ("timeline_sha256:" + timeline.timeline_hash,))
+        self.assertEqual(
+            derived.candidate.source_evidence_refs,
+            (
+                "graph_revision:" + timeline.graph_revision,
+                "final_transition:" + str(timeline.final_transition_id),
+                "final_state_sha256:" + derived.final_state_hash,
+            ),
+        )
+        self.assertEqual(derived.final_state_hash, hashlib.sha256(canonical_json(timeline.state.to_dict()).encode("utf-8")).hexdigest())
         self.assertEqual(derived.candidate.status, "pending_human_review")
 
 

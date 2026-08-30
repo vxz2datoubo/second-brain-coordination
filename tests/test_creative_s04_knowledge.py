@@ -20,6 +20,8 @@ class CreativeS04KnowledgeTests(unittest.TestCase):
         bridge = KnowledgeReviewBridge()
         with self.assertRaises(KnowledgeBridgeViolation):
             bridge.correct("A claim without evidence")
+        evidence_only = bridge.correct("A policy fact has a fixed source.", source_evidence_refs=("policy_sha256:" + "a" * 64,))
+        self.assertEqual(evidence_only.source_evidence_refs, ("policy_sha256:" + "a" * 64,))
         candidate = bridge.correct("Listening first reduces uncertainty.", source_event_ids=("evt_001",))
         self.assertEqual(candidate.status, "pending_human_review")
         self.assertFalse(bridge.canonical_write_enabled)

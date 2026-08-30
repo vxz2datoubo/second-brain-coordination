@@ -20,6 +20,7 @@ class KnowledgeCandidate:
     source_event_ids: tuple[str, ...]
     source_artifact_ids: tuple[str, ...]
     status: str
+    source_evidence_refs: tuple[str, ...] = ()
     reviewer: str | None = None
     reviewer_note: str | None = None
 
@@ -29,6 +30,7 @@ class KnowledgeCandidate:
             "assertion": self.assertion,
             "source_event_ids": list(self.source_event_ids),
             "source_artifact_ids": list(self.source_artifact_ids),
+            "source_evidence_refs": list(self.source_evidence_refs),
             "status": self.status,
             "reviewer": self.reviewer,
             "reviewer_note": self.reviewer_note,
@@ -41,6 +43,7 @@ class KnowledgeCandidate:
             assertion=str(record["assertion"]),
             source_event_ids=tuple(str(item) for item in record.get("source_event_ids", ())),
             source_artifact_ids=tuple(str(item) for item in record.get("source_artifact_ids", ())),
+            source_evidence_refs=tuple(str(item) for item in record.get("source_evidence_refs", ())),
             status=str(record["status"]),
             reviewer=record.get("reviewer"),
             reviewer_note=record.get("reviewer_note"),
@@ -55,6 +58,8 @@ class VerifiedKnowledgeCandidate:
     timeline_hash: str
     graph_revision: str
     final_event_id: str
+    final_transition_id: str | None
+    final_state_hash: str
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -62,6 +67,8 @@ class VerifiedKnowledgeCandidate:
             "timeline_hash": self.timeline_hash,
             "graph_revision": self.graph_revision,
             "final_event_id": self.final_event_id,
+            "final_transition_id": self.final_transition_id,
+            "final_state_hash": self.final_state_hash,
         }
 
 
@@ -79,18 +86,26 @@ class KnowledgeReviewBridge:
         *,
         source_event_ids: Iterable[str] = (),
         source_artifact_ids: Iterable[str] = (),
+        source_evidence_refs: Iterable[str] = (),
     ) -> KnowledgeCandidate:
         event_ids = tuple(source_event_ids)
         artifact_ids = tuple(source_artifact_ids)
-        if not assertion.strip() or not (event_ids or artifact_ids):
+        evidence_refs = tuple(source_evidence_refs)
+        if not assertion.strip() or not (event_ids or artifact_ids or evidence_refs):
             raise KnowledgeBridgeViolation("A correction needs an assertion and at least one source reference")
-        material = {"assertion": assertion.strip(), "source_event_ids": list(event_ids), "source_artifact_ids": list(artifact_ids)}
+        material = {
+            "assertion": assertion.strip(),
+            "source_event_ids": list(event_ids),
+            "source_artifact_ids": list(artifact_ids),
+            "source_evidence_refs": list(evidence_refs),
+        }
         candidate_id = "knw_" + hashlib.sha256(canonical_json(material).encode("utf-8")).hexdigest()[:20]
         candidate = KnowledgeCandidate(
             candidate_id=candidate_id,
             assertion=assertion.strip(),
             source_event_ids=event_ids,
             source_artifact_ids=artifact_ids,
+            source_evidence_refs=evidence_refs,
             status="pending_human_review",
         )
         self._candidates[candidate_id] = candidate
@@ -111,6 +126,7 @@ class KnowledgeReviewBridge:
             assertion=candidate.assertion,
             source_event_ids=candidate.source_event_ids,
             source_artifact_ids=candidate.source_artifact_ids,
+            source_evidence_refs=candidate.source_evidence_refs,
             status="approved_reusable_candidate" if approved else "rejected",
             reviewer=reviewer,
             reviewer_note=note,
@@ -143,14 +159,22 @@ def correct_from_verified_timeline(
     from .continuity import verified_director_input
 
     verified = verified_director_input(ledger, graph)
+    final_state_hash = hashlib.sha256(canonical_json(verified.state.to_dict()).encode("utf-8")).hexdigest()
     candidate = bridge.correct(
         assertion,
         source_event_ids=(verified.final_event_id,),
         source_artifact_ids=("timeline_sha256:" + verified.timeline_hash,),
+        source_evidence_refs=(
+            "graph_revision:" + verified.graph_revision,
+            "final_transition:" + (verified.final_transition_id or "story_initialized"),
+            "final_state_sha256:" + final_state_hash,
+        ),
     )
     return VerifiedKnowledgeCandidate(
         candidate=candidate,
         timeline_hash=verified.timeline_hash,
         graph_revision=verified.graph_revision,
         final_event_id=verified.final_event_id,
+        final_transition_id=verified.final_transition_id,
+        final_state_hash=final_state_hash,
     )
