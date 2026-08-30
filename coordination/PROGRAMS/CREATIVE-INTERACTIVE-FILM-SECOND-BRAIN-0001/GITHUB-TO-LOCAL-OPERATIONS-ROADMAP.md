@@ -40,9 +40,12 @@ publish, deploy, use an account, upload a secret, or call a paid generator.
 | Explainable unknown | CI failure reason, timeline mismatch, quality gate result | intake validation, consent/retention response | show cause, impact, option and stop condition |
 | Opaque unknown | hash serialization and runner internals | encryption implementation and account-provider internals | expose a bounded status/evidence reference, not secrets |
 
-## Future local adapter contract — not implemented yet
+## Future local adapter contract — boundary skeleton implemented, no operations
 
-The local adapter must be a new, separately reviewed boundary. It may not
+`creative_runtime.local_intake` now supplies a deterministic projection and
+gate for the fixed fields below. It does not perform filesystem, network,
+credential, vault, media, provider, or customer-content operations. The actual
+local adapter remains a new, separately reviewed boundary. It may not
 reuse the GitHub CLI's workspace paths for raw customer material.
 
 ```text

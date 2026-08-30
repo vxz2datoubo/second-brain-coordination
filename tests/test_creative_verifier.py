@@ -37,6 +37,8 @@ class CreativeVerifierTests(unittest.TestCase):
         self.assertEqual(receipt["demonstration"]["named_slot_id"], "route_b")
         self.assertEqual(receipt["demonstration"]["named_slot_generation_slot"], "route_b")
         self.assertEqual(receipt["demonstration"]["named_slot_audit_feedback_count"], 1)
+        self.assertEqual(receipt["demonstration"]["local_intake_projection_status"], "local_intake_projection_valid")
+        self.assertFalse(receipt["demonstration"]["local_intake_external_authorized"])
         self.assertEqual(
             receipt["demonstration"]["v2_source_binding_timeline_hash"],
             receipt["demonstration"]["timeline_hash"],

@@ -21,6 +21,7 @@ from .contracts import (
 from .ledger import CreativeLedger, LedgerViolation, create_artifact
 from .director import DirectorCompilation, DirectorQualityMetrics, DirectorSkill, QualityFinding, QualityReport, VerifiedDirectorCompilation, compile_director, compile_verified_director, select_director_skills
 from .knowledge import KnowledgeBridgeViolation, KnowledgeCandidate, KnowledgeReviewBridge, VerifiedKnowledgeCandidate, correct_from_verified_timeline
+from .local_intake import LocalIntakeProjection, LocalIntakeViolation, local_intake_gate_report, validate_local_intake
 from .generation import (
     ExternalGenerationGuard,
     GenerationViolation,
@@ -97,6 +98,8 @@ __all__ = [
     "KnowledgeBridgeViolation",
     "KnowledgeCandidate",
     "KnowledgeReviewBridge",
+    "LocalIntakeProjection",
+    "LocalIntakeViolation",
     "MetricAnchor",
     "MigrationResult",
     "ExternalGenerationGuard",
@@ -144,6 +147,7 @@ __all__ = [
     "select_director_skills",
     "load_task_governance",
     "load_feedback",
+    "local_intake_gate_report",
     "legacy_session_path",
     "load_v2_session",
     "migrate_legacy_session",
@@ -157,5 +161,6 @@ __all__ = [
     "verify_v2_source_binding",
     "verify_offline_generation_record",
     "validate_slot",
+    "validate_local_intake",
     "v2_session_path",
 ]

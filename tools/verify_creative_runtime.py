@@ -47,6 +47,8 @@ def _load_cli() -> Any:
 def _demo(cli: Any) -> dict[str, Any]:
     """Run a deterministic route crossing all new runtime integration points."""
 
+    from creative_runtime.local_intake import LocalIntakeProjection, local_intake_gate_report
+
     with tempfile.TemporaryDirectory(prefix="creative-runtime-verify-") as directory:
         workspace = Path(directory)
         coverage = cli.run(["coverage", "--scenario", "three_scene"])
@@ -96,6 +98,21 @@ def _demo(cli: Any) -> dict[str, Any]:
         slot_migration = cli.run([*slot_prefix, "migrate"])
         slot_v2_binding = cli.run([*slot_prefix, "verify-v2"])
         slot_audit = cli.run([*slot_prefix, "audit"])
+        local_intake = local_intake_gate_report(
+            LocalIntakeProjection(
+                request_id="req_0123456789abcdef0123",
+                customer_reference="cust_0123456789abcdef",
+                consent_revision="consent-v1",
+                input_hash="a" * 64,
+                received_at="2030-01-01T00:00:00Z",
+                retention_deadline="2030-01-31T00:00:00Z",
+                content_rating="non_explicit",
+                cost_limit_minor=0,
+                provider_confirmation=False,
+            ),
+            observed_at="2030-01-02T00:00:00Z",
+            maximum_cost_limit_minor=0,
+        )
         return {
             "scenario": "three_scene",
             "route_coverage_status": coverage["status"],
@@ -132,6 +149,9 @@ def _demo(cli: Any) -> dict[str, Any]:
             "named_slot_v2_slot": slot_v2_binding["slot_id"],
             "named_slot_audit_generation_count": len(slot_audit["evidence"]["verified_offline_generation_receipts"]),
             "named_slot_audit_feedback_count": len(slot_audit["evidence"]["verified_feedback"]),
+            "local_intake_projection_status": local_intake["status"],
+            "local_intake_external_authorized": local_intake["external_provider_authorized"],
+            "local_intake_vault_accessed": local_intake["customer_vault_accessed"],
         }
 
 
@@ -189,6 +209,9 @@ def verify(
         "named_slot_v2_slot": "route_b",
         "named_slot_audit_generation_count": 1,
         "named_slot_audit_feedback_count": 1,
+        "local_intake_projection_status": "local_intake_projection_valid",
+        "local_intake_external_authorized": False,
+        "local_intake_vault_accessed": False,
     }
     for key, expected in expected_demo.items():
         if demonstration[key] != expected:
