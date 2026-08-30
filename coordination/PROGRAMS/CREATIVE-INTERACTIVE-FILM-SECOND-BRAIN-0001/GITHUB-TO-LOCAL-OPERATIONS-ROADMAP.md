@@ -36,6 +36,13 @@ The only uploaded result is a short-retention, repository-synthetic JSON
 artifact plus its dependency-free static viewer; its envelope explicitly says
 that it has no customer data and no external-provider result.
 
+Story graphs enforce the same public-safe boundary before a scene is playable:
+every beat description and transition label is checked for the repository's
+non-explicit content exclusions. A prohibited sexual, nudity, gore, or torture
+term makes graph registration fail; the route cannot reach the CLI, director,
+catalogue, player, or packaged artifact. This is a deterministic source gate,
+not a content-moderation claim about future customer submissions.
+
 The same artifact also includes `VerifiedInteractiveSequencePlan/v1`: each
 verified timeline prefix has its own frame, director plan, cut policy, and
 duration. It remains a render/planning receipt, not a request to generate or

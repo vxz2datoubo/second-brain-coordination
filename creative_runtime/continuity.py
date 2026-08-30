@@ -9,10 +9,17 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import hashlib
+import re
 from typing import Any, Iterable, Mapping
 
 from .contracts import StoryState, canonical_json
 from .ledger import CreativeLedger, LedgerViolation, apply_state_patch
+
+
+_NON_EXPLICIT_CONTENT_PATTERNS = (
+    re.compile(r"\b(?:sex|sexual|nude|nudity|gore|torture)\b", re.IGNORECASE),
+    re.compile(r"性爱|性行为|色情|裸露|裸体|露骨|血腥|酷刑|虐待"),
+)
 
 
 class TimelineViolation(ValueError):
@@ -119,13 +126,23 @@ class StoryGraph:
             raise TimelineViolation("Story graph needs at least one beat")
         if len(self._transitions) != len(transition_items):
             raise TimelineViolation("Story graph has duplicate transition keys")
+        for beat in beat_items:
+            self._require_non_explicit(beat.text, "story beat")
         for transition in self._transitions.values():
+            self._require_non_explicit(transition.label, "transition label")
             if (transition.scene_id, transition.from_beat_id) not in self._beats:
                 raise TimelineViolation("Transition has an unknown source beat: " + transition.transition_id)
             destination_scene = str(transition.resulting_patch.get("scene_id", transition.scene_id))
             destination_beat = str(transition.resulting_patch.get("beat_id", transition.from_beat_id))
             if (destination_scene, destination_beat) not in self._beats:
                 raise TimelineViolation("Transition has an unknown destination beat: " + transition.transition_id)
+
+    @staticmethod
+    def _require_non_explicit(value: str, context: str) -> None:
+        if not isinstance(value, str) or not value.strip():
+            raise TimelineViolation(context + " must be a non-empty public-safe string")
+        if any(pattern.search(value) for pattern in _NON_EXPLICIT_CONTENT_PATTERNS):
+            raise TimelineViolation(context + " violates the non_explicit content boundary")
 
     def transition_for(self, state: StoryState, action_id: str) -> GraphTransition:
         transition = self._transitions.get((state.scene_id, state.beat_id, action_id))

@@ -7,6 +7,7 @@ import tempfile
 import unittest
 
 from creative_runtime.generation import GenerationViolation, _digest_record, offline_generation_receipt_path
+from creative_runtime.continuity import GraphBeat, GraphTransition, StoryGraph, TimelineViolation
 from creative_runtime.knowledge import KnowledgeBridgeViolation
 from creative_runtime.ledger import LedgerViolation
 from creative_runtime.session import SessionViolation, load_v2_session, migrate_legacy_session, v2_session_path
@@ -20,6 +21,15 @@ SPEC.loader.exec_module(creativectl)
 
 
 class CreativeInputBoundaryTests(unittest.TestCase):
+    def test_story_graph_rejects_non_explicit_boundary_violations_before_they_become_playable(self) -> None:
+        safe_beat = GraphBeat("safe", "arrival", "Two adult archivists pause at a public archive door.")
+        unsafe_beat = GraphBeat("unsafe", "arrival", "A graphic sexual scene is described.")
+        with self.assertRaisesRegex(TimelineViolation, "non_explicit"):
+            StoryGraph("UnsafeBeatGraph/v1", (safe_beat, unsafe_beat), ())
+        unsafe_label = GraphTransition("tr_unsafe", "safe", "arrival", "listen", "Show gore in detail", {"beat_id": "arrival"})
+        with self.assertRaisesRegex(TimelineViolation, "non_explicit"):
+            StoryGraph("UnsafeLabelGraph/v1", (safe_beat,), (unsafe_label,))
+
     def test_malformed_session_roots_fail_closed_without_creating_a_shadow_save(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             workspace = Path(directory)
