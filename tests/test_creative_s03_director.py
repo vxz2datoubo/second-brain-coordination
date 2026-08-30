@@ -93,6 +93,19 @@ class CreativeS03DirectorTests(unittest.TestCase):
         self.assertFalse(report.can_generate)
         self.assertTrue({"skill_activation_mismatch", "skill_trigger_reason_mismatch"} <= codes)
 
+    def test_timeline_bound_brief_requires_hash_and_consequence_and_expresses_it(self) -> None:
+        state = StoryState(scene_id="interior_archive", beat_id="accord", relationships={"mira": 2})
+        invalid = compile_director(state, source_timeline_hash="too-short", story_consequence={})
+        self.assertFalse(invalid.quality_report.can_generate)
+        valid = compile_director(
+            state,
+            source_timeline_hash="a" * 64,
+            story_consequence={"relationship_delta": {"mira": 1}, "risk_delta": -1, "flag_changes": {"handoff": "promised"}},
+        )
+        self.assertTrue(valid.quality_report.can_generate)
+        self.assertIn("relationship shift", valid.shots[-1].dominant_change)
+        self.assertIn("risk level", valid.shots[-1].dominant_change)
+
 
 if __name__ == "__main__":
     unittest.main()

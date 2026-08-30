@@ -89,6 +89,8 @@ class VerifiedDirectorInput:
     graph_revision: str
     timeline_hash: str
     final_event_id: str
+    final_transition_id: str | None
+    final_consequence: Mapping[str, Any]
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -96,6 +98,8 @@ class VerifiedDirectorInput:
             "graph_revision": self.graph_revision,
             "timeline_hash": self.timeline_hash,
             "final_event_id": self.final_event_id,
+            "final_transition_id": self.final_transition_id,
+            "final_consequence": _as_dict(self.final_consequence),
         }
 
 
@@ -341,4 +345,11 @@ def verified_director_input(ledger: CreativeLedger, graph: StoryGraph | None = N
     story_graph = graph if graph is not None else graph_for_ledger(ledger)
     entries = replay_timeline(ledger, story_graph)
     final = entries[-1]
-    return VerifiedDirectorInput(final.state, story_graph.revision, timeline_hash(entries), final.event_id)
+    return VerifiedDirectorInput(
+        final.state,
+        story_graph.revision,
+        timeline_hash(entries),
+        final.event_id,
+        final.transition_id,
+        final.consequence,
+    )

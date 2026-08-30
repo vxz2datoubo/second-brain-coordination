@@ -92,6 +92,8 @@ class DirectorBrief:
     content_rating: str = "non_explicit"
     activated_skill_ids: tuple[str, ...] = ()
     skill_trigger_reasons: Mapping[str, str] = field(default_factory=dict)
+    source_timeline_hash: str | None = None
+    story_consequence: Mapping[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return _json_value(self)

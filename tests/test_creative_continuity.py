@@ -67,6 +67,9 @@ class CreativeContinuityTests(unittest.TestCase):
         director = compile_verified_director(ledger)
         self.assertEqual(director.compilation.brief.story_state, entries[-1].state)
         self.assertEqual(director.verified_input.timeline_hash, timeline_hash(entries))
+        self.assertEqual(director.verified_input.final_transition_id, entries[-1].transition_id)
+        self.assertEqual(director.compilation.brief.story_consequence, entries[-1].consequence)
+        self.assertIn("relationship shift", director.compilation.shots[-1].dominant_change)
 
     def test_hash_valid_but_semantically_forged_patch_fails_closed(self) -> None:
         ledger = self.initialized_ledger()

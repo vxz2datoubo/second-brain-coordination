@@ -115,7 +115,12 @@ def synthetic_asset_index() -> dict[str, dict[str, Any]]:
     }
 
 
-def compile_director_brief(state: StoryState) -> DirectorBrief:
+def compile_director_brief(
+    state: StoryState,
+    *,
+    source_timeline_hash: str | None = None,
+    story_consequence: Mapping[str, Any] | None = None,
+) -> DirectorBrief:
     """Compile only facts already present in StoryState into an auditable brief."""
 
     spatial_by_scene = {
@@ -135,7 +140,31 @@ def compile_director_brief(state: StoryState) -> DirectorBrief:
         content_rating="non_explicit",
         activated_skill_ids=skill_ids,
         skill_trigger_reasons=skill_reasons,
+        source_timeline_hash=source_timeline_hash,
+        story_consequence=dict(story_consequence or {}),
     )
+
+
+def _dominant_change(brief: DirectorBrief) -> str:
+    consequence = brief.story_consequence
+    if not consequence:
+        return "the group's confidence shifts after the player action"
+    parts: list[str] = []
+    if consequence.get("scene_changed"):
+        parts.append("the group crosses into a newly earned space")
+    facts = consequence.get("new_facts", ())
+    if facts:
+        parts.append("a newly earned fact changes the next decision")
+    relationships = consequence.get("relationship_delta", {})
+    if relationships:
+        parts.append("a recorded relationship shift changes the performance distance")
+    risk_delta = consequence.get("risk_delta", 0)
+    if risk_delta:
+        parts.append("the risk level visibly changes")
+    flags = consequence.get("flag_changes", {})
+    if flags:
+        parts.append("the documented consequence becomes visible")
+    return "; ".join(parts) if parts else "the player action advances the verified story state"
 
 
 def compile_shots(brief: DirectorBrief) -> tuple[ShotPlan, ...]:
@@ -166,7 +195,7 @@ def compile_shots(brief: DirectorBrief) -> tuple[ShotPlan, ...]:
             axis=axis,
             lighting="motivated practical light with a readable change in depth",
             sound="environmental room tone and the consequence of the player choice",
-            dominant_change="the group's confidence shifts after the player action",
+            dominant_change=_dominant_change(brief),
         ),
     )
 
@@ -182,6 +211,8 @@ def validate_compilation(
     if not any(item.startswith("axis:") for item in brief.spatial_facts):
         findings.append(QualityFinding("spatial_axis_missing", "Brief omits a spatial axis."))
     known = set(brief.story_state.known_facts)
+    if brief.source_timeline_hash is not None and (len(brief.source_timeline_hash) != 64 or not brief.story_consequence):
+        findings.append(QualityFinding("knowledge_boundary_violation", "A verified director brief needs a full timeline hash and a recorded final consequence."))
     expected_skill_ids, expected_skill_reasons = select_director_skills(brief.story_state)
     if brief.activated_skill_ids != expected_skill_ids:
         findings.append(QualityFinding("skill_activation_mismatch", "Activated director skills are not the minimal state-justified set."))
@@ -228,8 +259,18 @@ def validate_compilation(
     return QualityReport(tuple(findings))
 
 
-def compile_director(state: StoryState, assets: Mapping[str, Mapping[str, Any]] | None = None) -> DirectorCompilation:
-    brief = compile_director_brief(state)
+def compile_director(
+    state: StoryState,
+    assets: Mapping[str, Mapping[str, Any]] | None = None,
+    *,
+    source_timeline_hash: str | None = None,
+    story_consequence: Mapping[str, Any] | None = None,
+) -> DirectorCompilation:
+    brief = compile_director_brief(
+        state,
+        source_timeline_hash=source_timeline_hash,
+        story_consequence=story_consequence,
+    )
     shots = compile_shots(brief)
     report = validate_compilation(brief, shots, assets if assets is not None else synthetic_asset_index())
     return DirectorCompilation(brief=brief, shots=shots, quality_report=report)
@@ -251,6 +292,11 @@ def compile_verified_director(
 
     verified_input = verified_director_input(ledger, graph)
     return VerifiedDirectorCompilation(
-        compilation=compile_director(verified_input.state, assets),
+        compilation=compile_director(
+            verified_input.state,
+            assets,
+            source_timeline_hash=verified_input.timeline_hash,
+            story_consequence=verified_input.final_consequence,
+        ),
         verified_input=verified_input,
     )
