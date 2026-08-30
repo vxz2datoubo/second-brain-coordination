@@ -101,12 +101,15 @@
       require(catalog.provenance && catalog.provenance.client_story_authority === false, "Catalogue grants story authority to the client.");
       require(Array.isArray(catalog.nodes) && Array.isArray(catalog.edges), "Catalogue nodes or edges are malformed.");
       const nodes = new Map();
+      const nodeSequenceSteps = new Map();
       for (const node of catalog.nodes) {
-        require(node && typeof node.timeline_hash === "string" && node.frame, "Malformed catalogue node.");
+        require(node && typeof node.timeline_hash === "string" && node.frame && node.sequence_step, "Malformed catalogue node.");
         require(node.frame.status === "interactive_frame_verified", "Catalogue includes an unverified frame.");
         require(node.frame.timeline_hash === node.timeline_hash, "Frame and node timeline identities differ.");
+        require(node.sequence_step.timeline_hash === node.timeline_hash && node.sequence_step.frame_id === node.frame.frame_id, "Catalogue sequence step does not match frame identity.");
         require(!nodes.has(node.timeline_hash), "Catalogue contains duplicate node identity.");
         nodes.set(node.timeline_hash, node.frame);
+        nodeSequenceSteps.set(node.timeline_hash, node.sequence_step);
       }
       require(nodes.has(catalog.initial_timeline_hash), "Catalogue initial node is absent.");
       const edges = new Map();
@@ -124,7 +127,7 @@
         require(!sequenceSteps.has(step.timeline_hash), "Director sequence repeats a timeline prefix.");
         sequenceSteps.set(step.timeline_hash, step);
       }
-      player = { payload, catalog, sequence, nodes, edges, sequenceSteps, current: catalog.initial_timeline_hash, history: [] };
+      player = { payload, catalog, sequence, nodes, edges, sequenceSteps, nodeSequenceSteps, current: catalog.initial_timeline_hash, history: [] };
       errorBox.classList.add("hidden"); experienceBox.classList.remove("hidden");
       loadStatus.textContent = "Verified synthetic artifact loaded at " + payload.head_sha.slice(0, 12) + ".";
       render();
@@ -140,7 +143,7 @@
       setPairs(state, [["Scene / beat", text(storyState.scene_id) + " / " + text(storyState.beat_id)], ["Known facts", (frame.accessibility.known_facts_only || []).join("; ") || "none"], ["Risk", storyState.risk_level], ["Relationships", JSON.stringify(storyState.relationships || {})], ["Last verified action", frame.recent_action && frame.recent_action.action_id], ["Last transition", frame.recent_action && frame.recent_action.transition_id]]);
       const shots = frame.director && frame.director.shots || [];
       const primaryShot = shots[0] || {};
-      const sequenceStep = player.sequenceSteps.get(player.current);
+      const sequenceStep = player.sequenceSteps.get(player.current) || player.nodeSequenceSteps.get(player.current);
       setPairs(director, [["Caption", frame.accessibility.caption_text], ["Sound cue", frame.accessibility.sound_cue], ["Content boundary", frame.accessibility.content_rating], ["Sequence cut policy", sequenceStep && sequenceStep.cut_policy], ["Sequence position", sequenceStep ? (sequenceStep.sequence_index + 1) + " / " + player.sequence.steps.length : "catalogue-only branch"], ["Planned duration", sequenceStep ? sequenceStep.duration_seconds + " seconds" : "catalogue-only branch"], ["Shot role", primaryShot.shot_role], ["Camera", primaryShot.camera], ["Performance task", primaryShot.performance_task], ["Source timeline", frame.director.source_timeline_hash]]);
       choices.replaceChildren();
       const legal = frame.legal_choices || [];

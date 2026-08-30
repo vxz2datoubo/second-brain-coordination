@@ -16,6 +16,7 @@ class CreativeWebPlayerTests(unittest.TestCase):
         self.assertIn("sequence_plan_verified", source)
         self.assertIn("VerifiedInteractiveSequencePlan/v1", source)
         self.assertIn("Sequence cut policy", source)
+        self.assertIn("nodeSequenceSteps", source)
         self.assertIn("interactive_frame_verified", source)
         self.assertIn("client_story_authority === false", source)
         self.assertIn("edge.to_timeline_hash", source)

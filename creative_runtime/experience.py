@@ -17,6 +17,7 @@ from .contracts import canonical_json
 from .coverage import coverage_for_scenario, ledger_for_route
 from .ledger import CreativeLedger
 from .presentation import PresentationViolation, build_interactive_frame
+from .sequence import SequenceViolation, build_verified_sequence
 from .session import DEFAULT_SLOT, validate_slot
 
 
@@ -167,15 +168,23 @@ def build_verified_scenario_catalog(scenario: str) -> VerifiedScenarioCatalog:
     for route in report.routes:
         ledger = ledger_for_route(graph, report.initial_state, route.action_ids)
         manifest = build_verified_experience(ledger, slot="catalog")
+        sequence = build_verified_sequence(ledger, slot="catalog")
         frames = tuple(manifest.frames)
+        sequence_steps = {str(step["timeline_hash"]): step for step in sequence.steps}
+        if len(sequence_steps) != len(frames):
+            raise ExperienceViolation("Scenario catalogue route sequence does not cover every verified frame")
         if initial_timeline_hash is None:
             initial_timeline_hash = manifest.timeline_hash if len(frames) == 1 else str(frames[0]["timeline_hash"])
         for frame in frames:
             frame_hash = str(frame["timeline_hash"])
+            sequence_step = sequence_steps.get(frame_hash)
+            if sequence_step is None or sequence_step.get("frame_id") != frame.get("frame_id"):
+                raise ExperienceViolation("Scenario catalogue frame and sequence step identities diverge")
+            node = {"frame": frame, "sequence_step": sequence_step}
             existing = nodes.get(frame_hash)
-            if existing is not None and canonical_json(existing) != canonical_json(frame):
+            if existing is not None and canonical_json(existing) != canonical_json(node):
                 raise ExperienceViolation("A timeline prefix produced conflicting client frames")
-            nodes[frame_hash] = frame
+            nodes[frame_hash] = node
         for index in range(1, len(frames)):
             previous_hash = str(frames[index - 1]["timeline_hash"])
             current_hash = str(frames[index]["timeline_hash"])
@@ -197,7 +206,7 @@ def build_verified_scenario_catalog(scenario: str) -> VerifiedScenarioCatalog:
     if initial_timeline_hash is None or initial_timeline_hash not in nodes:
         raise ExperienceViolation("Scenario catalogue has no verified initial frame")
     ordered_nodes = tuple(
-        {"timeline_hash": key, "frame": dict(nodes[key])}
+        {"timeline_hash": key, "frame": dict(nodes[key]["frame"]), "sequence_step": dict(nodes[key]["sequence_step"])}
         for key in sorted(nodes)
     )
     ordered_edges = tuple(edges[key] for key in sorted(edges))

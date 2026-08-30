@@ -63,6 +63,9 @@ class CreativeExperienceTests(unittest.TestCase):
         self.assertEqual(catalogue["status"], "scenario_catalog_verified")
         self.assertEqual(catalogue["scenario"], "night_signal")
         self.assertEqual(len(catalogue["covered_transition_ids"]), 14)
+        self.assertEqual(len(catalogue["nodes"]), 24)
+        self.assertTrue(all(node["sequence_step"]["frame_id"] == node["frame"]["frame_id"] for node in catalogue["nodes"]))
+        self.assertTrue(all(node["sequence_step"]["cut_policy"] for node in catalogue["nodes"]))
         self.assertEqual({item["action_id"] for item in nodes[current]["legal_choices"]}, {"listen", "approach", "leave"})
         for action_id, expected_scene in (("listen", "station_platform"), ("approach", "signal_room"), ("listen", "archive_vault")):
             current = edges[(current, action_id)]["to_timeline_hash"]
