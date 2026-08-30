@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import hashlib
 from typing import Any, Mapping
 
-from .contracts import DirectorBrief, ShotPlan, StoryState
+from .contracts import DirectorBrief, ShotPlan, StoryState, canonical_json
 
 
 HARD_CODES = {
@@ -24,6 +25,8 @@ HARD_CODES = {
     "scene_reference_missing",
     "scene_reference_mismatch",
     "character_reference_missing",
+    "asset_provenance_missing",
+    "asset_provenance_mismatch",
     "skill_activation_mismatch",
     "skill_trigger_reason_mismatch",
 }
@@ -130,14 +133,28 @@ class VerifiedDirectorCompilation:
 def synthetic_asset_index() -> dict[str, dict[str, Any]]:
     """Synthetic index; an external index must arrive through a provenance gate."""
 
+    def synthetic_asset(**fields: Any) -> dict[str, Any]:
+        record = {**fields, "provenance_class": "synthetic_fixture"}
+        record["source_hash"] = hashlib.sha256(canonical_json(record).encode("utf-8")).hexdigest()
+        return record
+
     return {
-        "art_scene_synthetic_archive": {"role": "scene", "source": "synthetic_fixture"},
-        "art_scene_archive_gate": {"role": "scene", "source": "synthetic_fixture"},
-        "art_scene_interior_archive": {"role": "scene", "source": "synthetic_fixture"},
-        "art_scene_dawn_courtyard": {"role": "scene", "source": "synthetic_fixture"},
-        "art_character_mira": {"role": "character", "name": "mira", "adult": True, "source": "synthetic_fixture"},
-        "art_character_player": {"role": "character", "name": "player", "adult": True, "source": "synthetic_fixture"},
+        "art_scene_synthetic_archive": synthetic_asset(role="scene", source="synthetic_fixture"),
+        "art_scene_archive_gate": synthetic_asset(role="scene", source="synthetic_fixture"),
+        "art_scene_interior_archive": synthetic_asset(role="scene", source="synthetic_fixture"),
+        "art_scene_dawn_courtyard": synthetic_asset(role="scene", source="synthetic_fixture"),
+        "art_character_mira": synthetic_asset(role="character", name="mira", adult=True, source="synthetic_fixture"),
+        "art_character_player": synthetic_asset(role="character", name="player", adult=True, source="synthetic_fixture"),
     }
+
+
+def _asset_hash_matches(asset: Mapping[str, Any]) -> bool:
+    declared = asset.get("source_hash")
+    if not isinstance(declared, str) or len(declared) != 64:
+        return False
+    material = {str(key): value for key, value in asset.items() if key != "source_hash"}
+    actual = hashlib.sha256(canonical_json(material).encode("utf-8")).hexdigest()
+    return declared == actual
 
 
 def compile_director_brief(
@@ -275,11 +292,16 @@ def validate_compilation(
             asset = assets.get(artifact_id)
             if asset is None:
                 findings.append(QualityFinding("missing_asset", f"Missing reference asset: {artifact_id}"))
-            elif artifact_id.startswith("art_scene_") and artifact_id != expected_scene_asset:
+                continue
+            if asset.get("provenance_class") != "synthetic_fixture":
+                findings.append(QualityFinding("asset_provenance_mismatch", f"{artifact_id} is outside this offline synthetic asset authority."))
+            elif not _asset_hash_matches(asset):
+                findings.append(QualityFinding("asset_provenance_missing", f"{artifact_id} lacks a valid stable source hash."))
+            if artifact_id.startswith("art_scene_") and artifact_id != expected_scene_asset:
                 findings.append(QualityFinding("scene_reference_mismatch", f"{shot.shot_id} references a scene outside the current story state."))
             elif artifact_id.startswith("art_scene_") and asset.get("role") != "scene":
                 findings.append(QualityFinding("scene_reference_mismatch", f"{artifact_id} is not registered as a scene asset."))
-            elif asset.get("role") == "character" and asset.get("adult") is not True:
+            if asset.get("role") == "character" and asset.get("adult") is not True:
                 findings.append(QualityFinding("identity_not_adult", f"Character asset is not confirmed adult: {artifact_id}"))
     return QualityReport(
         tuple(findings),

@@ -66,6 +66,17 @@ class CreativeS03DirectorTests(unittest.TestCase):
         self.assertIn("missing_asset", codes)
         self.assertIn("identity_not_adult", codes)
 
+    def test_missing_or_tampered_asset_provenance_blocks_generation(self) -> None:
+        state = StoryState(scene_id="archive_gate", beat_id="arrival")
+        compilation = compile_director(state)
+        assets = synthetic_asset_index()
+        assets["art_scene_archive_gate"].pop("source_hash")
+        assets["art_character_mira"]["source"] = "tampered"
+        report = validate_compilation(compilation.brief, compilation.shots, assets)
+        codes = {finding.code for finding in report.findings}
+        self.assertFalse(report.can_generate)
+        self.assertIn("asset_provenance_missing", codes)
+
     def test_unknown_knowledge_and_bad_duration_fail_closed(self) -> None:
         state = StoryState(scene_id="synthetic_archive", beat_id="arrival")
         valid = compile_director(state)
