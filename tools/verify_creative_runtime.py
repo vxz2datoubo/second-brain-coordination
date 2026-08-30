@@ -69,6 +69,16 @@ def _demo(cli: Any) -> dict[str, Any]:
         generation_verification = cli.run(
             ["--workspace", str(workspace), "verify-generation", generation["receipt"]["receipt_id"]]
         )
+        feedback = cli.run(
+            [
+                "--workspace",
+                str(workspace),
+                "feedback",
+                generation["receipt"]["receipt_id"],
+                "4",
+                "The verified offline route keeps the established spatial axis clear.",
+            ]
+        )
         migration = cli.run(["--workspace", str(workspace), "migrate"])
         v2_binding = cli.run(["--workspace", str(workspace), "verify-v2"])
         return {
@@ -87,6 +97,10 @@ def _demo(cli: Any) -> dict[str, Any]:
             "generation_verification_status": generation_verification["status"],
             "generation_simulated": generation["receipt"]["result"]["simulated"],
             "generation_timeline_hash": generation["receipt"]["source"]["timeline_hash"],
+            "feedback_status": feedback["status"],
+            "feedback_rating": feedback["feedback"]["rating"],
+            "feedback_candidate_status": feedback["knowledge_candidate"]["status"],
+            "feedback_canonical_write": feedback["canonical_write"],
             "migration_status": migration["status"],
             "v2_source_binding_status": v2_binding["status"],
             "v2_source_binding_timeline_hash": v2_binding["timeline_hash"],
@@ -128,6 +142,10 @@ def verify(
         "generation_status": "offline_generation_recorded",
         "generation_verification_status": "offline_generation_verified",
         "generation_simulated": True,
+        "feedback_status": "feedback_recorded",
+        "feedback_rating": 4,
+        "feedback_candidate_status": "pending_human_review",
+        "feedback_canonical_write": False,
         "migration_status": "migrated",
         "v2_source_binding_status": "v2_source_verified",
     }

@@ -22,6 +22,7 @@ from creative_runtime.contracts import PlayerAction, StoryState, canonical_json
 from creative_runtime.continuity import TimelineViolation, default_story_graph, graph_for_ledger, replay_timeline, timeline_hash
 from creative_runtime.director import compile_verified_director
 from creative_runtime.generation import GenerationViolation, record_offline_generation, verify_offline_generation_record
+from creative_runtime.feedback import FeedbackViolation, build_feedback_record, record_feedback
 from creative_runtime.ledger import CreativeLedger, LedgerViolation
 from creative_runtime.knowledge import KnowledgeBridgeViolation, KnowledgeReviewBridge, correct_from_verified_timeline
 from creative_runtime.understanding import bind_verified_timeline
@@ -198,6 +199,10 @@ def run(argv: list[str]) -> dict[str, Any]:
     generate_parser.add_argument("--shot-id")
     verify_generation_parser = subparsers.add_parser("verify-generation")
     verify_generation_parser.add_argument("receipt_id")
+    feedback_parser = subparsers.add_parser("feedback")
+    feedback_parser.add_argument("receipt_id")
+    feedback_parser.add_argument("rating", type=int)
+    feedback_parser.add_argument("note")
     knowledge_parser = subparsers.add_parser("knowledge")
     knowledge_subparsers = knowledge_parser.add_subparsers(dest="knowledge_command", required=True)
     knowledge_search = knowledge_subparsers.add_parser("search")
@@ -278,6 +283,39 @@ def run(argv: list[str]) -> dict[str, Any]:
             receipt_id=args.receipt_id,
         )
         return {"status": "offline_generation_verified", "receipt": receipt.to_dict()}
+    if args.command == "feedback":
+        ledger = _load_session(args.workspace)
+        compiled = compile_verified_director(ledger, graph=graph_for_ledger(ledger))
+        receipt = verify_offline_generation_record(
+            args.workspace,
+            compiled,
+            final_event_occurred_at=ledger.events[-1].occurred_at,
+            receipt_id=args.receipt_id,
+        )
+        feedback = build_feedback_record(
+            receipt,
+            rating=args.rating,
+            note=args.note,
+            submitted_at=ledger.events[-1].occurred_at,
+        )
+        status, saved, path = record_feedback(args.workspace, feedback)
+        bridge = _load_knowledge(args.workspace)
+        candidate = bridge.correct(
+            "Offline generation feedback " + saved.feedback_id + ": " + saved.note,
+            source_event_ids=(receipt.source_final_event_id,),
+            source_artifact_ids=(
+                "offline_generation_receipt:" + receipt.receipt_id,
+                "timeline_sha256:" + receipt.source_timeline_hash,
+            ),
+        )
+        _write_knowledge(args.workspace, bridge)
+        return {
+            "status": status,
+            "feedback": saved.to_dict(),
+            "feedback_path": str(path),
+            "knowledge_candidate": candidate.to_dict(),
+            "canonical_write": False,
+        }
     if args.command == "knowledge":
         bridge = _load_knowledge(args.workspace)
         if args.knowledge_command == "search":
@@ -305,7 +343,7 @@ def run(argv: list[str]) -> dict[str, Any]:
 def main() -> int:
     try:
         print(json.dumps(run(sys.argv[1:]), ensure_ascii=False, sort_keys=True, indent=2))
-    except (GenerationViolation, LedgerViolation, KnowledgeBridgeViolation, SessionViolation, TimelineViolation, KeyError, json.JSONDecodeError) as error:
+    except (FeedbackViolation, GenerationViolation, LedgerViolation, KnowledgeBridgeViolation, SessionViolation, TimelineViolation, KeyError, json.JSONDecodeError) as error:
         print(json.dumps({"status": "error", "message": str(error)}, ensure_ascii=False, sort_keys=True))
         return 2
     return 0
