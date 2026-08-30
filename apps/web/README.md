@@ -16,6 +16,11 @@ customer intake, provider invocation, or story-transition implementation.
 
 The player validates its envelope and then navigates only the precomputed,
 verified catalogue edges. It also displays the verified director sequence's
+cut policy, duration, and the verified consequence of the most recent choice.
+At load time it rejects a catalogue whenever a legal button label, transition
+identifier, target frame, or reported consequence is not the exact one bound
+to that frame. It remains a renderer: it cannot calculate a different story
+state or invent a consequence.
 cut policy and planned duration whenever the currently selected catalogue node
 belongs to the fixed demo route. It is a GitHub-first synthetic demonstration,
 not a deployment or a local customer operations service.

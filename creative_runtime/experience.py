@@ -129,7 +129,7 @@ class VerifiedScenarioCatalog:
     coverage_report_hash: str
     initial_timeline_hash: str
     nodes: tuple[Mapping[str, Any], ...]
-    edges: tuple[Mapping[str, str], ...]
+    edges: tuple[Mapping[str, Any], ...]
     covered_transition_ids: tuple[str, ...]
 
     def to_dict(self) -> dict[str, Any]:
@@ -163,7 +163,7 @@ def build_verified_scenario_catalog(scenario: str) -> VerifiedScenarioCatalog:
         raise ExperienceViolation("Scenario coverage must be complete before a client catalogue is built")
     graph = graph_for_initial_state(report.initial_state)
     nodes: dict[str, Mapping[str, Any]] = {}
-    edges: dict[tuple[str, str], Mapping[str, str]] = {}
+    edges: dict[tuple[str, str], Mapping[str, Any]] = {}
     initial_timeline_hash: str | None = None
     for route in report.routes:
         ledger = ledger_for_route(graph, report.initial_state, route.action_ids)
@@ -192,11 +192,24 @@ def build_verified_scenario_catalog(scenario: str) -> VerifiedScenarioCatalog:
             transition_id = frames[index]["recent_action"].get("transition_id")
             if not isinstance(action_id, str) or not action_id or not isinstance(transition_id, str) or not transition_id:
                 raise ExperienceViolation("Scenario catalogue edge lacks verified action provenance")
+            choices = {
+                str(choice.get("action_id")): choice
+                for choice in frames[index - 1].get("legal_choices", ())
+                if isinstance(choice, Mapping)
+            }
+            choice = choices.get(action_id)
+            label = choice.get("label") if choice is not None else None
+            consequence = frames[index].get("recent_consequence")
+            if not isinstance(label, str) or not label or not isinstance(consequence, Mapping):
+                raise ExperienceViolation("Scenario catalogue edge lacks a source-bound player label or consequence")
             edge = {
                 "from_timeline_hash": previous_hash,
                 "action_id": action_id,
+                "action_label": label,
                 "transition_id": transition_id,
                 "to_timeline_hash": current_hash,
+                "target_frame_id": frames[index]["frame_id"],
+                "consequence": dict(consequence),
             }
             key = (previous_hash, action_id)
             existing = edges.get(key)

@@ -72,6 +72,30 @@
 
     function require(condition, message) { if (!condition) throw new Error(message); }
     function text(value) { return value == null ? "—" : String(value); }
+    function canonicalValue(value) {
+      if (Array.isArray(value)) return value.map(canonicalValue);
+      if (value && typeof value === "object") {
+        const ordered = {};
+        for (const key of Object.keys(value).sort()) ordered[key] = canonicalValue(value[key]);
+        return ordered;
+      }
+      require(value === null || ["string", "number", "boolean"].includes(typeof value), "Artifact contains a non-JSON consequence value.");
+      return value;
+    }
+    function canonicalJson(value) { return JSON.stringify(canonicalValue(value)); }
+    function consequenceSummary(consequence) {
+      if (!consequence || consequence.kind === "initialized") return "Story initialized.";
+      const parts = [];
+      if (consequence.scene_changed) parts.push("scene changed");
+      if (consequence.beat_changed) parts.push("beat advanced");
+      if (consequence.risk_delta) parts.push("risk " + (consequence.risk_delta > 0 ? "+" : "") + consequence.risk_delta);
+      const relationships = consequence.relationship_delta || {};
+      for (const [name, delta] of Object.entries(relationships)) parts.push(name + " relationship " + (delta > 0 ? "+" : "") + delta);
+      if (Array.isArray(consequence.new_facts) && consequence.new_facts.length) parts.push("new fact: " + consequence.new_facts.join("; "));
+      const flags = consequence.flag_changes || {};
+      for (const [name, value] of Object.entries(flags)) parts.push(name + " = " + text(value));
+      return parts.length ? parts.join(" · ") : "Verified choice produced no visible state delta.";
+    }
     function setPairs(element, pairs) {
       element.replaceChildren();
       for (const [key, value] of pairs) {
@@ -114,10 +138,23 @@
       require(nodes.has(catalog.initial_timeline_hash), "Catalogue initial node is absent.");
       const edges = new Map();
       for (const edge of catalog.edges) {
-        require(edge && typeof edge.from_timeline_hash === "string" && typeof edge.to_timeline_hash === "string" && typeof edge.action_id === "string" && typeof edge.transition_id === "string", "Malformed catalogue edge.");
+        require(edge && typeof edge.from_timeline_hash === "string" && typeof edge.to_timeline_hash === "string" && typeof edge.action_id === "string" && typeof edge.action_label === "string" && typeof edge.transition_id === "string" && typeof edge.target_frame_id === "string" && edge.consequence && typeof edge.consequence === "object", "Malformed catalogue edge.");
         require(nodes.has(edge.from_timeline_hash) && nodes.has(edge.to_timeline_hash), "Catalogue edge points outside verified nodes.");
         const key = edge.from_timeline_hash + "\u0000" + edge.action_id;
         require(!edges.has(key), "Catalogue has duplicate action edge."); edges.set(key, edge);
+      }
+      for (const [nodeHash, frame] of nodes) {
+        const legal = Array.isArray(frame.legal_choices) ? frame.legal_choices : [];
+        for (const choice of legal) {
+          require(choice && typeof choice.action_id === "string" && typeof choice.label === "string", "Malformed frame choice.");
+          const edge = edges.get(nodeHash + "\u0000" + choice.action_id);
+          require(edge, "A legal choice lacks an evidence-bound catalogue edge.");
+          require(edge.action_label === choice.label, "Catalogue edge label does not match its source frame choice.");
+          const target = nodes.get(edge.to_timeline_hash);
+          require(target && target.frame_id === edge.target_frame_id, "Catalogue edge target frame identity does not match.");
+          require(target.recent_action && target.recent_action.action_id === edge.action_id && target.recent_action.transition_id === edge.transition_id, "Catalogue edge action provenance does not match its target frame.");
+          require(canonicalJson(target.recent_consequence) === canonicalJson(edge.consequence), "Catalogue edge consequence does not match its target frame.");
+        }
       }
       const sequenceSteps = new Map();
       for (const step of sequence.steps) {
@@ -127,7 +164,7 @@
         require(!sequenceSteps.has(step.timeline_hash), "Director sequence repeats a timeline prefix.");
         sequenceSteps.set(step.timeline_hash, step);
       }
-      player = { payload, catalog, sequence, nodes, edges, sequenceSteps, nodeSequenceSteps, current: catalog.initial_timeline_hash, history: [] };
+      player = { payload, catalog, sequence, nodes, edges, sequenceSteps, nodeSequenceSteps, current: catalog.initial_timeline_hash, history: [], lastConsequence: null };
       errorBox.classList.add("hidden"); experienceBox.classList.remove("hidden");
       loadStatus.textContent = "Verified synthetic artifact loaded at " + payload.head_sha.slice(0, 12) + ".";
       render();
@@ -140,7 +177,7 @@
         const pill = document.createElement("span"); pill.className = "pill"; pill.textContent = value; meta.append(pill);
       }
       story.textContent = frame.story_text;
-      setPairs(state, [["Scene / beat", text(storyState.scene_id) + " / " + text(storyState.beat_id)], ["Known facts", (frame.accessibility.known_facts_only || []).join("; ") || "none"], ["Risk", storyState.risk_level], ["Relationships", JSON.stringify(storyState.relationships || {})], ["Last verified action", frame.recent_action && frame.recent_action.action_id], ["Last transition", frame.recent_action && frame.recent_action.transition_id]]);
+      setPairs(state, [["Scene / beat", text(storyState.scene_id) + " / " + text(storyState.beat_id)], ["Known facts", (frame.accessibility.known_facts_only || []).join("; ") || "none"], ["Risk", storyState.risk_level], ["Relationships", JSON.stringify(storyState.relationships || {})], ["Last verified action", frame.recent_action && frame.recent_action.action_id], ["Last transition", frame.recent_action && frame.recent_action.transition_id], ["Last consequence", consequenceSummary(frame.recent_consequence)]]);
       const shots = frame.director && frame.director.shots || [];
       const primaryShot = shots[0] || {};
       const sequenceStep = player.sequenceSteps.get(player.current) || player.nodeSequenceSteps.get(player.current);
@@ -151,11 +188,11 @@
         const edge = player.edges.get(player.current + "\u0000" + choice.action_id);
         const button = document.createElement("button"); button.type = "button"; button.textContent = choice.label + " (“" + choice.action_id + "”)";
         button.disabled = !edge;
-        button.addEventListener("click", () => { player.history.push(player.current); player.current = edge.to_timeline_hash; render(); });
+        button.addEventListener("click", () => { player.history.push(player.current); player.current = edge.to_timeline_hash; player.lastConsequence = edge.consequence; render(); });
         choices.append(button);
       }
       back.disabled = player.history.length === 0;
-      choiceStatus.textContent = legal.length ? "Only the listed, evidence-bound actions are selectable." : "Terminal verified frame; no further action is available.";
+      choiceStatus.textContent = player.lastConsequence ? "Verified consequence: " + consequenceSummary(player.lastConsequence) : (legal.length ? "Only the listed, evidence-bound actions are selectable." : "Terminal verified frame; no further action is available.");
     }
     back.addEventListener("click", () => { if (player && player.history.length) { player.current = player.history.pop(); render(); } });
     fileInput.addEventListener("change", async () => {

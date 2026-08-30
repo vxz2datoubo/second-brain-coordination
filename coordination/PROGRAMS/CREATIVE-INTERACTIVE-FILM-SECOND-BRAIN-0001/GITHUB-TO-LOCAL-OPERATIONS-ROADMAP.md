@@ -78,6 +78,13 @@ the Python runtime and GitHub CI. Any mismatch is an error, not a “best effort
 fallback. This keeps the client simple while retaining a single deterministic
 source of story authority.
 
+Each catalogue edge is additionally bound to the source choice label, exact
+transition ID, target frame ID, and the target frame's verified consequence.
+The static player rejects a package where any one of these differs and renders
+the latest verified consequence after a choice. This gives players an
+understandable account of state change without granting the browser power to
+calculate or alter that state.
+
 ## Local real-time session safety already present in the synthetic runtime
 
 The future local service must never apply a click against a frame that has

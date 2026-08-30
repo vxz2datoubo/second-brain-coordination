@@ -66,6 +66,15 @@ class CreativeExperienceTests(unittest.TestCase):
         self.assertEqual(len(catalogue["nodes"]), 24)
         self.assertTrue(all(node["sequence_step"]["frame_id"] == node["frame"]["frame_id"] for node in catalogue["nodes"]))
         self.assertTrue(all(node["sequence_step"]["cut_policy"] for node in catalogue["nodes"]))
+        self.assertTrue(all(edge["action_label"] and edge["target_frame_id"] and isinstance(edge["consequence"], dict) for edge in catalogue["edges"]))
+        for edge in catalogue["edges"]:
+            source = nodes[edge["from_timeline_hash"]]
+            target = nodes[edge["to_timeline_hash"]]
+            source_choice = next(choice for choice in source["legal_choices"] if choice["action_id"] == edge["action_id"])
+            self.assertEqual(edge["action_label"], source_choice["label"])
+            self.assertEqual(edge["target_frame_id"], target["frame_id"])
+            self.assertEqual(edge["transition_id"], target["recent_action"]["transition_id"])
+            self.assertEqual(edge["consequence"], target["recent_consequence"])
         self.assertEqual({item["action_id"] for item in nodes[current]["legal_choices"]}, {"listen", "approach", "leave"})
         for action_id, expected_scene in (("listen", "station_platform"), ("approach", "signal_room"), ("listen", "archive_vault")):
             current = edges[(current, action_id)]["to_timeline_hash"]
