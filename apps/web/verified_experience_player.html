@@ -46,10 +46,16 @@
         <dl id="director"></dl>
       </section>
       <section class="card">
+        <h2>Verified journey</h2>
+        <ol id="journey"></ol>
+        <p class="muted">This trail is a local rendering of already verified catalogue edges. It does not create or persist a story record.</p>
+      </section>
+      <section class="card">
         <h2>Choose a verified action</h2>
         <div class="choices" id="choices"></div>
         <p id="choice-status" class="muted"></p>
         <button id="back" type="button">Back to previous verified frame</button>
+        <button id="restart" type="button">Restart verified journey</button>
       </section>
     </section>
     <section id="error" class="card error hidden"><strong>Artifact rejected.</strong><pre id="error-text"></pre></section>
@@ -68,6 +74,8 @@
     const choices = document.querySelector("#choices");
     const choiceStatus = document.querySelector("#choice-status");
     const back = document.querySelector("#back");
+    const restart = document.querySelector("#restart");
+    const journey = document.querySelector("#journey");
     let player = null;
 
     function require(condition, message) { if (!condition) throw new Error(message); }
@@ -125,6 +133,19 @@
       player = null; experienceBox.classList.add("hidden"); errorBox.classList.remove("hidden");
       errorText.textContent = error instanceof Error ? error.message : String(error);
       loadStatus.textContent = "The selected file was not accepted.";
+    }
+    function renderJourney() {
+      journey.replaceChildren();
+      const initial = player.nodes.get(player.catalog.initial_timeline_hash);
+      const start = document.createElement("li");
+      start.textContent = "Start: " + text(initial.state && initial.state.scene_id) + " / " + text(initial.state && initial.state.beat_id);
+      journey.append(start);
+      for (const entry of player.history) {
+        const target = player.nodes.get(entry.edge.to_timeline_hash);
+        const item = document.createElement("li");
+        item.textContent = entry.edge.action_label + " → " + text(target.state && target.state.scene_id) + " / " + text(target.state && target.state.beat_id) + " · " + consequenceSummary(entry.edge.consequence);
+        journey.append(item);
+      }
     }
     function loadArtifact(payload) {
       require(payload && typeof payload === "object", "Artifact root must be an object.");
@@ -207,13 +228,16 @@
         const edge = player.edges.get(player.current + "\u0000" + choice.action_id);
         const button = document.createElement("button"); button.type = "button"; button.textContent = choice.label + " (“" + choice.action_id + "”)";
         button.disabled = !edge;
-        button.addEventListener("click", () => { player.history.push(player.current); player.current = edge.to_timeline_hash; player.lastConsequence = edge.consequence; render(); });
+        button.addEventListener("click", () => { player.history.push({ from_timeline_hash: player.current, edge }); player.current = edge.to_timeline_hash; player.lastConsequence = edge.consequence; render(); });
         choices.append(button);
       }
       back.disabled = player.history.length === 0;
+      restart.disabled = player.history.length === 0;
+      renderJourney();
       choiceStatus.textContent = player.lastConsequence ? "Verified consequence: " + consequenceSummary(player.lastConsequence) : (legal.length ? "Only the listed, evidence-bound actions are selectable." : "Terminal verified frame; no further action is available.");
     }
-    back.addEventListener("click", () => { if (player && player.history.length) { player.current = player.history.pop(); render(); } });
+    back.addEventListener("click", () => { if (player && player.history.length) { player.current = player.history.pop().from_timeline_hash; player.lastConsequence = null; render(); } });
+    restart.addEventListener("click", () => { if (player) { player.current = player.catalog.initial_timeline_hash; player.history = []; player.lastConsequence = null; render(); } });
     fileInput.addEventListener("change", async () => {
       const file = fileInput.files && fileInput.files[0]; if (!file) return;
       try { loadArtifact(JSON.parse(await file.text())); } catch (error) { reject(error); }

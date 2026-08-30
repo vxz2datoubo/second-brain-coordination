@@ -22,6 +22,12 @@ At load time it rejects a catalogue whenever a legal button label, transition
 identifier, target frame, or reported consequence is not the exact one bound
 to that frame. It remains a renderer: it cannot calculate a different story
 state or invent a consequence.
+
+The player also displays a local, read-only **Verified journey** trail. Each
+entry is a catalogue edge already accepted at load time, showing the selected
+label, target scene/beat, and verified consequence. Back and restart alter
+only this browser-side viewing path; they never write a session, account, or
+customer record.
 cut policy and planned duration whenever the currently selected catalogue node
 belongs to the fixed demo route. It is a GitHub-first synthetic demonstration,
 not a deployment or a local customer operations service.
