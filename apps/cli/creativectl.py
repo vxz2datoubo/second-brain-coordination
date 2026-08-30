@@ -67,10 +67,21 @@ def _load_session(workspace: Path) -> CreativeLedger:
     path = session_path(workspace)
     if not path.is_file():
         raise LedgerViolation("No session exists; run init first")
-    data = json.loads(path.read_text(encoding="utf-8"))
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise LedgerViolation("Session is not valid UTF-8 JSON") from error
+    if not isinstance(data, Mapping):
+        raise LedgerViolation("Session root must be a JSON object")
     if data.get("schema") != SCHEMA:
         raise LedgerViolation("Unsupported session schema")
-    return CreativeLedger.from_records(data.get("events", []))
+    events = data.get("events")
+    if not isinstance(events, list):
+        raise LedgerViolation("Session events must be a JSON array")
+    try:
+        return CreativeLedger.from_records(events)
+    except (KeyError, TypeError, ValueError, LedgerViolation) as error:
+        raise LedgerViolation("Session event chain is invalid") from error
 
 
 def _knowledge_path(workspace: Path) -> Path:
@@ -81,7 +92,19 @@ def _load_knowledge(workspace: Path) -> KnowledgeReviewBridge:
     path = _knowledge_path(workspace)
     if not path.is_file():
         return KnowledgeReviewBridge()
-    return KnowledgeReviewBridge.from_records(json.loads(path.read_text(encoding="utf-8")).get("candidates", []))
+    try:
+        record = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise KnowledgeBridgeViolation("Knowledge review packet is not valid UTF-8 JSON") from error
+    if not isinstance(record, Mapping) or record.get("schema") != "CreativeKnowledgeReview/v1":
+        raise KnowledgeBridgeViolation("Unsupported knowledge review packet schema")
+    candidates = record.get("candidates")
+    if not isinstance(candidates, list):
+        raise KnowledgeBridgeViolation("Knowledge review candidates must be a JSON array")
+    try:
+        return KnowledgeReviewBridge.from_records(candidates)
+    except (KeyError, TypeError, ValueError) as error:
+        raise KnowledgeBridgeViolation("Knowledge review candidate record is invalid") from error
 
 
 def _write_knowledge(workspace: Path, bridge: KnowledgeReviewBridge) -> None:

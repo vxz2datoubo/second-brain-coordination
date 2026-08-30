@@ -192,7 +192,10 @@ def load_v2_session(workspace: Path) -> LoadedV2Session:
         raise SessionViolation("v2 graph revision does not match the verified graph")
     if migration.get("timeline_hash") != verified.timeline_hash:
         raise SessionViolation("v2 timeline hash does not match the verified timeline")
-    if int(migration.get("legacy_event_count", -1)) != len(ledger.events):
+    declared_event_count = migration.get("legacy_event_count")
+    if isinstance(declared_event_count, bool) or not isinstance(declared_event_count, int):
+        raise SessionViolation("v2 legacy event count is malformed")
+    if declared_event_count != len(ledger.events):
         raise SessionViolation("v2 legacy event count does not match the ledger")
     legacy_hash = str(migration.get("legacy_sha256", ""))
     if len(legacy_hash) != 64:

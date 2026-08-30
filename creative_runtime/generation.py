@@ -291,6 +291,13 @@ def _load_receipt(path: Path) -> dict[str, Any]:
         raise GenerationViolation("Unsupported offline generation receipt schema")
     if _digest_record(record) != record.get("receipt_hash"):
         raise GenerationViolation("Offline generation receipt hash does not match its content")
+    required = {"receipt_id", "request", "result", "source", "shot_id", "quality_metrics", "created_at"}
+    if not required <= set(record):
+        raise GenerationViolation("Offline generation receipt is missing required fields")
+    if not isinstance(record["request"], Mapping) or not isinstance(record["result"], Mapping) or not isinstance(record["source"], Mapping):
+        raise GenerationViolation("Offline generation receipt has malformed nested records")
+    if not isinstance(record["quality_metrics"], Mapping):
+        raise GenerationViolation("Offline generation receipt has malformed quality metrics")
     return dict(record)
 
 
