@@ -40,10 +40,13 @@ Player action ──> append-only ledger ──> graph-backed prefix replay
 | Intermediate truth | prefix replay, not final-state backfill | every entry is reconstructed from `events[:n]` | consequences cannot quietly change in the middle of a route |
 | Director boundary | `compile_verified_director` | malformed/forged timeline raises before a brief exists | `creativectl director` reports the source timeline hash |
 | Durable handoff | `CreativeSession/v2` migration envelope | legacy source remains byte-identical; envelope must re-verify graph/timeline | `creativectl migrate` is idempotent and never creates a shadow save on failure |
+| Post-migration integrity | v2-to-v1 immutable-source verification | source bytes, event records, graph revision and timeline hash must agree | `creativectl verify-v2` is read-only and rejects a changed/missing source |
 | User understanding | `UnderstandingMap` | layer, authority, evidence tier, confidence, and card references validate | `creativectl understanding` emits a plain-language card and hard hash anchor |
 | Numeric anti-drift | `MetricAnchor` and `DriftAssessment` | hash/ID integrity uses `exact_match`, not an averaged score | an identity mismatch is a failure, not “mostly healthy” |
 | Knowledge boundary | review packet bridge plus verified-timeline derivation | candidate never becomes canonical automatically; derived film candidate must reference validated final event/hash | `creativectl knowledge derive` prepares a human-review-only candidate |
-| Generation boundary | existing offline adapter and quality gate | no provider call path in this branch | playable and demonstrable without credentials or spend |
+| Offline generation evidence | deterministic receipt bound to verified director input | source timeline, graph, final event, shot and fixed metrics must reconstruct exactly | `creativectl generate-offline` records only a simulated URI; `verify-generation` is read-only |
+| Feedback intake | immutable local feedback record plus review-only candidate | rating is integer 0–5; feedback must bind to a verified receipt; no canonical write | `creativectl feedback <receipt> <0-5> <note>` creates a pending candidate only |
+| Lifecycle map | read-only workspace audit | every saved receipt and feedback item must still bind to the active verified story | `creativectl audit` reports the whole evidence chain in one JSON map |
 
 The default `legacy_archive` scenario remains losslessly compatible with the
 earlier single-scene records. New sessions may opt into `three_scene`; that
@@ -134,6 +137,13 @@ does not depend on this working directory, uncommitted cache, or chat history.
 It is still executor-provided reproducibility evidence, not independent
 acceptance.
 
+The deterministic demonstration is intentionally a complete local lifecycle,
+not an isolated unit: three-scene play → graph-backed timeline → verified
+director → simulated offline generation receipt → receipt verification →
+source-bound feedback → pending knowledge candidate → v1-to-v2 migration →
+v2 binding check → workspace audit. Each identity comparison is exact; the
+only variable owner input is the bounded feedback rating/note.
+
 ### Independent acceptance (E3)
 
 Only when the owner says `收尾` will the exact branch head, baseline, test
@@ -143,14 +153,16 @@ not mark its own branch ready, accepted, or merged.
 
 ## Next implementation frontier
 
-The current branch has a coherent core but is intentionally offline and small.
-The next continuous-build tranche should extend the same contracts across:
+The current branch now has a source-bound offline lifecycle, but remains
+intentionally private and small. The next continuous-build tranche should
+extend the same contracts across:
 
-1. durable session serialization and a clear migration policy;
-2. multi-scene graph namespaces and asset/space continuity;
-3. a review-packet link from verified timeline hash to knowledge candidate;
-4. a deterministic end-to-end demonstration receipt;
-5. a reusable clean-reproduction workflow only once local checks stabilize.
+1. named local save-slot policy that cannot escape the workspace;
+2. multi-route narrative fixtures with more than one safe ending;
+3. director coverage metrics across alternative route consequences, not only a
+   single happy-path route;
+4. a reusable CI workflow once the local verification surface has stabilized;
+5. close-out evidence packaging only when the owner directs `收尾`.
 
 All five are compatible with the existing safety boundary: no credentials,
 paid generation, public deployment, or canonical knowledge write.
