@@ -92,20 +92,24 @@ worker_slots:
     route: "coordination/ROUTES/GPT-W5-EVENT-COVERAGE-CLEAN-SUCCESSOR-R166.yaml"
     task_brief: "coordination/TASK-BRIEFS/GPT-W5-EVENT-COVERAGE-CLEAN-SUCCESSOR-R166.yaml"
     write_paths: []
+    read_paths: []
+    interfaces: []
+    read_domains: []
+    write_domains: []
+    authority_claims: []
     resource_class: "FROZEN_NO_EXECUTION"
     provenance:
+      source_issue: 501
       latest_review: 5061048003
       latest_reviewed_head: "12d94fadf48da600a370dee9800613b03abb3426"
       latest_verdict: "CHANGES_REQUIRED"
       prior_source_chain_semantic_blocker_closed: true
       remaining_comparator_blocker_class: "TEXT_SHAPE_OBJECT_ADDRESS_NORMALIZATION_WITHOUT_PROVENANCE"
       future_strategy: "WAIT_FOR_R168_CANONICAL_COMPARATOR_PRIMITIVE_THEN_RELEASE_SEPARATE_GOVERNED_W5_SUCCESSOR"
-      former_write_surface:
-        - ".github/workflows/w5-event-coverage-p0-vs1.yml"
-        - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/** bounded seven-file surface"
     reviewer_role: "GPT_INDEPENDENT_REVIEWER"
-    activation_state: "FROZEN"
-    closure_state: "PAUSED_FOR_CAPACITY_AND_FOUNDATIONAL_COMPARATOR_DEPENDENCY"
+    reviewer_separation: "EXECUTION_IDENTITY_NOT_ACCEPTANCE_AUTHORITY"
+    activation_state: "RELEASED"
+    closure_state: "RELEASED"
 
   - worker_slot_id: "GPT-WORKER-R168-CANONICAL-CI-STATE-ISOLATION-1"
     agent_type: "GPT_ENGINEERING_WORKER"
@@ -132,6 +136,12 @@ worker_slots:
       - "coordination/CONTROL-TOWER/integration_state_isolation.py"
       - "coordination/CONTROL-TOWER/integration_state_isolation.schema.json"
       - "coordination/CONTROL-TOWER/tests/test_integration_state_isolation.py"
+    read_paths:
+      - "Issue #496 and binding comments"
+      - "coordination/CONTROL-TOWER/**"
+      - ".github/workflows/program-control-tower.yml"
+    interfaces:
+      - "IntegrationStateIsolationReceipt/v1"
     read_domains: [CONTROL_TOWER]
     write_domains: []
     authority_claims:
@@ -152,7 +162,7 @@ worker_slots:
       branch_history_preserved: true
     reviewer_role: "GPT_INDEPENDENT_REVIEWER"
     reviewer_separation: "EXECUTION_IDENTITY_NOT_ACCEPTANCE_AUTHORITY"
-    activation_state: "ACTIVE_REMEDIATION"
+    activation_state: "ACTIVE"
     closure_state: null
 
   - worker_slot_id: "GPT-WORKER-R172-SINGLE-V2-AUTHORITY-1"
@@ -164,10 +174,10 @@ worker_slots:
     issue: 515
     parent_issue: 512
     branch: "gpt/r172-single-v2-authority"
-    pr: null
+    pr: "TO_CREATE_AFTER_EFFECTIVE_SPEC_SNAPSHOT"
     status: "RESERVED_GOVERNANCE_ONLY_PENDING_CANONICAL_RELEASE"
     execution_allowed: false
-    substantive_write_gate: "CLOSED_UNTIL_GOVERNANCE_MERGE_AND_ISSUE_515_EFFECTIVE_SPEC_SNAPSHOT"
+    substantive_write_gate: "CLOSED_UNTIL_GOVERNANCE_MERGE_AND_ISSUE_515_EFFECTIVE_SPEC_SNAPSHOT_AND_RESERVED_TO_ACTIVE_TRANSITION"
     route: "coordination/ROUTES/GPT-R171-SINGLE-V2-AUTHORITY-CLEAN-SUCCESSOR-R172.yaml"
     task_brief: "coordination/TASK-BRIEFS/GPT-R171-SINGLE-V2-AUTHORITY-CLEAN-SUCCESSOR-R172.yaml"
     work_claim: "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/SINGLE-V2-AUTHORITY-R172/WORK-CLAIM.yaml"
@@ -183,6 +193,14 @@ worker_slots:
       - "apps/cli/creativectl.py"
       - "tests/test_r172_single_v2_authority.py"
       - "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/SINGLE-V2-AUTHORITY-R172/AI_HANDOFF.yaml"
+    read_paths:
+      - "creative_runtime/contracts.py"
+      - "canonical main creative runtime and CLI interfaces"
+      - "Issue #515 / Issue #512 / independent review evidence"
+    interfaces:
+      - "CreativeSession/v2"
+      - "CreativeLedger"
+      - "creativectl"
     read_domains: [INTERACTIVE_FILM, CREATIVE_RUNTIME]
     write_domains: []
     authority_claims:
@@ -191,7 +209,7 @@ worker_slots:
       - "NO_FROZEN_IMPLEMENTATION_REUSE"
       - "NO_W3_DOMAIN_TRUTH_WRITE"
       - "NO_TRADE"
-    resource_class: "LIGHT_IMPLEMENTATION"
+    resource_class: "LIGHT_TO_MEDIUM_IMPLEMENTATION_RESERVATION"
     concurrency:
       concurrent_gpt_task: "GPT-CANONICAL-CI-STATE-ISOLATION-R168"
       concurrent_codex_task: null
@@ -205,5 +223,5 @@ worker_slots:
       snapshot_required_after_governance_merge: true
     reviewer_role: "GPT_INDEPENDENT_REVIEWER"
     reviewer_separation: "EXECUTION_IDENTITY_NOT_ACCEPTANCE_AUTHORITY"
-    activation_state: "RESERVED_PENDING_CANONICAL_RELEASE"
+    activation_state: "RESERVED"
     closure_state: null
