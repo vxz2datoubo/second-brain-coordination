@@ -1,4 +1,4 @@
-schema_version: "1.5"
+schema_version: "1.6"
 registry_id: "ACTIVE-GPT-ENGINEERING-WORKERS-0001"
 agent_type: "GPT_ENGINEERING_WORKER"
 parallel_routes_allowed: true
@@ -7,8 +7,8 @@ boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 semantics:
   purpose: >-
     Canonical active route registry for GPT Engineering Worker execution identities. Active slots require exact route, claim,
-    witness, lease, branch and pre-write snapshot bindings. Frozen historical slots remain audit evidence only and carry no
-    execution authority. A later clean successor never inherits invalid execution provenance merely because its code is similar.
+    witness, lease, branch and pre-write snapshot bindings. Frozen historical or pipeline-waiting slots remain audit evidence only
+    and carry no execution authority. A later clean successor never inherits invalid execution provenance merely because its code is similar.
   agent_type: "GPT_ENGINEERING_WORKER"
   slot_is_provenance_not_species: true
   singleton_overwrite_model_forbidden: true
@@ -18,6 +18,8 @@ semantics:
   historical_executor_provenance_preserved: true
   retroactive_authorization_forbidden: true
   active_slots_max: 2
+  pipeline_waiting_slot_counts_as_active_execution: false
+  reservation_counts_as_execution: false
 
 worker_slots:
   - worker_slot_id: "GPT-WORKER-R163-INTERACTIVE-FILM-REMEDIATION-1"
@@ -86,9 +88,9 @@ worker_slots:
     parent_issue: 486
     branch: "gpt/w5-event-coverage-r166-clean-successor"
     pr: 504
-    status: "FROZEN_NO_EXECUTION_AFTER_REPEATED_T3_COMPARATOR_FINDING"
+    status: "WAITING_INDEPENDENT_REVIEW_EXECUTION_FROZEN"
     execution_allowed: false
-    substantive_write_gate: "CLOSED_BY_R172_CAPACITY_REALLOCATION_PENDING_FUTURE_GOVERNED_SUCCESSOR"
+    substantive_write_gate: "CLOSED_AT_ENGINEERING_HANDOFF_EXACT_HEAD_CC982F33"
     route: "coordination/ROUTES/GPT-W5-EVENT-COVERAGE-CLEAN-SUCCESSOR-R166.yaml"
     task_brief: "coordination/TASK-BRIEFS/GPT-W5-EVENT-COVERAGE-CLEAN-SUCCESSOR-R166.yaml"
     write_paths: []
@@ -97,19 +99,23 @@ worker_slots:
     read_domains: []
     write_domains: []
     authority_claims: []
-    resource_class: "FROZEN_NO_EXECUTION"
+    resource_class: "FROZEN_WAITING_INDEPENDENT_REVIEW"
     provenance:
       source_issue: 501
-      latest_review: 5061048003
-      latest_reviewed_head: "12d94fadf48da600a370dee9800613b03abb3426"
-      latest_verdict: "CHANGES_REQUIRED"
+      binding_snapshot: 5470388488
+      latest_exact_head: "cc982f33ad87601a0327e595125272ea4954cdce"
+      engineering_handoff: 5470408857
+      latest_review_request: 5470409826
+      prior_review: 5061059275
+      prior_verdict: "CHANGES_REQUIRED"
+      exact_head_ci_run: 33327321346
+      phase3_ci_run: 33327321364
       prior_source_chain_semantic_blocker_closed: true
-      remaining_comparator_blocker_class: "TEXT_SHAPE_OBJECT_ADDRESS_NORMALIZATION_WITHOUT_PROVENANCE"
-      future_strategy: "WAIT_FOR_R168_CANONICAL_COMPARATOR_PRIMITIVE_THEN_RELEASE_SEPARATE_GOVERNED_W5_SUCCESSOR"
+      latest_remediation: "PRESERVE_ALL_FLATTENED_HEX_SEMANTICS"
     reviewer_role: "GPT_INDEPENDENT_REVIEWER"
     reviewer_separation: "EXECUTION_IDENTITY_NOT_ACCEPTANCE_AUTHORITY"
-    activation_state: "RELEASED"
-    closure_state: "RELEASED"
+    activation_state: "FROZEN_WAITING_INDEPENDENT_REVIEW"
+    closure_state: null
 
   - worker_slot_id: "GPT-WORKER-R168-CANONICAL-CI-STATE-ISOLATION-1"
     agent_type: "GPT_ENGINEERING_WORKER"
@@ -120,49 +126,31 @@ worker_slots:
     issue: 496
     branch: "gpt/canonical-ci-state-isolation-r168"
     pr: 505
-    status: "ACTIVE_POST_REVIEW_REMEDIATION_004"
-    execution_allowed: true
-    substantive_write_gate: "OPEN_BY_ISSUE_496_SNAPSHOT_5469277153_FOR_BOUNDED_REMEDIATION_004"
+    status: "WAITING_CANONICALIZATION_ACCEPTED_HEAD_EXECUTION_FROZEN"
+    execution_allowed: false
+    substantive_write_gate: "CLOSED_AT_INDEPENDENT_ACCEPT_EXACT_HEAD_F58D63F4"
     route: "coordination/ROUTES/GPT-CANONICAL-CI-STATE-ISOLATION-R168.yaml"
     task_brief: "coordination/TASK-BRIEFS/GPT-CANONICAL-CI-STATE-ISOLATION-R168.yaml"
-    work_claim: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/WORK-CLAIM.yaml"
-    authorization_witness: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/AUTHORIZATION-WITNESS.yaml"
-    source_selection_provenance: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/SOURCE-SELECTION-PROVENANCE.yaml"
-    task_lease: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/TASK-LEASE.yaml"
-    executor_reservation: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/EXECUTOR-RESERVATION.yaml"
-    control_tower_scan: "coordination/CONTROL-TOWER/R168-CANONICAL-CI-STATE-ISOLATION-ACTIVATION-SCAN.yaml"
-    write_paths:
-      - ".github/workflows/program-control-tower.yml"
-      - "coordination/CONTROL-TOWER/integration_state_isolation.py"
-      - "coordination/CONTROL-TOWER/integration_state_isolation.schema.json"
-      - "coordination/CONTROL-TOWER/tests/test_integration_state_isolation.py"
-    read_paths:
-      - "Issue #496 and binding comments"
-      - "coordination/CONTROL-TOWER/**"
-      - ".github/workflows/program-control-tower.yml"
-    interfaces:
-      - "IntegrationStateIsolationReceipt/v1"
-    read_domains: [CONTROL_TOWER]
+    write_paths: []
+    read_paths: []
+    interfaces: []
+    read_domains: []
     write_domains: []
-    authority_claims:
-      - "R168_BOUNDED_CANONICAL_CI_STATE_ISOLATION_ONLY"
-      - "NO_TEXT_SHAPE_OBJECT_ADDRESS_LAUNDERING"
-      - "NO_REVIEW_MERGE_RELEASE_AUTHORITY"
-      - "NO_TRADE"
-    resource_class: "LIGHT_IMPLEMENTATION"
-    concurrency:
-      concurrent_gpt_task: "GPT-R171-SINGLE-V2-AUTHORITY-CLEAN-SUCCESSOR-R172"
-      concurrent_codex_task: null
-      overlap_class: "O0_NO_MATERIAL_WRITE_OVERLAP"
-      nested_parallelism: "FORBIDDEN"
+    authority_claims: []
+    resource_class: "FROZEN_WAITING_CANONICALIZATION"
     provenance:
       source_issue: 496
-      latest_review: 5061044698
       remediation_004_snapshot: 5469277153
-      branch_history_preserved: true
+      accepted_exact_head: "f58d63f4ea1db935de8005ffb710f50394ce6062"
+      independent_review: 5061226434
+      review_result: 5469655950
+      canonicalization_handoff: 5470394737
+      ready_transport_incident: 5470432141
+      ready_transport_failure_fingerprint: "Repository.fullDatabaseId"
+      canonicalized: false
     reviewer_role: "GPT_INDEPENDENT_REVIEWER"
     reviewer_separation: "EXECUTION_IDENTITY_NOT_ACCEPTANCE_AUTHORITY"
-    activation_state: "ACTIVE"
+    activation_state: "FROZEN_WAITING_CANONICALIZATION"
     closure_state: null
 
   - worker_slot_id: "GPT-WORKER-R172-SINGLE-V2-AUTHORITY-1"
@@ -211,14 +199,17 @@ worker_slots:
       - "NO_TRADE"
     resource_class: "LIGHT_TO_MEDIUM_IMPLEMENTATION_RESERVATION"
     concurrency:
-      concurrent_gpt_task: "GPT-CANONICAL-CI-STATE-ISOLATION-R168"
+      concurrent_gpt_task: null
       concurrent_codex_task: null
+      active_gpt_execution_slots_observed: 0
+      reserved_gpt_slots_observed: 1
       overlap_class: "O0_NO_MATERIAL_WRITE_OVERLAP"
       nested_parallelism: "FORBIDDEN"
     provenance:
       source_issue: 515
       parent_issue: 512
       r171_executor_mismatch_correction: 5469016549
+      governance_reconciliation_snapshot: 5470439948
       implementation_branch_must_not_exist_before_snapshot: true
       snapshot_required_after_governance_merge: true
     reviewer_role: "GPT_INDEPENDENT_REVIEWER"
