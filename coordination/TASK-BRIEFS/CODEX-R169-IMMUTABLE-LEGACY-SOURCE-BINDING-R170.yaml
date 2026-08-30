@@ -1,0 +1,26 @@
+schema: TaskBrief/v1
+task_id: CODEX-R169-IMMUTABLE-LEGACY-SOURCE-BINDING-R170
+route_epoch: 170
+issue: 509
+executor: CODEX
+worker_slot_id: CODEX-R170-INTERACTIVE-FILM-SOURCE-BINDING-1
+implementation_baseline: 3a48f402fedde6fe0e6ecc96708a8dc271ec23e0
+branch: codex/r170-r169-immutable-legacy-source-binding
+binding_review: pullrequestreview-5059744286
+binding_review_result: issuecomment-5466230853
+scope:
+  - On every migrated-v2 acceptance validation, read the still-present immutable legacy session.json and recompute its digest from actual bytes.
+  - Bind migration receipt legacy_records/source_digest and deterministic migrated ledger to those actual source bytes; mutable receipt fields are not authority.
+  - Reject any receipt+ledger rewrite to a different canonical legacy history even with recomputed hashes/event IDs.
+  - Add source-A versus swapped canonical-source-B adversarial regression; SaveStore.load, SavedSession.state, timeline, director sequence and review packet all fail closed while source-A bytes stay unchanged.
+  - Preserve exact ordered migration_bridge position/event-identity equality from R169.
+  - Preserve genuine positive bridge, lossy listen->approach->leave rejection with source unchanged/no shadow save, state_patch fail-closed, receipt/history durability, native-v2 non-labeling, canonical review-ticket fields and real handoff binding.
+ci:
+  workflow: .github/workflows/r170-interactive-film-source-binding.yml
+  python: ["3.11", "3.13"]
+  exact_head_required: true
+handoff_order:
+  - CODEX_ENGINEERING_HANDOFF/v1 on Issue #509 with actual returned comment id
+  - REVIEW_REQUEST/v1 on Issue #453 using effective_spec_snapshot_id/effective_spec_snapshot_ref/canonical_base/exact_head and real engineering_handoff_ref
+  - stop for uninvolved GPT_INDEPENDENT_REVIEWER T3
+source_fence: PR #508/#506/#502/#495/#493 are evidence only and may not be edited, imported, cherry-picked, merged-from, rebased from, or used as implementation assets.

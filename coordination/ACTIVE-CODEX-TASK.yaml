@@ -1,91 +1,69 @@
-schema_version: "169.0"
+schema_version: "170.0"
 repository: "vxz2datoubo/second-brain-coordination"
-target_agent: "CODEX"
-active_issue: 507
-task_id: "CODEX-R167-BRIDGE-PROVENANCE-REMEDIATION-R169"
-parent_task_id: "REALTIME-INTERACTIVE-FILM-GAME-0002"
-route_epoch: 169
-mode: "clean_nonretroactive_review_remediation"
-mode_label: "R169 CODEX post-prefix migration-bridge provenance hardening"
-status: "ACTIVE_GOVERNED_PREWRITE"
+target_agent: CODEX
+active_issue: 509
+task_id: CODEX-R169-IMMUTABLE-LEGACY-SOURCE-BINDING-R170
+parent_task_id: REALTIME-INTERACTIVE-FILM-GAME-0002
+route_epoch: 170
+mode: clean_nonretroactive_review_remediation
+mode_label: R170 immutable legacy-source binding for migrated-v2 validation
+status: ACTIVE_GOVERNED_PREWRITE
 execution_allowed: true
 automatic_resume_within_task: true
 second_user_start_command_required: false
-intermediate_gpt_review_required: false
 merge_authorized: false
 runtime_code_change_allowed: true
-active_executor: "CODEX-R169-INTERACTIVE-FILM-BRIDGE-PROVENANCE-1"
-
-canonical_route: "coordination/ROUTES/CODEX-R167-BRIDGE-PROVENANCE-REMEDIATION-R169.yaml"
-canonical_contract: "coordination/TASK-BRIEFS/CODEX-R167-BRIDGE-PROVENANCE-REMEDIATION-R169.yaml"
-implementation_baseline: "9246e07bff0ed0f194d646cfb901783ed1dbe919"
-implementation_branch: "codex/r169-r167-bridge-provenance-remediation"
-planned_draft_pr: true
-
+active_executor: CODEX-R170-INTERACTIVE-FILM-SOURCE-BINDING-1
+canonical_route: coordination/ROUTES/CODEX-R169-IMMUTABLE-LEGACY-SOURCE-BINDING-R170.yaml
+canonical_contract: coordination/TASK-BRIEFS/CODEX-R169-IMMUTABLE-LEGACY-SOURCE-BINDING-R170.yaml
+implementation_baseline: 3a48f402fedde6fe0e6ecc96708a8dc271ec23e0
+implementation_branch: codex/r170-r169-immutable-legacy-source-binding
 activation:
-  user_authorization: "Release fresh CODEX-only non-retroactive remediation for PR #506 exact-head P1."
+  issue: 509
+  parent_issue: 507
+  blocking_review: 5059744286
+  review_result: 5466230853
+  reviewed_head: 2f04a0e9c9a1ee0af61a77d13f16de92ee2c3bdb
+  sole_blocker: P1_CALLER_REWRITABLE_MIGRATION_RECEIPT_CAN_REBIND_HISTORY
+  release_decision: PROCEED_R170_CLEAN_REMEDIATION_FREEZE_PR508
+predecessor_r169:
   issue: 507
-  parent_issue: 503
-  blocking_review: 5059684398
-  same_conclusion_prior_review: 5059665927
-  review_result: 5466075081
-  prior_r165_blockers_closed: true
-  release_decision: "PROCEED_R169_CLEAN_REMEDIATION / FREEZE_PR506"
-  prewrite_snapshot_required: true
-
-predecessor_r167:
-  task_id: "CODEX-R165-REVIEW-BLOCKER-REMEDIATION-R167"
-  issue: 503
-  pr: 506
-  reviewed_head: "6ba392adf8520c610eb4387af9089427d6ff3369"
-  status: "FROZEN_AFTER_INDEPENDENT_CHANGES_REQUIRED"
+  pr: 508
+  reviewed_head: 2f04a0e9c9a1ee0af61a77d13f16de92ee2c3bdb
+  status: FROZEN_AFTER_INDEPENDENT_CHANGES_REQUIRED
   execution_allowed: false
   implementation_asset_reuse_allowed: false
-
 lease:
-  worker_slot_id: "CODEX-R169-INTERACTIVE-FILM-BRIDGE-PROVENANCE-1"
-  task_lease: "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/BRIDGE-PROVENANCE-R169/TASK-LEASE.yaml"
-  work_claim: "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/BRIDGE-PROVENANCE-R169/WORK-CLAIM.yaml"
-  executor_reservation: "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/BRIDGE-PROVENANCE-R169/EXECUTOR-RESERVATION.yaml"
-  control_tower_scan: "coordination/CONTROL-TOWER/R169-INTERACTIVE-FILM-BRIDGE-PROVENANCE-ACTIVATION-SCAN.yaml"
-  substantive_write_gate: "CLOSED_UNTIL_ISSUE_507_EFFECTIVE_SPEC_SNAPSHOT_AND_BRANCH_PARENT_VERIFY"
-
-mission:
-  goal: >-
-    Cleanly reimplement the bounded interactive-film safety envelope from canonical main and close only the
-    post-prefix forged migration_bridge provenance P1 without importing any frozen candidate implementation.
-
+  worker_slot_id: CODEX-R170-INTERACTIVE-FILM-SOURCE-BINDING-1
+  task_lease: coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/IMMUTABLE-SOURCE-BINDING-R170/TASK-LEASE.yaml
+  work_claim: coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/IMMUTABLE-SOURCE-BINDING-R170/WORK-CLAIM.yaml
+  executor_reservation: coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/IMMUTABLE-SOURCE-BINDING-R170/EXECUTOR-RESERVATION.yaml
+  control_tower_scan: coordination/CONTROL-TOWER/R170-INTERACTIVE-FILM-IMMUTABLE-SOURCE-BINDING-ACTIVATION-SCAN.yaml
+  substantive_write_gate: CLOSED_UNTIL_ISSUE_509_EFFECTIVE_SPEC_SNAPSHOT_AND_BRANCH_PARENT_VERIFY
 allowed_write_paths:
-  - "creative_runtime/**"
-  - "apps/cli/**"
-  - "tests/**"
-  - "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/BRIDGE-PROVENANCE-R169/**"
-  - ".github/workflows/r169-interactive-film-bridge-provenance.yml"
-  - ".gitignore"
-
+  - creative_runtime/**
+  - apps/cli/**
+  - tests/**
+  - coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/IMMUTABLE-SOURCE-BINDING-R170/**
+  - .github/workflows/r170-interactive-film-source-binding.yml
+  - .gitignore
 hard_locks:
-  - "NO_PR506_PR502_PR495_PR493_WRITE_READY_MERGE"
-  - "NO_PR506_PR502_PR495_PR493_COMMIT_IMPORT_OR_ASSET_REUSE"
-  - "NO_RETROACTIVE_AUTHORIZATION"
-  - "NO_NETWORK_PROVIDER_MODEL_RUNTIME"
-  - "NO_CREDENTIAL_TOKEN_ACCOUNT_INTROSPECTION"
-  - "NO_EXTERNAL_OR_PAID_GENERATION"
-  - "NO_PRODUCTION_OR_PUBLIC_RELEASE"
-  - "NO_TRADE_BROKER_ACCOUNT_ORDER_FUND_ACCESS"
-  - "NO_CANONICAL_W3_KNOWLEDGE_WRITE"
-  - "NO_SECOND_LEDGER_GATEWAY_RESOLVER_AUTHORITY"
-  - "NO_SELF_REVIEW_SELF_ACCEPT_SELF_MERGE"
-  - "NO_REBASE_RESET_FORCE_PUSH_AMEND_HISTORY_REWRITE"
-
+  - NO_PR508_PR506_PR502_PR495_PR493_WRITE_READY_MERGE_IMPORT_REUSE
+  - NO_RETROACTIVE_AUTHORIZATION
+  - NO_NETWORK_PROVIDER_MODEL_RUNTIME
+  - NO_CREDENTIAL_TOKEN_ACCOUNT_INTROSPECTION
+  - NO_DEPLOY_PUBLIC_RELEASE_PRODUCTION
+  - NO_TRADE_BROKER_ACCOUNT_ORDER_FUND
+  - NO_CANONICAL_W3_KNOWLEDGE_WRITE
+  - NO_SECOND_LEDGER_GATEWAY_RESOLVER_AUTHORITY
+  - NO_SELF_REVIEW_SELF_ACCEPT_SELF_MERGE
+  - NO_REBASE_RESET_FORCE_PUSH_AMEND_HISTORY_REWRITE
 review_gate:
   queue_issue: 453
-  independent_reviewer: "GPT_INDEPENDENT_REVIEWER"
+  independent_reviewer: GPT_INDEPENDENT_REVIEWER
   exact_head_review_required: true
   canonical_snapshot_fields_required: [effective_spec_snapshot_id, effective_spec_snapshot_ref, canonical_base, exact_head]
   real_engineering_handoff_ref_required: true
   python_3_11_and_3_13_required: true
   new_review_request_required: true
-
-completion_signal: "R169_CODEX_BRIDGE_PROVENANCE_REMEDIATION_READY_FOR_INDEPENDENT_REVIEW"
-next_command: "READ_ISSUE_507_EFFECTIVE_SPEC_SNAPSHOT_THEN_EXECUTE_ONE_SHOT_TASK"
-updated_by: "GPT_GOVERNANCE_COORDINATOR"
+completion_signal: R170_CODEX_IMMUTABLE_SOURCE_BINDING_READY_FOR_INDEPENDENT_REVIEW

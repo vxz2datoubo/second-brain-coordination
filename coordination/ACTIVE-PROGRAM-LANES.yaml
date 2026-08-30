@@ -1,140 +1,87 @@
-schema_version: "3.27"
-registry_id: "AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001"
+schema_version: "3.28"
+registry_id: AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001
 control_tower_issue: 310
 owner: USER
 architecture_owner: GPT
 status: ACTIVE_CANDIDATE_CONTROL_VIEW
-as_of: "2026-08-30T01:53:00Z"
-boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
-
-authority_role: >-
-  Authoritative for program-lane identity, mission, desired state and cross-lane overlap. Per-agent active routes/leases remain
-  execution truth. Frozen candidates never regain authority through this projection.
-
+boundary: GOVERNANCE_AND_OBSERVABILITY / NO_TRADE
 portfolio_capacity_policy:
   program_lanes_may_coexist: 3
   codex_active_execution_routes_max: 1
-  qclaw_active_execution_routes_max: 1
-  workbuddy_active_execution_routes_max: 1
   gpt_engineering_worker_parallel_routes_allowed: true
   gpt_engineering_worker_active_slots_max: 2
   same_canonical_object_writers_max: 1
   nested_parallelism: FORBIDDEN
-
 current_user_release_policy:
-  decision: "R169_CODEX_BRIDGE_PROVENANCE + R168_LANE_A_CI_ISOLATION + R166_W5_WAITING_REVIEW"
-  rationale: >-
-    R167 PR #506 is frozen after independent CHANGES_REQUIRED review 5059684398. R169 is its clean non-retroactive CODEX successor
-    and writes only interactive-film runtime/test/task-local surfaces. R168 writes Control Tower CI-isolation files and R166 is
-    engineering-stopped on W5, so there is no same canonical object writer collision.
+  decision: R170_CODEX_IMMUTABLE_SOURCE_BINDING + R168_LANE_A_CI_ISOLATION + R166_W5_WAITING_REVIEW
+  rationale: R169 PR #508 is frozen after independent CHANGES_REQUIRED review 5059744286. R170 is a clean CODEX successor from canonical main and writes only interactive-film runtime/test/task-local surfaces; R168 Control Tower and R166 W5 surfaces do not collide.
   auxiliary_bounded_releases:
-    - task_id: "CODEX-R167-BRIDGE-PROVENANCE-REMEDIATION-R169"
-      route_epoch: 169
-      issue: 507
+    - task_id: CODEX-R169-IMMUTABLE-LEGACY-SOURCE-BINDING-R170
+      route_epoch: 170
+      issue: 509
       agent_type: CODEX
-      worker_slot_id: "CODEX-R169-INTERACTIVE-FILM-BRIDGE-PROVENANCE-1"
-      route: "coordination/ROUTES/CODEX-R167-BRIDGE-PROVENANCE-REMEDIATION-R169.yaml"
-      implementation_baseline: "9246e07bff0ed0f194d646cfb901783ed1dbe919"
-      branch: "codex/r169-r167-bridge-provenance-remediation"
+      worker_slot_id: CODEX-R170-INTERACTIVE-FILM-SOURCE-BINDING-1
+      route: coordination/ROUTES/CODEX-R169-IMMUTABLE-LEGACY-SOURCE-BINDING-R170.yaml
+      implementation_baseline: 3a48f402fedde6fe0e6ecc96708a8dc271ec23e0
+      branch: codex/r170-r169-immutable-legacy-source-binding
       status: ACTIVE_GOVERNED_PREWRITE
       execution_allowed: true
-      substantive_write_gate: "ISSUE_507_EFFECTIVE_SPEC_SNAPSHOT_REQUIRED"
-    - task_id: "GPT-CANONICAL-CI-STATE-ISOLATION-R168"
+      substantive_write_gate: ISSUE_509_EFFECTIVE_SPEC_SNAPSHOT_REQUIRED
+    - task_id: GPT-CANONICAL-CI-STATE-ISOLATION-R168
       route_epoch: 168
       issue: 496
       agent_type: GPT_ENGINEERING_WORKER
-      worker_slot_id: "GPT-WORKER-R168-CANONICAL-CI-STATE-ISOLATION-1"
-      route: "coordination/ROUTES/GPT-CANONICAL-CI-STATE-ISOLATION-R168.yaml"
-      branch: "gpt/canonical-ci-state-isolation-r168"
       status: ACTIVE_GOVERNED_PREWRITE
       execution_allowed: true
-    - task_id: "GPT-W5-EVENT-COVERAGE-CLEAN-SUCCESSOR-R166"
+    - task_id: GPT-W5-EVENT-COVERAGE-CLEAN-SUCCESSOR-R166
       route_epoch: 166
       issue: 501
       agent_type: GPT_ENGINEERING_WORKER
-      worker_slot_id: "GPT-WORKER-R166-W5-EVENT-COVERAGE-2"
-      branch: "gpt/w5-event-coverage-r166-clean-successor"
       status: WAITING_INDEPENDENT_REVIEW
-      execution_allowed: true
-      substantive_write_gate: "ENGINEERING_STOPPED_EXACT_HEAD_2830AD57_WAITING_REVIEW"
-
 historical_execution_refs:
+  r169:
+    issue: 507
+    pr: 508
+    reviewed_head: 2f04a0e9c9a1ee0af61a77d13f16de92ee2c3bdb
+    independent_review: 5059744286
+    review_result: 5466230853
+    status: FROZEN_AFTER_INDEPENDENT_CHANGES_REQUIRED
+    successor: R170 CLEAN CODEX IMMUTABLE SOURCE BINDING
   r167:
     issue: 503
-    route_epoch: 167
     pr: 506
-    reviewed_head: "6ba392adf8520c610eb4387af9089427d6ff3369"
-    independent_review: 5059684398
-    supporting_review: 5059665927
-    review_result: 5466075081
     status: FROZEN_AFTER_INDEPENDENT_CHANGES_REQUIRED
-    successor: "R169 CLEAN CODEX BRIDGE PROVENANCE REMEDIATION"
   r165:
     issue: 499
-    route_epoch: 165
     pr: 502
     status: FROZEN_AFTER_INDEPENDENT_REVIEW_BLOCKED
-  r163:
-    issue: 494
-    route_epoch: 163
-    pr: 495
-    status: FROZEN_PROVENANCE_INVALID
-
 observed_agent_state:
   CODEX:
-    source: coordination/ACTIVE-CODEX-TASK.yaml
-    observed_task_id: "CODEX-R167-BRIDGE-PROVENANCE-REMEDIATION-R169"
-    observed_route_epoch: 169
-    observed_issue: 507
+    observed_task_id: CODEX-R169-IMMUTABLE-LEGACY-SOURCE-BINDING-R170
+    observed_route_epoch: 170
+    observed_issue: 509
     execution_allowed: true
-    observation_status: "R169_GOVERNED_PREWRITE"
   GPT_ENGINEERING_WORKER:
-    source: coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml
-    observed_status: "R166_WAITING_REVIEW + R168_ACTIVE_PREWRITE"
-    active_execution_slots: 2
-    active_slot_max: 2
-  QCLAW:
-    source: coordination/ACTIVE-QCLAW-TASK.yaml
-    observed_status: DONE_HISTORICAL
-    execution_allowed: false
-  WORKBUDDY:
-    source: coordination/ACTIVE-WORKBUDDY-TASK.yaml
-    observed_status: PAUSED_COMPUTE_UNAVAILABLE
-    execution_allowed: false
-
+    observed_status: R166_WAITING_REVIEW + R168_ACTIVE_PREWRITE
 program_lanes:
   - lane_id: LANE-A-HARNESS-INTEGRATION
-    mission: "Maintain shared Cognitive OS coordination/runtime substrate."
-    desired_state: ACTIVE
     observed_state: R168_CANONICAL_CI_STATE_ISOLATION_ACTIVE_PREWRITE
-    active_execution_route: "coordination/ROUTES/GPT-CANONICAL-CI-STATE-ISOLATION-R168.yaml"
     implementation_owner: GPT_ENGINEERING_WORKER
   - lane_id: LANE-B-A-SHARE-REMEDIATION
-    mission: "Repair A-share research deficiencies while preserving NO_TRADE."
-    desired_state: ACTIVE
     observed_state: R166_W5_GPT_WORKER_WAITING_REVIEW
-    active_execution_route: "coordination/ROUTES/GPT-W5-EVENT-COVERAGE-CLEAN-SUCCESSOR-R166.yaml"
     implementation_owner: GPT_ENGINEERING_WORKER
     trading_authorized: false
   - lane_id: LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP
-    mission: "Bounded interactive-film provenance hardening without W3 canonical write authority."
-    desired_state: ACTIVE
-    observed_state: R169_CODEX_BRIDGE_PROVENANCE_ACTIVE_PREWRITE
-    current_phase: "ISSUE_507_EFFECTIVE_SPEC_SNAPSHOT_REQUIRED"
-    active_execution_route: "coordination/ROUTES/CODEX-R167-BRIDGE-PROVENANCE-REMEDIATION-R169.yaml"
+    mission: Bounded interactive-film immutable legacy-source provenance binding without W3 canonical write authority.
+    observed_state: R170_CODEX_IMMUTABLE_SOURCE_BINDING_ACTIVE_PREWRITE
+    current_phase: ISSUE_509_EFFECTIVE_SPEC_SNAPSHOT_REQUIRED
+    active_execution_route: coordination/ROUTES/CODEX-R169-IMMUTABLE-LEGACY-SOURCE-BINDING-R170.yaml
     implementation_owner: CODEX
-    worker_slot_id: "CODEX-R169-INTERACTIVE-FILM-BRIDGE-PROVENANCE-1"
+    worker_slot_id: CODEX-R170-INTERACTIVE-FILM-SOURCE-BINDING-1
     canonical_knowledge_write_authorized: false
-
 cross_lane_overlap_matrix:
-  - pair: [LANE-A-HARNESS-INTEGRATION, LANE-B-A-SHARE-REMEDIATION]
-    overlap_level: O1_READ_ONLY_COEXISTENCE
   - pair: [LANE-A-HARNESS-INTEGRATION, LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP]
     overlap_level: O1_READ_ONLY_COEXISTENCE
-    rule: "R168 writes Control Tower CI-isolation; R169 CODEX may read governance but writes no Control Tower object."
   - pair: [LANE-B-A-SHARE-REMEDIATION, LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP]
     overlap_level: O0_NO_MATERIAL_WRITE_OVERLAP
-
-reconciliation_rule: >-
-  R169 execution truth is its CODEX route + claim/lease/reservation + witness + Control Tower scan + Issue #507 pre-write snapshot.
-  R168 and R166 retain their distinct GPT execution truth. PR #506/#502/#495/#493 remain frozen/reference evidence only.
+reconciliation_rule: R170 execution truth is its CODEX route + claim/lease/reservation + witness + Control Tower scan + Issue #509 pre-write snapshot; PR #508/#506/#502/#495/#493 remain frozen/reference evidence only.
