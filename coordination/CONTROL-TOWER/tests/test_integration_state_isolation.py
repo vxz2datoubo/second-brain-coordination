@@ -8,6 +8,7 @@ import unittest
 from integration_state_isolation import (
     AUTHORITY_FLAGS,
     FINAL_PASS,
+    RecordingResult,
     SNAPSHOT_SCHEMA,
     compare_snapshots,
     failure_fingerprint,
@@ -38,6 +39,26 @@ def snapshot(rows: list[tuple[str, str, str | None]], *, python_version: str = "
         "environment_errors": [],
         "results": results,
     }
+
+
+class _SubtestProbe(unittest.TestCase):
+    def __init__(self, should_fail: bool):
+        super().__init__("test_probe")
+        self.should_fail = should_fail
+
+    def test_probe(self):
+        for value in (1, 2):
+            with self.subTest(value=value):
+                if self.should_fail and value == 2:
+                    self.assertEqual(value, 999, "subtest semantic failure")
+                else:
+                    self.assertIn(value, (1, 2))
+
+
+def record_subtest_probe(should_fail: bool) -> dict[str, dict]:
+    result = RecordingResult(roots=())
+    _SubtestProbe(should_fail).run(result)
+    return result.records
 
 
 class IntegrationStateIsolationTests(unittest.TestCase):
@@ -162,6 +183,30 @@ class IntegrationStateIsolationTests(unittest.TestCase):
         after = snapshot([("a", "ERROR", "a" * 64)])
         receipt = compare_snapshots(before, after)
         self.assertEqual(receipt["classification"], "CANDIDATE_MODIFIED_BASELINE_FAILURE")
+
+    def test_subtest_outcome_uses_stable_parent_id(self):
+        passing = record_subtest_probe(False)
+        failing = record_subtest_probe(True)
+        self.assertEqual(set(passing), set(failing))
+        self.assertEqual(len(passing), 1)
+        test_id = next(iter(passing))
+        self.assertEqual(passing[test_id]["status"], "PASS")
+        self.assertEqual(failing[test_id]["status"], "FAIL")
+        self.assertIsNone(passing[test_id]["failure_fingerprint"])
+        self.assertRegex(failing[test_id]["failure_fingerprint"], r"^[0-9a-f]{64}$")
+
+    def test_subtest_pass_to_fail_is_candidate_introduced_failure(self):
+        passing = record_subtest_probe(False)
+        failing = record_subtest_probe(True)
+        before = snapshot(
+            [(test_id, row["status"], row["failure_fingerprint"]) for test_id, row in passing.items()]
+        )
+        after = snapshot(
+            [(test_id, row["status"], row["failure_fingerprint"]) for test_id, row in failing.items()]
+        )
+        receipt = compare_snapshots(before, after)
+        self.assertEqual(receipt["classification"], "CANDIDATE_INTRODUCED_FAILURE")
+        self.assertEqual(receipt["candidate_introduced_failures"][0]["test_id"], next(iter(passing)))
 
 
 if __name__ == "__main__":
