@@ -8,7 +8,7 @@ import unittest
 
 from creative_runtime.contracts import PlayerAction, StoryState, canonical_json
 from creative_runtime.ledger import CreativeLedger
-from creative_runtime.session import SessionViolation, load_v2_session, migrate_legacy_session, v2_session_path, verify_v2_source_binding
+from creative_runtime.session import SessionViolation, build_verified_session_receipt, load_v2_session, migrate_legacy_session, v2_session_path, verify_v2_source_binding
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -125,6 +125,29 @@ class CreativeSessionTests(unittest.TestCase):
             legacy.unlink()
             with self.assertRaisesRegex(SessionViolation, "No legacy"):
                 verify_v2_source_binding(workspace)
+            self.assertEqual(v2_session_path(workspace).read_bytes(), v2_before)
+
+    def test_verified_session_receipt_is_deterministic_minimal_and_source_bound(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory)
+            legacy = self.legacy_route(workspace)
+            migrate_legacy_session(workspace, "2030-01-01T00:02:00Z")
+            v2_before = v2_session_path(workspace).read_bytes()
+            first = build_verified_session_receipt(workspace)
+            second = creativectl.run(["--workspace", str(workspace), "session-receipt"])
+
+            self.assertEqual(first.receipt_hash, build_verified_session_receipt(workspace).receipt_hash)
+            self.assertEqual(second["status"], "session_source_verified")
+            self.assertEqual(second["receipt_id"], first.receipt_id)
+            self.assertEqual(second["timeline_hash"], first.timeline_hash)
+            self.assertFalse(second["contains_event_records"])
+            self.assertFalse(second["contains_customer_material"])
+            self.assertFalse(second["external_provider_authorized"])
+            self.assertEqual(v2_session_path(workspace).read_bytes(), v2_before)
+
+            legacy.write_bytes(legacy.read_bytes() + b"\n")
+            with self.assertRaisesRegex(SessionViolation, "immutable legacy source bytes"):
+                build_verified_session_receipt(workspace)
             self.assertEqual(v2_session_path(workspace).read_bytes(), v2_before)
 
 

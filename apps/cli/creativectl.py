@@ -36,6 +36,7 @@ from creative_runtime.session import (
     DEFAULT_SLOT,
     SessionViolation,
     atomic_replace_text,
+    build_verified_session_receipt,
     legacy_session_path,
     migrate_legacy_session,
     session_mutation_lock,
@@ -403,6 +404,7 @@ def run(argv: list[str]) -> dict[str, Any]:
     subparsers.add_parser("understanding")
     subparsers.add_parser("migrate")
     subparsers.add_parser("verify-v2")
+    subparsers.add_parser("session-receipt")
     generate_parser = subparsers.add_parser("generate-offline")
     generate_parser.add_argument("--shot-id")
     verify_generation_parser = subparsers.add_parser("verify-generation")
@@ -498,6 +500,8 @@ def run(argv: list[str]) -> dict[str, Any]:
         return migrate_legacy_session(args.workspace, ledger.events[-1].occurred_at, slot).to_dict()
     if args.command == "verify-v2":
         return verify_v2_source_binding(args.workspace, slot).to_dict()
+    if args.command == "session-receipt":
+        return build_verified_session_receipt(args.workspace, slot).to_dict()
     if args.command == "generate-offline":
         ledger = _load_session(args.workspace, slot)
         compiled = compile_verified_director(ledger, graph=graph_for_ledger(ledger))

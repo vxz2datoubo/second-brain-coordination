@@ -205,6 +205,44 @@ class V2SourceVerification:
         }
 
 
+@dataclass(frozen=True)
+class VerifiedSessionReceipt:
+    """Portable, no-event-content evidence for one source-verified v2 slot.
+
+    The receipt transports identities and the public-safe final story state,
+    never legacy bytes, event records, free text, vault references, or provider
+    material. It can therefore support synthetic GitHub evidence and later
+    local handoff coordination, but cannot restore or disclose a session.
+    """
+
+    receipt_id: str
+    receipt_hash: str
+    legacy_sha256: str
+    timeline_hash: str
+    graph_revision: str
+    event_count: int
+    state: StoryState
+    slot_id: str = DEFAULT_SLOT
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "schema": "CreativeVerifiedSessionReceipt/v1",
+            "status": "session_source_verified",
+            "receipt_id": self.receipt_id,
+            "receipt_hash": self.receipt_hash,
+            "legacy_sha256": self.legacy_sha256,
+            "timeline_hash": self.timeline_hash,
+            "graph_revision": self.graph_revision,
+            "event_count": self.event_count,
+            "state": self.state.to_dict(),
+            "slot_id": self.slot_id,
+            "contains_event_records": False,
+            "contains_customer_material": False,
+            "external_provider_authorized": False,
+            "authority_note": "Read-only provenance receipt; it cannot restore a session or authorize customer intake, deployment, or provider use.",
+        }
+
+
 def _build_v2_record(raw_legacy: bytes, ledger: CreativeLedger, migrated_at: str, slot: str) -> dict[str, Any]:
     try:
         verified = verified_director_input(ledger, graph_for_ledger(ledger))
@@ -337,6 +375,32 @@ def verify_v2_source_binding(workspace: Path, slot: str = DEFAULT_SLOT) -> V2Sou
         event_count=len(loaded.ledger.events),
         state=v2_verified.state,
         slot_id=normalized_slot,
+    )
+
+
+def build_verified_session_receipt(workspace: Path, slot: str = DEFAULT_SLOT) -> VerifiedSessionReceipt:
+    """Create deterministic content-minimal handoff evidence for a v2 slot."""
+
+    verified = verify_v2_source_binding(workspace, slot)
+    material = {
+        "schema": "CreativeVerifiedSessionReceipt/v1",
+        "legacy_sha256": verified.legacy_sha256,
+        "timeline_hash": verified.timeline_hash,
+        "graph_revision": verified.graph_revision,
+        "event_count": verified.event_count,
+        "state": verified.state.to_dict(),
+        "slot_id": verified.slot_id,
+    }
+    receipt_hash = _sha256_bytes(canonical_json(material).encode("utf-8"))
+    return VerifiedSessionReceipt(
+        receipt_id="session_receipt_" + receipt_hash[:20],
+        receipt_hash=receipt_hash,
+        legacy_sha256=verified.legacy_sha256,
+        timeline_hash=verified.timeline_hash,
+        graph_revision=verified.graph_revision,
+        event_count=verified.event_count,
+        state=verified.state,
+        slot_id=verified.slot_id,
     )
 
 

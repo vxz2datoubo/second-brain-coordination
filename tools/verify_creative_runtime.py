@@ -95,6 +95,7 @@ def _demo(cli: Any) -> dict[str, Any]:
         )
         migration = cli.run(["--workspace", str(workspace), "migrate"])
         v2_binding = cli.run(["--workspace", str(workspace), "verify-v2"])
+        session_receipt = cli.run(["--workspace", str(workspace), "session-receipt"])
         audit = cli.run(["--workspace", str(workspace), "audit"])
         slot_workspace = workspace / "named-slot"
         slot_prefix = ["--workspace", str(slot_workspace), "--slot", "route_b"]
@@ -217,6 +218,9 @@ def _demo(cli: Any) -> dict[str, Any]:
             "migration_status": migration["status"],
             "v2_source_binding_status": v2_binding["status"],
             "v2_source_binding_timeline_hash": v2_binding["timeline_hash"],
+            "session_receipt_status": session_receipt["status"],
+            "session_receipt_contains_events": session_receipt["contains_event_records"],
+            "session_receipt_contains_customer_material": session_receipt["contains_customer_material"],
             "audit_status": audit["status"],
             "audit_generation_receipt_count": len(audit["evidence"]["verified_offline_generation_receipts"]),
             "audit_feedback_count": len(audit["evidence"]["verified_feedback"]),
@@ -307,6 +311,9 @@ def verify(
         "feedback_canonical_write": False,
         "migration_status": "migrated",
         "v2_source_binding_status": "v2_source_verified",
+        "session_receipt_status": "session_source_verified",
+        "session_receipt_contains_events": False,
+        "session_receipt_contains_customer_material": False,
         "audit_status": "workspace_audit_verified",
         "audit_generation_receipt_count": 1,
         "audit_feedback_count": 1,
