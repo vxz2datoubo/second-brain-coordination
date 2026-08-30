@@ -21,7 +21,7 @@ from .contracts import (
 from .ledger import CreativeLedger, LedgerViolation, create_artifact
 from .director import SCENE_CINEMATIC_PROFILES, DirectorCompilation, DirectorQualityMetrics, DirectorSkill, QualityFinding, QualityReport, VerifiedDirectorCompilation, compile_director, compile_verified_director, select_director_skills
 from .knowledge import KnowledgeBridgeViolation, KnowledgeCandidate, KnowledgeReviewBridge, VerifiedKnowledgeCandidate, correct_from_verified_timeline
-from .local_intake import LocalIntakeProjection, LocalIntakeViolation, local_intake_gate_report, validate_local_intake
+from .local_intake import LocalIntakePolicy, LocalIntakeProjection, LocalIntakeViolation, local_intake_gate_report, validate_local_intake
 from .generation import (
     ExternalGenerationGuard,
     GenerationViolation,
@@ -114,6 +114,7 @@ __all__ = [
     "KnowledgeCandidate",
     "KnowledgeReviewBridge",
     "LocalIntakeProjection",
+    "LocalIntakePolicy",
     "LocalIntakeViolation",
     "MetricAnchor",
     "MigrationResult",

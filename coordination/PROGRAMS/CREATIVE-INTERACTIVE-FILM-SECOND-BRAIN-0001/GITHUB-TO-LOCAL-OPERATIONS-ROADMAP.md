@@ -161,7 +161,12 @@ future local approval.
 ## Future local adapter contract — boundary skeleton implemented, no operations
 
 `creative_runtime.local_intake` now supplies a deterministic projection and
-gate for the fixed fields below. It does not perform filesystem, network,
+gate for the fixed fields below. A `CreativeLocalIntakePolicy/v1` now pins the
+allowed consent revisions, maximum retention in seconds, integer cost ceiling,
+and non-explicit content rating; its canonical SHA-256 fingerprint is included
+in each successful gate receipt. This makes policy drift visible rather than
+allowing a syntactically valid consent string or budget number to silently
+pass. It does not perform filesystem, network,
 credential, vault, media, provider, or customer-content operations. The actual
 local adapter remains a new, separately reviewed boundary. It may not
 reuse the GitHub CLI's workspace paths for raw customer material.

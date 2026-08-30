@@ -47,7 +47,7 @@ def _load_cli() -> Any:
 def _demo(cli: Any) -> dict[str, Any]:
     """Run a deterministic route crossing all new runtime integration points."""
 
-    from creative_runtime.local_intake import LocalIntakeProjection, local_intake_gate_report
+    from creative_runtime.local_intake import LocalIntakePolicy, LocalIntakeProjection, local_intake_gate_report
     from creative_runtime.ledger import LedgerViolation
 
     with tempfile.TemporaryDirectory(prefix="creative-runtime-verify-") as directory:
@@ -153,7 +153,12 @@ def _demo(cli: Any) -> dict[str, Any]:
                 provider_confirmation=False,
             ),
             observed_at="2030-01-02T00:00:00Z",
-            maximum_cost_limit_minor=0,
+            policy=LocalIntakePolicy(
+                policy_id="policy_0123456789abcdef",
+                approved_consent_revisions=("consent-v1",),
+                maximum_retention_seconds=31 * 24 * 60 * 60,
+                maximum_cost_limit_minor=0,
+            ),
         )
         return {
             "scenario": "three_scene",
