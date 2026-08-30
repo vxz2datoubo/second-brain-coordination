@@ -81,6 +81,7 @@ def _demo(cli: Any) -> dict[str, Any]:
         )
         migration = cli.run(["--workspace", str(workspace), "migrate"])
         v2_binding = cli.run(["--workspace", str(workspace), "verify-v2"])
+        audit = cli.run(["--workspace", str(workspace), "audit"])
         return {
             "scenario": "three_scene",
             "timeline_status": timeline["status"],
@@ -104,6 +105,9 @@ def _demo(cli: Any) -> dict[str, Any]:
             "migration_status": migration["status"],
             "v2_source_binding_status": v2_binding["status"],
             "v2_source_binding_timeline_hash": v2_binding["timeline_hash"],
+            "audit_status": audit["status"],
+            "audit_generation_receipt_count": len(audit["evidence"]["verified_offline_generation_receipts"]),
+            "audit_feedback_count": len(audit["evidence"]["verified_feedback"]),
         }
 
 
@@ -148,6 +152,9 @@ def verify(
         "feedback_canonical_write": False,
         "migration_status": "migrated",
         "v2_source_binding_status": "v2_source_verified",
+        "audit_status": "workspace_audit_verified",
+        "audit_generation_receipt_count": 1,
+        "audit_feedback_count": 1,
     }
     for key, expected in expected_demo.items():
         if demonstration[key] != expected:

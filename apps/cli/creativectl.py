@@ -22,11 +22,11 @@ from creative_runtime.contracts import PlayerAction, StoryState, canonical_json
 from creative_runtime.continuity import TimelineViolation, default_story_graph, graph_for_ledger, replay_timeline, timeline_hash
 from creative_runtime.director import compile_verified_director
 from creative_runtime.generation import GenerationViolation, record_offline_generation, verify_offline_generation_record
-from creative_runtime.feedback import FeedbackViolation, build_feedback_record, record_feedback
+from creative_runtime.feedback import FeedbackViolation, build_feedback_record, load_feedback, record_feedback
 from creative_runtime.ledger import CreativeLedger, LedgerViolation
 from creative_runtime.knowledge import KnowledgeBridgeViolation, KnowledgeReviewBridge, correct_from_verified_timeline
 from creative_runtime.understanding import bind_verified_timeline
-from creative_runtime.session import SessionViolation, migrate_legacy_session, verify_v2_source_binding
+from creative_runtime.session import SessionViolation, migrate_legacy_session, v2_session_path, verify_v2_source_binding
 
 
 SCHEMA = "CreativeSession/v1"
@@ -87,6 +87,68 @@ def _load_knowledge(workspace: Path) -> KnowledgeReviewBridge:
 def _write_knowledge(workspace: Path, bridge: KnowledgeReviewBridge) -> None:
     workspace.mkdir(parents=True, exist_ok=True)
     _knowledge_path(workspace).write_text(canonical_json({"schema": "CreativeKnowledgeReview/v1", "candidates": bridge.to_records()}) + "\n", encoding="utf-8")
+
+
+def _audit_workspace(workspace: Path) -> dict[str, Any]:
+    """Return a read-only, source-bound map of the current local lifecycle."""
+
+    ledger = _load_session(workspace)
+    graph = graph_for_ledger(ledger)
+    timeline = replay_timeline(ledger, graph)
+    compiled = compile_verified_director(ledger, graph=graph)
+    final_time = ledger.events[-1].occurred_at
+    v2 = {"status": "not_migrated"}
+    if v2_session_path(workspace).is_file():
+        v2 = verify_v2_source_binding(workspace).to_dict()
+    receipt_directory = workspace / "generation-receipts"
+    receipts: dict[str, Any] = {}
+    for path in sorted(receipt_directory.glob("gen_*.json")) if receipt_directory.is_dir() else ():
+        receipt = verify_offline_generation_record(
+            workspace,
+            compiled,
+            final_event_occurred_at=final_time,
+            receipt_id=path.stem,
+        )
+        receipts[receipt.receipt_id] = receipt
+    feedback_directory = workspace / "feedback"
+    feedback_items: list[dict[str, Any]] = []
+    for path in sorted(feedback_directory.glob("fb_*.json")) if feedback_directory.is_dir() else ():
+        feedback = load_feedback(workspace, path.stem)
+        receipt = receipts.get(feedback.receipt_id)
+        if receipt is None:
+            raise FeedbackViolation("Feedback refers to an offline generation receipt that is absent or not verified")
+        if feedback.source_timeline_hash != receipt.source_timeline_hash or feedback.source_receipt_hash != receipt.receipt_hash:
+            raise FeedbackViolation("Feedback source binding does not match its verified offline generation receipt")
+        feedback_items.append(feedback.to_dict())
+    candidates = _load_knowledge(workspace).to_records()
+    status_counts: dict[str, int] = {}
+    for candidate in candidates:
+        status = str(candidate["status"])
+        status_counts[status] = status_counts.get(status, 0) + 1
+    return {
+        "schema": "CreativeRuntimeWorkspaceAudit/v1",
+        "status": "workspace_audit_verified",
+        "story": {
+            "graph_revision": graph.revision,
+            "timeline_hash": timeline_hash(timeline),
+            "event_count": len(ledger.events),
+            "final_event_id": timeline[-1].event_id,
+            "final_state": timeline[-1].state.to_dict(),
+        },
+        "director": {
+            "can_generate": compiled.compilation.quality_report.can_generate,
+            "quality_metrics": compiled.compilation.quality_report.metrics.to_dict(),
+            "activated_skill_ids": list(compiled.compilation.brief.activated_skill_ids),
+        },
+        "evidence": {
+            "v2_source_binding": v2,
+            "verified_offline_generation_receipts": [receipt.to_dict() for receipt in receipts.values()],
+            "verified_feedback": feedback_items,
+            "knowledge_candidate_status_counts": status_counts,
+            "canonical_knowledge_write": False,
+            "external_generation": False,
+        },
+    }
 
 
 def _view(ledger: CreativeLedger) -> dict[str, Any]:
@@ -203,6 +265,7 @@ def run(argv: list[str]) -> dict[str, Any]:
     feedback_parser.add_argument("receipt_id")
     feedback_parser.add_argument("rating", type=int)
     feedback_parser.add_argument("note")
+    subparsers.add_parser("audit")
     knowledge_parser = subparsers.add_parser("knowledge")
     knowledge_subparsers = knowledge_parser.add_subparsers(dest="knowledge_command", required=True)
     knowledge_search = knowledge_subparsers.add_parser("search")
@@ -316,6 +379,8 @@ def run(argv: list[str]) -> dict[str, Any]:
             "knowledge_candidate": candidate.to_dict(),
             "canonical_write": False,
         }
+    if args.command == "audit":
+        return _audit_workspace(args.workspace)
     if args.command == "knowledge":
         bridge = _load_knowledge(args.workspace)
         if args.knowledge_command == "search":

@@ -32,6 +32,7 @@ class CreativeVerifierTests(unittest.TestCase):
         self.assertEqual(receipt["demonstration"]["generation_verification_status"], "offline_generation_verified")
         self.assertEqual(receipt["demonstration"]["feedback_status"], "feedback_recorded")
         self.assertFalse(receipt["demonstration"]["feedback_canonical_write"])
+        self.assertEqual(receipt["demonstration"]["audit_status"], "workspace_audit_verified")
         self.assertEqual(
             receipt["demonstration"]["v2_source_binding_timeline_hash"],
             receipt["demonstration"]["timeline_hash"],

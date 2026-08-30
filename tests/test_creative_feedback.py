@@ -47,6 +47,11 @@ class CreativeFeedbackTests(unittest.TestCase):
             self.assertFalse(first["canonical_write"])
             self.assertEqual(load_feedback(workspace, feedback_id).feedback_hash, first["feedback"]["feedback_hash"])
             self.assertEqual(target.read_bytes(), before)
+            audit = creativectl.run(["--workspace", str(workspace), "audit"])
+            self.assertEqual(audit["status"], "workspace_audit_verified")
+            self.assertEqual(len(audit["evidence"]["verified_offline_generation_receipts"]), 1)
+            self.assertEqual(len(audit["evidence"]["verified_feedback"]), 1)
+            self.assertFalse(audit["evidence"]["canonical_knowledge_write"])
 
     def test_feedback_rejects_bad_rating_tampered_source_and_does_not_repair(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -65,6 +70,23 @@ class CreativeFeedbackTests(unittest.TestCase):
                 creativectl.run(["--workspace", str(workspace), "feedback", receipt_id, "3", "Check source first."])
             self.assertEqual(receipt_path.read_bytes(), tampered)
             self.assertFalse((workspace / "feedback").exists())
+
+    def test_audit_rejects_feedback_that_no_longer_binds_to_a_verified_receipt(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory)
+            receipt_id = self.completed_workspace(workspace)
+            saved = creativectl.run(["--workspace", str(workspace), "feedback", receipt_id, "3", "A source-bound note."])
+            feedback_file = feedback_path(workspace, saved["feedback"]["feedback_id"])
+            record = json.loads(feedback_file.read_text(encoding="utf-8"))
+            record["source_timeline_hash"] = "0" * 64
+            # Update the hash to make this a structurally valid but source-wrong
+            # record; the audit must still catch the semantic mismatch.
+            from creative_runtime.feedback import _feedback_hash
+
+            record["feedback_hash"] = _feedback_hash(record)
+            feedback_file.write_text(json.dumps(record), encoding="utf-8")
+            with self.assertRaisesRegex(FeedbackViolation, "source binding"):
+                creativectl.run(["--workspace", str(workspace), "audit"])
 
 
 if __name__ == "__main__":
