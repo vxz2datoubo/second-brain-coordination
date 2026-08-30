@@ -43,24 +43,29 @@ jobs:
       - name: Compile CI-isolation helper
         working-directory: coordination/CONTROL-TOWER
         run: python -m py_compile integration_state_isolation.py tests/test_integration_state_isolation.py
-      - name: Attack semantic angle-bracket hex normalization
+      - name: Attack unproven object-address normalization
         working-directory: coordination/CONTROL-TOWER
         run: |
           python - <<'PY'
           from integration_state_isolation import failure_fingerprint, normalize_failure_text
 
-          semantic_left = 'AssertionError: expected <mask at 0x20>'
-          semantic_right = 'AssertionError: expected <mask at 0x40>'
-          assert normalize_failure_text(semantic_left) == semantic_left
-          assert normalize_failure_text(semantic_right) == semantic_right
-          assert failure_fingerprint('FAIL', semantic_left) != failure_fingerprint('FAIL', semantic_right)
+          semantic_pairs = (
+              ('AssertionError: expected <mask at 0x20>', 'AssertionError: expected <mask at 0x40>'),
+              ('AssertionError: expected <mask object at 0x20>', 'AssertionError: expected <mask object at 0x40>'),
+              ('AssertionError: expected <capability object at 0x20>', 'AssertionError: expected <capability object at 0x40>'),
+              ('<Probe object at 0xABCDEF>', '<Probe object at 0x123456>'),
+          )
+          for left, right in semantic_pairs:
+              assert normalize_failure_text(left) == left
+              assert normalize_failure_text(right) == right
+              assert failure_fingerprint('FAIL', left) != failure_fingerprint('FAIL', right)
 
-          object_left = '<Probe object at 0xABCDEF>'
-          object_right = '<Probe object at 0x123456>'
-          assert normalize_failure_text(object_left) == '<Probe object at 0x<ADDR>>'
-          assert normalize_failure_text(object_right) == '<Probe object at 0x<ADDR>>'
-          assert failure_fingerprint('FAIL', object_left) == failure_fingerprint('FAIL', object_right)
-          print('R168_OBJECT_REPR_BOUNDARY_PASS')
+          trace_left = 'File "/tmp/a/repo/test.py", line 12, in test_x\nAssertionError: stable'
+          trace_right = 'File "/tmp/b/repo/test.py", line 998, in test_x\nAssertionError: stable'
+          assert failure_fingerprint('FAIL', trace_left, roots=['/tmp/a/repo']) == failure_fingerprint(
+              'FAIL', trace_right, roots=['/tmp/b/repo']
+          )
+          print('R168_PROVENANCE_SAFE_NORMALIZATION_PASS')
           PY
       - name: Run CI-isolation focused regressions absolutely
         working-directory: coordination/CONTROL-TOWER
