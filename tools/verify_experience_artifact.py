@@ -39,6 +39,14 @@ def _git_head() -> str:
     return result.stdout.strip()
 
 
+def _require_clean_worktree() -> None:
+    result = subprocess.run(["git", "status", "--porcelain"], cwd=ROOT, check=False, text=True, capture_output=True)
+    if result.returncode != 0:
+        raise RuntimeError("Cannot determine worktree status: " + result.stderr.strip())
+    if result.stdout.strip():
+        raise RuntimeError("Artifact verification requires a clean worktree; use a fresh clone or checkpoint first")
+
+
 def expected_artifact(head_sha: str) -> dict[str, Any]:
     """Build the sole fixed Actions demonstration without writing an artifact."""
 
@@ -62,12 +70,19 @@ def expected_artifact(head_sha: str) -> dict[str, Any]:
     }
 
 
-def verify_artifact(path: Path, expected_head: str | None = None) -> dict[str, Any]:
+def verify_artifact(
+    path: Path,
+    expected_head: str | None = None,
+    *,
+    require_clean_worktree: bool = True,
+) -> dict[str, Any]:
     """Return a receipt only when the downloaded bytes match a clean rebuild."""
 
     head = _git_head()
     if expected_head is not None and head != expected_head:
         raise RuntimeError(f"Exact-head mismatch: expected {expected_head}, actual {head}")
+    if require_clean_worktree:
+        _require_clean_worktree()
     try:
         raw = path.read_bytes()
         supplied = json.loads(raw.decode("utf-8"))
@@ -88,6 +103,7 @@ def verify_artifact(path: Path, expected_head: str | None = None) -> dict[str, A
         "catalog_node_count": len(expected["catalog"]["nodes"]),
         "catalog_edge_count": len(expected["catalog"]["edges"]),
         "catalog_transition_count": len(expected["catalog"]["covered_transition_ids"]),
+        "worktree_status": "clean_required_and_clean" if require_clean_worktree else "not_checked_for_verifier_self_test",
         "boundary": dict(expected["boundary"]),
         "authority_note": "Offline reproducibility evidence only; this verifier cannot approve release, deployment, or customer intake.",
     }

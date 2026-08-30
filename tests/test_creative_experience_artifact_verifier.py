@@ -22,12 +22,13 @@ class CreativeExperienceArtifactVerifierTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "experience.json"
             path.write_text(canonical_json(artifact_verifier.expected_artifact(head)) + "\n", encoding="utf-8")
-            receipt = artifact_verifier.verify_artifact(path, head)
+            receipt = artifact_verifier.verify_artifact(path, head, require_clean_worktree=False)
         self.assertEqual(receipt["status"], "experience_artifact_exactly_verified")
         self.assertEqual(receipt["head_sha"], head)
         self.assertEqual(receipt["catalog_node_count"], 24)
         self.assertEqual(receipt["catalog_edge_count"], 23)
         self.assertEqual(receipt["catalog_transition_count"], 14)
+        self.assertEqual(receipt["worktree_status"], "not_checked_for_verifier_self_test")
         self.assertTrue(receipt["boundary"]["synthetic_only"])
 
     def test_verifier_rejects_one_tampered_catalogue_edge(self) -> None:
@@ -38,7 +39,7 @@ class CreativeExperienceArtifactVerifierTests(unittest.TestCase):
             artifact["catalog"]["edges"][0]["to_timeline_hash"] = "forged"
             path.write_text(canonical_json(artifact) + "\n", encoding="utf-8")
             with self.assertRaisesRegex(RuntimeError, "does not exactly match"):
-                artifact_verifier.verify_artifact(path, head)
+                artifact_verifier.verify_artifact(path, head, require_clean_worktree=False)
 
 
 if __name__ == "__main__":
