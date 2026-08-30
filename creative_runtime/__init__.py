@@ -51,9 +51,11 @@ from .session import (
     LoadedV2Session,
     MigrationResult,
     SessionViolation,
+    V2SourceVerification,
     legacy_session_path,
     load_v2_session,
     migrate_legacy_session,
+    verify_v2_source_binding,
     v2_session_path,
 )
 
@@ -100,6 +102,7 @@ __all__ = [
     "VerifiedDirectorInput",
     "VerifiedDirectorCompilation",
     "VerifiedKnowledgeCandidate",
+    "V2SourceVerification",
     "canonical_json",
     "adapter_for",
     "assess_anchor",
@@ -121,5 +124,6 @@ __all__ = [
     "timeline_hash",
     "three_scene_story_graph",
     "verified_director_input",
+    "verify_v2_source_binding",
     "v2_session_path",
 ]

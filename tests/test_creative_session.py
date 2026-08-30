@@ -8,7 +8,7 @@ import unittest
 
 from creative_runtime.contracts import PlayerAction, StoryState, canonical_json
 from creative_runtime.ledger import CreativeLedger
-from creative_runtime.session import SessionViolation, load_v2_session, migrate_legacy_session, v2_session_path
+from creative_runtime.session import SessionViolation, load_v2_session, migrate_legacy_session, v2_session_path, verify_v2_source_binding
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -89,6 +89,43 @@ class CreativeSessionTests(unittest.TestCase):
             result = migrate_legacy_session(workspace, "2030-01-01T00:01:00Z")
             self.assertEqual(result.graph_revision, "ArchiveJourneyGraph/v1")
             self.assertEqual(load_v2_session(workspace).ledger.replay().scene_id, "interior_archive")
+
+    def test_v2_source_verification_proves_immutable_legacy_binding_read_only(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory)
+            legacy = self.legacy_route(workspace)
+            migrate_legacy_session(workspace, "2030-01-01T00:02:00Z")
+            v2_before = v2_session_path(workspace).read_bytes()
+
+            result = verify_v2_source_binding(workspace)
+            command = creativectl.run(["--workspace", str(workspace), "verify-v2"])
+
+            self.assertEqual(result.status, "v2_source_verified")
+            self.assertEqual(result.event_count, 3)
+            self.assertEqual(result.state.beat_id, "threshold")
+            self.assertEqual(command["timeline_hash"], result.timeline_hash)
+            self.assertEqual(v2_session_path(workspace).read_bytes(), v2_before)
+            self.assertTrue(legacy.is_file())
+
+    def test_v2_source_verification_rejects_changed_or_missing_legacy_without_repair(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory)
+            legacy = self.legacy_route(workspace)
+            migrate_legacy_session(workspace, "2030-01-01T00:02:00Z")
+            v2_before = v2_session_path(workspace).read_bytes()
+            source_before = legacy.read_bytes()
+
+            # Whitespace keeps the JSON and ledger valid while changing the
+            # byte-level identity that migration deliberately committed to.
+            legacy.write_bytes(source_before + b"\n")
+            with self.assertRaisesRegex(SessionViolation, "immutable legacy source bytes"):
+                verify_v2_source_binding(workspace)
+            self.assertEqual(v2_session_path(workspace).read_bytes(), v2_before)
+
+            legacy.unlink()
+            with self.assertRaisesRegex(SessionViolation, "No legacy"):
+                verify_v2_source_binding(workspace)
+            self.assertEqual(v2_session_path(workspace).read_bytes(), v2_before)
 
 
 if __name__ == "__main__":

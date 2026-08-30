@@ -27,6 +27,11 @@ class CreativeVerifierTests(unittest.TestCase):
         self.assertEqual(receipt["worktree_status"], "not_checked_for_verifier_self_test")
         self.assertEqual(receipt["demonstration"]["final_state"]["scene_id"], "interior_archive")
         self.assertEqual(receipt["demonstration"]["knowledge_candidate_status"], "pending_human_review")
+        self.assertEqual(receipt["demonstration"]["v2_source_binding_status"], "v2_source_verified")
+        self.assertEqual(
+            receipt["demonstration"]["v2_source_binding_timeline_hash"],
+            receipt["demonstration"]["timeline_hash"],
+        )
 
     def test_verifier_rejects_a_nonmatching_exact_head(self) -> None:
         with self.assertRaisesRegex(RuntimeError, "Exact-head mismatch"):

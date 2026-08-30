@@ -24,7 +24,7 @@ from creative_runtime.director import compile_verified_director
 from creative_runtime.ledger import CreativeLedger, LedgerViolation
 from creative_runtime.knowledge import KnowledgeBridgeViolation, KnowledgeReviewBridge, correct_from_verified_timeline
 from creative_runtime.understanding import bind_verified_timeline
-from creative_runtime.session import SessionViolation, migrate_legacy_session
+from creative_runtime.session import SessionViolation, migrate_legacy_session, verify_v2_source_binding
 
 
 SCHEMA = "CreativeSession/v1"
@@ -192,6 +192,7 @@ def run(argv: list[str]) -> dict[str, Any]:
     subparsers.add_parser("director")
     subparsers.add_parser("understanding")
     subparsers.add_parser("migrate")
+    subparsers.add_parser("verify-v2")
     knowledge_parser = subparsers.add_parser("knowledge")
     knowledge_subparsers = knowledge_parser.add_subparsers(dest="knowledge_command", required=True)
     knowledge_search = knowledge_subparsers.add_parser("search")
@@ -251,6 +252,8 @@ def run(argv: list[str]) -> dict[str, Any]:
     if args.command == "migrate":
         ledger = _load_session(args.workspace)
         return migrate_legacy_session(args.workspace, ledger.events[-1].occurred_at).to_dict()
+    if args.command == "verify-v2":
+        return verify_v2_source_binding(args.workspace).to_dict()
     if args.command == "knowledge":
         bridge = _load_knowledge(args.workspace)
         if args.knowledge_command == "search":

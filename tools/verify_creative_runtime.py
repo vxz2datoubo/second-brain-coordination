@@ -66,6 +66,7 @@ def _demo(cli: Any) -> dict[str, Any]:
             ]
         )
         migration = cli.run(["--workspace", str(workspace), "migrate"])
+        v2_binding = cli.run(["--workspace", str(workspace), "verify-v2"])
         return {
             "scenario": "three_scene",
             "timeline_status": timeline["status"],
@@ -79,6 +80,8 @@ def _demo(cli: Any) -> dict[str, Any]:
             "knowledge_status": derived["status"],
             "knowledge_candidate_status": derived["verified_timeline_candidate"]["candidate"]["status"],
             "migration_status": migration["status"],
+            "v2_source_binding_status": v2_binding["status"],
+            "v2_source_binding_timeline_hash": v2_binding["timeline_hash"],
         }
 
 
@@ -115,10 +118,13 @@ def verify(
         "knowledge_status": "pending_human_review",
         "knowledge_candidate_status": "pending_human_review",
         "migration_status": "migrated",
+        "v2_source_binding_status": "v2_source_verified",
     }
     for key, expected in expected_demo.items():
         if demonstration[key] != expected:
             raise RuntimeError(f"Demonstration mismatch for {key}: {demonstration[key]!r} != {expected!r}")
+    if demonstration["v2_source_binding_timeline_hash"] != demonstration["timeline_hash"]:
+        raise RuntimeError("v2 source binding does not match the verified timeline hash")
     return {
         "schema": "CreativeRuntimeVerificationReceipt/v1",
         "head_sha": actual_head,

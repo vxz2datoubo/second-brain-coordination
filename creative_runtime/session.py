@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from .continuity import TimelineViolation, graph_for_ledger, verified_director_input
-from .contracts import canonical_json
+from .contracts import StoryState, canonical_json
 from .ledger import CreativeLedger, LedgerViolation
 
 
@@ -89,6 +89,39 @@ class LoadedV2Session:
     timeline_hash: str
     graph_revision: str
     migrated_at: str
+
+
+@dataclass(frozen=True)
+class V2SourceVerification:
+    """Evidence that a v2 envelope is still bound to its immutable v1 source.
+
+    Loading a v2 envelope proves only that the envelope is internally
+    self-consistent.  This separate result additionally proves that the source
+    file which was present at migration time still exists, has the declared
+    byte hash, and encodes the exact same event records.  It is deliberately
+    read-only: a mismatch must never be "repaired" by replacing either file.
+    """
+
+    status: str
+    legacy_path: str
+    v2_path: str
+    legacy_sha256: str
+    timeline_hash: str
+    graph_revision: str
+    event_count: int
+    state: StoryState
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "status": self.status,
+            "legacy_path": self.legacy_path,
+            "v2_path": self.v2_path,
+            "legacy_sha256": self.legacy_sha256,
+            "timeline_hash": self.timeline_hash,
+            "graph_revision": self.graph_revision,
+            "event_count": self.event_count,
+            "state": self.state.to_dict(),
+        }
 
 
 def _build_v2_record(raw_legacy: bytes, ledger: CreativeLedger, migrated_at: str) -> dict[str, Any]:
@@ -170,6 +203,44 @@ def load_v2_session(workspace: Path) -> LoadedV2Session:
         timeline_hash=verified.timeline_hash,
         graph_revision=verified.graph_revision,
         migrated_at=str(migration.get("migrated_at", "")),
+    )
+
+
+def verify_v2_source_binding(workspace: Path) -> V2SourceVerification:
+    """Fail closed unless the v2 save still exactly represents its v1 source.
+
+    The byte hash is the immutable-source identity, while exact event-record
+    equality makes the intended relationship easy to inspect and protects the
+    invariant even if this code is later refactored.  The separate replays
+    retain the graph/timeline guarantees on both sides of the binding.
+    """
+
+    loaded = load_v2_session(workspace)
+    legacy_path = legacy_session_path(workspace)
+    raw_legacy, legacy_ledger = _load_legacy_bytes(legacy_path)
+    source_hash = _sha256_bytes(raw_legacy)
+    if source_hash != loaded.legacy_sha256:
+        raise SessionViolation("v2 session no longer matches immutable legacy source bytes")
+    try:
+        legacy_verified = verified_director_input(legacy_ledger, graph_for_ledger(legacy_ledger))
+        v2_verified = verified_director_input(loaded.ledger, graph_for_ledger(loaded.ledger))
+    except (TimelineViolation, LedgerViolation, KeyError, TypeError, ValueError) as error:
+        raise SessionViolation("v2 or legacy session fails graph-backed source verification") from error
+    if legacy_ledger.to_records() != loaded.ledger.to_records():
+        raise SessionViolation("v2 event records differ from immutable legacy source")
+    if legacy_verified.timeline_hash != loaded.timeline_hash or v2_verified.timeline_hash != loaded.timeline_hash:
+        raise SessionViolation("v2 and legacy timeline identities do not agree")
+    if legacy_verified.graph_revision != loaded.graph_revision or v2_verified.graph_revision != loaded.graph_revision:
+        raise SessionViolation("v2 and legacy graph revisions do not agree")
+    return V2SourceVerification(
+        status="v2_source_verified",
+        legacy_path=str(legacy_path),
+        v2_path=str(v2_session_path(workspace)),
+        legacy_sha256=source_hash,
+        timeline_hash=loaded.timeline_hash,
+        graph_revision=loaded.graph_revision,
+        event_count=len(loaded.ledger.events),
+        state=v2_verified.state,
     )
 
 
