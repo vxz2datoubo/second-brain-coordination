@@ -31,7 +31,10 @@ from .continuity import (
     TimelineViolation,
     VerifiedDirectorInput,
     default_story_graph,
+    graph_for_initial_state,
+    graph_for_ledger,
     replay_timeline,
+    three_scene_story_graph,
     timeline_hash,
     verified_director_input,
 )
@@ -104,6 +107,8 @@ __all__ = [
     "correct_from_verified_timeline",
     "create_artifact",
     "default_story_graph",
+    "graph_for_initial_state",
+    "graph_for_ledger",
     "require_reusable_source",
     "load_task_governance",
     "legacy_session_path",
@@ -111,6 +116,7 @@ __all__ = [
     "migrate_legacy_session",
     "replay_timeline",
     "timeline_hash",
+    "three_scene_story_graph",
     "verified_director_input",
     "v2_session_path",
 ]

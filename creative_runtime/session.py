@@ -15,7 +15,7 @@ import os
 from pathlib import Path
 from typing import Any, Mapping
 
-from .continuity import TimelineViolation, default_story_graph, timeline_hash, verified_director_input
+from .continuity import TimelineViolation, graph_for_ledger, verified_director_input
 from .contracts import canonical_json
 from .ledger import CreativeLedger, LedgerViolation
 
@@ -93,7 +93,7 @@ class LoadedV2Session:
 
 def _build_v2_record(raw_legacy: bytes, ledger: CreativeLedger, migrated_at: str) -> dict[str, Any]:
     try:
-        verified = verified_director_input(ledger, default_story_graph())
+        verified = verified_director_input(ledger, graph_for_ledger(ledger))
     except (TimelineViolation, LedgerViolation, KeyError, TypeError, ValueError) as error:
         raise SessionViolation("Legacy session cannot be losslessly represented by the active story graph") from error
     return {
@@ -152,7 +152,7 @@ def load_v2_session(workspace: Path) -> LoadedV2Session:
         raise SessionViolation("v2 session has an unsupported legacy schema")
     try:
         ledger = CreativeLedger.from_records(record.get("events", ()))
-        verified = verified_director_input(ledger, default_story_graph())
+        verified = verified_director_input(ledger, graph_for_ledger(ledger))
     except (TimelineViolation, LedgerViolation, KeyError, TypeError, ValueError) as error:
         raise SessionViolation("v2 session ledger fails graph-backed replay") from error
     if migration.get("graph_revision") != verified.graph_revision:

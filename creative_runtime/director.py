@@ -67,6 +67,9 @@ def synthetic_asset_index() -> dict[str, dict[str, Any]]:
 
     return {
         "art_scene_synthetic_archive": {"role": "scene", "source": "synthetic_fixture"},
+        "art_scene_archive_gate": {"role": "scene", "source": "synthetic_fixture"},
+        "art_scene_interior_archive": {"role": "scene", "source": "synthetic_fixture"},
+        "art_scene_dawn_courtyard": {"role": "scene", "source": "synthetic_fixture"},
         "art_character_mira": {"role": "character", "name": "mira", "adult": True, "source": "synthetic_fixture"},
         "art_character_player": {"role": "character", "name": "player", "adult": True, "source": "synthetic_fixture"},
     }
@@ -75,29 +78,38 @@ def synthetic_asset_index() -> dict[str, dict[str, Any]]:
 def compile_director_brief(state: StoryState) -> DirectorBrief:
     """Compile only facts already present in StoryState into an auditable brief."""
 
+    spatial_by_scene = {
+        "synthetic_archive": ("axis:archive-door-to-courtyard", "mira:left-of-door", "player:right-of-door"),
+        "archive_gate": ("axis:archive-gate-to-street", "mira:street-side", "player:gate-side"),
+        "interior_archive": ("axis:entry-hall-to-record-room", "mira:left-of-hall", "player:right-of-hall"),
+        "dawn_courtyard": ("axis:courtyard-path-to-gate", "mira:gate-side", "player:path-side"),
+    }
+    spatial_facts = spatial_by_scene.get(state.scene_id, ())
     return DirectorBrief(
         brief_id="brief_" + state.scene_id + "_" + state.beat_id,
         story_state=state,
         character_goals={"mira": "preserve safety and hear the witness", "player": "choose a cautious next step"},
         knowledge_boundaries={"mira": tuple(state.known_facts), "player": tuple(state.known_facts)},
-        spatial_facts=("axis:archive-door-to-courtyard", "mira:left-of-door", "player:right-of-door"),
+        spatial_facts=spatial_facts,
         content_rating="non_explicit",
     )
 
 
 def compile_shots(brief: DirectorBrief) -> tuple[ShotPlan, ...]:
+    scene_id = brief.story_state.scene_id
+    axis = next((item.removeprefix("axis:") for item in brief.spatial_facts if item.startswith("axis:")), "")
     return (
         ShotPlan(
             shot_id="shot_" + brief.story_state.beat_id + "_01",
             beat_id=brief.story_state.beat_id,
             shot_role="decision consequence",
-            camera="medium two-shot, hold the door axis",
+            camera="medium two-shot, hold the established scene axis",
             performance_task="Mira listens, then marks a deliberate choice.",
             duration_seconds=8,
-            reference_artifact_ids=("art_scene_synthetic_archive", "art_character_mira", "art_character_player"),
-            axis="archive-door-to-courtyard",
-            lighting="rain reflection outside, practical archive light inside",
-            sound="rain, hinge, distant room tone",
+            reference_artifact_ids=("art_scene_" + scene_id, "art_character_mira", "art_character_player"),
+            axis=axis,
+            lighting="motivated practical light with a readable change in depth",
+            sound="environmental room tone and the consequence of the player choice",
             dominant_change="the group's confidence shifts after the player action",
         ),
     )

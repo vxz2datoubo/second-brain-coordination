@@ -19,7 +19,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from creative_runtime.contracts import PlayerAction, StoryState, canonical_json
-from creative_runtime.continuity import TimelineViolation, default_story_graph, replay_timeline, timeline_hash
+from creative_runtime.continuity import TimelineViolation, default_story_graph, graph_for_ledger, replay_timeline, timeline_hash
 from creative_runtime.director import compile_verified_director
 from creative_runtime.ledger import CreativeLedger, LedgerViolation
 from creative_runtime.knowledge import KnowledgeBridgeViolation, KnowledgeReviewBridge, correct_from_verified_timeline
@@ -30,6 +30,10 @@ from creative_runtime.session import SessionViolation, migrate_legacy_session
 SCHEMA = "CreativeSession/v1"
 DEFAULT_WORKSPACE = Path(".creative-runtime")
 UNSAFE_TERMS = {"sex", "sexual", "nude", "blood", "gore", "torture"}
+SCENARIOS = {
+    "legacy_archive": StoryState(scene_id="synthetic_archive", beat_id="arrival", relationships={"mira": 0}),
+    "three_scene": StoryState(scene_id="archive_gate", beat_id="arrival", relationships={"mira": 0}),
+}
 
 
 def synthetic_scene() -> dict[str, dict[str, Any]]:
@@ -78,7 +82,7 @@ def _write_knowledge(workspace: Path, bridge: KnowledgeReviewBridge) -> None:
 
 def _view(ledger: CreativeLedger) -> dict[str, Any]:
     state = ledger.replay()
-    beat = synthetic_scene()[state.beat_id]
+    beat = graph_for_ledger(ledger).to_cli_scene()[state.beat_id]
     options = [
         {"id": action_id, "label": option["label"]}
         for action_id, option in beat["options"].items()
@@ -86,13 +90,16 @@ def _view(ledger: CreativeLedger) -> dict[str, Any]:
     return {"status": "ready", "state": state.to_dict(), "text": beat["text"], "options": options}
 
 
-def initialize(workspace: Path) -> dict[str, Any]:
+def initialize(workspace: Path, scenario: str = "legacy_archive") -> dict[str, Any]:
     if session_path(workspace).exists():
         return {"status": "already_initialized", "session": str(session_path(workspace))}
+    initial = SCENARIOS.get(scenario)
+    if initial is None:
+        raise LedgerViolation("Unknown scenario: " + scenario)
     ledger = CreativeLedger()
     ledger.append(
         "story_initialized",
-        {"state": StoryState(scene_id="synthetic_archive", beat_id="arrival", relationships={"mira": 0}).to_dict()},
+        {"state": initial.to_dict()},
         "2030-01-01T00:00:00Z",
     )
     _write_session(workspace, ledger)
@@ -102,7 +109,8 @@ def initialize(workspace: Path) -> dict[str, Any]:
 def choose(workspace: Path, action_id: str, source_text: str | None = None) -> dict[str, Any]:
     ledger = _load_session(workspace)
     state = ledger.replay()
-    beat = synthetic_scene()[state.beat_id]
+    graph = graph_for_ledger(ledger)
+    beat = graph.to_cli_scene()[state.beat_id]
     option = beat["options"].get(action_id)
     if option is None:
         return {
@@ -116,7 +124,7 @@ def choose(workspace: Path, action_id: str, source_text: str | None = None) -> d
             "action": PlayerAction(action_id, "choice", source_text or option["label"]).to_dict(),
             "resulting_patch": option["patch"],
             "transition_id": option["transition_id"],
-            "graph_revision": default_story_graph().revision,
+            "graph_revision": graph.revision,
         },
         f"2030-01-01T00:{len(ledger.events):02d}:00Z",
     )
@@ -143,7 +151,7 @@ def parse_free_text(text: str, legal_actions: set[str]) -> tuple[str | None, flo
 def say(workspace: Path, text: str) -> dict[str, Any]:
     ledger = _load_session(workspace)
     state = ledger.replay()
-    legal = set(synthetic_scene()[state.beat_id]["options"])
+    legal = set(graph_for_ledger(ledger).to_cli_scene()[state.beat_id]["options"])
     action, confidence = parse_free_text(text, legal)
     if action is None or confidence < 0.8:
         return {
@@ -158,7 +166,8 @@ def run(argv: list[str]) -> dict[str, Any]:
     parser = argparse.ArgumentParser(prog="creativectl")
     parser.add_argument("--workspace", type=Path, default=DEFAULT_WORKSPACE)
     subparsers = parser.add_subparsers(dest="command", required=True)
-    subparsers.add_parser("init")
+    init_parser = subparsers.add_parser("init")
+    init_parser.add_argument("--scenario", choices=sorted(SCENARIOS), default="legacy_archive")
     subparsers.add_parser("play")
     choose_parser = subparsers.add_parser("choose")
     choose_parser.add_argument("action_id")
@@ -187,7 +196,7 @@ def run(argv: list[str]) -> dict[str, Any]:
     knowledge_review.add_argument("--note", default="")
     args = parser.parse_args(argv)
     if args.command == "init":
-        return initialize(args.workspace)
+        return initialize(args.workspace, args.scenario)
     if args.command in {"play", "resume"}:
         return _view(_load_session(args.workspace))
     if args.command == "choose":
@@ -198,15 +207,18 @@ def run(argv: list[str]) -> dict[str, Any]:
         ledger = _load_session(args.workspace)
         return {**_view(ledger), "status": "replayed", "event_count": len(ledger.events)}
     if args.command == "timeline":
-        entries = replay_timeline(_load_session(args.workspace), default_story_graph())
+        ledger = _load_session(args.workspace)
+        graph = graph_for_ledger(ledger)
+        entries = replay_timeline(ledger, graph)
         return {
             "status": "timeline_verified",
-            "graph_revision": default_story_graph().revision,
+            "graph_revision": graph.revision,
             "timeline_hash": timeline_hash(entries),
             "entries": [entry.to_dict() for entry in entries],
         }
     if args.command == "director":
-        compiled = compile_verified_director(_load_session(args.workspace), graph=default_story_graph())
+        ledger = _load_session(args.workspace)
+        compiled = compile_verified_director(ledger, graph=graph_for_ledger(ledger))
         return {
             "status": "director_verified",
             "verified_input": compiled.verified_input.to_dict(),
@@ -216,7 +228,7 @@ def run(argv: list[str]) -> dict[str, Any]:
         }
     if args.command == "understanding":
         ledger = _load_session(args.workspace)
-        verified = compile_verified_director(ledger, graph=default_story_graph()).verified_input
+        verified = compile_verified_director(ledger, graph=graph_for_ledger(ledger)).verified_input
         mapped = bind_verified_timeline(verified, len(ledger.events), ledger.events[-1].occurred_at)
         return {
             "status": "understanding_mapped",
@@ -239,7 +251,7 @@ def run(argv: list[str]) -> dict[str, Any]:
                 bridge,
                 args.assertion,
                 _load_session(args.workspace),
-                default_story_graph(),
+                graph_for_ledger(_load_session(args.workspace)),
             )
             _write_knowledge(args.workspace, bridge)
             return {"status": "pending_human_review", "verified_timeline_candidate": derived.to_dict()}

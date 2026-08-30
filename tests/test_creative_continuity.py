@@ -5,7 +5,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from creative_runtime.continuity import TimelineViolation, default_story_graph, replay_timeline, timeline_hash, verified_director_input
+from creative_runtime.continuity import TimelineViolation, default_story_graph, graph_for_ledger, replay_timeline, timeline_hash, verified_director_input
 from creative_runtime.contracts import PlayerAction, StoryState
 from creative_runtime.director import compile_verified_director
 from creative_runtime.ledger import CreativeLedger
@@ -139,6 +139,32 @@ class CreativeContinuityTests(unittest.TestCase):
             self.assertEqual(understanding["drift_assessments"][0]["status"], "pass")
             self.assertEqual(derived["status"], "pending_human_review")
             self.assertEqual(derived["verified_timeline_candidate"]["candidate"]["source_event_ids"], [timeline["entries"][-1]["event_id"]])
+
+    def test_three_scene_route_retains_scene_by_scene_consequences(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory)
+            creativectl.run(["--workspace", str(workspace), "init", "--scenario", "three_scene"])
+            creativectl.run(["--workspace", str(workspace), "choose", "listen"])
+            creativectl.run(["--workspace", str(workspace), "choose", "approach"])
+            creativectl.run(["--workspace", str(workspace), "choose", "listen"])
+            creativectl.run(["--workspace", str(workspace), "choose", "leave"])
+            ledger = creativectl._load_session(workspace)
+            self.assertEqual(graph_for_ledger(ledger).revision, "ArchiveJourneyGraph/v1")
+            timeline = creativectl.run(["--workspace", str(workspace), "timeline"])
+            self.assertEqual(
+                [(entry["state"]["scene_id"], entry["state"]["beat_id"]) for entry in timeline["entries"]],
+                [
+                    ("archive_gate", "arrival"),
+                    ("archive_gate", "echo"),
+                    ("interior_archive", "threshold"),
+                    ("interior_archive", "accord"),
+                    ("dawn_courtyard", "return"),
+                ],
+            )
+            self.assertEqual(timeline["entries"][2]["consequence"]["flag_changes"], {"clue": "heard"})
+            director = creativectl.run(["--workspace", str(workspace), "director"])
+            self.assertEqual(director["verified_input"]["graph_revision"], "ArchiveJourneyGraph/v1")
+            self.assertIn("art_scene_dawn_courtyard", director["shots"][0]["reference_artifact_ids"])
 
 
 if __name__ == "__main__":

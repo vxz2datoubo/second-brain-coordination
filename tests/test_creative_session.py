@@ -81,6 +81,15 @@ class CreativeSessionTests(unittest.TestCase):
             with self.assertRaisesRegex(SessionViolation, "timeline hash"):
                 load_v2_session(workspace)
 
+    def test_three_scene_session_migrates_using_its_own_initial_graph(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory)
+            creativectl.run(["--workspace", str(workspace), "init", "--scenario", "three_scene"])
+            creativectl.run(["--workspace", str(workspace), "choose", "approach"])
+            result = migrate_legacy_session(workspace, "2030-01-01T00:01:00Z")
+            self.assertEqual(result.graph_revision, "ArchiveJourneyGraph/v1")
+            self.assertEqual(load_v2_session(workspace).ledger.replay().scene_id, "interior_archive")
+
 
 if __name__ == "__main__":
     unittest.main()

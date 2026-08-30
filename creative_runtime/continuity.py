@@ -205,6 +205,56 @@ def default_story_graph() -> StoryGraph:
     return StoryGraph(revision, beats, transitions)
 
 
+def three_scene_story_graph() -> StoryGraph:
+    """A new, fully synthetic route with explicit scene transitions.
+
+    This graph is intentionally separate from the legacy-compatible graph.
+    New sessions opt into it through their initial state; old sessions therefore
+    retain the exact semantics with which they were created.
+    """
+
+    revision = "ArchiveJourneyGraph/v1"
+    beats = (
+        GraphBeat("archive_gate", "arrival", "Two adult archivists reach the rain-dark gate of a closed municipal archive."),
+        GraphBeat("archive_gate", "echo", "A witness answers through the gate while Mira checks the empty street."),
+        GraphBeat("interior_archive", "threshold", "Inside the entry hall, the witness asks whether the record can remain protected."),
+        GraphBeat("interior_archive", "accord", "The group aligns on a careful daylight handoff and documents what is known."),
+        GraphBeat("dawn_courtyard", "return", "At dawn in the courtyard, the case is paused with a traceable next step."),
+    )
+    transitions = (
+        _transition(revision, "archive_gate", "arrival", "listen", "Listen at the gate", {"beat_id": "echo", "reveal_facts": ["a witness is inside"], "risk_delta": 1}),
+        _transition(revision, "archive_gate", "arrival", "approach", "Knock and identify the team", {"scene_id": "interior_archive", "beat_id": "threshold", "relationship_delta": {"mira": 1}, "flags": {"arrival": "announced"}}),
+        _transition(revision, "archive_gate", "arrival", "leave", "Leave a daylight contact route", {"scene_id": "dawn_courtyard", "beat_id": "return", "risk_delta": -1, "flags": {"arrival": "deferred"}}),
+        _transition(revision, "archive_gate", "echo", "approach", "Ask Mira to open a careful dialogue", {"scene_id": "interior_archive", "beat_id": "threshold", "relationship_delta": {"mira": 1}, "flags": {"clue": "heard"}}),
+        _transition(revision, "archive_gate", "echo", "leave", "Record the lead and withdraw", {"scene_id": "dawn_courtyard", "beat_id": "return", "flags": {"clue": "recorded"}}),
+        _transition(revision, "interior_archive", "threshold", "listen", "Promise a documented handoff", {"beat_id": "accord", "relationship_delta": {"mira": 1}, "risk_delta": -1, "flags": {"handoff": "promised"}}),
+        _transition(revision, "interior_archive", "threshold", "leave", "Retreat to the agreed daylight point", {"scene_id": "dawn_courtyard", "beat_id": "return", "flags": {"meeting": "offered"}}),
+        _transition(revision, "interior_archive", "accord", "leave", "Close the archive and meet at dawn", {"scene_id": "dawn_courtyard", "beat_id": "return", "flags": {"record": "preserved"}}),
+    )
+    return StoryGraph(revision, beats, transitions)
+
+
+def graph_for_initial_state(initial: StoryState) -> StoryGraph:
+    """Select the sole graph that can interpret a session's initial state."""
+
+    if initial.scene_id == "synthetic_archive" and initial.beat_id == "arrival":
+        return default_story_graph()
+    if initial.scene_id == "archive_gate" and initial.beat_id == "arrival":
+        return three_scene_story_graph()
+    raise TimelineViolation(
+        "No registered story graph for initial state " + initial.scene_id + "/" + initial.beat_id
+    )
+
+
+def graph_for_ledger(ledger: CreativeLedger) -> StoryGraph:
+    """Resolve a graph from immutable initialization data, never from a branch name."""
+
+    ledger.verify_chain()
+    if not ledger.events or ledger.events[0].event_type != "story_initialized":
+        raise TimelineViolation("Timeline must start with story_initialized")
+    return graph_for_initial_state(StoryState.from_dict(ledger.events[0].payload["state"]))
+
+
 def _consequence(before: StoryState, after: StoryState) -> dict[str, Any]:
     relationship_delta = {
         name: after.relationships.get(name, 0) - before.relationships.get(name, 0)
@@ -228,7 +278,7 @@ def _prefix_hash(records: Iterable[Mapping[str, Any]]) -> str:
 def replay_timeline(ledger: CreativeLedger, graph: StoryGraph | None = None) -> tuple[TimelineEntry, ...]:
     """Replay every exact prefix and reject a hash-valid semantic forgery."""
 
-    story_graph = graph if graph is not None else default_story_graph()
+    story_graph = graph if graph is not None else graph_for_ledger(ledger)
     ledger.verify_chain()
     if not ledger.events or ledger.events[0].event_type != "story_initialized":
         raise TimelineViolation("Timeline must start with story_initialized")
@@ -288,7 +338,7 @@ def timeline_hash(entries: Iterable[TimelineEntry]) -> str:
 def verified_director_input(ledger: CreativeLedger, graph: StoryGraph | None = None) -> VerifiedDirectorInput:
     """Return a director input only after every prefix has passed graph replay."""
 
-    story_graph = graph if graph is not None else default_story_graph()
+    story_graph = graph if graph is not None else graph_for_ledger(ledger)
     entries = replay_timeline(ledger, story_graph)
     final = entries[-1]
     return VerifiedDirectorInput(final.state, story_graph.revision, timeline_hash(entries), final.event_id)
