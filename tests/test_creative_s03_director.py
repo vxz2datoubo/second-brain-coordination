@@ -4,7 +4,7 @@ from dataclasses import replace
 import unittest
 
 from creative_runtime.contracts import DirectorBrief, StoryState
-from creative_runtime.director import compile_director, compile_shots, select_director_skills, synthetic_asset_index, validate_compilation
+from creative_runtime.director import SCENE_CINEMATIC_PROFILES, compile_director, compile_shots, select_director_skills, synthetic_asset_index, validate_compilation
 
 
 class CreativeS03DirectorTests(unittest.TestCase):
@@ -40,6 +40,15 @@ class CreativeS03DirectorTests(unittest.TestCase):
         self.assertTrue(all(shot.axis == "forum-table-to-exit" for shot in compilation.shots))
         self.assertTrue(all("art_scene_public_forum" in shot.reference_artifact_ids for shot in compilation.shots))
         self.assertIn("handoff_consequence", compilation.brief.activated_skill_ids)
+        self.assertEqual(compilation.shots[0].lighting, SCENE_CINEMATIC_PROFILES["public_forum"]["orientation_lighting"])
+        self.assertEqual(compilation.shots[1].sound, SCENE_CINEMATIC_PROFILES["public_forum"]["consequence_sound"])
+
+    def test_tampered_cinematic_profile_fields_fail_closed(self) -> None:
+        valid = compile_director(StoryState(scene_id="harbor_observatory", beat_id="dock_arrival"))
+        tampered = replace(valid.shots[0], lighting="borrowed lighting", sound="borrowed sound")
+        report = validate_compilation(valid.brief, (tampered, valid.shots[1]), synthetic_asset_index())
+        self.assertFalse(report.can_generate)
+        self.assertIn("scene_style_mismatch", {finding.code for finding in report.findings})
 
     def test_skill_activation_is_minimal_and_has_recorded_reasons(self) -> None:
         initial = StoryState(scene_id="archive_gate", beat_id="arrival")

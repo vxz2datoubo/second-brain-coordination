@@ -181,7 +181,7 @@
       const shots = frame.director && frame.director.shots || [];
       const primaryShot = shots[0] || {};
       const sequenceStep = player.sequenceSteps.get(player.current) || player.nodeSequenceSteps.get(player.current);
-      setPairs(director, [["Caption", frame.accessibility.caption_text], ["Sound cue", frame.accessibility.sound_cue], ["Content boundary", frame.accessibility.content_rating], ["Sequence cut policy", sequenceStep && sequenceStep.cut_policy], ["Sequence position", sequenceStep ? (sequenceStep.sequence_index + 1) + " / " + player.sequence.steps.length : "catalogue-only branch"], ["Planned duration", sequenceStep ? sequenceStep.duration_seconds + " seconds" : "catalogue-only branch"], ["Shot role", primaryShot.shot_role], ["Camera", primaryShot.camera], ["Performance task", primaryShot.performance_task], ["Source timeline", frame.director.source_timeline_hash]]);
+      setPairs(director, [["Caption", frame.accessibility.caption_text], ["Sound cue", frame.accessibility.sound_cue], ["Content boundary", frame.accessibility.content_rating], ["Sequence cut policy", sequenceStep && sequenceStep.cut_policy], ["Sequence position", sequenceStep ? (sequenceStep.sequence_index + 1) + " / " + player.sequence.steps.length : "catalogue-only branch"], ["Planned duration", sequenceStep ? sequenceStep.duration_seconds + " seconds" : "catalogue-only branch"], ["Shot role", primaryShot.shot_role], ["Camera", primaryShot.camera], ["Lighting", primaryShot.lighting], ["Spatial axis", primaryShot.axis], ["Performance task", primaryShot.performance_task], ["Source timeline", frame.director.source_timeline_hash]]);
       choices.replaceChildren();
       const legal = frame.legal_choices || [];
       for (const choice of legal) {

@@ -85,6 +85,14 @@ the latest verified consequence after a choice. This gives players an
 understandable account of state change without granting the browser power to
 calculate or alter that state.
 
+The director compiler now has a source-controlled cinematic profile for every
+synthetic scene: orientation/consequence cameras, lighting, sound, and the
+existing spatial axis. The profile is not a generative prompt and calls no
+provider. It is a hard quality contract: a shot carrying another scene's
+lighting or sound fails `scene_style_mismatch`; a missing profile fails
+`scene_style_missing`. The static player exposes the verified lighting and
+axis alongside the existing sound, camera, duration, and consequence fields.
+
 ## Local real-time session safety already present in the synthetic runtime
 
 The future local service must never apply a click against a frame that has

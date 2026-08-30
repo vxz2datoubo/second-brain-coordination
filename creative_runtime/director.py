@@ -29,6 +29,8 @@ HARD_CODES = {
     "asset_provenance_mismatch",
     "skill_activation_mismatch",
     "skill_trigger_reason_mismatch",
+    "scene_style_missing",
+    "scene_style_mismatch",
 }
 
 
@@ -99,6 +101,27 @@ DIRECTOR_SKILLS = {
     "knowledge_boundary": DirectorSkill("knowledge_boundary", "Show only facts already earned by the story state."),
     "relationship_consequence": DirectorSkill("relationship_consequence", "Express a recorded relationship change through performance, not narration."),
     "handoff_consequence": DirectorSkill("handoff_consequence", "Show the consequence of a documented handoff, meeting, or preserved record."),
+}
+
+
+# These are public-safe synthetic directing constraints, not generated media
+# prompts.  Keeping them data-shaped lets the compiler, player and verifier
+# agree on a scene's sensory identity without talking to a provider.
+SCENE_CINEMATIC_PROFILES: dict[str, dict[str, str]] = {
+    "synthetic_archive": {"orientation_camera": "wide two-shot from the archive door toward the courtyard", "consequence_camera": "medium two-shot held on the archive-door axis", "orientation_lighting": "rain-soft practical light at the archive threshold", "consequence_lighting": "archive practical light deepens across the recorded choice", "orientation_sound": "distant rain and a quiet corridor room tone", "consequence_sound": "rain, a controlled pause, and the consequence of the player choice"},
+    "archive_gate": {"orientation_camera": "wide two-shot from the gate toward the empty street", "consequence_camera": "medium two-shot held on the gate-to-street axis", "orientation_lighting": "cool gate lamp separates the street from the archive", "consequence_lighting": "gate lamp reveals a measured change in distance", "orientation_sound": "rain on ironwork and a distant street ambience", "consequence_sound": "iron gate resonance and the consequence of the player choice"},
+    "interior_archive": {"orientation_camera": "wide two-shot along the entry hall toward the record room", "consequence_camera": "medium two-shot held on the entry-hall axis", "orientation_lighting": "warm reading lamps define the entry hall", "consequence_lighting": "reading lamps separate the documented handoff from shadow", "orientation_sound": "paper movement and a restrained interior room tone", "consequence_sound": "paper, measured breath, and the consequence of the player choice"},
+    "dawn_courtyard": {"orientation_camera": "wide two-shot along the courtyard path to the gate", "consequence_camera": "medium two-shot held on the courtyard-path axis", "orientation_lighting": "low dawn light opens the courtyard path", "consequence_lighting": "dawn edge light marks the accountable return", "orientation_sound": "early birds and a distant courtyard ambience", "consequence_sound": "footsteps on stone and the consequence of the player choice"},
+    "station_platform": {"orientation_camera": "wide two-shot along the platform edge to the exit", "consequence_camera": "medium two-shot held on the platform-exit axis", "orientation_lighting": "platform sodium lights isolate the safe exit", "consequence_lighting": "a relay indicator changes depth across the platform", "orientation_sound": "rail hum and a distant relay cadence", "consequence_sound": "relay pulse, rail hum, and the consequence of the player choice"},
+    "signal_room": {"orientation_camera": "wide two-shot from the console toward the door", "consequence_camera": "medium two-shot held on the console-to-door axis", "orientation_lighting": "console glow and a practical door light establish the room", "consequence_lighting": "console indicators clarify the recorded request", "orientation_sound": "quiet fan noise and a read-only relay click", "consequence_sound": "console click, fan tone, and the consequence of the player choice"},
+    "archive_vault": {"orientation_camera": "wide two-shot from the index toward the vault threshold", "consequence_camera": "medium two-shot held on the index-to-threshold axis", "orientation_lighting": "sealed index lamp keeps the vault threshold readable", "consequence_lighting": "index light draws attention to the minimal record", "orientation_sound": "soft ventilation and a closed-index paper sound", "consequence_sound": "index page movement and the consequence of the player choice"},
+    "control_room": {"orientation_camera": "wide two-shot from the relay console to the observation window", "consequence_camera": "medium two-shot held on the console-window axis", "orientation_lighting": "relay panels balance against the observation window", "consequence_lighting": "a paused relay indicator changes the room depth", "orientation_sound": "low equipment tone and a measured relay tick", "consequence_sound": "relay tick, witness pause, and the consequence of the player choice"},
+    "riverside_dawn": {"orientation_camera": "wide two-shot from the river path toward the street", "consequence_camera": "medium two-shot held on the river-path axis", "orientation_lighting": "river dawn reflects a calm public-safe return", "consequence_lighting": "sunrise reflection marks the documented next step", "orientation_sound": "river water and distant morning traffic", "consequence_sound": "water, footfall, and the consequence of the player choice"},
+    "harbor_observatory": {"orientation_camera": "wide two-shot from the observatory door toward the pier", "consequence_camera": "medium two-shot held on the observatory-pier axis", "orientation_lighting": "harbor beacon spill separates the observatory from the pier", "consequence_lighting": "beacon reflection marks a careful recorded choice", "orientation_sound": "harbor wind and a distant civic beacon pulse", "consequence_sound": "beacon pulse, rigging tone, and the consequence of the player choice"},
+    "beacon_room": {"orientation_camera": "wide two-shot from the lens console toward the door", "consequence_camera": "medium two-shot held on the lens-console axis", "orientation_lighting": "rotating lens glow and a practical doorway light", "consequence_lighting": "lens reflection isolates the read-only log", "orientation_sound": "lens mechanism and quiet harbor air", "consequence_sound": "lens mechanism, log click, and the consequence of the player choice"},
+    "map_archive": {"orientation_camera": "wide two-shot from the chart index toward the threshold", "consequence_camera": "medium two-shot held on the chart-index axis", "orientation_lighting": "chart table lamps keep the public index legible", "consequence_lighting": "table light marks the verified chart comparison", "orientation_sound": "paper texture and restrained archive ventilation", "consequence_sound": "chart page turn and the consequence of the player choice"},
+    "public_forum": {"orientation_camera": "wide two-shot from the forum table toward the exit", "consequence_camera": "medium two-shot held on the forum-table axis", "orientation_lighting": "even forum practicals keep every public statement readable", "consequence_lighting": "table light holds the witnessed record in view", "orientation_sound": "quiet room tone and a distant public hall ambience", "consequence_sound": "pen on paper, a measured pause, and the consequence of the player choice"},
+    "sunrise_pier": {"orientation_camera": "wide two-shot from the pier rail toward the street", "consequence_camera": "medium two-shot held on the pier-rail axis", "orientation_lighting": "sunrise along the pier rail opens a safe return path", "consequence_lighting": "morning light marks the accountable daylight handoff", "orientation_sound": "gentle water, gulls, and an open pier ambience", "consequence_sound": "water, distant gulls, and the consequence of the player choice"},
 }
 
 
@@ -232,31 +255,43 @@ def _dominant_change(brief: DirectorBrief) -> str:
 def compile_shots(brief: DirectorBrief) -> tuple[ShotPlan, ...]:
     scene_id = brief.story_state.scene_id
     axis = next((item.removeprefix("axis:") for item in brief.spatial_facts if item.startswith("axis:")), "")
+    profile = SCENE_CINEMATIC_PROFILES.get(scene_id)
+    if profile is None:
+        # Keep producing a structurally inspectable plan; validate_compilation
+        # turns the missing registered profile into a hard, fail-closed finding.
+        profile = {
+            "orientation_camera": "unregistered scene orientation",
+            "consequence_camera": "unregistered scene consequence",
+            "orientation_lighting": "unregistered scene lighting",
+            "consequence_lighting": "unregistered scene lighting",
+            "orientation_sound": "unregistered scene sound",
+            "consequence_sound": "unregistered scene sound",
+        }
     return (
         ShotPlan(
             shot_id="shot_" + brief.story_state.beat_id + "_01",
             beat_id=brief.story_state.beat_id,
             shot_role="spatial orientation",
-            camera="wide two-shot, establish the scene axis before the choice consequence",
+            camera=profile["orientation_camera"],
             performance_task="Mira checks the space while the player holds a deliberate pause.",
             duration_seconds=5,
             reference_artifact_ids=("art_scene_" + scene_id, "art_character_mira", "art_character_player"),
             axis=axis,
-            lighting="motivated practical light establishes the playable space",
-            sound="environmental room tone establishes location and distance",
+            lighting=profile["orientation_lighting"],
+            sound=profile["orientation_sound"],
             dominant_change="the audience understands where each adult character stands",
         ),
         ShotPlan(
             shot_id="shot_" + brief.story_state.beat_id + "_02",
             beat_id=brief.story_state.beat_id,
             shot_role="decision consequence",
-            camera="medium two-shot, hold the established scene axis",
+            camera=profile["consequence_camera"],
             performance_task="Mira listens, then marks a deliberate choice.",
             duration_seconds=8,
             reference_artifact_ids=("art_scene_" + scene_id, "art_character_mira", "art_character_player"),
             axis=axis,
-            lighting="motivated practical light with a readable change in depth",
-            sound="environmental room tone and the consequence of the player choice",
+            lighting=profile["consequence_lighting"],
+            sound=profile["consequence_sound"],
             dominant_change=_dominant_change(brief),
         ),
     )
@@ -282,6 +317,9 @@ def validate_compilation(
         findings.append(QualityFinding("skill_trigger_reason_mismatch", "Director skill trigger reasons do not match the recorded story state."))
     expected_axis = next((item.removeprefix("axis:") for item in brief.spatial_facts if item.startswith("axis:")), "")
     expected_scene_asset = "art_scene_" + brief.story_state.scene_id
+    expected_profile = SCENE_CINEMATIC_PROFILES.get(brief.story_state.scene_id)
+    if expected_profile is None:
+        findings.append(QualityFinding("scene_style_missing", "Current scene has no registered cinematic profile."))
     if len({shot.shot_id for shot in shots}) != len(shots):
         findings.append(QualityFinding("duplicate_shot_id", "Shot identifiers must be unique within a director compilation."))
     if sum(shot.duration_seconds for shot in shots) > 20:
@@ -290,7 +328,7 @@ def validate_compilation(
         for fact in facts:
             if fact not in known:
                 findings.append(QualityFinding("knowledge_boundary_violation", f"{character} is assigned an unknown fact."))
-    for shot in shots:
+    for index, shot in enumerate(shots):
         if shot.beat_id != brief.story_state.beat_id:
             findings.append(QualityFinding("shot_beat_mismatch", f"{shot.shot_id} is not assigned to the current story beat."))
         if not shot.axis:
@@ -303,6 +341,17 @@ def validate_compilation(
             findings.append(QualityFinding("dominant_change_missing", f"{shot.shot_id} has no dominant change."))
         if not shot.performance_task:
             findings.append(QualityFinding("performance_task_missing", f"{shot.shot_id} has no performance task."))
+        if expected_profile is not None:
+            if index == 0:
+                expected_camera = expected_profile["orientation_camera"]
+                expected_lighting = expected_profile["orientation_lighting"]
+                expected_sound = expected_profile["orientation_sound"]
+            else:
+                expected_camera = expected_profile["consequence_camera"]
+                expected_lighting = expected_profile["consequence_lighting"]
+                expected_sound = expected_profile["consequence_sound"]
+            if shot.camera != expected_camera or shot.lighting != expected_lighting or shot.sound != expected_sound:
+                findings.append(QualityFinding("scene_style_mismatch", f"{shot.shot_id} does not match the registered cinematic profile."))
         if expected_scene_asset not in shot.reference_artifact_ids:
             findings.append(QualityFinding("scene_reference_missing", f"{shot.shot_id} does not reference the current scene asset."))
         required_characters = {"art_character_mira", "art_character_player"}

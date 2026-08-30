@@ -23,6 +23,8 @@ class CreativeWebPlayerTests(unittest.TestCase):
         self.assertIn("Last consequence", source)
         self.assertIn("consequenceSummary", source)
         self.assertIn("canonicalJson", source)
+        self.assertIn("Lighting", source)
+        self.assertIn("Spatial axis", source)
         self.assertIn("interactive_frame_verified", source)
         self.assertIn("client_story_authority === false", source)
         self.assertIn("edge.to_timeline_hash", source)
