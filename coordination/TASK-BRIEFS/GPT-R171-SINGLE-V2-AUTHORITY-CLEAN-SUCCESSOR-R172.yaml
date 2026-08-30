@@ -1,4 +1,4 @@
-schema_version: "1.0"
+schema_version: "1.1"
 task_id: "GPT-R171-SINGLE-V2-AUTHORITY-CLEAN-SUCCESSOR-R172"
 repository: "vxz2datoubo/second-brain-coordination"
 source_issue: 515
@@ -62,10 +62,12 @@ source_fence:
   implementation_reuse: false
 
 parallelism:
-  r168: "ACTIVE_GPT_ENGINEERING_WORKER_SEPARATE_CONTROL_TOWER_SURFACE"
-  r166: "FROZEN_NO_EXECUTION_PENDING_FUTURE_SUCCESSOR_AFTER_R168_PRIMITIVE"
+  r168: "ACCEPTED_WAITING_CANONICALIZATION_EXECUTION_FROZEN_F58D63F4"
+  r166: "WAITING_INDEPENDENT_REVIEW_EXECUTION_FROZEN_CC982F33"
   codex_r171: "FROZEN_EXECUTOR_PROVENANCE_MISMATCH"
-  gpt_active_slots_after_r172: 2
+  r172: "RESERVED_NON_EXECUTABLE"
+  gpt_active_execution_slots_observed: 0
+  gpt_reserved_slots_observed: 1
   gpt_active_slots_max: 2
   same_canonical_object_writers_max: 1
   nested_parallelism: "FORBIDDEN"
@@ -74,12 +76,14 @@ prewrite_gate:
   substantive_write_allowed: false
   requires:
     - "governance activation PR independently accepted and merged"
+    - "canonical R168 current-main-vs-candidate comparator is available before R172 governance review"
     - "R172 route/task/claim/witness/lease/reservation/source provenance canonical"
-    - "R166 execution slot frozen and R171 CODEX execution frozen canonically"
-    - "R172 GPT slot and Lane C projection canonical"
+    - "R166 engineering execution frozen and R171 CODEX execution frozen canonically"
+    - "R172 GPT RESERVED slot and Lane C reservation canonical"
     - "fresh Control Tower activation scan"
     - "implementation branch absent before Issue #515 EFFECTIVE_SPEC_SNAPSHOT/v1"
     - "Issue #515 EFFECTIVE_SPEC_SNAPSHOT/v1 published after canonical governance release"
+    - "separate reserved-to-active transition canonical before first runtime write"
 
 hard_locks:
   - "NO_FROZEN_PR_IMPLEMENTATION_REUSE"
@@ -98,3 +102,4 @@ completion:
   review_queue: 453
   independent_reviewer: "GPT_INDEPENDENT_REVIEWER"
   merge_authorized: false
+  governance_reconciliation_snapshot: 5470439948
