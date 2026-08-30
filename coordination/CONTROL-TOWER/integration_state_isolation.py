@@ -25,6 +25,14 @@ AUTHORITY_FLAGS = {
     "domain_write_authorized": False,
     "trading_authorized": False,
 }
+_STATUS_PRECEDENCE = {
+    PASS: 0,
+    "XFAIL": 1,
+    "SKIP": 2,
+    "XPASS": 3,
+    "FAIL": 4,
+    "ERROR": 5,
+}
 
 
 class IsolationError(RuntimeError):
@@ -60,47 +68,91 @@ def failure_fingerprint(kind: str, text: str, *, roots: Iterable[str | Path] = (
 
 
 class RecordingResult(unittest.TestResult):
+    """Aggregate unittest and subTest outcomes under stable parent test IDs."""
+
     def __init__(self, *, roots: Iterable[str | Path]) -> None:
         super().__init__()
         self.roots = tuple(roots)
         self.records: dict[str, dict[str, Any]] = {}
         self.environment_errors: list[str] = []
+        self._pending: dict[str, dict[str, Any]] = {}
 
-    def _put(self, test: unittest.case.TestCase, status: str, detail: str | None = None) -> None:
+    @staticmethod
+    def _parent_test(test: unittest.case.TestCase) -> unittest.case.TestCase:
+        parent = getattr(test, "test_case", None)
+        return parent if parent is not None else test
+
+    def startTest(self, test: unittest.case.TestCase) -> None:  # noqa: N802
+        super().startTest(test)
         test_id = test.id()
-        if test_id in self.records:
-            self.environment_errors.append(f"DUPLICATE_TEST_ID:{test_id}")
-            return
-        record: dict[str, Any] = {"test_id": test_id, "status": status, "failure_fingerprint": None}
-        if detail is not None:
-            record["failure_fingerprint"] = failure_fingerprint(status, detail, roots=self.roots)
-        self.records[test_id] = record
-        if "unittest.loader._FailedTest" in test_id or test.__class__.__name__ == "_FailedTest":
-            self.environment_errors.append(f"COLLECTION_OR_IMPORT_FAILURE:{test_id}")
+        if test_id in self._pending:
+            self.environment_errors.append(f"DUPLICATE_PENDING_TEST_ID:{test_id}")
+        self._pending[test_id] = {"status": PASS, "details": []}
+
+    def _record_event(self, test: unittest.case.TestCase, status: str, detail: str | None = None) -> None:
+        parent = self._parent_test(test)
+        test_id = parent.id()
+        pending = self._pending.setdefault(test_id, {"status": PASS, "details": []})
+        if _STATUS_PRECEDENCE[status] > _STATUS_PRECEDENCE[pending["status"]]:
+            pending["status"] = status
+        if detail:
+            pending["details"].append(detail)
 
     def addSuccess(self, test: unittest.case.TestCase) -> None:  # noqa: N802
         super().addSuccess(test)
-        self._put(test, PASS)
+        self._record_event(test, PASS)
 
     def addFailure(self, test: unittest.case.TestCase, err: tuple[type[BaseException], BaseException, Any]) -> None:  # noqa: N802
         super().addFailure(test, err)
-        self._put(test, "FAIL", self._exc_info_to_string(err, test))
+        self._record_event(test, "FAIL", self._exc_info_to_string(err, self._parent_test(test)))
 
     def addError(self, test: unittest.case.TestCase, err: tuple[type[BaseException], BaseException, Any]) -> None:  # noqa: N802
         super().addError(test, err)
-        self._put(test, "ERROR", self._exc_info_to_string(err, test))
+        self._record_event(test, "ERROR", self._exc_info_to_string(err, self._parent_test(test)))
 
     def addSkip(self, test: unittest.case.TestCase, reason: str) -> None:  # noqa: N802
         super().addSkip(test, reason)
-        self._put(test, "SKIP", reason)
+        parent = self._parent_test(test)
+        prefix = f"SUBTEST:{test.id()}\n" if parent is not test else ""
+        self._record_event(parent, "SKIP", f"{prefix}{reason}")
 
     def addExpectedFailure(self, test: unittest.case.TestCase, err: tuple[type[BaseException], BaseException, Any]) -> None:  # noqa: N802
         super().addExpectedFailure(test, err)
-        self._put(test, "XFAIL", self._exc_info_to_string(err, test))
+        self._record_event(test, "XFAIL", self._exc_info_to_string(err, self._parent_test(test)))
 
     def addUnexpectedSuccess(self, test: unittest.case.TestCase) -> None:  # noqa: N802
         super().addUnexpectedSuccess(test)
-        self._put(test, "XPASS", "unexpected success")
+        self._record_event(test, "XPASS", "unexpected success")
+
+    def addSubTest(
+        self,
+        test: unittest.case.TestCase,
+        subtest: unittest.case.TestCase,
+        err: tuple[type[BaseException], BaseException, Any] | None,
+    ) -> None:  # noqa: N802
+        super().addSubTest(test, subtest, err)
+        if err is None:
+            return
+        status = "FAIL" if issubclass(err[0], test.failureException) else "ERROR"
+        detail = f"SUBTEST:{subtest.id()}\n{self._exc_info_to_string(err, test)}"
+        self._record_event(test, status, detail)
+
+    def stopTest(self, test: unittest.case.TestCase) -> None:  # noqa: N802
+        test_id = test.id()
+        pending = self._pending.pop(test_id, {"status": PASS, "details": []})
+        if test_id in self.records:
+            self.environment_errors.append(f"DUPLICATE_TEST_ID:{test_id}")
+        else:
+            status = pending["status"]
+            details = "\n---\n".join(pending["details"])
+            self.records[test_id] = {
+                "test_id": test_id,
+                "status": status,
+                "failure_fingerprint": None if status == PASS else failure_fingerprint(status, details, roots=self.roots),
+            }
+        if "unittest.loader._FailedTest" in test_id or test.__class__.__name__ == "_FailedTest":
+            self.environment_errors.append(f"COLLECTION_OR_IMPORT_FAILURE:{test_id}")
+        super().stopTest(test)
 
 
 def _snapshot_payload(records: Mapping[str, Mapping[str, Any]], *, python_version: str, environment_errors: list[str]) -> dict[str, Any]:
@@ -131,6 +183,8 @@ def collect_snapshot(repo_root: str | Path, *, test_dir: str = "coordination/CON
         suite = unittest.defaultTestLoader.discover(str(tests), pattern=pattern, top_level_dir=str(control_tower))
         result = RecordingResult(roots=(repo, tests, control_tower))
         suite.run(result)
+        if result._pending:
+            result.environment_errors.extend(f"UNFINALIZED_TEST_ID:{test_id}" for test_id in sorted(result._pending))
         return _snapshot_payload(
             result.records,
             python_version=".".join(str(part) for part in sys.version_info[:3]),
