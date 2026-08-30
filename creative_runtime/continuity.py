@@ -1,0 +1,294 @@
+"""Canonical story-graph replay for the offline interactive-film runtime.
+
+The ledger protects event bytes with a hash chain. This module adds semantic
+protection: each player event must also be a legal edge in a versioned story
+graph, and every timeline row is obtained by replaying its own ledger prefix.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+import hashlib
+from typing import Any, Iterable, Mapping
+
+from .contracts import StoryState, canonical_json
+from .ledger import CreativeLedger, LedgerViolation, apply_state_patch
+
+
+class TimelineViolation(ValueError):
+    """Raised when a valid hash chain does not represent a valid story route."""
+
+
+def _hash(value: Mapping[str, Any]) -> str:
+    return hashlib.sha256(canonical_json(value).encode("utf-8")).hexdigest()
+
+
+def _as_dict(value: Mapping[str, Any]) -> dict[str, Any]:
+    return dict(value)
+
+
+@dataclass(frozen=True)
+class GraphBeat:
+    scene_id: str
+    beat_id: str
+    text: str
+
+    def to_dict(self) -> dict[str, str]:
+        return {"scene_id": self.scene_id, "beat_id": self.beat_id, "text": self.text}
+
+
+@dataclass(frozen=True)
+class GraphTransition:
+    transition_id: str
+    scene_id: str
+    from_beat_id: str
+    action_id: str
+    label: str
+    resulting_patch: Mapping[str, Any]
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "transition_id": self.transition_id,
+            "scene_id": self.scene_id,
+            "from_beat_id": self.from_beat_id,
+            "action_id": self.action_id,
+            "label": self.label,
+            "resulting_patch": _as_dict(self.resulting_patch),
+        }
+
+
+@dataclass(frozen=True)
+class TimelineEntry:
+    sequence: int
+    event_id: str
+    event_type: str
+    transition_id: str | None
+    action_id: str | None
+    state: StoryState
+    consequence: Mapping[str, Any]
+    prefix_hash: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "sequence": self.sequence,
+            "event_id": self.event_id,
+            "event_type": self.event_type,
+            "transition_id": self.transition_id,
+            "action_id": self.action_id,
+            "state": self.state.to_dict(),
+            "consequence": _as_dict(self.consequence),
+            "prefix_hash": self.prefix_hash,
+        }
+
+
+@dataclass(frozen=True)
+class VerifiedDirectorInput:
+    """A director-ready state retaining the verified story prefix identity."""
+
+    state: StoryState
+    graph_revision: str
+    timeline_hash: str
+    final_event_id: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "state": self.state.to_dict(),
+            "graph_revision": self.graph_revision,
+            "timeline_hash": self.timeline_hash,
+            "final_event_id": self.final_event_id,
+        }
+
+
+class StoryGraph:
+    """Versioned graph definition used to validate play and replay."""
+
+    def __init__(self, revision: str, beats: Iterable[GraphBeat], transitions: Iterable[GraphTransition]) -> None:
+        beat_items = tuple(beats)
+        transition_items = tuple(transitions)
+        self.revision = revision
+        self._beats = {(beat.scene_id, beat.beat_id): beat for beat in beat_items}
+        self._transitions = {
+            (transition.scene_id, transition.from_beat_id, transition.action_id): transition
+            for transition in transition_items
+        }
+        if not self._beats:
+            raise TimelineViolation("Story graph needs at least one beat")
+        if len(self._transitions) != len(transition_items):
+            raise TimelineViolation("Story graph has duplicate transition keys")
+        for transition in self._transitions.values():
+            if (transition.scene_id, transition.from_beat_id) not in self._beats:
+                raise TimelineViolation("Transition has an unknown source beat: " + transition.transition_id)
+            destination_scene = str(transition.resulting_patch.get("scene_id", transition.scene_id))
+            destination_beat = str(transition.resulting_patch.get("beat_id", transition.from_beat_id))
+            if (destination_scene, destination_beat) not in self._beats:
+                raise TimelineViolation("Transition has an unknown destination beat: " + transition.transition_id)
+
+    def transition_for(self, state: StoryState, action_id: str) -> GraphTransition:
+        transition = self._transitions.get((state.scene_id, state.beat_id, action_id))
+        if transition is None:
+            raise TimelineViolation(f"No legal transition for {state.scene_id}/{state.beat_id} action={action_id}")
+        return transition
+
+    def legal_actions(self, state: StoryState) -> tuple[GraphTransition, ...]:
+        return tuple(
+            transition
+            for key, transition in sorted(self._transitions.items())
+            if key[0] == state.scene_id and key[1] == state.beat_id
+        )
+
+    def beat_for(self, state: StoryState) -> GraphBeat:
+        beat = self._beats.get((state.scene_id, state.beat_id))
+        if beat is None:
+            raise TimelineViolation(f"Unknown graph beat: {state.scene_id}/{state.beat_id}")
+        return beat
+
+    def to_cli_scene(self) -> dict[str, dict[str, Any]]:
+        """Render a CLI view from the graph; there is no shadow graph."""
+
+        result: dict[str, dict[str, Any]] = {}
+        for (_, beat_id), beat in sorted(self._beats.items()):
+            transitions = self.legal_actions(StoryState(scene_id=beat.scene_id, beat_id=beat.beat_id))
+            result[beat_id] = {
+                "text": beat.text,
+                "options": {
+                    transition.action_id: {
+                        "label": transition.label,
+                        "patch": _as_dict(transition.resulting_patch),
+                        "transition_id": transition.transition_id,
+                    }
+                    for transition in transitions
+                },
+            }
+        return result
+
+
+def _transition(revision: str, scene_id: str, beat_id: str, action_id: str, label: str, patch: Mapping[str, Any]) -> GraphTransition:
+    material = {
+        "schema": "StoryGraphTransition/v1",
+        "revision": revision,
+        "scene_id": scene_id,
+        "from_beat_id": beat_id,
+        "action_id": action_id,
+        "resulting_patch": _as_dict(patch),
+    }
+    return GraphTransition(
+        transition_id="tr_" + _hash(material)[:20],
+        scene_id=scene_id,
+        from_beat_id=beat_id,
+        action_id=action_id,
+        label=label,
+        resulting_patch=_as_dict(patch),
+    )
+
+
+def default_story_graph() -> StoryGraph:
+    """Private synthetic graph retaining v1 semantics for exact legacy checks."""
+
+    revision = "SyntheticArchiveGraph/v1"
+    scene = "synthetic_archive"
+    beats = (
+        GraphBeat(scene, "arrival", "Two adult archivists pause outside a locked, rain-lit archive door."),
+        GraphBeat(scene, "echo", "A low voice names an old case number; Mira watches the corridor."),
+        GraphBeat(scene, "threshold", "The door opens a handspan. The unseen witness asks whether the archive is safe."),
+        GraphBeat(scene, "courtyard", "Morning light reaches the courtyard. The case is paused, not erased."),
+        GraphBeat(scene, "resolution", "The group agrees to preserve the record and meet in daylight."),
+    )
+    transitions = (
+        _transition(revision, scene, "arrival", "listen", "Listen at the door", {"beat_id": "echo", "reveal_facts": ["a witness is inside"], "risk_delta": 1}),
+        _transition(revision, scene, "arrival", "approach", "Knock and announce yourself", {"beat_id": "threshold", "relationship_delta": {"mira": 1}, "flags": {"arrival": "announced"}}),
+        _transition(revision, scene, "arrival", "leave", "Step back and call for daylight", {"beat_id": "courtyard", "risk_delta": -1, "flags": {"arrival": "deferred"}}),
+        _transition(revision, scene, "echo", "approach", "Ask Mira to knock", {"beat_id": "threshold", "relationship_delta": {"mira": 1}}),
+        _transition(revision, scene, "echo", "leave", "Mark the clue and withdraw", {"beat_id": "courtyard", "flags": {"clue": "recorded"}}),
+        _transition(revision, scene, "threshold", "listen", "Promise to listen before acting", {"beat_id": "resolution", "relationship_delta": {"mira": 1}, "risk_delta": -1}),
+        _transition(revision, scene, "threshold", "leave", "Leave a safe meeting place", {"beat_id": "courtyard", "flags": {"meeting": "offered"}}),
+    )
+    return StoryGraph(revision, beats, transitions)
+
+
+def _consequence(before: StoryState, after: StoryState) -> dict[str, Any]:
+    relationship_delta = {
+        name: after.relationships.get(name, 0) - before.relationships.get(name, 0)
+        for name in sorted(set(before.relationships) | set(after.relationships))
+        if after.relationships.get(name, 0) != before.relationships.get(name, 0)
+    }
+    return {
+        "scene_changed": before.scene_id != after.scene_id,
+        "beat_changed": before.beat_id != after.beat_id,
+        "relationship_delta": relationship_delta,
+        "new_facts": [fact for fact in after.known_facts if fact not in before.known_facts],
+        "risk_delta": after.risk_level - before.risk_level,
+        "flag_changes": {key: after.flags[key] for key in sorted(after.flags) if before.flags.get(key) != after.flags[key]},
+    }
+
+
+def _prefix_hash(records: Iterable[Mapping[str, Any]]) -> str:
+    return _hash({"schema": "CreativeTimelinePrefix/v1", "events": list(records)})
+
+
+def replay_timeline(ledger: CreativeLedger, graph: StoryGraph | None = None) -> tuple[TimelineEntry, ...]:
+    """Replay every exact prefix and reject a hash-valid semantic forgery."""
+
+    story_graph = graph if graph is not None else default_story_graph()
+    ledger.verify_chain()
+    if not ledger.events or ledger.events[0].event_type != "story_initialized":
+        raise TimelineViolation("Timeline must start with story_initialized")
+    initial = StoryState.from_dict(ledger.events[0].payload["state"])
+    story_graph.beat_for(initial)
+    entries: list[TimelineEntry] = [
+        TimelineEntry(0, ledger.events[0].event_id, "story_initialized", None, None, initial, {"kind": "initialized"}, _prefix_hash([ledger.events[0].to_dict()]))
+    ]
+    state = initial
+    for index, event in enumerate(ledger.events[1:], start=1):
+        if event.event_type != "player_action":
+            raise TimelineViolation("Only graph-backed player_action events are valid after initialization")
+        action = event.payload.get("action")
+        patch = event.payload.get("resulting_patch")
+        if not isinstance(action, Mapping) or not isinstance(patch, Mapping):
+            raise TimelineViolation("player_action must contain action and resulting_patch mappings")
+        action_id = str(action.get("action_id", ""))
+        if action.get("kind") != "choice" or not action_id:
+            raise TimelineViolation("player_action must contain a non-empty choice action_id")
+        transition = story_graph.transition_for(state, action_id)
+        declared_transition = event.payload.get("transition_id")
+        if declared_transition is not None and declared_transition != transition.transition_id:
+            raise TimelineViolation("Declared transition_id does not match the graph edge")
+        declared_revision = event.payload.get("graph_revision")
+        if declared_revision is not None and declared_revision != story_graph.revision:
+            raise TimelineViolation("Declared graph_revision does not match the replay graph")
+        if canonical_json(patch) != canonical_json(transition.resulting_patch):
+            raise TimelineViolation("resulting_patch is not semantically equal to the graph transition")
+        try:
+            next_state = apply_state_patch(state, transition.resulting_patch)
+        except LedgerViolation as error:
+            raise TimelineViolation("Graph transition has an invalid state patch") from error
+        story_graph.beat_for(next_state)
+        replayed_prefix_state = CreativeLedger(ledger.events[: index + 1]).replay()
+        if replayed_prefix_state != next_state:
+            raise TimelineViolation("Ledger replay diverges from graph-backed prefix replay")
+        entries.append(
+            TimelineEntry(
+                index,
+                event.event_id,
+                event.event_type,
+                transition.transition_id,
+                action_id,
+                next_state,
+                _consequence(state, next_state),
+                _prefix_hash(item.to_dict() for item in ledger.events[: index + 1]),
+            )
+        )
+        state = next_state
+    return tuple(entries)
+
+
+def timeline_hash(entries: Iterable[TimelineEntry]) -> str:
+    return _hash({"schema": "CreativeTimeline/v1", "entries": [entry.to_dict() for entry in entries]})
+
+
+def verified_director_input(ledger: CreativeLedger, graph: StoryGraph | None = None) -> VerifiedDirectorInput:
+    """Return a director input only after every prefix has passed graph replay."""
+
+    story_graph = graph if graph is not None else default_story_graph()
+    entries = replay_timeline(ledger, story_graph)
+    final = entries[-1]
+    return VerifiedDirectorInput(final.state, story_graph.revision, timeline_hash(entries), final.event_id)

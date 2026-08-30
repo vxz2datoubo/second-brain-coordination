@@ -49,6 +49,19 @@ class DirectorCompilation:
     quality_report: QualityReport
 
 
+@dataclass(frozen=True)
+class VerifiedDirectorCompilation:
+    """A compilation whose state is tied to a validated timeline prefix.
+
+    `compile_director` intentionally remains a pure state-to-plan function for
+    unit use. Production-facing callers should use this wrapper so the director
+    does not receive a state that bypassed narrative continuity validation.
+    """
+
+    compilation: DirectorCompilation
+    verified_input: Any
+
+
 def synthetic_asset_index() -> dict[str, dict[str, Any]]:
     """Synthetic index; an external index must arrive through a provenance gate."""
 
@@ -128,3 +141,24 @@ def compile_director(state: StoryState, assets: Mapping[str, Mapping[str, Any]] 
     shots = compile_shots(brief)
     report = validate_compilation(brief, shots, assets if assets is not None else synthetic_asset_index())
     return DirectorCompilation(brief=brief, shots=shots, quality_report=report)
+
+
+def compile_verified_director(
+    ledger: Any,
+    assets: Mapping[str, Mapping[str, Any]] | None = None,
+    graph: Any | None = None,
+) -> VerifiedDirectorCompilation:
+    """Compile only after all ledger prefixes pass graph-backed replay.
+
+    Imports are local to preserve the simple contract/ledger/director dependency
+    direction and to make a semantic timeline failure stop before any director
+    plan is emitted.
+    """
+
+    from .continuity import verified_director_input
+
+    verified_input = verified_director_input(ledger, graph)
+    return VerifiedDirectorCompilation(
+        compilation=compile_director(verified_input.state, assets),
+        verified_input=verified_input,
+    )

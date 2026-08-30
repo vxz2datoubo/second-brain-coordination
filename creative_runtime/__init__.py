@@ -19,10 +19,40 @@ from .contracts import (
     canonical_json,
 )
 from .ledger import CreativeLedger, LedgerViolation, create_artifact
-from .director import DirectorCompilation, QualityFinding, QualityReport, compile_director
+from .director import DirectorCompilation, QualityFinding, QualityReport, VerifiedDirectorCompilation, compile_director, compile_verified_director
 from .knowledge import KnowledgeBridgeViolation, KnowledgeCandidate, KnowledgeReviewBridge
 from .generation import ExternalGenerationGuard, GenerationViolation, OfflineGenerationAdapter, adapter_for
 from .provenance import ProvenanceViolation, SourceProvenance, require_reusable_source
+from .continuity import (
+    GraphBeat,
+    GraphTransition,
+    StoryGraph,
+    TimelineEntry,
+    TimelineViolation,
+    VerifiedDirectorInput,
+    default_story_graph,
+    replay_timeline,
+    timeline_hash,
+    verified_director_input,
+)
+from .understanding import (
+    DriftAssessment,
+    MetricAnchor,
+    UnderstandingCard,
+    UnderstandingMap,
+    UnderstandingViolation,
+    assess_anchor,
+    bind_verified_timeline,
+)
+from .session import (
+    LoadedV2Session,
+    MigrationResult,
+    SessionViolation,
+    legacy_session_path,
+    load_v2_session,
+    migrate_legacy_session,
+    v2_session_path,
+)
 
 __all__ = [
     "CreativeArtifact",
@@ -30,14 +60,20 @@ __all__ = [
     "CreativeLedger",
     "DirectorCompilation",
     "DirectorBrief",
+    "DriftAssessment",
     "GenerationRequest",
     "GenerationResult",
     "GenerationViolation",
+    "GraphBeat",
+    "GraphTransition",
     "GovernanceViolation",
     "LedgerViolation",
+    "LoadedV2Session",
     "KnowledgeBridgeViolation",
     "KnowledgeCandidate",
     "KnowledgeReviewBridge",
+    "MetricAnchor",
+    "MigrationResult",
     "ExternalGenerationGuard",
     "OfflineGenerationAdapter",
     "PlayerAction",
@@ -46,13 +82,33 @@ __all__ = [
     "ProvenanceViolation",
     "ShotPlan",
     "StoryBeat",
+    "StoryGraph",
     "StoryState",
     "SourceProvenance",
+    "SessionViolation",
     "TaskGovernance",
+    "TimelineEntry",
+    "TimelineViolation",
+    "UnderstandingCard",
+    "UnderstandingMap",
+    "UnderstandingViolation",
+    "VerifiedDirectorInput",
+    "VerifiedDirectorCompilation",
     "canonical_json",
     "adapter_for",
+    "assess_anchor",
+    "bind_verified_timeline",
     "compile_director",
+    "compile_verified_director",
     "create_artifact",
+    "default_story_graph",
     "require_reusable_source",
     "load_task_governance",
+    "legacy_session_path",
+    "load_v2_session",
+    "migrate_legacy_session",
+    "replay_timeline",
+    "timeline_hash",
+    "verified_director_input",
+    "v2_session_path",
 ]

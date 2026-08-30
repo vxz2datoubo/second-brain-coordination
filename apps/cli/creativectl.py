@@ -19,8 +19,12 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from creative_runtime.contracts import PlayerAction, StoryState, canonical_json
+from creative_runtime.continuity import TimelineViolation, default_story_graph, replay_timeline, timeline_hash
+from creative_runtime.director import compile_verified_director
 from creative_runtime.ledger import CreativeLedger, LedgerViolation
 from creative_runtime.knowledge import KnowledgeBridgeViolation, KnowledgeReviewBridge
+from creative_runtime.understanding import bind_verified_timeline
+from creative_runtime.session import SessionViolation, migrate_legacy_session
 
 
 SCHEMA = "CreativeSession/v1"
@@ -29,49 +33,9 @@ UNSAFE_TERMS = {"sex", "sexual", "nude", "blood", "gore", "torture"}
 
 
 def synthetic_scene() -> dict[str, dict[str, Any]]:
-    """A non-explicit fixture with distinct choices and observable consequences."""
+    """Render the canonical graph; the CLI no longer owns a shadow graph."""
 
-    return {
-        "arrival": {
-            "text": "Two adult archivists pause outside a locked, rain-lit archive door.",
-            "options": {
-                "listen": {
-                    "label": "Listen at the door",
-                    "patch": {"beat_id": "echo", "reveal_facts": ["a witness is inside"], "risk_delta": 1},
-                },
-                "approach": {
-                    "label": "Knock and announce yourself",
-                    "patch": {"beat_id": "threshold", "relationship_delta": {"mira": 1}, "flags": {"arrival": "announced"}},
-                },
-                "leave": {
-                    "label": "Step back and call for daylight",
-                    "patch": {"beat_id": "courtyard", "risk_delta": -1, "flags": {"arrival": "deferred"}},
-                },
-            },
-        },
-        "echo": {
-            "text": "A low voice names an old case number; Mira watches the corridor.",
-            "options": {
-                "approach": {"label": "Ask Mira to knock", "patch": {"beat_id": "threshold", "relationship_delta": {"mira": 1}}},
-                "leave": {"label": "Mark the clue and withdraw", "patch": {"beat_id": "courtyard", "flags": {"clue": "recorded"}}},
-            },
-        },
-        "threshold": {
-            "text": "The door opens a handspan. The unseen witness asks whether the archive is safe.",
-            "options": {
-                "listen": {"label": "Promise to listen before acting", "patch": {"beat_id": "resolution", "relationship_delta": {"mira": 1}, "risk_delta": -1}},
-                "leave": {"label": "Leave a safe meeting place", "patch": {"beat_id": "courtyard", "flags": {"meeting": "offered"}}},
-            },
-        },
-        "courtyard": {
-            "text": "Morning light reaches the courtyard. The case is paused, not erased.",
-            "options": {},
-        },
-        "resolution": {
-            "text": "The group agrees to preserve the record and meet in daylight.",
-            "options": {},
-        },
-    }
+    return default_story_graph().to_cli_scene()
 
 
 def session_path(workspace: Path) -> Path:
@@ -151,6 +115,8 @@ def choose(workspace: Path, action_id: str, source_text: str | None = None) -> d
         {
             "action": PlayerAction(action_id, "choice", source_text or option["label"]).to_dict(),
             "resulting_patch": option["patch"],
+            "transition_id": option["transition_id"],
+            "graph_revision": default_story_graph().revision,
         },
         f"2030-01-01T00:{len(ledger.events):02d}:00Z",
     )
@@ -200,6 +166,10 @@ def run(argv: list[str]) -> dict[str, Any]:
     say_parser.add_argument("text")
     subparsers.add_parser("resume")
     subparsers.add_parser("replay")
+    subparsers.add_parser("timeline")
+    subparsers.add_parser("director")
+    subparsers.add_parser("understanding")
+    subparsers.add_parser("migrate")
     knowledge_parser = subparsers.add_parser("knowledge")
     knowledge_subparsers = knowledge_parser.add_subparsers(dest="knowledge_command", required=True)
     knowledge_search = knowledge_subparsers.add_parser("search")
@@ -225,6 +195,35 @@ def run(argv: list[str]) -> dict[str, Any]:
     if args.command == "replay":
         ledger = _load_session(args.workspace)
         return {**_view(ledger), "status": "replayed", "event_count": len(ledger.events)}
+    if args.command == "timeline":
+        entries = replay_timeline(_load_session(args.workspace), default_story_graph())
+        return {
+            "status": "timeline_verified",
+            "graph_revision": default_story_graph().revision,
+            "timeline_hash": timeline_hash(entries),
+            "entries": [entry.to_dict() for entry in entries],
+        }
+    if args.command == "director":
+        compiled = compile_verified_director(_load_session(args.workspace), graph=default_story_graph())
+        return {
+            "status": "director_verified",
+            "verified_input": compiled.verified_input.to_dict(),
+            "brief": compiled.compilation.brief.to_dict(),
+            "shots": [shot.to_dict() for shot in compiled.compilation.shots],
+            "quality_report": compiled.compilation.quality_report.to_dict(),
+        }
+    if args.command == "understanding":
+        ledger = _load_session(args.workspace)
+        verified = compile_verified_director(ledger, graph=default_story_graph()).verified_input
+        mapped = bind_verified_timeline(verified, len(ledger.events), ledger.events[-1].occurred_at)
+        return {
+            "status": "understanding_mapped",
+            "map": mapped.to_dict(),
+            "drift_assessments": [assessment.to_dict() for assessment in mapped.assess()],
+        }
+    if args.command == "migrate":
+        ledger = _load_session(args.workspace)
+        return migrate_legacy_session(args.workspace, ledger.events[-1].occurred_at).to_dict()
     if args.command == "knowledge":
         bridge = _load_knowledge(args.workspace)
         if args.knowledge_command == "search":
@@ -243,7 +242,7 @@ def run(argv: list[str]) -> dict[str, Any]:
 def main() -> int:
     try:
         print(json.dumps(run(sys.argv[1:]), ensure_ascii=False, sort_keys=True, indent=2))
-    except (LedgerViolation, KnowledgeBridgeViolation, KeyError, json.JSONDecodeError) as error:
+    except (LedgerViolation, KnowledgeBridgeViolation, SessionViolation, TimelineViolation, KeyError, json.JSONDecodeError) as error:
         print(json.dumps({"status": "error", "message": str(error)}, ensure_ascii=False, sort_keys=True))
         return 2
     return 0
