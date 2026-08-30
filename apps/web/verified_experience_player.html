@@ -96,6 +96,23 @@
       for (const [name, value] of Object.entries(flags)) parts.push(name + " = " + text(value));
       return parts.length ? parts.join(" · ") : "Verified choice produced no visible state delta.";
     }
+    function validateCutContract(step, frame, label) {
+      const contract = step && step.cut_contract;
+      const firstShot = frame && frame.director && Array.isArray(frame.director.shots) ? frame.director.shots[0] : null;
+      require(contract && contract.schema === "VerifiedCutContract/v1", label + " has no verified cut contract.");
+      require(typeof contract.to_scene_id === "string" && typeof contract.to_axis === "string" && typeof contract.axis_relation === "string" && typeof contract.reestablish_required === "boolean", label + " cut contract is malformed.");
+      require(frame && frame.state && contract.to_scene_id === frame.state.scene_id, label + " cut target scene does not match frame state.");
+      require(firstShot && contract.to_axis === firstShot.axis, label + " cut target axis does not match director shot.");
+      if (contract.axis_relation === "initial_space_established") {
+        require(contract.from_scene_id === null && contract.from_axis === null && contract.reestablish_required === true, label + " initial cut contract is inconsistent.");
+      } else if (contract.axis_relation === "same_scene_axis_held") {
+        require(contract.from_scene_id === contract.to_scene_id && contract.from_axis === contract.to_axis && contract.reestablish_required === false, label + " same-scene cut contract is inconsistent.");
+      } else if (contract.axis_relation === "new_scene_axis_reestablished") {
+        require(typeof contract.from_scene_id === "string" && typeof contract.from_axis === "string" && contract.from_scene_id !== contract.to_scene_id && contract.reestablish_required === true, label + " cross-scene cut contract is inconsistent.");
+      } else {
+        throw new Error(label + " cut contract has an unknown axis relation.");
+      }
+    }
     function setPairs(element, pairs) {
       element.replaceChildren();
       for (const [key, value] of pairs) {
@@ -131,6 +148,7 @@
         require(node.frame.status === "interactive_frame_verified", "Catalogue includes an unverified frame.");
         require(node.frame.timeline_hash === node.timeline_hash, "Frame and node timeline identities differ.");
         require(node.sequence_step.timeline_hash === node.timeline_hash && node.sequence_step.frame_id === node.frame.frame_id, "Catalogue sequence step does not match frame identity.");
+        validateCutContract(node.sequence_step, node.frame, "Catalogue sequence step");
         require(!nodes.has(node.timeline_hash), "Catalogue contains duplicate node identity.");
         nodes.set(node.timeline_hash, node.frame);
         nodeSequenceSteps.set(node.timeline_hash, node.sequence_step);
@@ -161,6 +179,7 @@
         require(step && typeof step.timeline_hash === "string" && typeof step.frame_id === "string", "Malformed director sequence step.");
         require(nodes.has(step.timeline_hash), "Director sequence points outside verified catalogue nodes.");
         require(nodes.get(step.timeline_hash).frame_id === step.frame_id, "Director sequence frame identity does not match catalogue.");
+        validateCutContract(step, nodes.get(step.timeline_hash), "Director sequence step");
         require(!sequenceSteps.has(step.timeline_hash), "Director sequence repeats a timeline prefix.");
         sequenceSteps.set(step.timeline_hash, step);
       }

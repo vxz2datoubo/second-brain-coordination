@@ -57,6 +57,7 @@ def build_verified_sequence(ledger: CreativeLedger, *, slot: str = DEFAULT_SLOT)
         raise SequenceViolation("Sequence requires a complete verified story timeline") from error
     steps: list[Mapping[str, Any]] = []
     prior_state: Mapping[str, Any] | None = None
+    prior_shots: list[Mapping[str, Any]] | None = None
     for index, entry in enumerate(timeline):
         prefix = CreativeLedger(ledger.events[: index + 1])
         try:
@@ -73,6 +74,47 @@ def build_verified_sequence(ledger: CreativeLedger, *, slot: str = DEFAULT_SLOT)
         shots = [shot.to_dict() for shot in compiled.compilation.shots]
         if not shots:
             raise SequenceViolation("Sequence prefix has no director shots")
+        current_axis = shots[0].get("axis")
+        if not isinstance(current_axis, str) or not current_axis or any(shot.get("axis") != current_axis for shot in shots):
+            raise SequenceViolation("Sequence prefix has inconsistent verified shot axes")
+        if prior_state is None:
+            cut_contract = {
+                "schema": "VerifiedCutContract/v1",
+                "from_scene_id": None,
+                "to_scene_id": entry.state.scene_id,
+                "from_axis": None,
+                "to_axis": current_axis,
+                "axis_relation": "initial_space_established",
+                "reestablish_required": True,
+            }
+        else:
+            prior_axis = prior_shots[0].get("axis") if prior_shots else None
+            if not isinstance(prior_axis, str) or not prior_axis:
+                raise SequenceViolation("Prior sequence prefix has no verified spatial axis")
+            if scene_changed:
+                if cut_policy != "reestablish_after_scene_change" or shots[0].get("shot_role") != "spatial orientation":
+                    raise SequenceViolation("A scene change must begin with a verified spatial reestablishing shot")
+                cut_contract = {
+                    "schema": "VerifiedCutContract/v1",
+                    "from_scene_id": prior_state["scene_id"],
+                    "to_scene_id": entry.state.scene_id,
+                    "from_axis": prior_axis,
+                    "to_axis": current_axis,
+                    "axis_relation": "new_scene_axis_reestablished",
+                    "reestablish_required": True,
+                }
+            else:
+                if cut_policy != "hold_verified_axis" or current_axis != prior_axis:
+                    raise SequenceViolation("A same-scene cut must hold the verified spatial axis")
+                cut_contract = {
+                    "schema": "VerifiedCutContract/v1",
+                    "from_scene_id": prior_state["scene_id"],
+                    "to_scene_id": entry.state.scene_id,
+                    "from_axis": prior_axis,
+                    "to_axis": current_axis,
+                    "axis_relation": "same_scene_axis_held",
+                    "reestablish_required": False,
+                }
         steps.append({
             "sequence_index": index,
             "event_id": entry.event_id,
@@ -83,10 +125,12 @@ def build_verified_sequence(ledger: CreativeLedger, *, slot: str = DEFAULT_SLOT)
             "state": entry.state.to_dict(),
             "consequence": dict(entry.consequence),
             "cut_policy": cut_policy,
+            "cut_contract": cut_contract,
             "shots": shots,
             "duration_seconds": sum(shot["duration_seconds"] for shot in shots),
         })
         prior_state = entry.state.to_dict()
+        prior_shots = shots
     material = {
         "schema": "VerifiedInteractiveSequencePlan/v1",
         "slot_id": normalized_slot,
@@ -102,3 +146,16 @@ def build_verified_sequence(ledger: CreativeLedger, *, slot: str = DEFAULT_SLOT)
         steps=tuple(steps),
         total_duration_seconds=sum(int(step["duration_seconds"]) for step in steps),
     )
+
+
+def verify_verified_sequence(ledger: CreativeLedger, manifest: Mapping[str, Any], *, slot: str = DEFAULT_SLOT) -> VerifiedSequencePlan:
+    """Reject any alteration to a prefix, shot or verified cut contract."""
+
+    expected = build_verified_sequence(ledger, slot=slot)
+    try:
+        supplied = dict(manifest)
+    except (TypeError, ValueError) as error:
+        raise SequenceViolation("Sequence manifest must be a JSON object") from error
+    if canonical_json(supplied) != canonical_json(expected.to_dict()):
+        raise SequenceViolation("Sequence manifest does not exactly match verified prefix replay and cut contracts")
+    return expected

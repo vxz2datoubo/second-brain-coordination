@@ -63,7 +63,7 @@ from .experience import (
     verify_verified_scenario_catalog,
 )
 from .presentation import InteractiveFrame, PresentationViolation, build_interactive_frame
-from .sequence import SequenceViolation, VerifiedSequencePlan, build_verified_sequence
+from .sequence import SequenceViolation, VerifiedSequencePlan, build_verified_sequence, verify_verified_sequence
 from .understanding import (
     DriftAssessment,
     MetricAnchor,
@@ -187,6 +187,7 @@ __all__ = [
     "three_scene_story_graph",
     "verified_director_input",
     "verify_verified_experience",
+    "verify_verified_sequence",
     "verify_verified_scenario_catalog",
     "verify_v2_source_binding",
     "verify_offline_generation_record",
