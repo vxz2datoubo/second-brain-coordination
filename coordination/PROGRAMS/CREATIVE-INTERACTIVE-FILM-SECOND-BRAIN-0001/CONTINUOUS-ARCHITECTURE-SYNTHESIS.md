@@ -39,6 +39,7 @@ Player action ──> append-only ledger ──> graph-backed prefix replay
 | Story authority | `CreativeLedger` plus versioned `StoryGraph` | ledger hash chain and graph patch must both match | `creativectl timeline` lists each true historical state |
 | Intermediate truth | prefix replay, not final-state backfill | every entry is reconstructed from `events[:n]` | consequences cannot quietly change in the middle of a route |
 | Director boundary | `compile_verified_director` | malformed/forged timeline raises before a brief exists | `creativectl director` reports the source timeline hash |
+| Director branch completeness | `creativectl director-coverage --scenario <name>` | every reachable route prefix must compile with its registered scene profile, asset, axis and zero hard findings | GitHub can prove the director at pauses and alternate consequences, not only at terminal demo states |
 | Durable handoff | `CreativeSession/v2` migration envelope | legacy source remains byte-identical; envelope must re-verify graph/timeline | `creativectl migrate` is idempotent and never creates a shadow save on failure |
 | Post-migration integrity | v2-to-v1 immutable-source verification | source bytes, event records, graph revision and timeline hash must agree | `creativectl verify-v2` is read-only and rejects a changed/missing source |
 | User understanding | `UnderstandingMap` | layer, authority, evidence tier, confidence, and card references validate | `creativectl understanding` emits a plain-language card and hard hash anchor |
@@ -159,8 +160,8 @@ extend the same contracts across:
 
 1. named local save-slot policy that cannot escape the workspace;
 2. multi-route narrative fixtures with more than one safe ending;
-3. director coverage metrics across alternative route consequences, not only a
-   single happy-path route;
+3. per-profile cinematic review fixtures that show the human-visible lighting,
+   sound and axis contract for every state;
 4. a reusable CI workflow once the local verification surface has stabilized;
 5. close-out evidence packaging only when the owner directs `收尾`.
 

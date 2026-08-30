@@ -6,7 +6,7 @@ import unittest
 
 from creative_runtime.continuity import GraphBeat, GraphTransition, StoryGraph
 from creative_runtime.contracts import StoryState
-from creative_runtime.coverage import RouteCoverageViolation, cover_routes, coverage_for_scenario
+from creative_runtime.coverage import RouteCoverageViolation, cover_routes, coverage_for_scenario, director_coverage_for_scenario
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -100,6 +100,24 @@ class CreativeRouteCoverageTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(RouteCoverageViolation, "fixed exhaustive route depth"):
             cover_routes(graph, StoryState("loop", "start"), max_steps=2)
+
+    def test_director_coverage_compiles_every_reachable_prefix_and_scene_profile(self) -> None:
+        for scenario, expected_profiles in (
+            ("three_scene", {"archive_gate", "interior_archive", "dawn_courtyard"}),
+            ("night_signal", {"station_platform", "signal_room", "archive_vault", "control_room", "riverside_dawn"}),
+            ("harbor_protocol", {"harbor_observatory", "beacon_room", "map_archive", "public_forum", "sunrise_pier"}),
+        ):
+            with self.subTest(scenario=scenario):
+                report = director_coverage_for_scenario(scenario)
+                self.assertTrue(report.complete)
+                self.assertEqual(set(report.covered_scene_profile_ids), expected_profiles)
+                self.assertEqual(report.covered_transition_ids, report.expected_transition_ids)
+                self.assertTrue(all(entry.director_can_generate for entry in report.entries))
+                self.assertTrue(all(entry.director_metrics["hard_finding_count"] == 0 for entry in report.entries))
+                self.assertEqual(director_coverage_for_scenario(scenario).report_hash, report.report_hash)
+        cli_report = creativectl.run(["director-coverage", "--scenario", "harbor_protocol"])
+        self.assertEqual(cli_report["status"], "director_coverage_verified")
+        self.assertEqual(set(cli_report["covered_scene_profile_ids"]), {"harbor_observatory", "beacon_room", "map_archive", "public_forum", "sunrise_pier"})
 
 
 if __name__ == "__main__":

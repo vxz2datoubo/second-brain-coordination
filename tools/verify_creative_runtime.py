@@ -55,6 +55,9 @@ def _demo(cli: Any) -> dict[str, Any]:
         coverage = cli.run(["coverage", "--scenario", "three_scene"])
         night_coverage = cli.run(["coverage", "--scenario", "night_signal"])
         harbor_coverage = cli.run(["coverage", "--scenario", "harbor_protocol"])
+        director_coverage = cli.run(["director-coverage", "--scenario", "three_scene"])
+        night_director_coverage = cli.run(["director-coverage", "--scenario", "night_signal"])
+        harbor_director_coverage = cli.run(["director-coverage", "--scenario", "harbor_protocol"])
         cli.run(["--workspace", str(workspace), "init", "--scenario", "three_scene"])
         cli.run(["--workspace", str(workspace), "choose", "listen"])
         cli.run(["--workspace", str(workspace), "choose", "approach"])
@@ -171,6 +174,12 @@ def _demo(cli: Any) -> dict[str, Any]:
             "harbor_protocol_coverage_status": harbor_coverage["status"],
             "harbor_protocol_route_count": harbor_coverage["route_count"],
             "harbor_protocol_transition_count": len(harbor_coverage["covered_transition_ids"]),
+            "director_coverage_status": director_coverage["status"],
+            "director_coverage_state_count": director_coverage["state_count"],
+            "night_signal_director_coverage_status": night_director_coverage["status"],
+            "night_signal_director_coverage_state_count": night_director_coverage["state_count"],
+            "harbor_protocol_director_coverage_status": harbor_director_coverage["status"],
+            "harbor_protocol_director_coverage_state_count": harbor_director_coverage["state_count"],
             "timeline_status": timeline["status"],
             "timeline_hash": timeline["timeline_hash"],
             "timeline_entry_count": len(timeline["entries"]),
@@ -263,6 +272,12 @@ def verify(
         "harbor_protocol_coverage_status": "route_coverage_verified",
         "harbor_protocol_route_count": 14,
         "harbor_protocol_transition_count": 12,
+        "director_coverage_status": "director_coverage_verified",
+        "director_coverage_state_count": 12,
+        "night_signal_director_coverage_status": "director_coverage_verified",
+        "night_signal_director_coverage_state_count": 24,
+        "harbor_protocol_director_coverage_status": "director_coverage_verified",
+        "harbor_protocol_director_coverage_state_count": 24,
         "timeline_entry_count": 4,
         "director_status": "director_verified",
         "director_can_generate": True,

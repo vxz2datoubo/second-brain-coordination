@@ -52,7 +52,7 @@ from .continuity import (
     timeline_hash,
     verified_director_input,
 )
-from .coverage import RouteCoverageEntry, RouteCoverageReport, RouteCoverageViolation, cover_routes, coverage_for_scenario, ledger_for_route
+from .coverage import DirectorCoverageEntry, DirectorCoverageReport, RouteCoverageEntry, RouteCoverageReport, RouteCoverageViolation, cover_director_states, coverage_for_scenario, director_coverage_for_scenario, cover_routes, ledger_for_route
 from .experience import (
     ExperienceViolation,
     VerifiedExperienceManifest,
@@ -95,6 +95,8 @@ __all__ = [
     "RouteCoverageViolation",
     "CreativeLedger",
     "DirectorCompilation",
+    "DirectorCoverageEntry",
+    "DirectorCoverageReport",
     "DirectorQualityMetrics",
     "DirectorBrief",
     "DirectorSkill",
@@ -162,7 +164,9 @@ __all__ = [
     "compile_director",
     "compile_verified_director",
     "cover_routes",
+    "cover_director_states",
     "coverage_for_scenario",
+    "director_coverage_for_scenario",
     "ledger_for_route",
     "correct_from_verified_timeline",
     "create_artifact",

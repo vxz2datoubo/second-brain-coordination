@@ -8,7 +8,7 @@ from typing import Any, Iterable, Mapping
 
 from .continuity import StoryGraph, TimelineViolation, default_story_graph, harbor_protocol_story_graph, night_signal_story_graph, three_scene_story_graph
 from .contracts import PlayerAction, StoryState, canonical_json
-from .director import compile_verified_director
+from .director import SCENE_CINEMATIC_PROFILES, compile_verified_director
 from .ledger import CreativeLedger, apply_state_patch
 
 
@@ -63,6 +63,78 @@ class RouteCoverageReport:
             "expected_transition_ids": list(self.expected_transition_ids),
             "terminal_state_counts": dict(self.terminal_state_counts),
             "routes": [route.to_dict() for route in self.routes],
+            "report_hash": self.report_hash,
+        }
+
+
+@dataclass(frozen=True)
+class DirectorCoverageEntry:
+    """One verified director compilation for a reachable story-state prefix."""
+
+    prefix_id: str
+    action_ids: tuple[str, ...]
+    state: StoryState
+    timeline_hash: str
+    director_can_generate: bool
+    director_metrics: Mapping[str, int]
+    scene_profile_id: str
+    scene_asset_id: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "prefix_id": self.prefix_id,
+            "action_ids": list(self.action_ids),
+            "state": self.state.to_dict(),
+            "timeline_hash": self.timeline_hash,
+            "director_can_generate": self.director_can_generate,
+            "director_metrics": dict(self.director_metrics),
+            "scene_profile_id": self.scene_profile_id,
+            "scene_asset_id": self.scene_asset_id,
+        }
+
+
+@dataclass(frozen=True)
+class DirectorCoverageReport:
+    """Exact coverage evidence for director readiness across every route prefix.
+
+    Terminal-route coverage proves that every choice can finish. This separate
+    report proves the director is also valid at every *reachable intermediate*
+    state, where a real player may pause, resume, inspect the scene, or ask for
+    a verified frame.
+    """
+
+    graph_revision: str
+    initial_state: StoryState
+    entries: tuple[DirectorCoverageEntry, ...]
+    covered_state_refs: tuple[str, ...]
+    covered_transition_ids: tuple[str, ...]
+    expected_transition_ids: tuple[str, ...]
+    covered_scene_profile_ids: tuple[str, ...]
+    report_hash: str
+
+    @property
+    def complete(self) -> bool:
+        scenes = {entry.state.scene_id for entry in self.entries}
+        return (
+            bool(self.entries)
+            and self.covered_transition_ids == self.expected_transition_ids
+            and all(entry.director_can_generate for entry in self.entries)
+            and all(entry.director_metrics["hard_finding_count"] == 0 for entry in self.entries)
+            and self.covered_scene_profile_ids == tuple(sorted(scenes))
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "schema": "CreativeDirectorCoverageReport/v1",
+            "status": "director_coverage_verified" if self.complete else "director_coverage_incomplete",
+            "graph_revision": self.graph_revision,
+            "initial_state": self.initial_state.to_dict(),
+            "state_count": len(self.entries),
+            "covered_state_refs": list(self.covered_state_refs),
+            "covered_transition_ids": list(self.covered_transition_ids),
+            "expected_transition_ids": list(self.expected_transition_ids),
+            "covered_scene_profile_ids": list(self.covered_scene_profile_ids),
+            "entries": [entry.to_dict() for entry in self.entries],
             "report_hash": self.report_hash,
         }
 
@@ -184,6 +256,80 @@ def cover_routes(graph: StoryGraph, initial_state: StoryState, *, max_steps: int
     )
 
 
+def cover_director_states(graph: StoryGraph, initial_state: StoryState, *, max_steps: int = 12) -> DirectorCoverageReport:
+    """Compile the director for every reachable route prefix, not just endings.
+
+    Prefixes are de-duplicated by verified timeline hash.  That identity comes
+    from the production ledger/replay path, so a testing-only state serializer
+    cannot mask a missing scene asset or cinematic profile.
+    """
+
+    if max_steps < 1:
+        raise RouteCoverageViolation("Director coverage max_steps must be positive")
+    try:
+        graph.beat_for(initial_state)
+        routes = _terminal_paths(graph, initial_state, max_steps=max_steps)
+    except TimelineViolation as error:
+        raise RouteCoverageViolation("Director coverage graph is invalid") from error
+    entries_by_hash: dict[str, DirectorCoverageEntry] = {}
+    for actions, _transitions, _terminal_state in routes:
+        for prefix_length in range(len(actions) + 1):
+            prefix = actions[:prefix_length]
+            ledger = ledger_for_route(graph, initial_state, prefix)
+            compiled = compile_verified_director(ledger, graph=graph)
+            state = compiled.verified_input.state
+            timeline_identity = compiled.verified_input.timeline_hash
+            profile_id = state.scene_id if state.scene_id in SCENE_CINEMATIC_PROFILES else ""
+            material = {
+                "schema": "CreativeDirectorCoverageEntry/v1",
+                "graph_revision": graph.revision,
+                "initial_state": initial_state.to_dict(),
+                "action_ids": list(prefix),
+                "timeline_hash": timeline_identity,
+                "state": state.to_dict(),
+            }
+            prefix_id = "director_prefix_" + hashlib.sha256(canonical_json(material).encode("utf-8")).hexdigest()[:20]
+            entry = DirectorCoverageEntry(
+                prefix_id=prefix_id,
+                action_ids=prefix,
+                state=state,
+                timeline_hash=timeline_identity,
+                director_can_generate=compiled.compilation.quality_report.can_generate,
+                director_metrics=compiled.compilation.quality_report.metrics.to_dict(),
+                scene_profile_id=profile_id,
+                scene_asset_id="art_scene_" + state.scene_id,
+            )
+            previous = entries_by_hash.get(timeline_identity)
+            if previous is not None and previous != entry:
+                raise RouteCoverageViolation("Director coverage found conflicting entries for one timeline hash")
+            entries_by_hash[timeline_identity] = entry
+    entries = tuple(sorted(entries_by_hash.values(), key=lambda item: item.prefix_id))
+    covered_state_refs = tuple(sorted({entry.state.scene_id + "/" + entry.state.beat_id for entry in entries}))
+    covered_transitions = tuple(sorted({transition_id for _actions, transition_ids, _state in routes for transition_id in transition_ids}))
+    expected_transitions = tuple(sorted(transition.transition_id for transition in graph.transitions()))
+    profiles = tuple(sorted({entry.scene_profile_id for entry in entries if entry.scene_profile_id}))
+    material = {
+        "schema": "CreativeDirectorCoverageReport/v1",
+        "graph_revision": graph.revision,
+        "initial_state": initial_state.to_dict(),
+        "entries": [entry.to_dict() for entry in entries],
+        "covered_state_refs": list(covered_state_refs),
+        "covered_transition_ids": list(covered_transitions),
+        "expected_transition_ids": list(expected_transitions),
+        "covered_scene_profile_ids": list(profiles),
+    }
+    return DirectorCoverageReport(
+        graph_revision=graph.revision,
+        initial_state=initial_state,
+        entries=entries,
+        covered_state_refs=covered_state_refs,
+        covered_transition_ids=covered_transitions,
+        expected_transition_ids=expected_transitions,
+        covered_scene_profile_ids=profiles,
+        report_hash=hashlib.sha256(canonical_json(material).encode("utf-8")).hexdigest(),
+    )
+
+
 def coverage_for_scenario(scenario: str) -> RouteCoverageReport:
     """Expose only the bounded, synthetic scenarios accepted by the CLI."""
 
@@ -196,3 +342,17 @@ def coverage_for_scenario(scenario: str) -> RouteCoverageReport:
     if scenario == "harbor_protocol":
         return cover_routes(harbor_protocol_story_graph(), StoryState("harbor_observatory", "dock_arrival", {"mira": 0}))
     raise RouteCoverageViolation("Unknown coverage scenario: " + scenario)
+
+
+def director_coverage_for_scenario(scenario: str) -> DirectorCoverageReport:
+    """Return bounded all-prefix director coverage for a supported scenario."""
+
+    if scenario == "legacy_archive":
+        return cover_director_states(default_story_graph(), StoryState("synthetic_archive", "arrival", {"mira": 0}))
+    if scenario == "three_scene":
+        return cover_director_states(three_scene_story_graph(), StoryState("archive_gate", "arrival", {"mira": 0}))
+    if scenario == "night_signal":
+        return cover_director_states(night_signal_story_graph(), StoryState("station_platform", "platform_arrival", {"mira": 0}))
+    if scenario == "harbor_protocol":
+        return cover_director_states(harbor_protocol_story_graph(), StoryState("harbor_observatory", "dock_arrival", {"mira": 0}))
+    raise RouteCoverageViolation("Unknown director coverage scenario: " + scenario)

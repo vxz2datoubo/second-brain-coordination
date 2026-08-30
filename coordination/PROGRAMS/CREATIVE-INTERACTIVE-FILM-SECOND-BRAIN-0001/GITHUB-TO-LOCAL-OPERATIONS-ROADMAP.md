@@ -24,6 +24,7 @@ today.
 | --- | --- | --- | --- |
 | Exact source identity | `creative-runtime-offline.yml` checks out the exact event head | CI is executing the submitted commit, not a merge approximation | a human has accepted product behavior |
 | Runtime tests | Python 3.11 and 3.13 run `test_creative*.py` | deterministic contracts work on clean Linux runners | real customer load or real media quality |
+| Director all-prefix coverage | `creativectl director-coverage --scenario <name>` compiles every reachable graph prefix across all synthetic branches | intermediate pause/resume states and alternate consequences retain exact scene profile, asset, axis, and zero hard director findings | human cinematic taste, real actor performance, or media quality |
 | Offline end-to-end route | `tools/verify_creative_runtime.py` | play → replay → director → simulated generation → feedback → audit is reproducible | any external provider is safe or approved |
 | Safety boundary | static scan and no-provider offline adapter | this lane reads no credentials and makes no network/media request | all future local adapters are automatically safe |
 | Durable evidence | ledger, v2 migration, receipts, feedback, workspace audit | every demo result has a source chain | an independent product reviewer has accepted it |
