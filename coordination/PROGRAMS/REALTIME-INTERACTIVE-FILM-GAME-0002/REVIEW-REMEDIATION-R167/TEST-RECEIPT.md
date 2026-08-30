@@ -17,5 +17,8 @@ python -m compileall -q creative_runtime apps/cli tests       # PASS
 git diff --check 729a8c0...HEAD                               # PASS
 ```
 
-The candidate is executor-verified only. GitHub exact-head CI on Python 3.11
-and 3.13 plus a new uninvolved T3 review remain required before acceptance.
+The runtime implementation commit `23a6a3cdb2510eef9f1f70820ff6ed6cbadbc80d`
+has already received exact-head CI on Python 3.11 and 3.13. This handoff
+metadata update requires its own exact-head CI before the final Issue #503
+engineering handoff. The candidate remains executor-verified only; an
+uninvolved T3 review remains required before acceptance.
