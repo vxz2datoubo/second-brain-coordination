@@ -1,10 +1,10 @@
-schema_version: "3.25"
+schema_version: "3.26"
 registry_id: "AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001"
 control_tower_issue: 310
 owner: "USER"
 architecture_owner: "GPT"
 status: "ACTIVE_CANDIDATE_CONTROL_VIEW"
-as_of: "2026-08-30T00:03:00Z"
+as_of: "2026-08-30T00:13:00Z"
 boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 
 authority_role: >-
@@ -33,13 +33,23 @@ portfolio_capacity_policy:
   nested_parallelism: "FORBIDDEN"
 
 current_user_release_policy:
-  decision_at: "2026-08-30T00:03:00Z"
-  decision: "R167_CODEX_CLEAN_REMEDIATION + R166_W5_GPT_CLEAN_SUCCESSOR_PREWRITE / O0_PARALLEL"
+  decision_at: "2026-08-30T00:13:00Z"
+  decision: "R168_LANE_A_CI_ISOLATION + R166_W5_GPT + R167_CODEX / THREE_LANE_PARALLEL"
   rationale: >-
-    Independent review 5059485578 BLOCKED R165 PR #502 on canonical review-ticket fields and lossy legacy semantic migration.
-    R165 is frozen with no execution authority. R167 is a new clean CODEX-only remediation rooted at canonical main after that freeze.
-    R166 remains a distinct GPT Engineering Worker W5 slice with an exact seven-file W5 surface. R166 and R167 have no material write overlap.
+    The user explicitly requested maximum useful Second Brain implementation. R168 occupies the second allowed GPT Engineering Worker
+    slot and writes only the Lane-A Control Tower CI-isolation four-file surface. R166 is engineering-stopped awaiting independent review
+    and writes only W5 files; R167 is CODEX interactive-film remediation. No route shares a canonical write object.
   auxiliary_bounded_releases:
+    - task_id: "GPT-CANONICAL-CI-STATE-ISOLATION-R168"
+      route_epoch: 168
+      issue: 496
+      agent_type: "GPT_ENGINEERING_WORKER"
+      worker_slot_id: "GPT-WORKER-R168-CANONICAL-CI-STATE-ISOLATION-1"
+      route: "coordination/ROUTES/GPT-CANONICAL-CI-STATE-ISOLATION-R168.yaml"
+      branch: "gpt/canonical-ci-state-isolation-r168"
+      status: "ACTIVE_GOVERNED_PREWRITE"
+      execution_allowed: true
+      substantive_write_gate: "ISSUE_496_EFFECTIVE_SPEC_SNAPSHOT_REQUIRED"
     - task_id: "CODEX-R165-REVIEW-BLOCKER-REMEDIATION-R167"
       route_epoch: 167
       issue: 503
@@ -51,7 +61,6 @@ current_user_release_policy:
       status: "ACTIVE_GOVERNED_PREWRITE"
       execution_allowed: true
       substantive_write_gate: "ISSUE_503_EFFECTIVE_SPEC_SNAPSHOT_REQUIRED"
-      source_pr_502: "FROZEN_REVIEWED_EVIDENCE_ONLY / NO_IMPORT"
     - task_id: "GPT-W5-EVENT-COVERAGE-CLEAN-SUCCESSOR-R166"
       route_epoch: 166
       issue: 501
@@ -59,11 +68,9 @@ current_user_release_policy:
       worker_slot_id: "GPT-WORKER-R166-W5-EVENT-COVERAGE-2"
       route: "coordination/ROUTES/GPT-W5-EVENT-COVERAGE-CLEAN-SUCCESSOR-R166.yaml"
       branch: "gpt/w5-event-coverage-r166-clean-successor"
-      status: "ACTIVE_GOVERNED_PREWRITE"
+      status: "WAITING_INDEPENDENT_REVIEW"
       execution_allowed: true
-      substantive_write_gate: "ISSUE_501_EFFECTIVE_SPEC_SNAPSHOT_REQUIRED"
-      source_pr_487: "FROZEN_REFERENCE_ONLY"
-      source_pr_497: "FROZEN_TECHNICAL_EVIDENCE_ONLY / NO_IMPORT"
+      substantive_write_gate: "ENGINEERING_STOPPED_EXACT_HEAD_2830AD57_WAITING_REVIEW"
   release_owner: "USER_CURRENT_EXPLICIT_DIRECTION + GPT_GOVERNANCE_COORDINATOR"
   standing_routine_engineering_merge_authorization: false
 
@@ -101,11 +108,11 @@ observed_agent_state:
     observation_status: "R167_GOVERNED_PREWRITE"
   GPT_ENGINEERING_WORKER:
     source: "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
-    observed_status: "R163_FROZEN + R164_FROZEN + R166_ACTIVE_PREWRITE"
-    active_execution_slots: 1
+    observed_status: "R166_WAITING_REVIEW + R168_ACTIVE_PREWRITE"
+    active_execution_slots: 2
     active_slot_max: 2
     r166_execution_allowed: true
-    r166_substantive_write_allowed_now: false
+    r168_execution_allowed: true
   QCLAW:
     source: "coordination/ACTIVE-QCLAW-TASK.yaml"
     observed_status: "DONE_HISTORICAL"
@@ -119,14 +126,17 @@ program_lanes:
   - lane_id: "LANE-A-HARNESS-INTEGRATION"
     mission: "Maintain shared Cognitive OS coordination/runtime substrate."
     desired_state: "ACTIVE"
-    observed_state: "NO_ACTIVE_LANE_IMPLEMENTATION"
-    active_execution_route: null
+    observed_state: "R168_CANONICAL_CI_STATE_ISOLATION_ACTIVE_PREWRITE"
+    active_execution_route: "coordination/ROUTES/GPT-CANONICAL-CI-STATE-ISOLATION-R168.yaml"
+    implementation_owner: "GPT_ENGINEERING_WORKER"
+    worker_slot_id: "GPT-WORKER-R168-CANONICAL-CI-STATE-ISOLATION-1"
+    write_surface: "Control Tower CI isolation helper/schema/test + program-control-tower workflow only"
     heavy_execution_authorized: false
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
     mission: "Repair A-share research deficiencies while preserving NO_TRADE."
     desired_state: "ACTIVE"
-    observed_state: "R166_W5_GPT_WORKER_ACTIVE_PREWRITE"
+    observed_state: "R166_W5_GPT_WORKER_WAITING_REVIEW"
     active_execution_route: "coordination/ROUTES/GPT-W5-EVENT-COVERAGE-CLEAN-SUCCESSOR-R166.yaml"
     implementation_owner: "GPT_ENGINEERING_WORKER"
     worker_slot_id: "GPT-WORKER-R166-W5-EVENT-COVERAGE-2"
@@ -137,24 +147,23 @@ program_lanes:
     mission: "Bounded interactive-film remediation without W3 canonical write authority."
     desired_state: "ACTIVE"
     observed_state: "R167_CODEX_CLEAN_REMEDIATION_ACTIVE_PREWRITE"
-    current_phase: "ISSUE_503_WAITING_EFFECTIVE_SPEC_SNAPSHOT"
+    current_phase: "ISSUE_503_EFFECTIVE_SPEC_SNAPSHOT_PUBLISHED"
     active_execution_route: "coordination/ROUTES/CODEX-R165-REVIEW-BLOCKER-REMEDIATION-R167.yaml"
     implementation_owner: "CODEX"
     worker_slot_id: "CODEX-R167-INTERACTIVE-FILM-REMEDIATION-1"
-    next_gate: "CONTROL_TOWER_PASS_THEN_ISSUE_503_EFFECTIVE_SPEC_SNAPSHOT"
+    next_gate: "BRANCH_PARENT_VERIFY_THEN_BOUNDED_REMEDIATION"
     canonical_knowledge_write_authorized: false
 
 cross_lane_overlap_matrix:
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-B-A-SHARE-REMEDIATION"]
     overlap_level: "O1_READ_ONLY_COEXISTENCE"
+    rule: "R168 writes Control Tower helper/workflow; R166 may read Control Tower during integration proof but has no Control Tower write path."
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
     overlap_level: "O1_READ_ONLY_COEXISTENCE"
+    rule: "R168 writes Control Tower helper/workflow; R167 CODEX writes interactive-film surfaces and may only read shared governance."
   - pair: ["LANE-B-A-SHARE-REMEDIATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
     overlap_level: "O0_NO_MATERIAL_WRITE_OVERLAP"
-    rule: >-
-      R166 writes only the W5 Event Coverage seven-file surface. R167 writes creative_runtime/apps/cli/tests, R167 task-local governance
-      and its dedicated workflow. Neither route grants W3/domain/trading authority.
 
 reconciliation_rule: >-
-  R167 execution truth is its CODEX route + claim/lease/reservation + witness + Control Tower scan + Issue #503 pre-write snapshot.
-  R166 execution truth remains its GPT route and exact W5 claim. PR #502/#495/#493 are frozen/read-only evidence and cannot become R167 provenance.
+  R168 execution truth is its GPT route + claim/lease/reservation + witness + Control Tower scan + Issue #496 pre-write snapshot.
+  R167 execution truth remains its CODEX R167 bindings and Issue #503 snapshot. R166 exact head remains frozen for independent review.
