@@ -4,9 +4,11 @@ agent_id: CODEX
 
 ## Audit status
 
-**Executor status:** `EXECUTOR_VERIFIED_ONLY`  
-**Requested next actor:** `GPT_INDEPENDENT_REVIEWER`  
-**Integration status:** no pull request has been created or merged by CODEX.  
+**Executor status:** `EXECUTOR_VERIFIED_ONLY`
+
+**Requested next actor:** `GPT_INDEPENDENT_REVIEWER`
+
+**Integration status:** no pull request has been created or merged by CODEX.
 **Authority:** this document requests an independent audit only. It does not
 authorize deployment, public release, external generation, customer-data
 intake, credentials, canonical knowledge writes, or merge.
