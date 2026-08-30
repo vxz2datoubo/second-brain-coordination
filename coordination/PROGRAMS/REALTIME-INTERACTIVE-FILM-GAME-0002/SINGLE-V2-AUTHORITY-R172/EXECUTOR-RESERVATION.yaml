@@ -15,12 +15,17 @@ pull_request: null
 capacity:
   gpt_parallel_routes_allowed: true
   gpt_active_slots_max: 2
-  r168_active_slot_count: 1
-  r166_frozen_counts_active: false
-  r172_active_slot_count_when_canonical: 1
-  total_active_gpt_slots_when_canonical: 2
+  current_active_gpt_execution_slots: 0
+  current_reserved_gpt_slots: 1
+  r168_active_slot_count: 0
+  r168_pipeline_state: "ACCEPTED_WAITING_CANONICALIZATION_EXECUTION_FROZEN"
+  r166_active_slot_count: 0
+  r166_pipeline_state: "WAITING_INDEPENDENT_REVIEW_EXECUTION_FROZEN"
+  r172_active_slot_count_when_governance_canonical: 0
+  r172_reserved_slot_count_when_governance_canonical: 1
+  r172_requires_later_reserved_to_active_transition: true
   codex_r171_frozen_counts_active: false
-  cross_agent_overlap: "O0_NO_MATERIAL_WRITE_OVERLAP"
+  cross_agent_overlap: "O0_NO_ACTIVE_CONCURRENT_WRITER"
 reservation_scope: "INTERACTIVE_FILM_SINGLE_V2_AUTHORITY_SIX_FILE_SURFACE_ONLY"
 reservation_exclusions:
   - "R168 Control Tower comparator"
@@ -28,14 +33,20 @@ reservation_exclusions:
   - "frozen candidate implementation assets"
   - "W3/domain/trading/credential/provider/production surfaces"
 activation_requires:
-  - "canonical ACTIVE-GPT-ENGINEERING-WORKERS R172 slot"
-  - "Lane C R172 active route projection"
+  - "R168 canonical comparator available before governance review"
+  - "canonical ACTIVE-GPT-ENGINEERING-WORKERS contains R172 as RESERVED, not executable"
+  - "Lane C contains R172 RESERVED_IMPLEMENTATION_NON_EXECUTABLE"
   - "canonical CODEX R171 freeze"
-  - "canonical R166 execution freeze"
+  - "R166 engineering execution remains frozen and latest review state is freshly reconciled"
   - "fresh R172 Control Tower activation scan"
   - "Issue #515 EFFECTIVE_SPEC_SNAPSHOT/v1 after governance merge"
+  - "implementation branch remains absent through snapshot"
+  - "separate reserved-to-active transition canonical before first substantive write"
 reservation_effect:
   execution_identity_reserved_when_canonical: true
+  reservation_is_execution_authority: false
   substantive_write_authorized_now: false
+  substantive_write_authorized_merely_by_governance_merge: false
   review_authority: false
   merge_authority: false
+reconciliation_snapshot: 5470439948
