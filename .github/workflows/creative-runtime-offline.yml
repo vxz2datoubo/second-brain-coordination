@@ -62,12 +62,14 @@ jobs:
         env:
           PYTHONDONTWRITEBYTECODE: "1"
           EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
-        run: python tools/verify_creative_runtime.py --expected-head "$EXPECTED_HEAD"
+          RECEIPT_PATH: ${{ runner.temp }}/creative-runtime-verification-python-${{ matrix.python-version }}.json
+        run: python tools/verify_creative_runtime.py --expected-head "$EXPECTED_HEAD" > "$RECEIPT_PATH"
 
       - name: Rehearse bounded synthetic multi-session operations
         env:
           PYTHONDONTWRITEBYTECODE: "1"
-        run: python tools/rehearse_creative_operations.py --session-count 8
+          REHEARSAL_PATH: ${{ runner.temp }}/creative-runtime-operations-rehearsal-python-${{ matrix.python-version }}.json
+        run: python tools/rehearse_creative_operations.py --session-count 8 > "$REHEARSAL_PATH"
 
       - name: Verify public-safe runtime boundary
         shell: bash
@@ -82,6 +84,16 @@ jobs:
             exit 2
           fi
           echo "CREATIVE_RUNTIME_PUBLIC_SAFE_BOUNDARY=PASS"
+
+      - name: Upload exact-head runtime evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: creative-runtime-evidence-python-${{ matrix.python-version }}-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            ${{ runner.temp }}/creative-runtime-verification-python-${{ matrix.python-version }}.json
+            ${{ runner.temp }}/creative-runtime-operations-rehearsal-python-${{ matrix.python-version }}.json
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Verify whitespace only within event diff
         shell: bash
