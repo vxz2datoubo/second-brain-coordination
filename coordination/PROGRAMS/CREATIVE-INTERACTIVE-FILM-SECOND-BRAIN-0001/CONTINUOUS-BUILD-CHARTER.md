@@ -40,6 +40,12 @@ self-accept, mark ready, or merge its own work.
 3. Fresh-clone / clean-worktree reproduction for major milestones and close-out.
 4. One concentrated GPT independent review only after user-directed close-out.
 
+The reproducibility entry point is `python tools/verify_creative_runtime.py
+--expected-head <frozen-SHA>`. It checks identity, the full creative test suite,
+diff whitespace, a three-scene play-through, verified timeline/director input,
+understanding-map drift gate, review-only knowledge derivation, and v1-to-v2
+migration. Its JSON receipt is execution evidence, not self-acceptance.
+
 ## What the user should expect
 
 The user does not need to approve each implementation detail. They only need

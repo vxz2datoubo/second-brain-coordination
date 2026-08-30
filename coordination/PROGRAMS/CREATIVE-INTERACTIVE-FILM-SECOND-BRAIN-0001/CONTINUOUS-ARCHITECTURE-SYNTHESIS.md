@@ -127,7 +127,9 @@ Source URLs and caution notes are maintained in
 ### Clean reproduction (E2)
 
 At milestones, clone the committed branch into a separate worktree and run the
-same standard-library test suite plus a CLI route. This checks that the result
+same standard-library test suite plus the single command
+`python tools/verify_creative_runtime.py --expected-head <SHA>`. This checks
+that the result
 does not depend on this working directory, uncommitted cache, or chat history.
 It is still executor-provided reproducibility evidence, not independent
 acceptance.

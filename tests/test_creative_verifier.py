@@ -1,0 +1,36 @@
+from __future__ import annotations
+
+import importlib.util
+from pathlib import Path
+import subprocess
+import sys
+import unittest
+
+
+ROOT = Path(__file__).resolve().parents[1]
+SPEC = importlib.util.spec_from_file_location("creative_runtime_verifier", ROOT / "tools" / "verify_creative_runtime.py")
+assert SPEC and SPEC.loader
+verifier = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(verifier)
+
+
+class CreativeVerifierTests(unittest.TestCase):
+    def test_verifier_produces_a_reproducible_offline_receipt(self) -> None:
+        head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, check=True, text=True, capture_output=True).stdout.strip()
+        # The verifier's normal suite includes this test module, so this unit
+        # test checks its deterministic demo path without recursively starting
+        # another copy of the whole suite. The command-line verifier itself is
+        # run with its default full-suite setting at clean milestones.
+        receipt = verifier.verify(head, run_test_suite=False)
+        self.assertEqual(receipt["head_sha"], head)
+        self.assertEqual(receipt["unit_test_status"], "skipped_for_verifier_self_test")
+        self.assertEqual(receipt["demonstration"]["final_state"]["scene_id"], "interior_archive")
+        self.assertEqual(receipt["demonstration"]["knowledge_candidate_status"], "pending_human_review")
+
+    def test_verifier_rejects_a_nonmatching_exact_head(self) -> None:
+        with self.assertRaisesRegex(RuntimeError, "Exact-head mismatch"):
+            verifier.verify("0" * 40)
+
+
+if __name__ == "__main__":
+    unittest.main()
