@@ -198,7 +198,7 @@ def _audit_workspace(workspace: Path, slot: str = DEFAULT_SLOT) -> dict[str, Any
 
 def _view(ledger: CreativeLedger) -> dict[str, Any]:
     state = ledger.replay()
-    beat = graph_for_ledger(ledger).to_cli_scene()[state.beat_id]
+    beat = graph_for_ledger(ledger).cli_view_for(state)
     options = [
         {"id": action_id, "label": option["label"]}
         for action_id, option in beat["options"].items()
@@ -296,7 +296,7 @@ def choose(
         prior_frame = build_interactive_frame(ledger, slot=normalized_slot)
         if expected_frame_id is not None and expected_frame_id != prior_frame.frame_id:
             raise LedgerViolation("Stale client frame; reload the verified frame before choosing")
-        beat = graph.to_cli_scene()[state.beat_id]
+        beat = graph.cli_view_for(state)
         option = beat["options"].get(action_id)
         if option is None:
             return {
@@ -360,7 +360,7 @@ def say(
     normalized_slot = validate_slot(slot)
     ledger = _load_session(workspace, normalized_slot)
     state = ledger.replay()
-    legal = set(graph_for_ledger(ledger).to_cli_scene()[state.beat_id]["options"])
+    legal = set(graph_for_ledger(ledger).cli_view_for(state)["options"])
     action, confidence = parse_free_text(text, legal)
     if action is None or confidence < 0.8:
         return {

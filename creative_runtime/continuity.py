@@ -151,6 +151,29 @@ class StoryGraph:
             raise TimelineViolation(f"Unknown graph beat: {state.scene_id}/{state.beat_id}")
         return beat
 
+    def cli_view_for(self, state: StoryState) -> dict[str, Any]:
+        """Render one exact scene/beat view without collapsing duplicate beat IDs.
+
+        ``to_cli_scene`` remains a legacy inspection convenience. Interactive
+        callers must use this method because a future multi-scene graph may
+        legitimately reuse a beat name such as ``arrival`` in more than one
+        physical space.
+        """
+
+        beat = self.beat_for(state)
+        transitions = self.legal_actions(state)
+        return {
+            "text": beat.text,
+            "options": {
+                transition.action_id: {
+                    "label": transition.label,
+                    "patch": _as_dict(transition.resulting_patch),
+                    "transition_id": transition.transition_id,
+                }
+                for transition in transitions
+            },
+        }
+
     def to_cli_scene(self) -> dict[str, dict[str, Any]]:
         """Render a CLI view from the graph; there is no shadow graph."""
 
