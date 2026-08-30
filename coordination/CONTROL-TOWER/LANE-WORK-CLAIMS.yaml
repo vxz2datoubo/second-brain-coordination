@@ -1,4 +1,4 @@
-schema_version: "3.21"
+schema_version: "3.22"
 claims_id: "PROGRAM-CONTROL-TOWER-LANE-WORK-CLAIMS-0001"
 issue: 310
 owner: "USER"
@@ -8,7 +8,8 @@ boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 semantics:
   purpose: >-
     Declare the actual current work surface for every Program Lane. Any implementation reservation/execution must declare exact
-    write paths, interfaces, authority claims, resource class and route binding. Frozen lanes release all current surfaces.
+    write paths, interfaces, authority claims, resource class and route binding. Pipeline-waiting lanes release current execution
+    surfaces while retaining durable evidence of why they are waiting.
   no_claim_no_durable_runtime_write: true
   proposal_only_does_not_authorize_runtime_change: true
   route_binding_required_for_executable_implementation: true
@@ -21,33 +22,22 @@ proposal_roots:
 
 claims:
   - lane_id: "LANE-A-HARNESS-INTEGRATION"
-    claim_state: "ACTIVE_IMPLEMENTATION"
-    execution_agent: "GPT_ENGINEERING_WORKER"
-    worker_slot_id: "GPT-WORKER-R168-CANONICAL-CI-STATE-ISOLATION-1"
-    resource_class: "LIGHT_IMPLEMENTATION"
-    route_binding:
-      worker_slot_id: "GPT-WORKER-R168-CANONICAL-CI-STATE-ISOLATION-1"
-      task_id: "GPT-CANONICAL-CI-STATE-ISOLATION-R168"
-      route_epoch: 168
-      issue: 496
-      pr: 505
-      branch: "gpt/canonical-ci-state-isolation-r168"
-    write_paths:
-      - ".github/workflows/program-control-tower.yml"
-      - "coordination/CONTROL-TOWER/integration_state_isolation.py"
-      - "coordination/CONTROL-TOWER/integration_state_isolation.schema.json"
-      - "coordination/CONTROL-TOWER/tests/test_integration_state_isolation.py"
-    read_paths:
-      - "coordination/CONTROL-TOWER/**"
-      - "Issue #496 and PR #505 evidence"
-    interfaces:
-      - "IntegrationStateIsolationReceipt/v1"
-    read_domains: [CONTROL_TOWER]
+    claim_state: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
+    execution_agent: null
+    resource_class: "NO_ACTIVE_IMPLEMENTATION"
+    route_binding: null
+    write_paths: []
+    read_paths: []
+    interfaces: []
+    read_domains: []
     write_domains: []
-    authority_claims:
-      - "R168_BOUNDED_COMPARATOR_REMEDIATION_ONLY"
-      - "NO_REVIEW_MERGE_RELEASE_AUTHORITY"
-      - "NO_TRADE"
+    authority_claims: []
+    closure_receipt:
+      issue: 496
+      artifact_ref: "PR #505 accepted exact head f58d63f4ea1db935de8005ffb710f50394ce6062 / independent review 5061226434 / review result 5469655950 / canonicalization handoff 5470394737"
+      result: "ENGINEERING_EXECUTION_RELEASED_WAITING_DRAFT_TO_READY_TRANSPORT_AND_INDEPENDENT_CANONICALIZATION"
+      ready_transport_incident: 5470432141
+      runtime_write_allowed: false
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
     claim_state: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
@@ -62,8 +52,9 @@ claims:
     authority_claims: []
     closure_receipt:
       issue: 501
-      artifact_ref: "PR #504 exact head 12d94fadf48da600a370dee9800613b03abb3426 / independent review 5061048003"
-      result: "FROZEN_NO_EXECUTION_PENDING_FOUNDATIONAL_R168_COMPARATOR_AND_FUTURE_GOVERNED_W5_SUCCESSOR"
+      artifact_ref: "PR #504 exact head cc982f33ad87601a0327e595125272ea4954cdce / handoff 5470408857 / review request 5470409826"
+      result: "ENGINEERING_EXECUTION_RELEASED_WAITING_INDEPENDENT_EXACT_HEAD_REVIEW"
+      exact_head_ci_run: 33327321346
       runtime_write_allowed: false
 
   - lane_id: "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"
@@ -107,11 +98,12 @@ claims:
       - "NO_TRADE"
 
 release_semantics:
-  r166_freeze: >-
-    R166 remains historical engineering/review evidence but carries no current execution lease. Its remaining comparator defect is
-    intentionally deferred until R168 establishes a correct reusable primitive and a future W5 successor is separately governed.
-  r168_active: >-
-    R168 remains the only active Lane-A writer and is currently bounded to remediation-004 under Issue #496 snapshot 5469277153.
+  r168_pipeline_wait: >-
+    R168 engineering writes are frozen at independently accepted exact head f58d63f4. Its current lane write surface is released
+    while Draft-to-Ready transport and independent canonicalization remain pending. The accepted branch/history remains evidence.
+  r166_pipeline_wait: >-
+    R166 engineering writes are frozen at exact head cc982f33 after green exact-head CI and handoff. Its lane write surface is
+    released while the requested independent exact-head review remains pending. This does not claim review acceptance or task closure.
   r172_reservation: >-
     R172 occupies a non-executable reservation only. It becomes executable only after this governance candidate is independently
     accepted/merged, Issue #515 publishes a fresh EFFECTIVE_SPEC_SNAPSHOT/v1 while the implementation branch remains absent, and
