@@ -65,6 +65,10 @@ def _demo(cli: Any) -> dict[str, Any]:
                 "A documented handoff can preserve an earned witness lead.",
             ]
         )
+        generation = cli.run(["--workspace", str(workspace), "generate-offline"])
+        generation_verification = cli.run(
+            ["--workspace", str(workspace), "verify-generation", generation["receipt"]["receipt_id"]]
+        )
         migration = cli.run(["--workspace", str(workspace), "migrate"])
         v2_binding = cli.run(["--workspace", str(workspace), "verify-v2"])
         return {
@@ -79,6 +83,10 @@ def _demo(cli: Any) -> dict[str, Any]:
             "drift_statuses": [item["status"] for item in understanding["drift_assessments"]],
             "knowledge_status": derived["status"],
             "knowledge_candidate_status": derived["verified_timeline_candidate"]["candidate"]["status"],
+            "generation_status": generation["status"],
+            "generation_verification_status": generation_verification["status"],
+            "generation_simulated": generation["receipt"]["result"]["simulated"],
+            "generation_timeline_hash": generation["receipt"]["source"]["timeline_hash"],
             "migration_status": migration["status"],
             "v2_source_binding_status": v2_binding["status"],
             "v2_source_binding_timeline_hash": v2_binding["timeline_hash"],
@@ -117,6 +125,9 @@ def verify(
         "drift_statuses": ["pass"],
         "knowledge_status": "pending_human_review",
         "knowledge_candidate_status": "pending_human_review",
+        "generation_status": "offline_generation_recorded",
+        "generation_verification_status": "offline_generation_verified",
+        "generation_simulated": True,
         "migration_status": "migrated",
         "v2_source_binding_status": "v2_source_verified",
     }
@@ -125,6 +136,8 @@ def verify(
             raise RuntimeError(f"Demonstration mismatch for {key}: {demonstration[key]!r} != {expected!r}")
     if demonstration["v2_source_binding_timeline_hash"] != demonstration["timeline_hash"]:
         raise RuntimeError("v2 source binding does not match the verified timeline hash")
+    if demonstration["generation_timeline_hash"] != demonstration["timeline_hash"]:
+        raise RuntimeError("offline generation receipt does not match the verified timeline hash")
     return {
         "schema": "CreativeRuntimeVerificationReceipt/v1",
         "head_sha": actual_head,

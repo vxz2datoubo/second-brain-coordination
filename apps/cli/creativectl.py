@@ -21,6 +21,7 @@ if str(ROOT) not in sys.path:
 from creative_runtime.contracts import PlayerAction, StoryState, canonical_json
 from creative_runtime.continuity import TimelineViolation, default_story_graph, graph_for_ledger, replay_timeline, timeline_hash
 from creative_runtime.director import compile_verified_director
+from creative_runtime.generation import GenerationViolation, record_offline_generation, verify_offline_generation_record
 from creative_runtime.ledger import CreativeLedger, LedgerViolation
 from creative_runtime.knowledge import KnowledgeBridgeViolation, KnowledgeReviewBridge, correct_from_verified_timeline
 from creative_runtime.understanding import bind_verified_timeline
@@ -193,6 +194,10 @@ def run(argv: list[str]) -> dict[str, Any]:
     subparsers.add_parser("understanding")
     subparsers.add_parser("migrate")
     subparsers.add_parser("verify-v2")
+    generate_parser = subparsers.add_parser("generate-offline")
+    generate_parser.add_argument("--shot-id")
+    verify_generation_parser = subparsers.add_parser("verify-generation")
+    verify_generation_parser.add_argument("receipt_id")
     knowledge_parser = subparsers.add_parser("knowledge")
     knowledge_subparsers = knowledge_parser.add_subparsers(dest="knowledge_command", required=True)
     knowledge_search = knowledge_subparsers.add_parser("search")
@@ -254,6 +259,25 @@ def run(argv: list[str]) -> dict[str, Any]:
         return migrate_legacy_session(args.workspace, ledger.events[-1].occurred_at).to_dict()
     if args.command == "verify-v2":
         return verify_v2_source_binding(args.workspace).to_dict()
+    if args.command == "generate-offline":
+        ledger = _load_session(args.workspace)
+        compiled = compile_verified_director(ledger, graph=graph_for_ledger(ledger))
+        return record_offline_generation(
+            args.workspace,
+            compiled,
+            final_event_occurred_at=ledger.events[-1].occurred_at,
+            shot_id=args.shot_id,
+        ).to_dict()
+    if args.command == "verify-generation":
+        ledger = _load_session(args.workspace)
+        compiled = compile_verified_director(ledger, graph=graph_for_ledger(ledger))
+        receipt = verify_offline_generation_record(
+            args.workspace,
+            compiled,
+            final_event_occurred_at=ledger.events[-1].occurred_at,
+            receipt_id=args.receipt_id,
+        )
+        return {"status": "offline_generation_verified", "receipt": receipt.to_dict()}
     if args.command == "knowledge":
         bridge = _load_knowledge(args.workspace)
         if args.knowledge_command == "search":
@@ -281,7 +305,7 @@ def run(argv: list[str]) -> dict[str, Any]:
 def main() -> int:
     try:
         print(json.dumps(run(sys.argv[1:]), ensure_ascii=False, sort_keys=True, indent=2))
-    except (LedgerViolation, KnowledgeBridgeViolation, SessionViolation, TimelineViolation, KeyError, json.JSONDecodeError) as error:
+    except (GenerationViolation, LedgerViolation, KnowledgeBridgeViolation, SessionViolation, TimelineViolation, KeyError, json.JSONDecodeError) as error:
         print(json.dumps({"status": "error", "message": str(error)}, ensure_ascii=False, sort_keys=True))
         return 2
     return 0

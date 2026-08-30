@@ -21,7 +21,17 @@ from .contracts import (
 from .ledger import CreativeLedger, LedgerViolation, create_artifact
 from .director import DirectorCompilation, DirectorQualityMetrics, DirectorSkill, QualityFinding, QualityReport, VerifiedDirectorCompilation, compile_director, compile_verified_director, select_director_skills
 from .knowledge import KnowledgeBridgeViolation, KnowledgeCandidate, KnowledgeReviewBridge, VerifiedKnowledgeCandidate, correct_from_verified_timeline
-from .generation import ExternalGenerationGuard, GenerationViolation, OfflineGenerationAdapter, adapter_for
+from .generation import (
+    ExternalGenerationGuard,
+    GenerationViolation,
+    OfflineGenerationAdapter,
+    OfflineGenerationReceipt,
+    OfflineGenerationRecord,
+    adapter_for,
+    offline_generation_receipt_path,
+    record_offline_generation,
+    verify_offline_generation_record,
+)
 from .provenance import ProvenanceViolation, SourceProvenance, require_reusable_source
 from .continuity import (
     GraphBeat,
@@ -83,6 +93,8 @@ __all__ = [
     "MigrationResult",
     "ExternalGenerationGuard",
     "OfflineGenerationAdapter",
+    "OfflineGenerationReceipt",
+    "OfflineGenerationRecord",
     "PlayerAction",
     "QualityFinding",
     "QualityReport",
@@ -120,10 +132,13 @@ __all__ = [
     "legacy_session_path",
     "load_v2_session",
     "migrate_legacy_session",
+    "offline_generation_receipt_path",
+    "record_offline_generation",
     "replay_timeline",
     "timeline_hash",
     "three_scene_story_graph",
     "verified_director_input",
     "verify_v2_source_binding",
+    "verify_offline_generation_record",
     "v2_session_path",
 ]
