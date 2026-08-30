@@ -49,6 +49,8 @@ def _demo(cli: Any) -> dict[str, Any]:
 
     from creative_runtime.local_intake import LocalIntakePolicy, LocalIntakeProjection, local_intake_gate_report
     from creative_runtime.ledger import LedgerViolation
+    from tools.build_replay_capsule_package import build_package as build_replay_capsule_package
+    from tools.verify_replay_capsule_package import verify_package as verify_replay_capsule_package
 
     with tempfile.TemporaryDirectory(prefix="creative-runtime-verify-") as directory:
         workspace = Path(directory)
@@ -71,6 +73,10 @@ def _demo(cli: Any) -> dict[str, Any]:
         experience = cli.run(["--workspace", str(workspace), "experience"])
         sequence = cli.run(["--workspace", str(workspace), "sequence"])
         replay_capsule = cli.run(["--workspace", str(workspace), "replay-capsule"])
+        replay_capsule_package = build_replay_capsule_package(workspace / "verified-replay-package", workspace)
+        replay_capsule_package_verification = verify_replay_capsule_package(
+            workspace / "verified-replay-package", require_clean_worktree=False
+        )
         catalogue = cli.run(["catalog", "--scenario", "night_signal"])
         harbor_catalogue = cli.run(["catalog", "--scenario", "harbor_protocol"])
         understanding = cli.run(["--workspace", str(workspace), "understanding"])
@@ -214,6 +220,10 @@ def _demo(cli: Any) -> dict[str, Any]:
             "replay_capsule_timeline_hash": replay_capsule["timeline_hash"],
             "replay_capsule_event_count": replay_capsule["source"]["event_count"],
             "replay_capsule_contains_caller_free_text": replay_capsule["boundary"]["contains_caller_free_text"],
+            "replay_capsule_package_status": replay_capsule_package["status"],
+            "replay_capsule_package_capsule_id": replay_capsule_package_verification["capsule_id"],
+            "replay_capsule_package_timeline_hash": replay_capsule_package_verification["timeline_hash"],
+            "replay_capsule_package_member_count": replay_capsule_package_verification["package_member_count"],
             "catalog_status": catalogue["status"],
             "catalog_transition_count": len(catalogue["covered_transition_ids"]),
             "harbor_catalog_status": harbor_catalogue["status"],
