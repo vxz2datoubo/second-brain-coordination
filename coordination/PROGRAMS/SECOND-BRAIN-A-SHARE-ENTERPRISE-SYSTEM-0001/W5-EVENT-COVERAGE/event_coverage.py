@@ -424,8 +424,8 @@ def _build_coverage_report(
             continue
         point_in_time_candidates.append(event)
 
-    # One candidate per source chain. This is evidence deduplication only and does not
-    # convert the caller source into trusted independent-source authority.
+    # One candidate per caller-provided source chain. The chain label is candidate
+    # grouping/dedup evidence only; it cannot attest source independence or trust.
     chain_choice: dict[str, dict[str, Any]] = {}
     for event in sorted(
         point_in_time_candidates,
@@ -450,7 +450,7 @@ def _build_coverage_report(
         "unresolved_source_gaps": unresolved_roles,
         "unresolved_proxy_gaps": unresolved_proxies,
         "candidate_event_ids": candidate_ids,
-        "independent_source_chain_count": len(chain_choice),
+        "candidate_source_chain_count": len(chain_choice),
         "future_event_ids_ignored": sorted(future_ids),
         "outside_window_event_ids_ignored": sorted(outside_window_ids),
         "irrelevant_event_ids_ignored": sorted(irrelevant_ids),
@@ -601,7 +601,7 @@ def _build_claim_ledger(
                     referenced.intersection(point_in_time_candidate_ids)
                 ),
                 "rejected_evidence_event_ids": rejected_event_ids,
-                "independent_source_chain_ids": source_chain_ids,
+                "candidate_source_chain_ids": source_chain_ids,
             }
         )
 
