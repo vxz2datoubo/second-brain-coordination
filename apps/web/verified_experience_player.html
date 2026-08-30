@@ -93,6 +93,9 @@
       const boundary = payload.boundary;
       require(boundary && boundary.synthetic_only === true, "Artifact is not marked synthetic-only.");
       require(boundary.customer_data_present === false && boundary.external_provider_called === false && boundary.publication_authorized === false, "Artifact crosses a safety boundary.");
+      const sequence = payload.sequence;
+      require(sequence && sequence.schema === "VerifiedInteractiveSequencePlan/v1" && sequence.status === "sequence_plan_verified", "Verified director sequence is absent.");
+      require(Array.isArray(sequence.steps) && sequence.steps.length > 0, "Director sequence steps are malformed.");
       const catalog = payload.catalog;
       require(catalog && catalog.schema === "VerifiedInteractiveScenarioCatalog/v1" && catalog.status === "scenario_catalog_verified", "Verified scenario catalogue is absent.");
       require(catalog.provenance && catalog.provenance.client_story_authority === false, "Catalogue grants story authority to the client.");
@@ -113,7 +116,15 @@
         const key = edge.from_timeline_hash + "\u0000" + edge.action_id;
         require(!edges.has(key), "Catalogue has duplicate action edge."); edges.set(key, edge);
       }
-      player = { payload, catalog, nodes, edges, current: catalog.initial_timeline_hash, history: [] };
+      const sequenceSteps = new Map();
+      for (const step of sequence.steps) {
+        require(step && typeof step.timeline_hash === "string" && typeof step.frame_id === "string", "Malformed director sequence step.");
+        require(nodes.has(step.timeline_hash), "Director sequence points outside verified catalogue nodes.");
+        require(nodes.get(step.timeline_hash).frame_id === step.frame_id, "Director sequence frame identity does not match catalogue.");
+        require(!sequenceSteps.has(step.timeline_hash), "Director sequence repeats a timeline prefix.");
+        sequenceSteps.set(step.timeline_hash, step);
+      }
+      player = { payload, catalog, sequence, nodes, edges, sequenceSteps, current: catalog.initial_timeline_hash, history: [] };
       errorBox.classList.add("hidden"); experienceBox.classList.remove("hidden");
       loadStatus.textContent = "Verified synthetic artifact loaded at " + payload.head_sha.slice(0, 12) + ".";
       render();
@@ -129,7 +140,8 @@
       setPairs(state, [["Scene / beat", text(storyState.scene_id) + " / " + text(storyState.beat_id)], ["Known facts", (frame.accessibility.known_facts_only || []).join("; ") || "none"], ["Risk", storyState.risk_level], ["Relationships", JSON.stringify(storyState.relationships || {})], ["Last verified action", frame.recent_action && frame.recent_action.action_id], ["Last transition", frame.recent_action && frame.recent_action.transition_id]]);
       const shots = frame.director && frame.director.shots || [];
       const primaryShot = shots[0] || {};
-      setPairs(director, [["Caption", frame.accessibility.caption_text], ["Sound cue", frame.accessibility.sound_cue], ["Content boundary", frame.accessibility.content_rating], ["Shot role", primaryShot.shot_role], ["Camera", primaryShot.camera], ["Performance task", primaryShot.performance_task], ["Source timeline", frame.director.source_timeline_hash]]);
+      const sequenceStep = player.sequenceSteps.get(player.current);
+      setPairs(director, [["Caption", frame.accessibility.caption_text], ["Sound cue", frame.accessibility.sound_cue], ["Content boundary", frame.accessibility.content_rating], ["Sequence cut policy", sequenceStep && sequenceStep.cut_policy], ["Sequence position", sequenceStep ? (sequenceStep.sequence_index + 1) + " / " + player.sequence.steps.length : "catalogue-only branch"], ["Planned duration", sequenceStep ? sequenceStep.duration_seconds + " seconds" : "catalogue-only branch"], ["Shot role", primaryShot.shot_role], ["Camera", primaryShot.camera], ["Performance task", primaryShot.performance_task], ["Source timeline", frame.director.source_timeline_hash]]);
       choices.replaceChildren();
       const legal = frame.legal_choices || [];
       for (const choice of legal) {

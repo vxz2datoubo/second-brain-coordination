@@ -13,5 +13,7 @@ customer intake, provider invocation, or story-transition implementation.
 3. Open the HTML file locally and select `experience.json`.
 
 The player validates its envelope and then navigates only the precomputed,
-verified catalogue edges. It is a GitHub-first synthetic demonstration, not a
-deployment or a local customer operations service.
+verified catalogue edges. It also displays the verified director sequence's
+cut policy and planned duration whenever the currently selected catalogue node
+belongs to the fixed demo route. It is a GitHub-first synthetic demonstration,
+not a deployment or a local customer operations service.
