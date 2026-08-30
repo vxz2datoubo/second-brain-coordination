@@ -189,12 +189,13 @@ class EventCoverageGateTests(unittest.TestCase):
         self.assertEqual(report["future_event_ids_ignored"], ["e1"])
         self.assertEqual(result["claim_evidence_ledger"]["claims"][0]["outcome"], "BLOCK")
 
-    def test_10_syndicated_copies_count_as_one_source_chain(self):
+    def test_10_syndicated_copies_count_as_one_candidate_source_chain(self):
         report = self.run_gate(
             events=[event("a", chain="same-origin"), event("b", chain="same-origin")],
             claims=[],
         )["event_coverage_report"]
-        self.assertEqual(report["independent_source_chain_count"], 1)
+        self.assertEqual(report["candidate_source_chain_count"], 1)
+        self.assertNotIn("independent_source_chain_count", report)
         self.assertEqual(report["candidate_event_ids"], ["a"])
 
     def test_11_no_news_keeps_backfill_required_and_coverage_incomplete(self):
@@ -436,6 +437,39 @@ class EventCoverageGateTests(unittest.TestCase):
         result = self.run_gate(claims=[claim("主力正在出货")])
         self.assertEqual(result["claim_evidence_ledger"]["disposition"], "ABSTAIN")
         self.assertEqual(result["disposition"], "ABSTAIN")
+
+    def test_41_caller_chain_labels_are_candidate_dedup_only_never_independence(self):
+        result = self.run_gate(
+            events=[
+                event("a", chain="press_wire"),
+                event("b", chain="self_declared"),
+            ],
+            claims=[claim(event_ids=["a", "b"])],
+        )
+        report = result["event_coverage_report"]
+        row = result["claim_evidence_ledger"]["claims"][0]
+        self.assertEqual(report["candidate_source_chain_count"], 2)
+        self.assertNotIn("independent_source_chain_count", report)
+        self.assertEqual(
+            row["candidate_source_chain_ids"],
+            ["press_wire", "self_declared"],
+        )
+        self.assertNotIn("independent_source_chain_ids", row)
+        self.assertEqual(report["observed_coverage_roles"], [])
+        self.assertNotEqual(result["disposition"], "READY_FOR_SYNTHESIS")
+
+    def test_42_independence_sounding_caller_label_cannot_mint_independence(self):
+        result = self.run_gate(
+            events=[event("a", chain="independent_source")],
+            claims=[claim(event_ids=["a"])],
+        )
+        report = result["event_coverage_report"]
+        row = result["claim_evidence_ledger"]["claims"][0]
+        self.assertEqual(report["candidate_source_chain_count"], 1)
+        self.assertEqual(row["candidate_source_chain_ids"], ["independent_source"])
+        self.assertNotIn("independent_source_chain_count", report)
+        self.assertNotIn("independent_source_chain_ids", row)
+        self.assertTrue(all(value is False for value in result["authority"].values()))
 
 
 if __name__ == "__main__":
