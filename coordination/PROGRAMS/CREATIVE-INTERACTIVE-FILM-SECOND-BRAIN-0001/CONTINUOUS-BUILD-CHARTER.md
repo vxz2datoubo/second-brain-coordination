@@ -32,6 +32,10 @@ self-accept, mark ready, or merge its own work.
 - No force push, rebase, amend, reset, or history rewrite.
 - External research is cited as a candidate design input, never imported as
   proprietary content or automatically promoted to knowledge.
+- GitHub is the source of executable synthetic/runtime evidence. Any future
+  customer intake runs locally in a separately approved, gitignored adapter;
+  no customer record, media, cache, account, cookie, or credential may enter
+  this branch.
 
 ## Verification cadence
 
@@ -39,6 +43,11 @@ self-accept, mark ready, or merge its own work.
 2. Full local standard-library suite at milestone checkpoints.
 3. Fresh-clone / clean-worktree reproduction for major milestones and close-out.
 4. One concentrated GPT independent review only after user-directed close-out.
+
+GitHub additionally runs the same offline suite on the exact submitted commit
+through `.github/workflows/creative-runtime-offline.yml` using Python 3.11 and
+3.13. This is reproducibility evidence, not an approval to deploy or receive
+customer data.
 
 The reproducibility entry point is `python tools/verify_creative_runtime.py
 --expected-head <frozen-SHA>`. It checks identity, the full creative test suite,
