@@ -16,6 +16,16 @@ class CreativeS03DirectorTests(unittest.TestCase):
         self.assertEqual(compilation.shots[0].beat_id, "echo")
         self.assertEqual(len(compilation.shots), 2)
         self.assertEqual(sum(shot.duration_seconds for shot in compilation.shots), 13)
+        self.assertEqual(
+            compilation.quality_report.metrics.to_dict(),
+            {
+                "shot_count": 2,
+                "total_duration_seconds": 13,
+                "hard_finding_count": 0,
+                "activated_skill_count": 2,
+                "referenced_asset_count": 3,
+            },
+        )
         self.assertIn("art_scene_synthetic_archive", compilation.shots[0].reference_artifact_ids)
 
     def test_three_scene_state_uses_matching_scene_asset_and_axis_for_every_shot(self) -> None:
@@ -80,6 +90,8 @@ class CreativeS03DirectorTests(unittest.TestCase):
         codes = {finding.code for finding in report.findings}
         self.assertFalse(report.can_generate)
         self.assertTrue({"duplicate_shot_id", "duration_budget_exceeded", "spatial_axis_mismatch", "shot_beat_mismatch", "scene_reference_missing", "scene_reference_mismatch", "character_reference_missing"} <= codes)
+        self.assertGreater(report.metrics.hard_finding_count, 0)
+        self.assertEqual(report.metrics.total_duration_seconds, 24)
 
     def test_unjustified_or_missing_director_skill_fails_closed(self) -> None:
         valid = compile_director(StoryState(scene_id="archive_gate", beat_id="arrival"))

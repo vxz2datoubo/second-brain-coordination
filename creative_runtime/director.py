@@ -42,13 +42,38 @@ class QualityFinding:
 @dataclass(frozen=True)
 class QualityReport:
     findings: tuple[QualityFinding, ...]
+    metrics: "DirectorQualityMetrics"
 
     @property
     def can_generate(self) -> bool:
         return not any(finding.severity == "hard" for finding in self.findings)
 
     def to_dict(self) -> dict[str, Any]:
-        return {"can_generate": self.can_generate, "findings": [finding.to_dict() for finding in self.findings]}
+        return {
+            "can_generate": self.can_generate,
+            "findings": [finding.to_dict() for finding in self.findings],
+            "metrics": self.metrics.to_dict(),
+        }
+
+
+@dataclass(frozen=True)
+class DirectorQualityMetrics:
+    """Fixed, non-composite measurements for a director compilation."""
+
+    shot_count: int
+    total_duration_seconds: int
+    hard_finding_count: int
+    activated_skill_count: int
+    referenced_asset_count: int
+
+    def to_dict(self) -> dict[str, int]:
+        return {
+            "shot_count": self.shot_count,
+            "total_duration_seconds": self.total_duration_seconds,
+            "hard_finding_count": self.hard_finding_count,
+            "activated_skill_count": self.activated_skill_count,
+            "referenced_asset_count": self.referenced_asset_count,
+        }
 
 
 @dataclass(frozen=True)
@@ -256,7 +281,16 @@ def validate_compilation(
                 findings.append(QualityFinding("scene_reference_mismatch", f"{artifact_id} is not registered as a scene asset."))
             elif asset.get("role") == "character" and asset.get("adult") is not True:
                 findings.append(QualityFinding("identity_not_adult", f"Character asset is not confirmed adult: {artifact_id}"))
-    return QualityReport(tuple(findings))
+    return QualityReport(
+        tuple(findings),
+        DirectorQualityMetrics(
+            shot_count=len(shots),
+            total_duration_seconds=sum(shot.duration_seconds for shot in shots),
+            hard_finding_count=sum(1 for finding in findings if finding.severity == "hard"),
+            activated_skill_count=len(brief.activated_skill_ids),
+            referenced_asset_count=len({artifact_id for shot in shots for artifact_id in shot.reference_artifact_ids}),
+        ),
+    )
 
 
 def compile_director(
