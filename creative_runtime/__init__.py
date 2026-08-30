@@ -80,6 +80,12 @@ from .experience_library import (
     build_verified_experience_library,
     verify_verified_experience_library,
 )
+from .director_review import (
+    DirectorReviewBoard,
+    DirectorReviewViolation,
+    build_director_review_board,
+    verify_director_review_board,
+)
 from .presentation import InteractiveFrame, PresentationViolation, build_interactive_frame
 from .sequence import SequenceViolation, VerifiedSequencePlan, build_verified_sequence, verify_verified_sequence
 from .understanding import (
@@ -118,6 +124,8 @@ __all__ = [
     "DirectorCoverageEntry",
     "DirectorCoverageReport",
     "DirectorQualityMetrics",
+    "DirectorReviewBoard",
+    "DirectorReviewViolation",
     "DirectorBrief",
     "DirectorSkill",
     "DriftAssessment",
@@ -188,6 +196,7 @@ __all__ = [
     "build_interactive_frame",
     "build_feedback_record",
     "build_verified_experience",
+    "build_director_review_board",
     "build_synthetic_experience_artifact",
     "build_verified_experience_library",
     "build_verified_scenario_catalog",
@@ -226,6 +235,7 @@ __all__ = [
     "three_scene_story_graph",
     "verified_director_input",
     "verify_verified_experience",
+    "verify_director_review_board",
     "verify_verified_experience_library",
     "verify_verified_sequence",
     "verify_verified_scenario_catalog",

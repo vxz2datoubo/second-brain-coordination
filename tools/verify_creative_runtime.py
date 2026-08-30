@@ -58,6 +58,9 @@ def _demo(cli: Any) -> dict[str, Any]:
         director_coverage = cli.run(["director-coverage", "--scenario", "three_scene"])
         night_director_coverage = cli.run(["director-coverage", "--scenario", "night_signal"])
         harbor_director_coverage = cli.run(["director-coverage", "--scenario", "harbor_protocol"])
+        director_review = cli.run(["director-review", "--scenario", "three_scene"])
+        night_director_review = cli.run(["director-review", "--scenario", "night_signal"])
+        harbor_director_review = cli.run(["director-review", "--scenario", "harbor_protocol"])
         cli.run(["--workspace", str(workspace), "init", "--scenario", "three_scene"])
         cli.run(["--workspace", str(workspace), "choose", "listen"])
         cli.run(["--workspace", str(workspace), "choose", "approach"])
@@ -181,6 +184,12 @@ def _demo(cli: Any) -> dict[str, Any]:
             "night_signal_director_coverage_state_count": night_director_coverage["state_count"],
             "harbor_protocol_director_coverage_status": harbor_director_coverage["status"],
             "harbor_protocol_director_coverage_state_count": harbor_director_coverage["state_count"],
+            "director_review_status": director_review["status"],
+            "director_review_card_count": director_review["card_count"],
+            "night_signal_director_review_status": night_director_review["status"],
+            "night_signal_director_review_card_count": night_director_review["card_count"],
+            "harbor_protocol_director_review_status": harbor_director_review["status"],
+            "harbor_protocol_director_review_card_count": harbor_director_review["card_count"],
             "timeline_status": timeline["status"],
             "timeline_hash": timeline["timeline_hash"],
             "timeline_entry_count": len(timeline["entries"]),
@@ -282,6 +291,12 @@ def verify(
         "night_signal_director_coverage_state_count": 24,
         "harbor_protocol_director_coverage_status": "director_coverage_verified",
         "harbor_protocol_director_coverage_state_count": 24,
+        "director_review_status": "director_review_board_verified",
+        "director_review_card_count": 12,
+        "night_signal_director_review_status": "director_review_board_verified",
+        "night_signal_director_review_card_count": 24,
+        "harbor_protocol_director_review_status": "director_review_board_verified",
+        "harbor_protocol_director_review_card_count": 24,
         "timeline_entry_count": 4,
         "director_status": "director_verified",
         "director_can_generate": True,

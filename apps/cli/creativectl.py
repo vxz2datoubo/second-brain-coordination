@@ -23,6 +23,7 @@ from creative_runtime.contracts import PlayerAction, StoryState, canonical_json
 from creative_runtime.continuity import TimelineViolation, default_story_graph, graph_for_ledger, replay_timeline, timeline_hash
 from creative_runtime.coverage import RouteCoverageViolation, coverage_for_scenario, director_coverage_for_scenario
 from creative_runtime.director import compile_verified_director
+from creative_runtime.director_review import DirectorReviewViolation, build_director_review_board
 from creative_runtime.generation import GenerationViolation, offline_generation_receipt_path, record_offline_generation, verify_offline_generation_record
 from creative_runtime.feedback import FeedbackViolation, build_feedback_record, feedback_path, load_feedback, record_feedback
 from creative_runtime.experience import ExperienceViolation, build_verified_experience, build_verified_scenario_catalog
@@ -400,6 +401,8 @@ def run(argv: list[str]) -> dict[str, Any]:
     coverage_parser.add_argument("--scenario", choices=sorted(SCENARIOS), default="three_scene")
     director_coverage_parser = subparsers.add_parser("director-coverage")
     director_coverage_parser.add_argument("--scenario", choices=sorted(SCENARIOS), default="three_scene")
+    director_review_parser = subparsers.add_parser("director-review")
+    director_review_parser.add_argument("--scenario", choices=sorted(SCENARIOS), default="three_scene")
     knowledge_parser = subparsers.add_parser("knowledge")
     knowledge_subparsers = knowledge_parser.add_subparsers(dest="knowledge_command", required=True)
     knowledge_search = knowledge_subparsers.add_parser("search")
@@ -551,6 +554,8 @@ def run(argv: list[str]) -> dict[str, Any]:
         return coverage_for_scenario(args.scenario).to_dict()
     if args.command == "director-coverage":
         return director_coverage_for_scenario(args.scenario).to_dict()
+    if args.command == "director-review":
+        return build_director_review_board(args.scenario).to_dict()
     if args.command == "knowledge":
         bridge = _load_knowledge(args.workspace, slot)
         if args.knowledge_command == "search":
@@ -578,7 +583,7 @@ def run(argv: list[str]) -> dict[str, Any]:
 def main() -> int:
     try:
         print(json.dumps(run(sys.argv[1:]), ensure_ascii=False, sort_keys=True, indent=2))
-    except (ExperienceViolation, FeedbackViolation, GenerationViolation, LedgerViolation, KnowledgeBridgeViolation, PresentationViolation, RouteCoverageViolation, SequenceViolation, SessionViolation, TimelineViolation, KeyError, json.JSONDecodeError) as error:
+    except (DirectorReviewViolation, ExperienceViolation, FeedbackViolation, GenerationViolation, LedgerViolation, KnowledgeBridgeViolation, PresentationViolation, RouteCoverageViolation, SequenceViolation, SessionViolation, TimelineViolation, KeyError, json.JSONDecodeError) as error:
         print(json.dumps({"status": "error", "message": str(error)}, ensure_ascii=False, sort_keys=True))
         return 2
     return 0
