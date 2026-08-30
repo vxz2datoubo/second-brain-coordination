@@ -36,6 +36,13 @@ The only uploaded result is a short-retention, repository-synthetic JSON
 artifact plus its dependency-free static viewer; its envelope explicitly says
 that it has no customer data and no external-provider result.
 
+The artifact job does not trust its just-written label: it immediately runs
+`python tools/verify_experience_artifact.py --expected-head <SHA> --artifact
+experience.json`. That verifier rebuilds the fixed demo route and all covered
+catalogue paths from the checked-out source, then requires canonical JSON
+equality. A reviewer can repeat the same command after downloading the
+artifact, with no network, account, provider, or executor chat history.
+
 ## Interactive delivery mapping
 
 The runtime now has one-way authority from immutable evidence to presentation:

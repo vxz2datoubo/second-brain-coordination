@@ -9,6 +9,7 @@ on:
       - "tests/test_creative*.py"
       - "tools/verify_creative_runtime.py"
       - "tools/build_experience_demo.py"
+      - "tools/verify_experience_artifact.py"
       - "skills/creative-program-understanding-map/**"
       - "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/**"
       - ".github/workflows/creative-runtime-offline.yml"
@@ -123,26 +124,7 @@ jobs:
         run: |
           set -euo pipefail
           python tools/build_experience_demo.py --expected-head "$EXPECTED_HEAD" --output "$EXPERIENCE_OUTPUT"
-          python - "$EXPERIENCE_OUTPUT" "$EXPECTED_HEAD" <<'PY'
-          import json
-          import pathlib
-          import sys
-          payload = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
-          assert payload["schema"] == "CreativeRuntimeExperienceArtifact/v1"
-          assert payload["status"] == "experience_artifact_verified"
-          assert payload["head_sha"] == sys.argv[2]
-          assert payload["boundary"] == {
-              "synthetic_only": True,
-              "customer_data_present": False,
-              "external_provider_called": False,
-              "publication_authorized": False,
-          }
-          assert payload["experience"]["status"] == "experience_manifest_verified"
-          assert len(payload["experience"]["frames"]) == 6
-          assert payload["catalog"]["status"] == "scenario_catalog_verified"
-          assert len(payload["catalog"]["covered_transition_ids"]) == 14
-          print("CREATIVE_RUNTIME_SYNTHETIC_EXPERIENCE_ARTIFACT=PASS")
-          PY
+          python tools/verify_experience_artifact.py --expected-head "$EXPECTED_HEAD" --artifact "$EXPERIENCE_OUTPUT"
 
       - name: Upload public-safe synthetic experience
         uses: actions/upload-artifact@v4
