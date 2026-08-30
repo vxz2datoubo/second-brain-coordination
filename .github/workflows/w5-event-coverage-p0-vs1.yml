@@ -151,11 +151,8 @@ jobs:
               value = text.replace(root, '<WORKTREE>')
               value = re.sub(r'/tmp/tmp[A-Za-z0-9_.-]+', '/tmp/<TMP>', value)
               value = re.sub(r'/tmp/w5-r166-[A-Za-z0-9_.-]+', '/tmp/<W5_WORKTREE>', value)
-              value = re.sub(
-                  r'(<[^>\n]*\bobject\s+at\s+)0x[0-9A-Fa-f]+(?=>)',
-                  r'\g<1>0x<ADDR>',
-                  value,
-              )
+              # Flattened failure text has no trustworthy provenance proving that an
+              # arbitrary 0x token is runtime identity. Preserve all hex values.
               value = re.sub(
                   r'(File\s+"[^"\n]+",\s+line\s+)\d+(\s*,\s+in\s+[^\n]+)',
                   r'\g<1><LINE>\g<2>',
@@ -182,6 +179,27 @@ jobs:
           ):
               raise SystemExit('FINGERPRINT_SELF_TEST_FAILED: semantic angle-bracket hex values collapsed')
 
+          semantic_object_left = 'AssertionError: expected <mask object at 0x20>'
+          semantic_object_right = 'AssertionError: expected <mask object at 0x40>'
+          if fingerprint('FAIL', 'semantic-object', semantic_object_left) == fingerprint(
+              'FAIL', 'semantic-object', semantic_object_right
+          ):
+              raise SystemExit('FINGERPRINT_SELF_TEST_FAILED: semantic object-at hex values collapsed')
+
+          semantic_capability_left = 'AssertionError: expected <capability object at 0x20>'
+          semantic_capability_right = 'AssertionError: expected <capability object at 0x40>'
+          if fingerprint('FAIL', 'semantic-capability', semantic_capability_left) == fingerprint(
+              'FAIL', 'semantic-capability', semantic_capability_right
+          ):
+              raise SystemExit('FINGERPRINT_SELF_TEST_FAILED: capability object-at hex values collapsed')
+
+          runtime_like_left = 'AssertionError: <Probe object at 0xABCDEF>'
+          runtime_like_right = 'AssertionError: <Probe object at 0x123456>'
+          if fingerprint('FAIL', 'runtime-like', runtime_like_left) == fingerprint(
+              'FAIL', 'runtime-like', runtime_like_right
+          ):
+              raise SystemExit('FINGERPRINT_SELF_TEST_FAILED: unproven object identity was erased')
+
           semantic_line_left = 'AssertionError: policy violation at line 12'
           semantic_line_right = 'AssertionError: policy violation at line 99'
           if fingerprint('FAIL', 'semantic-line', semantic_line_left) == fingerprint(
@@ -191,16 +209,16 @@ jobs:
 
           volatile_left = (
               'File "/tmp/w5-r166-main-a/test.py", line 12, in test_x\n'
-              'AssertionError: <Probe object at 0xABCDEF>'
+              'AssertionError: stable sentinel 0xABCDEF'
           )
           volatile_right = (
               'File "/tmp/w5-r166-main-b/test.py", line 998, in test_x\n'
-              'AssertionError: <Probe object at 0x123456>'
+              'AssertionError: stable sentinel 0xABCDEF'
           )
           if fingerprint('FAIL', 'volatile', volatile_left) != fingerprint(
               'FAIL', 'volatile', volatile_right
           ):
-              raise SystemExit('FINGERPRINT_SELF_TEST_FAILED: true volatile noise not normalized')
+              raise SystemExit('FINGERPRINT_SELF_TEST_FAILED: traceback/path volatility not normalized')
 
           class RecordingResult(unittest.TestResult):
               def __init__(self):
