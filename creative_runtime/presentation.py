@@ -15,6 +15,7 @@ from typing import Any, Mapping
 from .continuity import TimelineViolation, graph_for_ledger, replay_timeline, timeline_hash
 from .contracts import canonical_json
 from .director import compile_verified_director
+from .intent import safe_intent_examples, safe_intent_projection
 from .ledger import CreativeLedger
 from .session import DEFAULT_SLOT, validate_slot
 
@@ -31,7 +32,7 @@ class InteractiveFrame:
     timeline_hash: str
     state: Mapping[str, Any]
     story_text: str
-    legal_choices: tuple[Mapping[str, str], ...]
+    legal_choices: tuple[Mapping[str, Any], ...]
     recent_action: Mapping[str, Any]
     recent_consequence: Mapping[str, Any]
     director: Mapping[str, Any]
@@ -70,7 +71,11 @@ def build_interactive_frame(ledger: CreativeLedger, *, slot: str = DEFAULT_SLOT)
     state = compiled.verified_input.state
     beat = graph.beat_for(state)
     choices = tuple(
-        {"action_id": transition.action_id, "label": transition.label}
+        {
+            "action_id": transition.action_id,
+            "label": transition.label,
+            "safe_intent_examples": list(safe_intent_examples(transition.action_id)),
+        }
         for transition in graph.legal_actions(state)
     )
     recent = timeline[-1]
@@ -93,6 +98,7 @@ def build_interactive_frame(ledger: CreativeLedger, *, slot: str = DEFAULT_SLOT)
         "input_mode": "choice_or_safe_intent",
         "content_rating": "non_explicit",
         "known_facts_only": list(state.known_facts),
+        "safe_intent": safe_intent_projection(choice["action_id"] for choice in choices),
     }
     material = {
         "schema": "InteractiveFrame/v1",

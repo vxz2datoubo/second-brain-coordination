@@ -37,6 +37,7 @@ Player action ──> append-only ledger ──> graph-backed prefix replay
 | Concern | Implementation | Hard invariant | Owner-visible result |
 | --- | --- | --- | --- |
 | Story authority | `CreativeLedger` plus versioned `StoryGraph` | ledger hash chain and graph patch must both match | `creativectl timeline` lists each true historical state |
+| Safe intent input | runtime-owned `CreativeSafeIntentProjection/v1` | text may resolve only to exactly one currently legal declared action; unsafe, ambiguous, or unavailable text must clarify without a ledger write | CLI accepts bounded multilingual intent families; the static player accepts only exact visible non-explicit phrases and follows an already verified catalogue edge |
 | Intermediate truth | prefix replay, not final-state backfill | every entry is reconstructed from `events[:n]` | consequences cannot quietly change in the middle of a route |
 | Director boundary | `compile_verified_director` | malformed/forged timeline raises before a brief exists | `creativectl director` reports the source timeline hash |
 | Director branch completeness | `creativectl director-coverage --scenario <name>` | every reachable route prefix must compile with its registered scene profile, asset, axis and zero hard findings | GitHub can prove the director at pauses and alternate consequences, not only at terminal demo states |

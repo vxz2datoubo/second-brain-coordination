@@ -14,7 +14,7 @@
     .warning { border-color: #c6a34a; background: #382c12; } .error { border-color: #e66b7c; background: #421d26; }
     .story { font-size: 1.22rem; line-height: 1.65; } .meta { display: flex; flex-wrap: wrap; gap: .55rem; }
     .pill { border: 1px solid #53617a; border-radius: 999px; padding: .25rem .55rem; font-size: .82rem; color: #c9d6ef; }
-    .choices { display: grid; gap: .65rem; } button, .file-label { font: inherit; border: 1px solid #697ba2; border-radius: 10px; background: #26395e; color: #fff; padding: .7rem .85rem; text-align: left; cursor: pointer; }
+    .choices { display: grid; gap: .65rem; } button, .file-label, input[type=text] { font: inherit; border: 1px solid #697ba2; border-radius: 10px; background: #26395e; color: #fff; padding: .7rem .85rem; text-align: left; cursor: pointer; }
     button:hover:not(:disabled), .file-label:hover { background: #355184; } button:disabled { opacity: .5; cursor: not-allowed; }
     .choice-title { display: block; font-weight: 700; } .choice-preview { display: block; color: #c7d6fb; font-size: .88rem; line-height: 1.35; margin-top: .28rem; }
     input[type=file] { position: absolute; width: 1px; height: 1px; opacity: 0; }
@@ -60,6 +60,11 @@
         <h2>Choose a verified action</h2>
         <div class="choices" id="choices"></div>
         <p id="choice-status" class="muted"></p>
+        <h2>Use a declared safe intent</h2>
+        <p id="intent-hint" class="muted"></p>
+        <input id="safe-intent-input" type="text" autocomplete="off" spellcheck="false" placeholder="Type one listed exact safe phrase">
+        <button id="safe-intent-submit" type="button">Use declared safe intent</button>
+        <p id="intent-status" class="muted" aria-live="polite"></p>
         <button id="back" type="button">Back to previous verified frame</button>
         <button id="restart" type="button">Restart verified journey</button>
       </section>
@@ -79,6 +84,10 @@
     const director = document.querySelector("#director");
     const choices = document.querySelector("#choices");
     const choiceStatus = document.querySelector("#choice-status");
+    const safeIntentInput = document.querySelector("#safe-intent-input");
+    const safeIntentSubmit = document.querySelector("#safe-intent-submit");
+    const intentHint = document.querySelector("#intent-hint");
+    const intentStatus = document.querySelector("#intent-status");
     const back = document.querySelector("#back");
     const restart = document.querySelector("#restart");
     const journey = document.querySelector("#journey");
@@ -89,6 +98,8 @@
 
     function require(condition, message) { if (!condition) throw new Error(message); }
     function text(value) { return value == null ? "—" : String(value); }
+    function normalizeSafeIntent(value) { return typeof value === "string" ? value.toLowerCase().trim().replace(/\s+/g, " ") : ""; }
+    function isUnsafeIntent(value) { return ["sex", "sexual", "nude", "blood", "gore", "torture", "性爱", "性行为", "色情", "裸露", "裸体", "露骨", "血腥", "酷刑", "虐待"].some(term => value.includes(term)); }
     function canonicalValue(value) {
       if (Array.isArray(value)) return value.map(canonicalValue);
       if (value && typeof value === "object") {
@@ -198,8 +209,15 @@
       }
       for (const [nodeHash, frame] of nodes) {
         const legal = Array.isArray(frame.legal_choices) ? frame.legal_choices : [];
+        const exactIntentActions = new Map();
         for (const choice of legal) {
-          require(choice && typeof choice.action_id === "string" && typeof choice.label === "string", "Malformed frame choice.");
+          require(choice && typeof choice.action_id === "string" && typeof choice.label === "string" && Array.isArray(choice.safe_intent_examples) && choice.safe_intent_examples.length > 0, "Malformed frame choice.");
+          for (const example of choice.safe_intent_examples) {
+            const normalizedExample = normalizeSafeIntent(example);
+            require(normalizedExample && normalizedExample === example, "Frame safe intent example must be normalized and non-empty.");
+            require(!exactIntentActions.has(normalizedExample), "Frame safe intent example maps to more than one action.");
+            exactIntentActions.set(normalizedExample, choice.action_id);
+          }
           const edge = edges.get(nodeHash + "\u0000" + choice.action_id);
           require(edge, "A legal choice lacks an evidence-bound catalogue edge.");
           require(edge.action_label === choice.label, "Catalogue edge label does not match its source frame choice.");
@@ -292,16 +310,45 @@
         const preview = document.createElement("span"); preview.className = "choice-preview"; preview.textContent = edge ? choiceImpactPreview(edge) : "Verified impact is unavailable.";
         button.append(title, preview);
         button.disabled = !edge;
-        button.addEventListener("click", () => { player.history.push({ from_timeline_hash: player.current, edge }); player.current = edge.to_timeline_hash; player.lastConsequence = edge.consequence; render(); });
+        button.addEventListener("click", () => followVerifiedEdge(edge));
         choices.append(button);
       }
+      const exactExamples = legal.flatMap(choice => choice.safe_intent_examples || []);
+      safeIntentInput.value = "";
+      safeIntentInput.disabled = legal.length === 0;
+      safeIntentSubmit.disabled = legal.length === 0;
+      intentHint.textContent = legal.length ? "Exact non-explicit phrases accepted at this frame: " + exactExamples.map(example => "“" + example + "”").join(", ") + ". Other text asks for clarification and cannot change the story." : "Terminal verified frame; no safe intent can advance it.";
+      intentStatus.textContent = "";
       back.disabled = player.history.length === 0;
       restart.disabled = player.history.length === 0;
       renderJourney();
       choiceStatus.textContent = player.lastConsequence ? "Verified consequence: " + consequenceSummary(player.lastConsequence) : (legal.length ? "Only the listed, evidence-bound actions are selectable." : "Terminal verified frame; no further action is available.");
     }
+    function followVerifiedEdge(edge) {
+      require(player && edge, "No verified action is available.");
+      player.history.push({ from_timeline_hash: player.current, edge }); player.current = edge.to_timeline_hash; player.lastConsequence = edge.consequence; render();
+    }
+    function submitSafeIntent() {
+      if (!player) return;
+      const normalized = normalizeSafeIntent(safeIntentInput.value);
+      if (!normalized) { intentStatus.textContent = "Clarification required: type one exact non-explicit phrase listed for this frame."; return; }
+      if (isUnsafeIntent(normalized)) { intentStatus.textContent = "Clarification required: this player accepts only non-explicit declared intents."; return; }
+      const frame = player.nodes.get(player.current);
+      const matches = [];
+      for (const choice of frame.legal_choices || []) {
+        if ((choice.safe_intent_examples || []).includes(normalized)) {
+          matches.push(choice.action_id);
+        }
+      }
+      if (matches.length !== 1) { intentStatus.textContent = "Clarification required: use one exact listed phrase or select a verified button."; return; }
+      const edge = player.edges.get(player.current + "\u0000" + matches[0]);
+      if (!edge) { intentStatus.textContent = "Clarification required: the declared phrase has no evidence-bound action edge."; return; }
+      followVerifiedEdge(edge);
+    }
     back.addEventListener("click", () => { if (player && player.history.length) { player.current = player.history.pop().from_timeline_hash; player.lastConsequence = null; render(); } });
     restart.addEventListener("click", () => { if (player) { player.current = player.catalog.initial_timeline_hash; player.history = []; player.lastConsequence = null; render(); } });
+    safeIntentSubmit.addEventListener("click", submitSafeIntent);
+    safeIntentInput.addEventListener("keydown", event => { if (event.key === "Enter") { event.preventDefault(); submitSafeIntent(); } });
     fileInput.addEventListener("change", async () => {
       const file = fileInput.files && fileInput.files[0]; if (!file) return;
       try { loadPayload(JSON.parse(await file.text())); } catch (error) { reject(error); }

@@ -28,6 +28,7 @@ from creative_runtime.feedback import FeedbackViolation, build_feedback_record, 
 from creative_runtime.experience import ExperienceViolation, build_verified_experience, build_verified_scenario_catalog
 from creative_runtime.ledger import CreativeLedger, LedgerViolation
 from creative_runtime.knowledge import KnowledgeBridgeViolation, KnowledgeReviewBridge, correct_from_verified_timeline
+from creative_runtime.intent import resolve_safe_intent
 from creative_runtime.operations import build_operations_report
 from creative_runtime.presentation import PresentationViolation, build_interactive_frame
 from creative_runtime.sequence import SequenceViolation, build_verified_sequence
@@ -48,14 +49,6 @@ from creative_runtime.session import (
 
 SCHEMA = "CreativeSession/v1"
 DEFAULT_WORKSPACE = Path(".creative-runtime")
-# The runtime is non-explicit in every supported interaction language.  Phrases
-# are checked before intent matching so unsafe text cannot become a legal action
-# simply because it also contains a word such as "listen" or "leave".
-UNSAFE_TERMS = {"sex", "sexual", "nude", "blood", "gore", "torture"}
-UNSAFE_PHRASES = {
-    "sex", "sexual", "nude", "blood", "gore", "torture",
-    "性爱", "性行为", "色情", "裸露", "裸体", "露骨", "血腥", "酷刑", "虐待",
-}
 _COMMAND_ID_PATTERN = re.compile(r"cmd_[a-f0-9]{20}")
 SCENARIOS = {
     "legacy_archive": StoryState(scene_id="synthetic_archive", beat_id="arrival", relationships={"mira": 0}),
@@ -332,25 +325,8 @@ def choose(
 
 
 def parse_free_text(text: str, legal_actions: set[str]) -> tuple[str | None, float]:
-    normalized = text.lower().strip()
-    if any(term in normalized for term in UNSAFE_PHRASES):
-        return None, 0.0
-    tokens = set(normalized.replace(".", " ").replace(",", " ").split())
-    if tokens & UNSAFE_TERMS:
-        return None, 0.0
-    signals = {
-        "listen": {"listen", "hear", "quiet", "door", "听", "倾听", "聆听"},
-        "approach": {"approach", "knock", "enter", "walk", "敲门", "靠近", "进入"},
-        "leave": {"leave", "withdraw", "back", "wait", "离开", "撤退", "后退", "等待"},
-    }
-    matches = [
-        action
-        for action in legal_actions
-        if tokens & signals.get(action, set()) or any(signal in normalized for signal in signals.get(action, set()) if len(signal) > 1)
-    ]
-    if len(matches) != 1:
-        return None, 0.0
-    return matches[0], 0.9
+    resolution = resolve_safe_intent(text, legal_actions)
+    return resolution.action_id, resolution.confidence
 
 
 def say(

@@ -50,3 +50,10 @@ repository command `python tools/verify_experience_library.py --expected-head
 <SHA> --package-dir <directory>` from a clean exact-head checkout. That command
 is reproducibility evidence, not an authorization to publish or accept customer
 information.
+
+At any non-terminal frame, the player also lists the exact, declared
+non-explicit phrases it accepts as a safe intent. Typing one of those phrases
+follows the same already-verified catalogue edge as its button. Any other,
+ambiguous, unavailable, or unsafe phrase requests clarification and changes
+nothing. This is a bounded convenience input, not free-form story generation
+or a local natural-language model.

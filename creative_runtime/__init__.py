@@ -22,6 +22,15 @@ from .ledger import CreativeLedger, LedgerViolation, create_artifact
 from .director import SCENE_CINEMATIC_PROFILES, DirectorCompilation, DirectorQualityMetrics, DirectorSkill, QualityFinding, QualityReport, VerifiedDirectorCompilation, compile_director, compile_verified_director, select_director_skills
 from .knowledge import KnowledgeBridgeViolation, KnowledgeCandidate, KnowledgeReviewBridge, VerifiedKnowledgeCandidate, correct_from_verified_timeline
 from .local_intake import LocalIntakePolicy, LocalIntakeProjection, LocalIntakeViolation, local_intake_gate_report, validate_local_intake
+from .intent import (
+    SAFE_INTENT_CONFIDENCE,
+    SAFE_INTENT_SCHEMA,
+    SafeIntentResolution,
+    normalize_safe_intent_text,
+    resolve_safe_intent,
+    safe_intent_examples,
+    safe_intent_projection,
+)
 from .generation import (
     ExternalGenerationGuard,
     GenerationViolation,
@@ -130,6 +139,7 @@ __all__ = [
     "LocalIntakeProjection",
     "LocalIntakePolicy",
     "LocalIntakeViolation",
+    "SafeIntentResolution",
     "MetricAnchor",
     "MigrationResult",
     "ExternalGenerationGuard",
@@ -155,6 +165,8 @@ __all__ = [
     "SessionViolation",
     "SequenceViolation",
     "SCENE_CINEMATIC_PROFILES",
+    "SAFE_INTENT_CONFIDENCE",
+    "SAFE_INTENT_SCHEMA",
     "TaskGovernance",
     "TimelineEntry",
     "TimelineViolation",
@@ -168,6 +180,7 @@ __all__ = [
     "VerifiedSessionReceipt",
     "canonical_json",
     "artifact_sha256",
+    "normalize_safe_intent_text",
     "adapter_for",
     "assess_anchor",
     "bind_verified_timeline",
@@ -195,6 +208,8 @@ __all__ = [
     "harbor_protocol_story_graph",
     "require_reusable_source",
     "select_director_skills",
+    "safe_intent_examples",
+    "safe_intent_projection",
     "load_task_governance",
     "load_feedback",
     "local_intake_gate_report",
@@ -205,6 +220,7 @@ __all__ = [
     "offline_generation_receipt_path",
     "record_offline_generation",
     "record_feedback",
+    "resolve_safe_intent",
     "replay_timeline",
     "timeline_hash",
     "three_scene_story_graph",
