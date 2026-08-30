@@ -57,7 +57,7 @@ def _sha256(value: Any) -> str:
 
 
 def normalize_failure_text(text: str, *, roots: Iterable[str | Path] = ()) -> str:
-    """Remove volatile execution noise without erasing failure semantics."""
+    """Remove only demonstrably volatile execution noise without erasing semantics."""
 
     normalized = str(text or "").replace("\\", "/")
     candidates = {str(Path(root).resolve()).replace("\\", "/") for root in roots if str(root)}
@@ -65,8 +65,23 @@ def normalize_failure_text(text: str, *, roots: Iterable[str | Path] = ()) -> st
     for root in sorted(candidates, key=len, reverse=True):
         if root:
             normalized = normalized.replace(root, "<ROOT>")
-    normalized = re.sub(r"0x[0-9A-Fa-f]+", "0x<ADDR>", normalized)
-    normalized = re.sub(r"\bline\s+\d+\b", "line <LINE>", normalized)
+
+    # Normalize a hexadecimal token only when it is syntactically an object repr
+    # address, e.g. ``<Foo object at 0xABCDEF>``. Arbitrary semantic hexadecimal
+    # values in assertion/command payloads must remain part of the fingerprint.
+    normalized = re.sub(
+        r"(<[^>\n]*\bat\s+)0x[0-9A-Fa-f]+(?=>)",
+        r"\g<1>0x<ADDR>",
+        normalized,
+    )
+
+    # Normalize a line number only in a Python traceback frame. Prose such as
+    # ``policy violation at line 12`` is semantic payload and must be preserved.
+    normalized = re.sub(
+        r'(File\s+"[^"\n]+",\s+line\s+)\d+(\s*,\s+in\s+[^\n]+)',
+        r"\g<1><LINE>\g<2>",
+        normalized,
+    )
     normalized = re.sub(r"\\?\\?\\Temp\\[^\s\"']+", "<ROOT>", normalized, flags=re.IGNORECASE)
     normalized = re.sub(r"[ \t]+\n", "\n", normalized)
     return normalized.strip()
