@@ -1,13 +1,66 @@
 schema: AI_HANDOFF/v1
+project: SECOND_BRAIN
 task_id: CODEX-R170-V2-CONTINUATION-DURABILITY-R171
+route_epoch: 171
 source_agent: CODEX
 target_agent: GPT_INDEPENDENT_REVIEWER
 reviewer: UNASSIGNED
 executor_status: EXECUTOR_VERIFIED_ONLY
-base_sha: 5574ebf4287691aed3f5789e895bb5c55451f209
-changed_contracts:
-  - Migrated session continuation writes v2 saves only.
-  - Legacy session.json remains immutable provenance.
-  - Default and named-slot save/restore retain the source-bound receipt.
-tests: ["python -m unittest discover -s tests -v"]
-next_action: Push, exact-head CI, independent review.
+implementation_baseline: 5574ebf4287691aed3f5789e895bb5c55451f209
+canonical_governance_base: 1a514fe839b1c47a14d7fad4a96e8c9fd2365338
+effective_spec_snapshots:
+  - SECOND-BRAIN-R171-ISSUE512-REMEDIATION-002
+  - SECOND-BRAIN-R171-ISSUE512-REMEDIATION-003-WORKFLOW-PATH
+architecture_contract:
+  persisted_session_authority: CreativeSession/v2
+  parallel_v2_continuation_schema: FORBIDDEN
+  state_authority: GRAPH_VERIFIED_APPEND_ONLY_CREATIVE_LEDGER
+  migration_receipt_self_proving: false
+  immutable_legacy_source_required_for_migrated_v2: true
+  continuation_mutates_legacy_source: false
+  caller_state_patch_authority: false
+  migration_bridge_minting_after_prefix: false
+  native_v2_falsely_migrated: false
+validation_choke_point:
+  - SessionStore.read
+  - ValidatedSession.state
+  - ValidatedSession.timeline
+  - ValidatedSession.director_sequence
+  - ValidatedSession.review_packet
+  - CLI play/resume/replay/choose/say after migration
+persistence_contract:
+  default_save_preserves_same_receipt_and_ledger_history: true
+  named_slot_save_load_restore_preserves_same_receipt_and_ledger_history: true
+  source_bytes_rederived_on_every_migrated_validation: true
+  exact_migrated_prefix_rederived_from_source: true
+  exact_migration_bridge_positions_and_event_ids_rederived: true
+adversarial_contract:
+  - hash_valid_state_patch_rejected
+  - extra_or_mispositioned_migration_bridge_rejected
+  - graph_transition_or_patch_tamper_with_recomputed_hash_rejected
+  - source_A_source_B_receipt_ledger_swap_rejected_by_all_consumers
+  - modified_legacy_source_rejected_by_all_consumers
+  - lossy_listen_approach_leave_migration_creates_no_shadow_save
+  - native_v2_remains_unmigrated_without_legacy_source
+  - deprecated_parallel_continuation_schema_rejected
+source_fence:
+  frozen_prs_reference_evidence_only: [493, 495, 502, 506, 508, 511]
+  implementation_reuse_from_frozen_candidates: false
+hard_boundaries:
+  network_provider_model_runtime: false
+  credentials_accounts: false
+  deployment_production: false
+  trading: false
+  canonical_w3_write: false
+  self_review: false
+  ready_transition: false
+  merge: false
+verification_required:
+  - Python 3.11 exact-head workflow
+  - Python 3.13 exact-head workflow
+  - focused R171 adversarial suite
+  - full retained creative suite
+  - current-main temporary integration proof
+  - exact bounded changed-file scope
+  - diff whitespace gate
+next_action: EXACT_HEAD_CI_THEN_REAL_ISSUE_HANDOFF_AND_NEW_453_REVIEW_REQUEST
