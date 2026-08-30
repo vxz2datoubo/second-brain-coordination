@@ -1,8 +1,9 @@
 schema_version: "1.0"
 route_id: "GPT-R171-SINGLE-V2-AUTHORITY-CLEAN-SUCCESSOR-R172"
 repository: "vxz2datoubo/second-brain-coordination"
-status: "GOVERNANCE_ACTIVATION_CANDIDATE / ACTIVE_GOVERNED_PREWRITE_WHEN_CANONICAL"
-execution_allowed_when_canonical: true
+status: "GOVERNANCE_ACTIVATION_CANDIDATE / RESERVED_NON_EXECUTABLE_WHEN_CANONICAL_UNTIL_POST_MERGE_SNAPSHOT_GATE"
+execution_allowed: false
+execution_reservation_allowed_when_canonical: true
 runtime_code_change_allowed_before_snapshot: false
 merge_authorized: false
 self_review_forbidden: true
@@ -15,8 +16,8 @@ binding:
   source_issue: 515
   parent_issue: 512
   implementation_branch: "gpt/r172-single-v2-authority"
-  pull_request: null
-  pull_request_state: "TO_CREATE_AFTER_EFFECTIVE_SPEC_SNAPSHOT_AND_FIRST_SUBSTANTIVE_COMMIT"
+  pull_request: "TO_CREATE_AFTER_EFFECTIVE_SPEC_SNAPSHOT_AND_FIRST_SUBSTANTIVE_COMMIT"
+  pull_request_state: "NOT_CREATED"
   worker_slot_id: "GPT-WORKER-R172-SINGLE-V2-AUTHORITY-1"
   task_brief: "coordination/TASK-BRIEFS/GPT-R171-SINGLE-V2-AUTHORITY-CLEAN-SUCCESSOR-R172.yaml"
   work_claim: "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/SINGLE-V2-AUTHORITY-R172/WORK-CLAIM.yaml"
@@ -32,6 +33,7 @@ executor:
   executor_role: "GPT_ENGINEERING_WORKER"
   model_id: "GPT-5.6 Sol"
   worker_slot_id: "GPT-WORKER-R172-SINGLE-V2-AUTHORITY-1"
+  activation_state_when_canonical: "RESERVED"
   independent_reviewer: "GPT_INDEPENDENT_REVIEWER"
 
 mission:
@@ -80,23 +82,28 @@ source_fence:
   implementation_rule: "INDEPENDENT_REIMPLEMENTATION_NO_CHERRY_PICK_COPY_IMPORT_MERGE_FROM_FROZEN_CANDIDATES"
 
 concurrency:
-  r166_review_state: "FROZEN_NO_EXECUTION_WAITING_INDEPENDENT_REVIEW"
-  r168_review_state: "FROZEN_NO_EXECUTION_WAITING_INDEPENDENT_REVIEW"
+  r166_state: "FROZEN_NO_EXECUTION_PENDING_FOUNDATIONAL_R168_PRIMITIVE"
+  r168_state: "ACTIVE_POST_REVIEW_REMEDIATION_004_ON_DISJOINT_CONTROL_TOWER_SURFACE"
   codex_r171_state: "FROZEN_EXECUTOR_PROVENANCE_MISMATCH"
-  overlap_class: "O0_NO_CONCURRENT_IMPLEMENTATION_WRITER_AFTER_CANONICAL_GOVERNANCE_RELEASE"
+  r172_state_when_canonical: "RESERVED_NON_EXECUTABLE"
+  gpt_active_plus_reserved_slots: 2
+  gpt_active_slots_max: 2
+  overlap_class_r168: "O0_NO_MATERIAL_WRITE_OVERLAP"
   same_canonical_object_writers_max: 1
   nested_parallelism: "FORBIDDEN"
 
 substantive_write_gate:
-  state: "CLOSED_UNTIL_GOVERNANCE_RELEASE_CANONICAL_AND_ISSUE_515_EFFECTIVE_SPEC_SNAPSHOT"
+  state: "CLOSED_UNTIL_GOVERNANCE_RELEASE_CANONICAL_AND_ISSUE_515_EFFECTIVE_SPEC_SNAPSHOT_AND_EXPLICIT_RESERVED_TO_ACTIVE_TRANSITION"
   requires:
     - "this exact R172 route/task/claim/witness/lease/reservation/source provenance canonical on main"
-    - "R166 and R168 execution slots frozen while review identities remain preserved"
+    - "R166 execution slot frozen while review evidence remains preserved"
+    - "R168 remains the other disjoint active GPT slot"
     - "CODEX R171 execution frozen by canonical correction"
-    - "canonical GPT R172 worker slot and Lane C projection"
+    - "canonical GPT R172 RESERVED worker slot and Lane C reservation"
     - "fresh R172 activation scan"
     - "implementation branch gpt/r172-single-v2-authority absent before Issue #515 snapshot"
     - "Issue #515 EFFECTIVE_SPEC_SNAPSHOT/v1 published after canonical governance release"
+    - "a bounded post-snapshot activation transition changes the R172 slot/claim from RESERVED to ACTIVE before first substantive write"
   mismatch_action: "FAIL_CLOSED_NO_SUBSTANTIVE_WRITE"
 
 hard_locks:
@@ -113,9 +120,10 @@ hard_locks:
 
 review_gate:
   queue_issue: 453
-  exact_head_review_required: true
+  governance_candidate_independent_review_required: true
+  implementation_exact_head_review_required: true
   python_matrix: ["3.11", "3.13"]
   green_ci_is_acceptance_authority: false
 
 completion_signal: "R172_SINGLE_V2_AUTHORITY_READY_FOR_INDEPENDENT_REVIEW"
-next_command: "AFTER_GOVERNANCE_CANONICALIZATION_PUBLISH_ISSUE_515_EFFECTIVE_SPEC_SNAPSHOT_THEN_CREATE_IMPLEMENTATION_BRANCH"
+next_command: "INDEPENDENTLY_REVIEW_AND_CANONICALIZE_GOVERNANCE_THEN_PUBLISH_ISSUE_515_SNAPSHOT_AND_ACTIVATE_RESERVED_SLOT"
