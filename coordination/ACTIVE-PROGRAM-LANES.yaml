@@ -1,4 +1,4 @@
-schema_version: "3.29"
+schema_version: "3.30"
 registry_id: AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001
 control_tower_issue: 310
 owner: USER
@@ -13,32 +13,50 @@ portfolio_capacity_policy:
   same_canonical_object_writers_max: 1
   nested_parallelism: FORBIDDEN
 current_user_release_policy:
-  decision: R171_CODEX_V2_CONTINUATION_DURABILITY + R168_LANE_A_CI_ISOLATION + R166_W5_WAITING_REVIEW
-  rationale: R170 PR #511 is frozen after independent CHANGES_REQUIRED review 5059784113. R171 is a clean CODEX successor from current canonical main and writes only interactive-film runtime/test/task-local surfaces; R168 Control Tower and R166 W5 surfaces do not collide.
+  decision: R168_LANE_A_COMPARATOR_REMEDIATION + R172_LANE_C_SINGLE_V2_GPT_SUCCESSOR + R166_FROZEN
+  rationale: >-
+    R168 remains the foundational GPT comparator remediation on a disjoint Control Tower surface. R166 is frozen after repeated
+    T3 findings and releases its execution slot until a future governed W5 successor can consume the corrected comparator
+    primitive. R171 CODEX execution is frozen because GPT-authored remediation occurred under a CODEX-only route. R172 is a new
+    non-retroactive GPT successor and remains governance-only until this activation is canonical and Issue #515 snapshots it.
   auxiliary_bounded_releases:
-    - task_id: CODEX-R170-V2-CONTINUATION-DURABILITY-R171
-      route_epoch: 171
-      issue: 512
-      agent_type: CODEX
-      worker_slot_id: CODEX-R171-INTERACTIVE-FILM-V2-CONTINUATION-1
-      route: coordination/ROUTES/CODEX-R170-V2-CONTINUATION-DURABILITY-R171.yaml
-      implementation_baseline: 5574ebf4287691aed3f5789e895bb5c55451f209
-      branch: codex/r171-r170-v2-continuation-durability
-      status: ACTIVE_GOVERNED_PREWRITE
-      execution_allowed: true
-      substantive_write_gate: ISSUE_512_EFFECTIVE_SPEC_SNAPSHOT_REQUIRED
     - task_id: GPT-CANONICAL-CI-STATE-ISOLATION-R168
       route_epoch: 168
       issue: 496
       agent_type: GPT_ENGINEERING_WORKER
-      status: ACTIVE_GOVERNED_PREWRITE
+      worker_slot_id: GPT-WORKER-R168-CANONICAL-CI-STATE-ISOLATION-1
+      route: coordination/ROUTES/GPT-CANONICAL-CI-STATE-ISOLATION-R168.yaml
+      branch: gpt/canonical-ci-state-isolation-r168
+      pr: 505
+      status: ACTIVE_POST_REVIEW_REMEDIATION_004
       execution_allowed: true
+      substantive_write_gate: ISSUE_496_SNAPSHOT_5469277153
+    - task_id: GPT-R171-SINGLE-V2-AUTHORITY-CLEAN-SUCCESSOR-R172
+      route_epoch: 172
+      issue: 515
+      agent_type: GPT_ENGINEERING_WORKER
+      worker_slot_id: GPT-WORKER-R172-SINGLE-V2-AUTHORITY-1
+      route: coordination/ROUTES/GPT-R171-SINGLE-V2-AUTHORITY-CLEAN-SUCCESSOR-R172.yaml
+      implementation_branch: gpt/r172-single-v2-authority
+      status: RESERVED_GOVERNANCE_ONLY_PENDING_CANONICAL_RELEASE
+      execution_allowed: false
+      substantive_write_gate: ISSUE_515_EFFECTIVE_SPEC_SNAPSHOT_REQUIRED_AFTER_GOVERNANCE_MERGE
     - task_id: GPT-W5-EVENT-COVERAGE-CLEAN-SUCCESSOR-R166
       route_epoch: 166
       issue: 501
       agent_type: GPT_ENGINEERING_WORKER
-      status: WAITING_INDEPENDENT_REVIEW
+      worker_slot_id: GPT-WORKER-R166-W5-EVENT-COVERAGE-2
+      status: FROZEN_NO_EXECUTION_AFTER_REPEATED_T3_COMPARATOR_FINDING
+      execution_allowed: false
 historical_execution_refs:
+  r171:
+    issue: 512
+    pr: 513
+    evidence_head: 9e9321c2c3cc187061e1be1b3c44f741f5a7bba5
+    status: FROZEN_EXECUTOR_PROVENANCE_MISMATCH
+    execution_allowed: false
+    correction_comment: 5469016549
+    successor: R172 GPT CLEAN SUCCESSOR / ISSUE 515
   r170:
     issue: 509
     pr: 511
@@ -46,7 +64,6 @@ historical_execution_refs:
     independent_review: 5059784113
     review_result: 5466332157
     status: FROZEN_AFTER_INDEPENDENT_CHANGES_REQUIRED
-    successor: R171 CLEAN CODEX V2 CONTINUATION DURABILITY
   r169:
     issue: 507
     pr: 508
@@ -64,28 +81,41 @@ observed_agent_state:
     observed_task_id: CODEX-R170-V2-CONTINUATION-DURABILITY-R171
     observed_route_epoch: 171
     observed_issue: 512
-    execution_allowed: true
+    execution_allowed: false
+    observed_status: FROZEN_EXECUTOR_PROVENANCE_MISMATCH
   GPT_ENGINEERING_WORKER:
-    observed_status: R166_WAITING_REVIEW + R168_ACTIVE_PREWRITE
+    observed_status: R168_ACTIVE_REMEDIATION + R172_RESERVED_GOVERNANCE_ONLY + R166_FROZEN
+    active_execution_slot_count: 1
+    reserved_post_merge_slot_count: 1
 program_lanes:
   - lane_id: LANE-A-HARNESS-INTEGRATION
-    observed_state: R168_CANONICAL_CI_STATE_ISOLATION_ACTIVE_PREWRITE
+    observed_state: R168_CANONICAL_CI_STATE_ISOLATION_REMEDIATION_004
+    current_phase: EXACT_HEAD_CI_THEN_INDEPENDENT_REVIEW
     implementation_owner: GPT_ENGINEERING_WORKER
+    active_execution_route: coordination/ROUTES/GPT-CANONICAL-CI-STATE-ISOLATION-R168.yaml
+    worker_slot_id: GPT-WORKER-R168-CANONICAL-CI-STATE-ISOLATION-1
   - lane_id: LANE-B-A-SHARE-REMEDIATION
-    observed_state: R166_W5_GPT_WORKER_WAITING_REVIEW
-    implementation_owner: GPT_ENGINEERING_WORKER
+    observed_state: R166_FROZEN_NO_EXECUTION
+    current_phase: WAIT_FOR_FOUNDATIONAL_R168_PRIMITIVE_AND_FUTURE_GOVERNED_SUCCESSOR
+    implementation_owner: null
+    active_execution_route: null
+    worker_slot_id: null
     trading_authorized: false
   - lane_id: LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP
-    mission: Bounded interactive-film v2 continuation durability with immutable legacy-source provenance.
-    observed_state: R171_CODEX_V2_CONTINUATION_ACTIVE_PREWRITE
-    current_phase: ISSUE_512_EFFECTIVE_SPEC_SNAPSHOT_REQUIRED
-    active_execution_route: coordination/ROUTES/CODEX-R170-V2-CONTINUATION-DURABILITY-R171.yaml
-    implementation_owner: CODEX
-    worker_slot_id: CODEX-R171-INTERACTIVE-FILM-V2-CONTINUATION-1
+    mission: Clean single migrated-v2 session authority with immutable legacy-source provenance.
+    observed_state: R172_GPT_SINGLE_V2_AUTHORITY_GOVERNANCE_CANDIDATE
+    current_phase: GOVERNANCE_PR_INDEPENDENT_REVIEW_THEN_ISSUE_515_EFFECTIVE_SPEC_SNAPSHOT
+    active_execution_route: null
+    reserved_route: coordination/ROUTES/GPT-R171-SINGLE-V2-AUTHORITY-CLEAN-SUCCESSOR-R172.yaml
+    implementation_owner: GPT_ENGINEERING_WORKER
+    worker_slot_id: GPT-WORKER-R172-SINGLE-V2-AUTHORITY-1
     canonical_knowledge_write_authorized: false
 cross_lane_overlap_matrix:
   - pair: [LANE-A-HARNESS-INTEGRATION, LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP]
-    overlap_level: O1_READ_ONLY_COEXISTENCE
-  - pair: [LANE-B-A-SHARE-REMEDIATION, LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP]
     overlap_level: O0_NO_MATERIAL_WRITE_OVERLAP
-reconciliation_rule: R171 execution truth is its CODEX route + claim/lease/reservation + witness + Control Tower scan + Issue #512 pre-write snapshot; PR #511/#508/#506/#502/#495/#493 remain frozen/reference evidence only.
+  - pair: [LANE-B-A-SHARE-REMEDIATION, LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP]
+    overlap_level: O0_FROZEN_NO_CONCURRENT_WRITER
+reconciliation_rule: >-
+  R168 execution remains governed by its existing route and latest Issue #496 remediation snapshot. R172 may not perform
+  substantive writes until this governance activation is independently accepted/merged and Issue #515 publishes a new pre-write
+  EFFECTIVE_SPEC_SNAPSHOT/v1 while gpt/r172-single-v2-authority remains absent. R166 and CODEX R171 carry no execution authority.
