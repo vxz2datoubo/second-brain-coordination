@@ -124,6 +124,15 @@ stranded atomic-write temporaries, and unsafe path shapes. It repairs nothing:
 any nonzero risk count sets `mutation_safe: false`, so an operator must first
 investigate rather than silently clear a crash/concurrency marker.
 
+GitHub CI also runs `tools/rehearse_creative_operations.py --session-count 8`.
+This fixed rehearsal creates eight independent synthetic slots, applies a
+frame-versioned choice, repeats its opaque command ID to prove idempotency,
+applies a second verified choice, and finally requires a clean operations
+report. Its numbers (`8` sessions, `3` events per session, `8` deduplicated
+retries) are deliberately fixed evidence, not a production throughput claim.
+Real customer-load, latency, hardware, or capacity testing remains a separate
+future local approval.
+
 ## Four-layer operational map
 
 | Information layer | GitHub phase | Later local phase | Rule |

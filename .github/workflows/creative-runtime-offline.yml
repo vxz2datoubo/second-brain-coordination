@@ -10,6 +10,7 @@ on:
       - "tools/verify_creative_runtime.py"
       - "tools/build_experience_demo.py"
       - "tools/build_experience_package.py"
+      - "tools/rehearse_creative_operations.py"
       - "tools/verify_experience_artifact.py"
       - "skills/creative-program-understanding-map/**"
       - "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/**"
@@ -62,6 +63,11 @@ jobs:
           PYTHONDONTWRITEBYTECODE: "1"
           EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
         run: python tools/verify_creative_runtime.py --expected-head "$EXPECTED_HEAD"
+
+      - name: Rehearse bounded synthetic multi-session operations
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: python tools/rehearse_creative_operations.py --session-count 8
 
       - name: Verify public-safe runtime boundary
         shell: bash
