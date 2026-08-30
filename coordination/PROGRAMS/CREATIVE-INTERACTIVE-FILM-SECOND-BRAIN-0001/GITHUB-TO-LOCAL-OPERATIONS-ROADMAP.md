@@ -108,6 +108,15 @@ error. This is intentionally ledger-backed rather than a separate mutable
 receipt cache, so replay, migration, audit, and evidence verification retain
 the same operation identity.
 
+Before any future local gateway performs a mutation, it can run the already
+GitHub-tested read-only command `creativectl --workspace <synthetic-workspace>
+operations`. Its `CreativeRuntimeOperationsReport/v1` enumerates only
+confinement-safe slots, replays each ledger, checks any V2 source binding, and
+reports fixed counts for valid slots, invalid slots, active mutation locks,
+stranded atomic-write temporaries, and unsafe path shapes. It repairs nothing:
+any nonzero risk count sets `mutation_safe: false`, so an operator must first
+investigate rather than silently clear a crash/concurrency marker.
+
 ## Four-layer operational map
 
 | Information layer | GitHub phase | Later local phase | Rule |

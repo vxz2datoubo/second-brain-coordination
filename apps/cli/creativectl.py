@@ -28,6 +28,7 @@ from creative_runtime.feedback import FeedbackViolation, build_feedback_record, 
 from creative_runtime.experience import ExperienceViolation, build_verified_experience, build_verified_scenario_catalog
 from creative_runtime.ledger import CreativeLedger, LedgerViolation
 from creative_runtime.knowledge import KnowledgeBridgeViolation, KnowledgeReviewBridge, correct_from_verified_timeline
+from creative_runtime.operations import build_operations_report
 from creative_runtime.presentation import PresentationViolation, build_interactive_frame
 from creative_runtime.sequence import SequenceViolation, build_verified_sequence
 from creative_runtime.understanding import bind_verified_timeline
@@ -410,6 +411,7 @@ def run(argv: list[str]) -> dict[str, Any]:
     feedback_parser.add_argument("rating", type=int)
     feedback_parser.add_argument("note")
     subparsers.add_parser("audit")
+    subparsers.add_parser("operations")
     subparsers.add_parser("frame")
     subparsers.add_parser("experience")
     subparsers.add_parser("sequence")
@@ -547,6 +549,8 @@ def run(argv: list[str]) -> dict[str, Any]:
         }
     if args.command == "audit":
         return _audit_workspace(args.workspace, slot)
+    if args.command == "operations":
+        return build_operations_report(args.workspace)
     if args.command == "frame":
         return build_interactive_frame(_load_session(args.workspace, slot), slot=slot).to_dict()
     if args.command == "experience":
