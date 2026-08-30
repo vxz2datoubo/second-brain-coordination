@@ -32,8 +32,10 @@ from creative_runtime.understanding import bind_verified_timeline
 from creative_runtime.session import (
     DEFAULT_SLOT,
     SessionViolation,
+    atomic_replace_text,
     legacy_session_path,
     migrate_legacy_session,
+    session_mutation_lock,
     validate_slot,
     v2_session_path,
     verify_v2_source_binding,
@@ -71,11 +73,7 @@ def session_path(workspace: Path, slot: str = DEFAULT_SLOT) -> Path:
 
 def _write_session(workspace: Path, ledger: CreativeLedger, slot: str = DEFAULT_SLOT) -> None:
     path = session_path(workspace, slot)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(
-        canonical_json({"schema": SCHEMA, "events": ledger.to_records()}) + "\n",
-        encoding="utf-8",
-    )
+    atomic_replace_text(path, canonical_json({"schema": SCHEMA, "events": ledger.to_records()}) + "\n")
 
 
 def _load_session(workspace: Path, slot: str = DEFAULT_SLOT) -> CreativeLedger:
@@ -127,8 +125,7 @@ def _load_knowledge(workspace: Path, slot: str = DEFAULT_SLOT) -> KnowledgeRevie
 
 def _write_knowledge(workspace: Path, bridge: KnowledgeReviewBridge, slot: str = DEFAULT_SLOT) -> None:
     path = _knowledge_path(workspace, slot)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(canonical_json({"schema": "CreativeKnowledgeReview/v1", "candidates": bridge.to_records()}) + "\n", encoding="utf-8")
+    atomic_replace_text(path, canonical_json({"schema": "CreativeKnowledgeReview/v1", "candidates": bridge.to_records()}) + "\n")
 
 
 def _audit_workspace(workspace: Path, slot: str = DEFAULT_SLOT) -> dict[str, Any]:
@@ -208,46 +205,67 @@ def _view(ledger: CreativeLedger) -> dict[str, Any]:
 
 def initialize(workspace: Path, scenario: str = "legacy_archive", slot: str = DEFAULT_SLOT) -> dict[str, Any]:
     normalized_slot = validate_slot(slot)
-    if session_path(workspace, normalized_slot).exists():
-        return {"status": "already_initialized", "session": str(session_path(workspace, normalized_slot)), "slot_id": normalized_slot}
-    initial = SCENARIOS.get(scenario)
-    if initial is None:
-        raise LedgerViolation("Unknown scenario: " + scenario)
-    ledger = CreativeLedger()
-    ledger.append(
-        "story_initialized",
-        {"state": initial.to_dict()},
-        "2030-01-01T00:00:00Z",
-    )
-    _write_session(workspace, ledger, normalized_slot)
-    return {**_view(ledger), "status": "initialized", "session": str(session_path(workspace, normalized_slot)), "slot_id": normalized_slot}
+    with session_mutation_lock(workspace, normalized_slot):
+        if session_path(workspace, normalized_slot).exists():
+            return {"status": "already_initialized", "session": str(session_path(workspace, normalized_slot)), "slot_id": normalized_slot}
+        initial = SCENARIOS.get(scenario)
+        if initial is None:
+            raise LedgerViolation("Unknown scenario: " + scenario)
+        ledger = CreativeLedger()
+        ledger.append(
+            "story_initialized",
+            {"state": initial.to_dict()},
+            "2030-01-01T00:00:00Z",
+        )
+        _write_session(workspace, ledger, normalized_slot)
+        return {**_view(ledger), "status": "initialized", "session": str(session_path(workspace, normalized_slot)), "slot_id": normalized_slot}
 
 
-def choose(workspace: Path, action_id: str, source_text: str | None = None, slot: str = DEFAULT_SLOT) -> dict[str, Any]:
+def choose(
+    workspace: Path,
+    action_id: str,
+    source_text: str | None = None,
+    slot: str = DEFAULT_SLOT,
+    expected_frame_id: str | None = None,
+) -> dict[str, Any]:
     normalized_slot = validate_slot(slot)
-    ledger = _load_session(workspace, normalized_slot)
-    state = ledger.replay()
-    graph = graph_for_ledger(ledger)
-    beat = graph.to_cli_scene()[state.beat_id]
-    option = beat["options"].get(action_id)
-    if option is None:
+    if expected_frame_id is not None and (not isinstance(expected_frame_id, str) or not expected_frame_id.startswith("frame_")):
+        raise LedgerViolation("expected_frame_id must be a frame_<stable digest> identity")
+    with session_mutation_lock(workspace, normalized_slot):
+        ledger = _load_session(workspace, normalized_slot)
+        state = ledger.replay()
+        graph = graph_for_ledger(ledger)
+        prior_frame = build_interactive_frame(ledger, slot=normalized_slot)
+        if expected_frame_id is not None and expected_frame_id != prior_frame.frame_id:
+            raise LedgerViolation("Stale client frame; reload the verified frame before choosing")
+        beat = graph.to_cli_scene()[state.beat_id]
+        option = beat["options"].get(action_id)
+        if option is None:
+            return {
+                "status": "clarification_required",
+                "message": "That action is not legal at this beat; choose one listed option.",
+                "legal_options": sorted(beat["options"]),
+            }
+        ledger.append(
+            "player_action",
+            {
+                "action": PlayerAction(action_id, "choice", source_text or option["label"]).to_dict(),
+                "resulting_patch": option["patch"],
+                "transition_id": option["transition_id"],
+                "graph_revision": graph.revision,
+            },
+            f"2030-01-01T00:{len(ledger.events):02d}:00Z",
+        )
+        _write_session(workspace, ledger, normalized_slot)
+        current_frame = build_interactive_frame(ledger, slot=normalized_slot)
         return {
-            "status": "clarification_required",
-            "message": "That action is not legal at this beat; choose one listed option.",
-            "legal_options": sorted(beat["options"]),
+            **_view(ledger),
+            "status": "chosen",
+            "action_id": action_id,
+            "slot_id": normalized_slot,
+            "prior_frame_id": prior_frame.frame_id,
+            "current_frame_id": current_frame.frame_id,
         }
-    ledger.append(
-        "player_action",
-        {
-            "action": PlayerAction(action_id, "choice", source_text or option["label"]).to_dict(),
-            "resulting_patch": option["patch"],
-            "transition_id": option["transition_id"],
-            "graph_revision": graph.revision,
-        },
-        f"2030-01-01T00:{len(ledger.events):02d}:00Z",
-    )
-    _write_session(workspace, ledger, normalized_slot)
-    return {**_view(ledger), "status": "chosen", "action_id": action_id, "slot_id": normalized_slot}
 
 
 def parse_free_text(text: str, legal_actions: set[str]) -> tuple[str | None, float]:
@@ -272,7 +290,7 @@ def parse_free_text(text: str, legal_actions: set[str]) -> tuple[str | None, flo
     return matches[0], 0.9
 
 
-def say(workspace: Path, text: str, slot: str = DEFAULT_SLOT) -> dict[str, Any]:
+def say(workspace: Path, text: str, slot: str = DEFAULT_SLOT, expected_frame_id: str | None = None) -> dict[str, Any]:
     normalized_slot = validate_slot(slot)
     ledger = _load_session(workspace, normalized_slot)
     state = ledger.replay()
@@ -284,7 +302,7 @@ def say(workspace: Path, text: str, slot: str = DEFAULT_SLOT) -> dict[str, Any]:
             "message": "Use a clear, non-explicit intent or select an available option.",
             "legal_options": sorted(legal),
         }
-    return choose(workspace, action, source_text=text, slot=normalized_slot)
+    return choose(workspace, action, source_text=text, slot=normalized_slot, expected_frame_id=expected_frame_id)
 
 
 def run(argv: list[str]) -> dict[str, Any]:
@@ -297,8 +315,10 @@ def run(argv: list[str]) -> dict[str, Any]:
     subparsers.add_parser("play")
     choose_parser = subparsers.add_parser("choose")
     choose_parser.add_argument("action_id")
+    choose_parser.add_argument("--expected-frame-id")
     say_parser = subparsers.add_parser("say")
     say_parser.add_argument("text")
+    say_parser.add_argument("--expected-frame-id")
     subparsers.add_parser("resume")
     subparsers.add_parser("replay")
     subparsers.add_parser("timeline")
@@ -343,9 +363,9 @@ def run(argv: list[str]) -> dict[str, Any]:
     if args.command in {"play", "resume"}:
         return {**_view(_load_session(args.workspace, slot)), "slot_id": slot}
     if args.command == "choose":
-        return choose(args.workspace, args.action_id, slot=slot)
+        return choose(args.workspace, args.action_id, slot=slot, expected_frame_id=args.expected_frame_id)
     if args.command == "say":
-        return say(args.workspace, args.text, slot)
+        return say(args.workspace, args.text, slot, args.expected_frame_id)
     if args.command == "replay":
         ledger = _load_session(args.workspace, slot)
         return {**_view(ledger), "status": "replayed", "event_count": len(ledger.events), "slot_id": slot}

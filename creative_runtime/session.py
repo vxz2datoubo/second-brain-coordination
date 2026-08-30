@@ -9,6 +9,7 @@ atomically written envelope only after semantic replay succeeds.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from contextlib import contextmanager
 import hashlib
 import json
 import os
@@ -29,6 +30,7 @@ V2_FILENAME = "default.json"
 SLOT_DIRECTORY = "slots"
 DEFAULT_SLOT = "default"
 _SLOT_PATTERN = re.compile(r"[a-z0-9][a-z0-9_-]{0,31}")
+LOCK_DIRECTORY = ".creative-runtime-locks"
 
 
 class SessionViolation(ValueError):
@@ -58,6 +60,63 @@ def v2_session_path(workspace: Path, slot: str = DEFAULT_SLOT) -> Path:
     normalized = validate_slot(slot)
     filename = V2_FILENAME if normalized == DEFAULT_SLOT else normalized + ".json"
     return workspace / V2_DIRECTORY / filename
+
+
+def atomic_replace_text(path: Path, content: str) -> None:
+    """Durably replace a mutable runtime record without partial-file exposure.
+
+    This intentionally uses a sibling temporary path and ``os.replace`` so a
+    reader observes either the prior complete JSON file or the new complete
+    JSON file.  A stranded temporary file is treated as a fail-closed signal;
+    it is never silently overwritten because it may be evidence of a prior
+    interrupted local operation.
+    """
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(path.name + ".replace-tmp")
+    if temporary.exists():
+        raise SessionViolation("A prior incomplete session replacement temporary file exists")
+    created = False
+    try:
+        with temporary.open("x", encoding="utf-8", newline="\n") as handle:
+            created = True
+            handle.write(content)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary, path)
+    except Exception:
+        if created and temporary.exists():
+            temporary.unlink()
+        raise
+
+
+@contextmanager
+def session_mutation_lock(workspace: Path, slot: str = DEFAULT_SLOT):
+    """Acquire a non-blocking, slot-scoped local mutation lease.
+
+    A contender fails closed instead of waiting behind an unknown process or
+    deleting a possible crash marker. The caller must reload the verified
+    frame and retry. Locks are runtime-only files and are removed only by the
+    successful owner that created them.
+    """
+
+    normalized = validate_slot(slot)
+    lock_path = workspace / LOCK_DIRECTORY / (normalized + ".lock")
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    descriptor: int | None = None
+    try:
+        descriptor = os.open(lock_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL)
+    except FileExistsError as error:
+        raise SessionViolation("Session slot is busy; reload the verified frame and retry") from error
+    try:
+        os.write(descriptor, ("slot=" + normalized + "\n").encode("ascii"))
+        os.fsync(descriptor)
+        yield
+    finally:
+        if descriptor is not None:
+            os.close(descriptor)
+        if lock_path.exists():
+            lock_path.unlink()
 
 
 def _load_legacy_bytes(path: Path) -> tuple[bytes, CreativeLedger]:

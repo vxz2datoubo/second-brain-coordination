@@ -70,6 +70,28 @@ the Python runtime and GitHub CI. Any mismatch is an error, not a “best effort
 fallback. This keeps the client simple while retaining a single deterministic
 source of story authority.
 
+## Local real-time session safety already present in the synthetic runtime
+
+The future local service must never apply a click against a frame that has
+already changed. The repository now enforces the same rule without receiving
+customer content:
+
+```text
+client reads InteractiveFrame.frame_id
+  -> client submits choice plus --expected-frame-id
+  -> slot-scoped non-blocking mutation lease
+  -> runtime reloads ledger and compares exact prior frame ID
+  -> append legal graph event + atomically replace complete session JSON
+  -> return prior_frame_id and current_frame_id
+```
+
+If the slot is busy, the client submits a stale frame ID, or an interrupted
+atomic-write temporary file exists, the update fails closed and the existing
+session bytes are preserved. The correct recovery is to reload the verified
+frame, not to retry a blind action. The command remains optional for simple
+single-user CLI use, but a future local client gateway should require
+`--expected-frame-id` (or its protocol-equivalent field) on every mutation.
+
 ## Four-layer operational map
 
 | Information layer | GitHub phase | Later local phase | Rule |
