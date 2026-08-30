@@ -1,0 +1,55 @@
+schema: "TaskLeaseClaim/v1"
+project: "SECOND_BRAIN"
+repository: "vxz2datoubo/second-brain-coordination"
+task_id: "GPT-CANONICAL-CI-STATE-ISOLATION-R168"
+route_epoch: 168
+source_issue: 496
+agent_type: "GPT_ENGINEERING_WORKER"
+executor_role: "GPT_ENGINEERING_WORKER"
+worker_slot_id: "GPT-WORKER-R168-CANONICAL-CI-STATE-ISOLATION-1"
+model_id: "GPT-5.6 Sol"
+status: "CLAIMED_GOVERNANCE_ONLY_PRE_SNAPSHOT"
+execution_allowed_observed: true
+implementation_branch: "gpt/canonical-ci-state-isolation-r168"
+branch_state_required_before_snapshot: "NOT_CREATED"
+pull_request: null
+
+claim_scope:
+  - ".github/workflows/program-control-tower.yml"
+  - "coordination/CONTROL-TOWER/integration_state_isolation.py"
+  - "coordination/CONTROL-TOWER/integration_state_isolation.schema.json"
+  - "coordination/CONTROL-TOWER/tests/test_integration_state_isolation.py"
+
+claim_exclusions:
+  - "existing Control Tower test semantics outside the new helper's own tests"
+  - "W5 Event Coverage files and R166 workflow"
+  - "creative_runtime/apps/cli/root tests/R167 CODEX surfaces"
+  - "W3/domain/trading/credential/provider/production surfaces"
+  - "review/Ready/merge authority"
+
+freshness_binding:
+  route: "coordination/ROUTES/GPT-CANONICAL-CI-STATE-ISOLATION-R168.yaml"
+  task_brief: "coordination/TASK-BRIEFS/GPT-CANONICAL-CI-STATE-ISOLATION-R168.yaml"
+  authorization_witness: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/AUTHORIZATION-WITNESS.yaml"
+  source_selection_provenance: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/SOURCE-SELECTION-PROVENANCE.yaml"
+  task_lease: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/TASK-LEASE.yaml"
+  executor_reservation: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/EXECUTOR-RESERVATION.yaml"
+  active_registry: "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+  program_lanes: "coordination/ACTIVE-PROGRAM-LANES.yaml"
+  activation_scan: "coordination/CONTROL-TOWER/R168-CANONICAL-CI-STATE-ISOLATION-ACTIVATION-SCAN.yaml"
+
+parallelism:
+  concurrent_gpt_r166: true
+  concurrent_codex_r167: true
+  overlap_class: "O1_READ_ONLY_COEXISTENCE"
+  same_surface_second_writer_forbidden: true
+
+substantive_write_gate:
+  state: "CLOSED_UNTIL_ISSUE_496_EFFECTIVE_SPEC_SNAPSHOT"
+  mismatch_action: "FAIL_CLOSED_NO_EDIT"
+
+self_review_allowed: false
+self_accept_allowed: false
+self_merge_allowed: false
+history_rewrite_allowed: false
+claim_status: "CLAIMED_GOVERNANCE_ONLY_PENDING_SNAPSHOT"

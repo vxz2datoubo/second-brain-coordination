@@ -1,0 +1,45 @@
+schema_version: "1.0"
+provenance_id: "R168-CANONICAL-CI-STATE-ISOLATION-SOURCE-SELECTION"
+project: "SECOND_BRAIN"
+repository: "vxz2datoubo/second-brain-coordination"
+task_id: "GPT-CANONICAL-CI-STATE-ISOLATION-R168"
+route_epoch: 168
+source_issue: 496
+executor: "GPT_ENGINEERING_WORKER"
+
+canonical_inputs:
+  - ref: "Issue #496"
+    role: "current bounded problem and acceptance contract"
+  - ref: "issuecomment-5464741389"
+    role: "refined per-test comparator semantics and receipt fields"
+  - ref: "issuecomment-5464766131"
+    role: "historical worker-capacity/closeout constraint"
+  - ref: ".github/workflows/program-control-tower.yml"
+    role: "existing canonical workflow consumer"
+  - ref: "coordination/CONTROL-TOWER/run_all_tests.py"
+    role: "existing test runner whose semantics remain unchanged"
+
+reference_candidates:
+  pr_485:
+    disposition: "REFERENCE_ONLY_REAL_LIVENESS_CI_CONFLATION_EVIDENCE"
+    commit_import_allowed: false
+  pr_487:
+    disposition: "REFERENCE_ONLY_R164_BOUNDED_COMPARATOR_EVIDENCE"
+    commit_import_allowed: false
+  pr_504:
+    disposition: "REFERENCE_ONLY_R166_BOUNDED_COMPARATOR_EVIDENCE"
+    commit_import_allowed: false
+
+implementation_rule: >-
+  R168 independently implements the canonical helper from Issue #496 semantics after its pre-write snapshot. Prior PR workflows may
+  be inspected for adversarial lessons and expected classifications but are not imported as governed implementation provenance.
+
+binding_invariants:
+  - "existing Control Tower tests remain authoritative and unchanged"
+  - "current-main failures remain visible"
+  - "candidate-added tests remain absolute gates"
+  - "main/head drift fails closed"
+  - "no review/merge/release authority is emitted"
+  - "NO_TRADE"
+
+status: "BOUND_PRE_SNAPSHOT / READ_ONLY_AFTER_SNAPSHOT"

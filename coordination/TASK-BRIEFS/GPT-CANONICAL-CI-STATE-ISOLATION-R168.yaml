@@ -1,0 +1,96 @@
+schema_version: "1.0"
+task_id: "GPT-CANONICAL-CI-STATE-ISOLATION-R168"
+repository: "vxz2datoubo/second-brain-coordination"
+source_issue: 496
+route_epoch: 168
+mode: "bounded_infrastructure"
+mode_label: "Canonical CI state isolation for active-worker-safe integration proofs"
+target_agent: "GPT_ENGINEERING_WORKER"
+worker_slot_id: "GPT-WORKER-R168-CANONICAL-CI-STATE-ISOLATION-1"
+implementation_branch: "gpt/canonical-ci-state-isolation-r168"
+pull_request: null
+status: "GOVERNED_PREWRITE / CODE_WRITE_BLOCKED_UNTIL_EFFECTIVE_SPEC_SNAPSHOT"
+
+purpose: >-
+  Implement the reusable primitive specified by Issue #496 so candidate regression attribution is separated from current-main
+  control-state health without mutating or weakening existing Control Tower tests.
+
+required_behavior:
+  retained_suite:
+    - "collect stable fully-qualified test IDs and PASS/FAIL/ERROR state"
+    - "normalize volatile worktree/tmp/address data before failure fingerprinting"
+    - "duplicate test IDs fail closed"
+    - "missing baseline test IDs fail closed"
+    - "candidate-only tests are explicit and must pass"
+  integration_state:
+    - "current main and candidate exact head are pinned at proof start and rechecked at proof end"
+    - "integration state is a clean committed temporary merge or equivalent immutable tree"
+    - "dirty worktree or unresolved merge is TEST_ENVIRONMENT_INVALID"
+    - "temporary merge parents/tree and merge base are evidence-bound"
+  classifications:
+    - "BASELINE_CURRENT_MAIN_FAILURE"
+    - "CANDIDATE_INTRODUCED_FAILURE"
+    - "CANDIDATE_MODIFIED_BASELINE_FAILURE"
+    - "CANDIDATE_BASELINE_IMPROVEMENT"
+    - "CANDIDATE_EXACT_HEAD_FAILURE"
+    - "TEST_ENVIRONMENT_INVALID"
+    - "PASS_NO_CANDIDATE_REGRESSION"
+  authority:
+    - "baseline failures remain visible and never become PASS through attribution"
+    - "zero regression delta grants no review/Ready/merge/release authority"
+    - "receipt authority flags are mechanically false"
+
+implementation_shape:
+  helper: "coordination/CONTROL-TOWER/integration_state_isolation.py"
+  receipt_schema: "coordination/CONTROL-TOWER/integration_state_isolation.schema.json"
+  tests: "coordination/CONTROL-TOWER/tests/test_integration_state_isolation.py"
+  consumer: ".github/workflows/program-control-tower.yml"
+
+acceptance_scenarios:
+  - "active-worker current main with known baseline failures and non-regressing candidate"
+  - "one new retained failure blocks"
+  - "one modified baseline failure fingerprint blocks"
+  - "one baseline improvement is recorded and not penalized"
+  - "dirty integration state fails environment-invalid"
+  - "test discovery/cardinality or baseline-ID drift fails closed"
+  - "main changes during proof invalidates receipt"
+  - "candidate head changes during proof invalidates receipt"
+  - "candidate-only failing test blocks absolutely"
+  - "receipt schema rejects authority=true and unknown fields"
+
+exact_runtime_write_allowlist:
+  - ".github/workflows/program-control-tower.yml"
+  - "coordination/CONTROL-TOWER/integration_state_isolation.py"
+  - "coordination/CONTROL-TOWER/integration_state_isolation.schema.json"
+  - "coordination/CONTROL-TOWER/tests/test_integration_state_isolation.py"
+
+source_refs:
+  - "Issue #496"
+  - "issuecomment-5464741389"
+  - "issuecomment-5464766131"
+  - "PR #485 exact-head CI-state evidence"
+  - "PR #487 R164 comparator as evidence only"
+  - "PR #504 R166 comparator as evidence only"
+  - ".github/workflows/program-control-tower.yml@release-base"
+
+parallelism:
+  allowed_with_r166: true
+  allowed_with_r167_codex: true
+  overlap: "O1_READ_ONLY_COEXISTENCE"
+  resource_class: "LIGHT_IMPLEMENTATION"
+  nested_parallelism: "FORBIDDEN"
+
+stop_conditions:
+  - "canonical second GPT slot unavailable"
+  - "Lane A already has another material writer"
+  - "branch exists before pre-write snapshot"
+  - "write path outside four-file allowlist"
+  - "implementation would require weakening existing Control Tower tests"
+  - "main/head drift during exact proof"
+  - "credential/network/production/domain-write/trading authority required"
+
+completion:
+  signal: "R168_CANONICAL_CI_STATE_ISOLATION_READY_FOR_INDEPENDENT_REVIEW"
+  next_gate: "ISSUE_453_EXACT_HEAD_REVIEW_REQUEST"
+  ready_transition_authorized: false
+  merge_authorized: false
