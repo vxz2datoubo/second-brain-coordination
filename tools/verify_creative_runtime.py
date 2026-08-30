@@ -83,6 +83,19 @@ def _demo(cli: Any) -> dict[str, Any]:
         migration = cli.run(["--workspace", str(workspace), "migrate"])
         v2_binding = cli.run(["--workspace", str(workspace), "verify-v2"])
         audit = cli.run(["--workspace", str(workspace), "audit"])
+        slot_workspace = workspace / "named-slot"
+        slot_prefix = ["--workspace", str(slot_workspace), "--slot", "route_b"]
+        cli.run([*slot_prefix, "init", "--scenario", "three_scene"])
+        cli.run([*slot_prefix, "choose", "listen"])
+        cli.run([*slot_prefix, "choose", "approach"])
+        cli.run([*slot_prefix, "choose", "listen"])
+        slot_generation = cli.run([*slot_prefix, "generate-offline"])
+        slot_feedback = cli.run(
+            [*slot_prefix, "feedback", slot_generation["receipt"]["receipt_id"], "5", "The named route keeps its evidence isolated."]
+        )
+        slot_migration = cli.run([*slot_prefix, "migrate"])
+        slot_v2_binding = cli.run([*slot_prefix, "verify-v2"])
+        slot_audit = cli.run([*slot_prefix, "audit"])
         return {
             "scenario": "three_scene",
             "route_coverage_status": coverage["status"],
@@ -112,6 +125,13 @@ def _demo(cli: Any) -> dict[str, Any]:
             "audit_status": audit["status"],
             "audit_generation_receipt_count": len(audit["evidence"]["verified_offline_generation_receipts"]),
             "audit_feedback_count": len(audit["evidence"]["verified_feedback"]),
+            "named_slot_id": slot_audit["story"]["slot_id"],
+            "named_slot_generation_slot": slot_generation["receipt"]["source"]["slot_id"],
+            "named_slot_feedback_slot": slot_feedback["feedback"]["slot_id"],
+            "named_slot_migration_slot": slot_migration["slot_id"],
+            "named_slot_v2_slot": slot_v2_binding["slot_id"],
+            "named_slot_audit_generation_count": len(slot_audit["evidence"]["verified_offline_generation_receipts"]),
+            "named_slot_audit_feedback_count": len(slot_audit["evidence"]["verified_feedback"]),
         }
 
 
@@ -162,6 +182,13 @@ def verify(
         "audit_status": "workspace_audit_verified",
         "audit_generation_receipt_count": 1,
         "audit_feedback_count": 1,
+        "named_slot_id": "route_b",
+        "named_slot_generation_slot": "route_b",
+        "named_slot_feedback_slot": "route_b",
+        "named_slot_migration_slot": "route_b",
+        "named_slot_v2_slot": "route_b",
+        "named_slot_audit_generation_count": 1,
+        "named_slot_audit_feedback_count": 1,
     }
     for key, expected in expected_demo.items():
         if demonstration[key] != expected:
