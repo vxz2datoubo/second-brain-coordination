@@ -141,6 +141,54 @@ class DramaticBeatSelection:
 
 
 @dataclass(frozen=True)
+class QuestState:
+    quest_id: str
+    phase: str
+    objectives: tuple[str, ...]
+    pressure: int
+    status: str
+
+    @property
+    def schema(self) -> str:
+        return "QuestState/v1"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"schema": self.schema, **_json_value(self)}
+
+
+@dataclass(frozen=True)
+class RewardState:
+    reward_id: str
+    reward_type: str
+    source_event_id: str
+    mechanical_or_emotional_effect: str
+    tradeoff: str
+
+    @property
+    def schema(self) -> str:
+        return "RewardState/v1"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"schema": self.schema, **_json_value(self)}
+
+
+@dataclass(frozen=True)
+class RelationshipState:
+    character_id: str
+    trust: int
+    conflict: int
+    commitment: int
+    known_by_character: tuple[str, ...]
+
+    @property
+    def schema(self) -> str:
+        return "RelationshipState/v1"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"schema": self.schema, **_json_value(self)}
+
+
+@dataclass(frozen=True)
 class DirectorBrief:
     brief_id: str
     story_state: StoryState
