@@ -3,32 +3,38 @@ program_id: INTERACTIVE-CINEMATIC-PLATFORM-0001
 updated_at: 2026-08-31
 status: in_progress
 in_progress_slice:
+  id: A3_PRIVATE_APPEARANCE_CONTINUITY_AND_MEDIA_JOBS
+  executor: CODEX
+  branch: codex/interactive-cinematic-a3-private-assets
+  base_sha: 0c56e85fa03f4cf5798213e777a18433fffc45bb
+last_completed_slice:
   id: A2_FLAGSHIP_SEASON_AND_DRAMA_MANAGER
   executor: CODEX
   branch: codex/interactive-cinematic-a2-drama-manager
   base_sha: 06091a87f07cec8af75e369015116d48aac479ff
-last_completed_slice:
-  id: A1_MULTI_SCRIPT_RUNTIME_AND_DIRECTOR_SWITCHING
-  executor: CODEX
-  branch: codex/interactive-cinematic-a1-multiscript-runtime
-  base_sha: f2895367fcd0ed60305ccc005971789e0644d72b
-  implementation_sha: 8736b827a15240f090a9bdbbde077e772158fe9e
+  implementation_sha: 0c56e85fa03f4cf5798213e777a18433fffc45bb
   executor_status: EXECUTOR_VERIFIED_ONLY
 previous_completed_slices:
+  - id: A1_MULTI_SCRIPT_RUNTIME_AND_DIRECTOR_SWITCHING
+    executor: CODEX
+    branch: codex/interactive-cinematic-a1-multiscript-runtime
+    base_sha: f2895367fcd0ed60305ccc005971789e0644d72b
+    implementation_sha: 8736b827a15240f090a9bdbbde077e772158fe9e
+    executor_status: EXECUTOR_VERIFIED_ONLY
   - id: A0_ARCHITECTURE_BASELINE
     executor: CODEX
     branch: codex/interactive-cinematic-platform-architecture
     base_sha: 2f12aba6dae4a83038fef1f3d5e737944bd9ce1f
     executor_status: EXECUTOR_VERIFIED_ONLY
 next_slice:
-  id: A2_FLAGSHIP_SEASON_AND_DRAMA_MANAGER
+  id: A3_PRIVATE_APPEARANCE_CONTINUITY_AND_MEDIA_JOBS
   status: in_progress
   recommended_executor: CODEX
   completion_conditions:
-    - Offline NarrativeProposal/v1 simulator emits structured candidates only.
-    - Dramatic manager accepts only approved legal beats and never rewrites player facts.
-    - Primary-choice coverage reports a durable consequence and visible feedback for every approved edge.
-    - Unknown, stale, mismatched, or content-invalid proposals fail closed.
+    - AvatarIdentity/v1 and explicit AvatarRevision/v1 never read or serialize a real image, path, or biometric payload.
+    - AppearanceContinuityRecord/v1 binds a campaign, cast revisions, and verified ledger hash without changing historical segments.
+    - CinematicSegment/v1 and MediaJob/v1 are short, campaign-scoped, idempotent, deterministic offline references only.
+    - Cross-campaign, malformed, unapproved, failed-quality, or non-offline media work fails closed.
 blocking_items:
   - Real provider access, real Douyin access, and real personal media require separate user approval and local-private adapters.
   - Eustia remains an unimported private-adaptation candidate pending provenance, copyright, content, and asset review.

@@ -4,25 +4,37 @@ source_agent: CODEX
 target_agent: GPT
 reviewer: GPT_INDEPENDENT_REVIEWER
 executor_status: EXECUTOR_VERIFIED_ONLY
-handoff_state: A1_checkpointed_A2_ready
-base_sha: f2895367fcd0ed60305ccc005971789e0644d72b
+handoff_state: A3_executor_verified_checkpoint_ready_for_GPT_continuation
+base_sha: 0c56e85fa03f4cf5798213e777a18433fffc45bb
+implementation_sha: dad52a1167b72f2c26469a191abbe2aae864c2d1
 head_sha: null
-head_binding: Bind exact HEAD only when a completed implementation slice is frozen for formal review; do not infer it from chat history.
+head_binding: Before continuing, resolve and record the remote exact HEAD of codex/interactive-cinematic-a3-private-assets; implementation_sha is the completed A3 code checkpoint and the control-plane commit that follows it must be included.
 changed_contracts:
   - InteractiveCinematicPlatformControlPlane/v1
   - ScriptPackage/v1
   - PlayerCampaign/v1
   - DirectorBrief/v2
   - ManualIntake/v1
+  - AvatarIdentity/v1
+  - AvatarRevision/v1
+  - CharacterAppearanceAnchor/v1
+  - AppearanceContinuityRecord/v1
+  - CinematicSegment/v1
+  - MediaJob/v1
+  - MediaResult/v1
+  - MediaQualityReport/v1
 tests:
   - command: python tools/verify_interactive_cinematic_platform.py
     purpose: deterministic control-plane and contract-catalogue validation
-  - command: python -m unittest tests.test_interactive_cinematic_platform_architecture
-    purpose: verifier mutation tests
-  - command: python -m unittest tests.test_interactive_cinematic_multiscript
-    purpose: script-registry, legacy-compatibility, DirectorBrief/v2 binding, and fail-closed mismatch tests
+  - command: python -m unittest discover -s tests -p "test_*.py"
+    purpose: 161-test full offline regression including A0-A3 contracts, replay, director, campaign, and negative boundaries
+    result: PASS (161 tests, Python 3.13, executor-run)
+  - command: git diff --check
+    purpose: whitespace and patch-integrity gate
+    result: PASS (executor-run)
 known_risks:
   - The architecture is intentionally provider-neutral and offline; it does not demonstrate DeepSeek, MiniMax H3, or Douyin connectivity.
   - Eustia is not a source asset in this program until a separate provenance review allows it.
-next_action: Create a fresh A2 branch from this checkpoint and implement an offline NarrativeProposal/v1 simulator, dramatic-manager validation, and primary-choice consequence coverage.
-rollback: Revert only completed slice commits; no private data or external state has been created by A0 or A1.
+  - A3 only models opaque private references and deterministic media results. It does not yet have a private local asset vault, a user-facing upload UI, actual image transformation, provider integration, or durable media-queue persistence.
+next_action: GPT should first independently inspect and rerun the pinned A3 code checkpoint. If it continues implementation rather than reviews, preserve the no-media/no-provider boundary and add the next approved A3 lifecycle behavior in a fresh GPT branch.
+rollback: Revert only completed slice commits. No private data, real media, provider request, or external state has been created.
