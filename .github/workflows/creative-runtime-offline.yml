@@ -11,15 +11,18 @@ on:
       - "tools/build_experience_demo.py"
       - "tools/build_experience_package.py"
       - "tools/build_experience_library_package.py"
+      - "tools/build_replay_corpus_package.py"
       - "tools/rehearse_creative_operations.py"
       - "tools/verify_experience_artifact.py"
       - "tools/verify_experience_library.py"
+      - "tools/verify_replay_corpus_package.py"
       - "skills/creative-program-understanding-map/**"
       - "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/**"
       - ".github/workflows/creative-runtime-offline.yml"
   push:
     branches:
       - "codex/creative-runtime-continuous-build"
+      - "codex/creative-runtime-next"
   workflow_dispatch:
 
 permissions:
@@ -197,5 +200,50 @@ jobs:
         with:
           name: creative-runtime-synthetic-experience-library-${{ github.event.pull_request.head.sha || github.sha }}
           path: ${{ runner.temp }}/creative-runtime-experience-library
+          if-no-files-found: error
+          retention-days: 7
+
+  synthetic-replay-corpus:
+    name: Synthetic replay corpus package
+    runs-on: ubuntu-latest
+    needs: offline-runtime
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout exact event head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 2
+
+      - name: Assert exact checked-out source identity
+        shell: bash
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          test -z "$(git status --porcelain)"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Build and verify exact-head replay corpus package
+        shell: bash
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+          CORPUS_PACKAGE: ${{ runner.temp }}/creative-runtime-replay-corpus
+        run: |
+          set -euo pipefail
+          python tools/build_replay_corpus_package.py --expected-head "$EXPECTED_HEAD" --output-dir "$CORPUS_PACKAGE"
+          python tools/verify_replay_corpus_package.py --expected-head "$EXPECTED_HEAD" --package-dir "$CORPUS_PACKAGE"
+
+      - name: Upload verified synthetic replay corpus
+        uses: actions/upload-artifact@v4
+        with:
+          name: creative-runtime-replay-corpus-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/creative-runtime-replay-corpus
           if-no-files-found: error
           retention-days: 7
