@@ -177,6 +177,22 @@ manifest SHA-256
 `7a2c97ae837a9925d79eb47b3918c43ec816e148c610fea19c295ea9663fb130`.
 This is again executor clean-reproduction evidence, not independent acceptance.
 
+At exact head `cf03b94f0165dd6bc8ba415da2c38bd678ac091a`, the read-only review
+viewer gained filters over source-derived scenario and consequence tags
+(`risk_increases`, `risk_decreases`, `relationship_changes`, `new_facts`,
+`flag_changes`, and `scene_change`) plus opening-to-closing camera continuity
+text. The browser only selects and displays already supplied review-board data;
+it never calculates narrative state or a preferred outcome. The 135-test Python
+3.13 suite passed in **205.840 seconds**. A clean task-owned clone rebuilt the
+same 38-route/26-branch-point package at that exact head with corpus ID
+`replay_corpus_5d909ada34d8d765fcad`, review-board ID
+`replay_review_34da2198ab19ee30f1bb`, corpus SHA-256
+`1ee886007236600f01e51abc896d13930a1afe0d2d555679844363c712848ac4`,
+review-board SHA-256
+`8084c39215712fd249b71524f3379af5a1a8f3082b0c4271bfcc11afa98cd787`, and
+manifest SHA-256
+`15ffb3c00765cf831d6a4bc905c045f619c077dcf91035660c0ad1340f09ae71`.
+
 ## Still deliberately out of scope
 
 - customer content, customer-vault reads, account/cookie/credential access;
