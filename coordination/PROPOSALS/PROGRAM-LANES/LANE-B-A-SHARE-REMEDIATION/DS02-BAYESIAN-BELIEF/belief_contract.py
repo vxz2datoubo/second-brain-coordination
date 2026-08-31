@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import hashlib
+import json
 import math
+from copy import deepcopy
 from datetime import datetime
 from typing import Any, Mapping, Sequence
 
@@ -14,10 +17,15 @@ REJECT = "REJECTED"
 RULE_MISMATCH = "RULE_BINDING_MISMATCH"
 RULE_DEFERRED = "RULE_CLAUSE_DEFERRED"
 PIT_VIOLATION = "PIT_VIOLATION"
+KNOWLEDGE_CUTOFF_VIOLATION = "KNOWLEDGE_CUTOFF_VIOLATION"
+TEMPORAL_ORDER_INVALID = "TEMPORAL_ORDER_INVALID"
+PRIOR_NOT_EX_ANTE = "PRIOR_NOT_EX_ANTE"
 REVISION_LINEAGE_MISSING = "REVISION_LINEAGE_MISSING"
 DEPENDENCE_COLLISION = "DEPENDENCE_COLLAPSE_REQUIRED"
 INDEPENDENCE_UNVERIFIED = "INDEPENDENCE_UNVERIFIED"
 POSTERIOR_INCONSISTENT = "POSTERIOR_MATH_INCONSISTENT"
+SMALL_SAMPLE_SHRINKAGE_REQUIRED = "SMALL_SAMPLE_SHRINKAGE_REQUIRED"
+CANONICAL_DIGEST_MISMATCH = "CANONICAL_DIGEST_MISMATCH"
 VALIDATED_AUTHORITY_FORBIDDEN = "VALIDATED_AUTHORITY_FORBIDDEN_PHASE1"
 SCHEMA_REJECT = "SCHEMA_REJECT"
 CALIBRATION_REQUIRED = "CALIBRATION_REQUIRED"
@@ -26,6 +34,18 @@ FORBIDDEN_AUTHORITY = "FORBIDDEN_AUTHORITY"
 
 def _parse_time(value: str) -> datetime:
     return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+
+
+def _stable_json(value: Any) -> str:
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+
+def canonical_packet_digest(packet: Mapping[str, Any]) -> str:
+    payload = deepcopy(dict(packet))
+    numeric = payload.get("numeric_integrity")
+    if isinstance(numeric, dict):
+        numeric.pop("canonical_digest", None)
+    return hashlib.sha256(_stable_json(payload).encode("utf-8")).hexdigest()
 
 
 def _logit(p: float) -> float:
@@ -78,16 +98,38 @@ def _rule_binding_codes(identity: Mapping[str, Any], registry: Mapping[str, Any]
     return [RULE_DEFERRED] if requested_clauses & deferred else []
 
 
-def _pit_codes(packet: Mapping[str, Any]) -> list[str]:
+def _temporal_codes(packet: Mapping[str, Any]) -> list[str]:
+    identity = packet["identity"]
     decision_time = _parse_time(packet["temporal_provenance"]["decision_time"])
+    knowledge_cutoff = _parse_time(identity["knowledge_cutoff"])
+    as_of_time = _parse_time(identity["as_of_time"])
     codes: list[str] = []
+
+    if not (knowledge_cutoff <= as_of_time <= decision_time):
+        codes.append(TEMPORAL_ORDER_INVALID)
+
     for evidence in packet.get("evidence", []):
-        if _parse_time(evidence["available_at"]) > decision_time:
+        available_at = _parse_time(evidence["available_at"])
+        if available_at > decision_time:
             codes.append(PIT_VIOLATION)
+        if available_at > knowledge_cutoff:
+            codes.append(KNOWLEDGE_CUTOFF_VIOLATION)
         revision = evidence.get("revision_provenance", {})
         if revision.get("is_revised") is True and not revision.get("supersedes_snapshot_hashes"):
             codes.append(REVISION_LINEAGE_MISSING)
     return codes
+
+
+def _prior_codes(packet: Mapping[str, Any]) -> list[str]:
+    prior = packet["prior"]
+    cutoff = _parse_time(packet["identity"]["knowledge_cutoff"])
+    window = prior["training_window"]
+    start = _parse_time(window["start"])
+    end = _parse_time(window["end"])
+    effective_from = _parse_time(prior["effective_from"])
+    if start > end or end > cutoff or effective_from > cutoff:
+        return [PRIOR_NOT_EX_ANTE]
+    return []
 
 
 def _lineage_tokens(item: Mapping[str, Any]) -> dict[str, set[str]]:
@@ -157,6 +199,24 @@ def _posterior_codes(packet: Mapping[str, Any], tolerance: float) -> list[str]:
     return codes
 
 
+def _shrinkage_codes(packet: Mapping[str, Any], registry: Mapping[str, Any]) -> list[str]:
+    policy = registry.get("shrinkage", {})
+    shrinkage = packet["shrinkage"]
+    sample_size = float(shrinkage["effective_sample_size"])
+    minimum = float(policy["minimum_effective_sample_size_for_extreme_probability"])
+    threshold = float(policy["extreme_probability_threshold"])
+    posterior = float(packet["update"]["posterior_probability"])
+    extreme = posterior >= threshold or posterior <= (1.0 - threshold)
+    if sample_size < minimum and extreme:
+        return [SMALL_SAMPLE_SHRINKAGE_REQUIRED]
+    return []
+
+
+def _digest_codes(packet: Mapping[str, Any]) -> list[str]:
+    declared = packet["numeric_integrity"]["canonical_digest"]
+    return [] if declared == canonical_packet_digest(packet) else [CANONICAL_DIGEST_MISMATCH]
+
+
 def validate_packet(
     packet: Mapping[str, Any],
     *,
@@ -183,10 +243,13 @@ def validate_packet(
         }
 
     codes.extend(_rule_binding_codes(packet["identity"], numeric_registry))
-    codes.extend(_pit_codes(packet))
+    codes.extend(_temporal_codes(packet))
+    codes.extend(_prior_codes(packet))
     codes.extend(_dependence_codes(packet.get("evidence", [])))
     tolerance = float(numeric_registry["tolerances"]["analytic_reference_absolute_error"])
     codes.extend(_posterior_codes(packet, tolerance))
+    codes.extend(_shrinkage_codes(packet, numeric_registry))
+    codes.extend(_digest_codes(packet))
 
     if not _authority_false(packet):
         codes.append(FORBIDDEN_AUTHORITY)
@@ -202,6 +265,9 @@ def validate_packet(
             POSTERIOR_INCONSISTENT,
             VALIDATED_AUTHORITY_FORBIDDEN,
             FORBIDDEN_AUTHORITY,
+            TEMPORAL_ORDER_INVALID,
+            PRIOR_NOT_EX_ANTE,
+            CANONICAL_DIGEST_MISMATCH,
         )
     ):
         classification = REJECT
