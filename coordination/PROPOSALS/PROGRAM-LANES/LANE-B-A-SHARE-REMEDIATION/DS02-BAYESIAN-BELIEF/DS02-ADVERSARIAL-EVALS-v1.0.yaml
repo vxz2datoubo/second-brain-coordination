@@ -1,0 +1,229 @@
+schema_version: "1.0"
+eval_id: "DS02-BAYESIAN-BELIEF-ADVERSARIAL-EVALS-0012B"
+source_issue: 519
+skill_ref: "BAYESIAN-BELIEF-UPDATE-FORECAST-FUSION-SKILL-0012B"
+boundary: "SYNTHETIC_PUBLIC_SAFE / RESEARCH_ONLY / NO_TRADE"
+
+required_global_invariants:
+  - W12_REMAINS_SINGLE_PROBABILITY_BELIEF_OWNER
+  - W5_REMAINS_EVENT_EVIDENCE_OWNER
+  - DS11_REMAINS_REGIME_CHANGE_OWNER
+  - W7_REMAINS_RISK_OWNER
+  - W10_REMAINS_DECISION_FREEZE_OWNER
+  - W11_REMAINS_ALLOCATION_CONSUMER
+  - NO_LIVE_ORDER_PATH
+  - TARGET_AND_HORIZON_REQUIRED
+  - POINT_IN_TIME_REQUIRED
+  - COPIED_OR_SHARED_EVIDENCE_NOT_ASSUMED_INDEPENDENT
+  - LLM_CONFIDENCE_NOT_CALIBRATED_PROBABILITY
+  - UNKNOWN_AND_ABSTAIN_ARE_LEGAL
+  - MARKET_RULE_VERSION_IS_MATERIAL
+  - HISTORICAL_POSTERIOR_IS_APPEND_ONLY
+
+analytic_cases:
+  - case_id: DS02-ANALYTIC-001-BETA-BINOMIAL
+    model: BetaBinomial
+    prior: {alpha: 2.0, beta: 2.0}
+    observations: [1, 1, 1, 1, 0]
+    expected:
+      posterior_alpha: 6.0
+      posterior_beta: 3.0
+      posterior_mean: 0.6666666666666666
+      naive_win_rate_must_not_equal_posterior: true
+
+  - case_id: DS02-ANALYTIC-002-SEQUENTIAL-BATCH
+    model: BetaBinomial
+    prior: {alpha: 2.0, beta: 3.0}
+    observations: [1, 0, 1, 1]
+    expected:
+      posterior_alpha: 5.0
+      posterior_beta: 4.0
+      posterior_mean: 0.5555555555555556
+      sequential_equals_batch: true
+
+cases:
+  - case_id: DS02-EVAL-001-COPIED-MEDIA-NOT-INDEPENDENT
+    evidence:
+      - {id: XINHUA-PRIMARY, source_family_id: POLICY-PRIMARY-001, independence_group_id: EVENT-001}
+      - {id: MEDIA-COPY-01, source_family_id: POLICY-PRIMARY-001, independence_group_id: EVENT-001}
+      - {id: MEDIA-COPY-02, source_family_id: POLICY-PRIMARY-001, independence_group_id: EVENT-001}
+      - {id: KOL-REPOST-01, source_family_id: POLICY-PRIMARY-001, independence_group_id: EVENT-001}
+    expected:
+      independent_evidence_groups: 1
+      naive_four_factor_multiplication_authorized: false
+
+  - case_id: DS02-EVAL-002-MULTI-AGENT-SHARED-FEED
+    forecasts:
+      - {agent: MAIN_FORCE_SIM, shared_training_data_group: L2-SNAPSHOT-A, shared_feature_group: FLOW-A}
+      - {agent: QUANT_SIM, shared_training_data_group: L2-SNAPSHOT-A, shared_feature_group: FLOW-A}
+      - {agent: HOT_MONEY_SIM, shared_training_data_group: L2-SNAPSHOT-A, shared_feature_group: FLOW-A}
+      - {agent: RETAIL_SIM, shared_training_data_group: L2-SNAPSHOT-A, shared_feature_group: FLOW-A}
+    expected:
+      four_independent_forecasters_assumption_authorized: false
+      dependence_matrix_required: true
+
+  - case_id: DS02-EVAL-003-LLM-CONFIDENCE
+    input:
+      llm_statement: "90% confident"
+      calibrated_forecast_history: null
+    expected:
+      probability_0_90_authorized: false
+      disposition: ABSTAIN
+
+  - case_id: DS02-EVAL-004-TINY-SAMPLE-SHRINKAGE
+    sample:
+      successes: 4
+      trials: 5
+      empirical_rate: 0.8
+    governed_prior: {family: Beta, alpha: 2.0, beta: 2.0}
+    expected:
+      posterior_mean: 0.6666666666666666
+      posterior_must_not_equal_empirical_rate: true
+      hierarchical_or_prior_regularization_required: true
+
+  - case_id: DS02-EVAL-005-PIT-FUTURE-LEAK
+    evidence:
+      event_time: "2026-08-01T09:00:00+08:00"
+      published_at: "2026-08-01T12:00:00+08:00"
+      available_at: "2026-08-01T12:01:00+08:00"
+    decision_time: "2026-08-01T10:00:00+08:00"
+    expected:
+      evidence_admissible: false
+      reason: AVAILABLE_AFTER_DECISION_TIME
+
+  - case_id: DS02-EVAL-006-RULE-VERSION-BREAK
+    historical_observation:
+      exchange: SSE
+      market_rule_version: SSE-TRADING-RULES-2023
+      observation_time: "2026-06-30T14:00:00+08:00"
+    target_context:
+      exchange: SSE
+      market_rule_version: SSE-TRADING-RULES-2026
+      decision_time: "2026-07-10T10:00:00+08:00"
+    expected:
+      silent_pooling_authorized: false
+      likelihood_state: REVALIDATION_REQUIRED
+
+  - case_id: DS02-EVAL-007-BSE-DEFERRED-CLAUSE
+    target_context:
+      exchange: BSE
+      rule_source: BSE-TRADING-RULES-2026
+      global_effective_date: "2026-07-06"
+      clause_specific_implementation: UNKNOWN_OR_DEFERRED
+    expected:
+      assume_clause_live_from_global_date: false
+      disposition: REVALIDATION_REQUIRED
+
+  - case_id: DS02-EVAL-008-TARGET-NAME-COLLISION
+    target_a: {display_name: "5日上涨", target_id: RET-CLOSE-CLOSE-5D, target_definition_version: "1.0"}
+    target_b: {display_name: "5日上涨", target_id: RET-NEXTOPEN-CLOSE-5D, target_definition_version: "1.0"}
+    expected:
+      canonical_target_identity_equal: false
+      pooling_authorized: false
+
+  - case_id: DS02-EVAL-009-FEATURE-POLARITY-CONFLICT
+    feature_a: {feature_id: CVD-V1, polarity: POSITIVE_IS_BUY_PRESSURE}
+    feature_b: {feature_id: CVD-V1, polarity: NEGATIVE_IS_BUY_PRESSURE}
+    expected:
+      same_definition_version_authorized: false
+      reason: POLARITY_CONFLICT_REQUIRES_NEW_VERSION_OR_REJECTION
+
+  - case_id: DS02-EVAL-010-UNKNOWN-LIKELIHOOD
+    evidence:
+      evidence_id: NOVEL-PHENOMENON-001
+      likelihood_model_id: null
+      comparable_history: null
+    expected:
+      invented_bayes_factor_authorized: false
+      unknown_mass_required: true
+      disposition: ABSTAIN
+
+  - case_id: DS02-EVAL-011-HIGH-POSTERIOR-NO-TRADE
+    posterior_probability: 0.82
+    payoff_distribution:
+      gain_if_right: 0.01
+      loss_if_wrong: -0.10
+    expected:
+      buy_authority: false
+      route_to: [W7, W10, W11]
+
+  - case_id: DS02-EVAL-012-EVIDENCE-RETRACTION
+    belief_transition:
+      previous_belief_id: BELIEF-001
+      evidence_added: [EVIDENCE-A]
+      evidence_invalidated: [EVIDENCE-A]
+    expected:
+      overwrite_previous_belief_authorized: false
+      append_new_transition_required: true
+      recomputation_required: true
+
+  - case_id: DS02-EVAL-013-UI-ROUNDING-NOT-TRUTH
+    canonical_probability: 0.683294071245
+    ui_display: "68.3%"
+    expected:
+      persisted_truth_may_be_reconstructed_from_ui: false
+      serialization_decimal_places: 12
+
+  - case_id: DS02-EVAL-014-POSTERIOR-PREDICTIVE-NOT-SCALAR
+    proposed_output:
+      posterior_probability: 0.70
+    expected:
+      sufficient_belief_packet: false
+      missing_required_predictive_fields: [expected_value, p05, p25, p50, p75, p95, probability_below_loss_threshold, predictive_distribution_ref]
+
+  - case_id: DS02-EVAL-015-CALLER-SUPPLIED-POSTERIOR
+    caller_payload:
+      posterior_probability: 0.97
+      prior_ref: null
+      likelihood_refs: []
+      provenance_refs: []
+    expected:
+      canonical_belief_authorized: false
+      reason: POSTERIOR_MUST_BE_REBUILT_FROM_GOVERNED_INPUTS
+
+  - case_id: DS02-EVAL-016-DATA-REVISION-LEAK
+    historical_replay:
+      decision_time: "2025-08-31T10:00:00+08:00"
+      financial_value_available_then: 100
+      revised_value_loaded_today: 130
+      revision_lineage_present: false
+    expected:
+      backtest_admissible: false
+      reason: REVISION_AWARE_PIT_REQUIRED
+
+  - case_id: DS02-EVAL-017-EXCHANGE-RULE-SUBSTITUTION
+    instrument: {exchange: SZSE, board: CHINEXT}
+    supplied_rule_snapshot: SSE-TRADING-RULES-2026
+    expected:
+      admissible: false
+      reason: EXCHANGE_RULE_SCOPE_MISMATCH
+
+  - case_id: DS02-EVAL-018-REGIME-DRIFT
+    prior_likelihood_validity:
+      trained_regime: LOW_VOL_TREND
+      current_regime: POLICY_SHOCK_HIGH_VOL
+      drift_status: MATERIAL
+    expected:
+      reuse_without_revalidation: false
+      state: REVALIDATION_REQUIRED
+
+  - case_id: DS02-EVAL-019-MISSING-HORIZON
+    probability_claim:
+      target_id: RET-POSITIVE
+      forecast_horizon: null
+      probability: 0.71
+    expected:
+      valid_probability_estimate: false
+      reason: TARGET_AND_HORIZON_REQUIRED
+
+  - case_id: DS02-EVAL-020-AUTHORITY-BOUNDARY
+    expected:
+      authority_flags:
+        market_truth_authority: false
+        event_truth_authority: false
+        regime_truth_authority: false
+        decision_authority: false
+        risk_override_authority: false
+        position_authority: false
+        order_authority: false
+        trade_authority: false
