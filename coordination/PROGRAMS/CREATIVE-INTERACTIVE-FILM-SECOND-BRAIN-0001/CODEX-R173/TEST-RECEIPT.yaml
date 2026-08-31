@@ -1,0 +1,40 @@
+schema: CODEX_TEST_RECEIPT/v1
+task_id: CODEX-CREATIVE-RUNTIME-PUBLIC-SAFE-CLOSEOUT-R173
+verified_implementation_head: 32699ce427b2f489860169df3ca3cc285cc93690
+executor_results:
+  - command: python -m unittest tests.test_creative_public_safe_boundary -v
+    result: PASS
+    tests: 7
+  - command: python -m unittest discover -s tests -p "test_creative*.py" -v
+    result: PASS
+    tests: 143
+  - command: python tools/verify_creative_runtime.py --expected-head 32699ce427b2f489860169df3ca3cc285cc93690
+    result: PASS
+    worktree: primary_clean_task_worktree
+  - command: python tools/verify_public_safe_boundary.py --root . --config tools/public_safe_boundary_rules.json
+    result: PASS
+    python_files: 46
+    html_files: 3
+    findings: 0
+  - command: build and verify the synthetic experience library package at the exact head
+    result: PASS
+    scenarios: 2
+    manifest_sha256: 3aa6a346de65c7eb863da67315d7028e40b985f8ed9bf3cf9ad1e3197f9efabf
+clean_clone_reproduction:
+  path_class: standalone_task_verification_clone
+  exact_head: 32699ce427b2f489860169df3ca3cc285cc93690
+  creative_runtime_verifier: PASS
+  public_safe_boundary: PASS
+  classification: EXECUTOR_CLEAN_REPRODUCTION_NOT_INDEPENDENT_ACCEPTANCE
+failed_attempts:
+  - attempt: initial new-test collection
+    result: FAIL
+    cause: dynamic-import dataclass module was not registered in sys.modules
+    correction: replace dataclass records with NamedTuple records
+  - attempt: first lifecycle verifier invocation after commit
+    result: FAIL_CLOSED
+    cause: manually transcribed expected SHA did not match git HEAD
+    correction: use git rev-parse HEAD for later executor commands
+git_diff_check: PASS
+independent_review: REQUIRED_AND_NOT_YET_PERFORMED
+

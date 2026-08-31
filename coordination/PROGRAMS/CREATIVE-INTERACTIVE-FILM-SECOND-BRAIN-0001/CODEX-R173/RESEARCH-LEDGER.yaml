@@ -1,0 +1,16 @@
+schema: CODEX_RESEARCH_LEDGER/v1
+task_id: CODEX-CREATIVE-RUNTIME-PUBLIC-SAFE-CLOSEOUT-R173
+entries:
+  - id: R173-RESEARCH-001
+    question: Why did the former public-safe CI gate pass without scanning?
+    evidence: Issue 518 review and GitHub job 99313605891
+    conclusion: A missing rg executable exited 127 inside a shell if condition, which was interpreted as no match before an unconditional PASS message.
+    implementation_effect: Replace the shell conditional with a repository-owned verifier whose CLI catches every exception and exits nonzero.
+  - id: R173-RESEARCH-002
+    question: Which adjacent product invariants must remain intact?
+    evidence: R173 snapshot issuecomment-5479393483 and the existing creative test corpus
+    conclusion: Prefix replay, migration immutability, free-text safety, package tamper rejection, director review, and offline-only boundaries remain acceptance-critical.
+    implementation_effect: Run the complete creative suite and exact-head lifecycle verifier instead of only the new unit test.
+external_web_research_performed: false
+reason: The confirmed failure mechanism and binding remediation were fully specified by immutable repository and GitHub evidence.
+
