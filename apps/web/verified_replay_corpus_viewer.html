@@ -26,22 +26,26 @@
     <section class="card warning"><strong>Boundary:</strong> synthetic regression evidence only. This page is not customer intake, a live game server, a generation tool, a production deployment, or publication authority.</section>
     <section class="card">
       <h2>Load a corpus</h2>
-      <p>Choose <code>replay_corpus.json</code> from the fixed four-file package. This viewer performs display-boundary checks only; the matching repository verifier rebuilds every route at the package Git head.</p>
+      <p>Choose <code>replay_corpus.json</code> from the fixed five-file package. This viewer performs display-boundary checks only; the matching repository verifier rebuilds every route at the package Git head.</p>
       <label class="file-label" for="corpus-file">Choose replay corpus JSON</label>
       <input id="corpus-file" type="file" accept="application/json,.json">
       <p id="load-status" class="muted" aria-live="polite">No corpus loaded.</p>
+      <label class="file-label" for="review-file">Choose optional review board JSON</label>
+      <input id="review-file" type="file" accept="application/json,.json">
+      <p id="review-status" class="muted" aria-live="polite">No branch-review board loaded.</p>
     </section>
     <section id="corpus" class="hidden" aria-live="polite">
       <section class="card"><div class="meta" id="meta"></div><dl id="summary"></dl></section>
       <section class="card"><h2>Completed routes</h2><div id="routes"></div></section>
       <section class="card"><h2 id="route-heading">Route</h2><dl id="route-summary"></dl><h2>Verified timeline</h2><ol id="timeline"></ol><h2>Final story state</h2><dl id="state"></dl></section>
+      <section id="review" class="card hidden"><h2>Precomputed branch comparisons</h2><p class="muted">These alternatives are source-bound review evidence. The page displays them but does not derive or score an outcome.</p><ol id="branch-points"></ol></section>
     </section>
     <section id="error" class="card error hidden"><strong>Corpus rejected by viewer.</strong><pre id="error-text"></pre></section>
   </main>
   <script>
     "use strict";
-    const input = document.querySelector("#corpus-file"), corpusBox = document.querySelector("#corpus"), errorBox = document.querySelector("#error"), errorText = document.querySelector("#error-text"), loadStatus = document.querySelector("#load-status"), meta = document.querySelector("#meta"), summary = document.querySelector("#summary"), routes = document.querySelector("#routes"), routeHeading = document.querySelector("#route-heading"), routeSummary = document.querySelector("#route-summary"), timeline = document.querySelector("#timeline"), state = document.querySelector("#state");
-    let activeRoute = null;
+    const input = document.querySelector("#corpus-file"), reviewInput = document.querySelector("#review-file"), corpusBox = document.querySelector("#corpus"), errorBox = document.querySelector("#error"), errorText = document.querySelector("#error-text"), loadStatus = document.querySelector("#load-status"), reviewStatus = document.querySelector("#review-status"), meta = document.querySelector("#meta"), summary = document.querySelector("#summary"), routes = document.querySelector("#routes"), routeHeading = document.querySelector("#route-heading"), routeSummary = document.querySelector("#route-summary"), timeline = document.querySelector("#timeline"), state = document.querySelector("#state"), review = document.querySelector("#review"), branchPoints = document.querySelector("#branch-points");
+    let activeRoute = null, loadedCorpus = null;
     function require(condition, message) { if (!condition) throw new Error(message); }
     function text(value) { return value == null ? "—" : String(value); }
     function pairs(node, values) { node.replaceChildren(); for (const [key, value] of values) { const term = document.createElement("dt"), description = document.createElement("dd"); term.textContent = key; description.textContent = text(value); node.append(term, description); } }
@@ -67,13 +71,29 @@
       for (const button of routes.querySelectorAll("button")) button.setAttribute("aria-pressed", String(button.dataset.routeId === activeRoute));
     }
     function render(payload) {
+      loadedCorpus = payload; review.classList.add("hidden"); reviewStatus.textContent = "No branch-review board loaded.";
       meta.replaceChildren(); for (const label of ["corpus: " + payload.corpus_id, "head: " + payload.head_sha.slice(0, 12) + "…", "routes: " + payload.entry_count]) { const pill = document.createElement("span"); pill.className = "pill"; pill.textContent = label; meta.append(pill); }
       pairs(summary, [["Scenarios", payload.scenario_ids.join(", ")], ["Route counts", JSON.stringify(payload.scenario_route_counts)], ["Source head", payload.head_sha], ["Authority", "display only; use repository verifier for reconstruction"]]);
       routes.replaceChildren(); for (const entry of payload.entries) { const button = document.createElement("button"); button.type = "button"; button.dataset.routeId = entry.route_id; button.textContent = entry.scenario + " · " + entry.route_id; button.addEventListener("click", () => renderRoute(entry)); routes.append(button); }
       renderRoute(payload.entries[0]); errorBox.classList.add("hidden"); corpusBox.classList.remove("hidden"); loadStatus.textContent = "Synthetic replay corpus loaded for display. Use the repository verifier to independently reconstruct every route.";
     }
+    function renderReview(board) {
+      require(loadedCorpus, "Load replay_corpus.json before a review board.");
+      require(board && typeof board === "object" && board.schema === "CreativeSyntheticReplayReviewBoard/v1" && board.status === "synthetic_replay_review_board_verified", "Unexpected review-board schema or status.");
+      require(board.head_sha === loadedCorpus.head_sha && board.corpus_id === loadedCorpus.corpus_id, "Review board is not bound to the loaded corpus.");
+      require(Array.isArray(board.branch_points) && board.branch_point_count === board.branch_points.length, "Review board branch index is incomplete.");
+      branchPoints.replaceChildren();
+      for (const branch of board.branch_points) {
+        require(branch && Array.isArray(branch.choices) && branch.choices.length >= 2 && branch.prefix_state, "Review board branch data is malformed.");
+        const item = document.createElement("li"), prefix = branch.prefix_action_ids.length ? branch.prefix_action_ids.join(" → ") : "initial state", choiceLines = [];
+        for (const choice of branch.choices) { require(choice && Array.isArray(choice.terminal_outcomes), "Review board choice data is malformed."); const endings = choice.terminal_outcomes.map((outcome) => { const finalState = outcome.final_state || {}; const delta = outcome.terminal_delta || {}; return outcome.route_id + ": " + text(finalState.scene_id) + "/" + text(finalState.beat_id) + ", risk " + (delta.risk_delta > 0 ? "+" : "") + text(delta.risk_delta); }).join(" | "); choiceLines.push(choice.action_id + " / " + choice.transition_id + " → " + endings); }
+        item.textContent = branch.scenario + " after " + prefix + " (" + text(branch.prefix_state.scene_id) + "/" + text(branch.prefix_state.beat_id) + "): " + choiceLines.join(" · "); branchPoints.append(item);
+      }
+      review.classList.remove("hidden"); reviewStatus.textContent = "Source-bound branch-review board loaded for display. Use the repository verifier for exact reconstruction.";
+    }
     function reject(error) { corpusBox.classList.add("hidden"); errorBox.classList.remove("hidden"); errorText.textContent = error instanceof Error ? error.message : String(error); loadStatus.textContent = "The selected file was not accepted."; }
     input.addEventListener("change", async () => { const file = input.files && input.files[0]; if (!file) return; try { render(prepare(JSON.parse(await file.text()))); } catch (error) { reject(error); } });
+    reviewInput.addEventListener("change", async () => { const file = reviewInput.files && reviewInput.files[0]; if (!file) return; try { renderReview(JSON.parse(await file.text())); } catch (error) { reject(error); } });
   </script>
 </body>
 </html>

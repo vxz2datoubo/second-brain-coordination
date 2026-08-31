@@ -15,6 +15,7 @@ from .experience_package import sha256_hex
 REPLAY_CORPUS_PACKAGE_MANIFEST_NAME = "replay_corpus_package_manifest.json"
 REPLAY_CORPUS_PACKAGE_MEMBER_NAMES = (
     "replay_corpus.json",
+    "replay_review_board.json",
     "verified_replay_corpus_viewer.html",
     "README.md",
 )

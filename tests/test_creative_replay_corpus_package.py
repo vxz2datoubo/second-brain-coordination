@@ -45,6 +45,7 @@ class CreativeReplayCorpusPackageTests(unittest.TestCase):
         self.assertEqual(receipt["status"], "replay_corpus_package_exactly_verified")
         self.assertEqual(receipt["corpus_id"], corpus["corpus_id"])
         self.assertEqual(receipt["entry_count"], 38)
+        self.assertGreater(receipt["branch_point_count"], 4)
         self.assertEqual(receipt["scenario_route_counts"], corpus["scenario_route_counts"])
         self.assertFalse(receipt["boundary"]["caller_free_text_present"])
 
@@ -68,6 +69,17 @@ class CreativeReplayCorpusPackageTests(unittest.TestCase):
                 package_verifier.verify_package(package, self.head, require_clean_worktree=False)
             (package / "unexpected.txt").write_text("unexpected", encoding="utf-8")
             with self.assertRaisesRegex(RuntimeError, "exactly its fixed"):
+                package_verifier.verify_package(package, self.head, require_clean_worktree=False)
+
+    def test_verifier_rejects_tampered_review_board_after_manifest(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            package = Path(directory) / "replay-corpus-package"
+            shutil.copytree(self.package, package)
+            review_path = package / "replay_review_board.json"
+            board = json.loads(review_path.read_text(encoding="utf-8"))
+            board["branch_points"][0]["choices"][0]["transition_id"] = "forged"
+            review_path.write_text(json.dumps(board), encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "manifest"):
                 package_verifier.verify_package(package, self.head, require_clean_worktree=False)
 
     def test_verifier_rejects_wrong_exact_head_before_reading_package(self) -> None:

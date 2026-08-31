@@ -22,6 +22,7 @@ from creative_runtime.replay_corpus_package import (
     REPLAY_CORPUS_PACKAGE_MEMBER_NAMES,
     build_replay_corpus_package_manifest,
 )
+from creative_runtime.replay_review import ReplayReviewViolation, verify_verified_replay_review_board
 
 
 VIEWER_SOURCE = ROOT / "apps" / "web" / "verified_replay_corpus_viewer.html"
@@ -80,9 +81,10 @@ def verify_package(
     try:
         manifest = json.loads(manifest_bytes.decode("utf-8"))
         corpus = json.loads(members["replay_corpus.json"].decode("utf-8"))
+        review_board = json.loads(members["replay_review_board.json"].decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as error:
         raise RuntimeError("Replay corpus package JSON is not readable UTF-8 JSON") from error
-    if not isinstance(manifest, Mapping) or not isinstance(corpus, Mapping):
+    if not isinstance(manifest, Mapping) or not isinstance(corpus, Mapping) or not isinstance(review_board, Mapping):
         raise RuntimeError("Replay corpus package JSON roots must be objects")
     expected_manifest = build_replay_corpus_package_manifest(head, members)
     if canonical_json(manifest) != canonical_json(expected_manifest):
@@ -91,6 +93,10 @@ def verify_package(
         verified = verify_verified_synthetic_replay_corpus(head, corpus)
     except ReplayCorpusViolation as error:
         raise RuntimeError("Replay corpus package cannot be exactly rebuilt at this Git head") from error
+    try:
+        verified_review_board = verify_verified_replay_review_board(head, corpus, review_board)
+    except ReplayReviewViolation as error:
+        raise RuntimeError("Replay corpus package review board cannot be exactly rebuilt at this Git head") from error
     if members["verified_replay_corpus_viewer.html"] != VIEWER_SOURCE.read_bytes():
         raise RuntimeError("Replay corpus viewer does not match the exact-head source file")
     if members["README.md"] != GUIDE_SOURCE.read_bytes():
@@ -100,9 +106,12 @@ def verify_package(
         "status": "replay_corpus_package_exactly_verified",
         "head_sha": head,
         "corpus_id": verified.corpus_id,
+        "review_board_id": verified_review_board["review_board_id"],
         "entry_count": len(verified.entries),
+        "branch_point_count": verified_review_board["branch_point_count"],
         "scenario_route_counts": verified.to_dict()["scenario_route_counts"],
         "corpus_sha256": sha256_hex(members["replay_corpus.json"]),
+        "review_board_sha256": sha256_hex(members["replay_review_board.json"]),
         "manifest_sha256": sha256_hex(manifest_bytes),
         "package_member_count": len(REPLAY_CORPUS_PACKAGE_MEMBER_NAMES),
         "worktree_status": "clean_required_and_clean" if require_clean_worktree else "not_checked_for_verifier_self_test",
@@ -113,7 +122,7 @@ def verify_package(
 
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description="Verify a downloaded exhaustive replay-corpus package at an exact Git head.")
-    parser.add_argument("--package-dir", required=True, type=Path, help="Downloaded fixed four-file package directory.")
+    parser.add_argument("--package-dir", required=True, type=Path, help="Downloaded fixed five-file package directory.")
     parser.add_argument("--expected-head", help="Require this exact commit SHA before verification.")
     args = parser.parse_args(argv)
     try:

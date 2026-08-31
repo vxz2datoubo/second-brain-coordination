@@ -25,6 +25,7 @@ from creative_runtime.replay_corpus_package import (
     REPLAY_CORPUS_PACKAGE_MEMBER_NAMES,
     build_replay_corpus_package_manifest,
 )
+from creative_runtime.replay_review import build_verified_replay_review_board
 
 
 VIEWER_SOURCE = ROOT / "apps" / "web" / "verified_replay_corpus_viewer.html"
@@ -42,18 +43,20 @@ def _git_head(expected_head: str | None) -> str:
 
 
 def build_package(output_dir: Path, expected_head: str | None = None) -> dict[str, Any]:
-    """Create a new four-file package atomically; never replace a caller path."""
+    """Create a new five-file package atomically; never replace a caller path."""
 
     if output_dir.exists() or output_dir.is_symlink():
         raise RuntimeError("Replay corpus package output directory already exists")
     head = _git_head(expected_head)
     corpus = build_verified_synthetic_replay_corpus(head).to_dict()
+    review_board = build_verified_replay_review_board(head, corpus)
     output_dir.parent.mkdir(parents=True, exist_ok=True)
     temporary = output_dir.with_name(output_dir.name + ".building-" + uuid.uuid4().hex)
     try:
         temporary.mkdir()
         members = {
             "replay_corpus.json": (canonical_json(corpus) + "\n").encode("utf-8"),
+            "replay_review_board.json": (canonical_json(review_board) + "\n").encode("utf-8"),
             "verified_replay_corpus_viewer.html": VIEWER_SOURCE.read_bytes(),
             "README.md": GUIDE_SOURCE.read_bytes(),
         }
@@ -72,7 +75,9 @@ def build_package(output_dir: Path, expected_head: str | None = None) -> dict[st
         "status": "replay_corpus_package_built",
         "head_sha": head,
         "corpus_id": corpus["corpus_id"],
+        "review_board_id": review_board["review_board_id"],
         "entry_count": corpus["entry_count"],
+        "branch_point_count": review_board["branch_point_count"],
         "scenario_route_counts": corpus["scenario_route_counts"],
         "output_dir": str(output_dir),
         "member_count": len(REPLAY_CORPUS_PACKAGE_MEMBER_NAMES),
