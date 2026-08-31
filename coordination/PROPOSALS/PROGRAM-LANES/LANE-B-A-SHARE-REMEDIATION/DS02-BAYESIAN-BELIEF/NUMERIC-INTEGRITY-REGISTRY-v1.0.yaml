@@ -1,4 +1,4 @@
-schema_version: "1.0"
+schema_version: "1.1"
 registry_id: DS02-NUMERIC-INTEGRITY-v1
 probability:
   internal_type: IEEE754_FLOAT64
@@ -13,6 +13,9 @@ probability:
     repeated_binary_evidence: LOG_ODDS_OR_LOG_PROBABILITY
     direct_likelihood_product_discouraged: true
     finite_probability_required: true
+    caller_probability_is_validated_belief: false
+    phase1_packet_status: UNVALIDATED_PROPOSAL
+    validated_computation_receipt_available: false
 time:
   timestamps_timezone_explicit: true
   point_in_time_gate: "available_at <= decision_time"
@@ -22,13 +25,65 @@ revision:
   revised_data_requires_revision_lineage: true
   historical_backtest_replacement_without_lineage: PIT_VIOLATION
 identity:
+  scope_type: SINGLE_SECURITY
   target_definition_version_required: true
   feature_definition_version_required: true
   feature_polarity_required: true
+  exchange_required: true
+  board_required: true
+  security_type_required: true
   market_rule_version_required: true
   market_rule_clause_state_version_required: true
+  rule_clause_ids_required: true
   cross_exchange_substitution: REVALIDATION_REQUIRED
   rule_clause_activation_mismatch: REVALIDATION_REQUIRED
+market_rule_compatibility:
+  registry_version: A_SHARE_RULE_BINDING_2026-07-06_v1
+  bindings:
+    - exchange: SSE
+      board: MAIN
+      security_type: A_SHARE_STOCK
+      market_rule_version: SSE_TRADING_RULES_2026
+      market_rule_clause_state_version: SSE_RULE_STATE_2026-07-06_ACTIVE
+      deferred_clause_ids: []
+    - exchange: SSE
+      board: STAR
+      security_type: A_SHARE_STOCK
+      market_rule_version: SSE_TRADING_RULES_2026
+      market_rule_clause_state_version: SSE_RULE_STATE_2026-07-06_ACTIVE
+      deferred_clause_ids: []
+    - exchange: SZSE
+      board: MAIN
+      security_type: A_SHARE_STOCK
+      market_rule_version: SZSE_TRADING_RULES_2026
+      market_rule_clause_state_version: SZSE_RULE_STATE_2026-07-06_ACTIVE
+      deferred_clause_ids: []
+    - exchange: SZSE
+      board: CHINEXT
+      security_type: A_SHARE_STOCK
+      market_rule_version: SZSE_TRADING_RULES_2026
+      market_rule_clause_state_version: SZSE_RULE_STATE_2026-07-06_ACTIVE
+      deferred_clause_ids: []
+    - exchange: BSE
+      board: BSE
+      security_type: A_SHARE_STOCK
+      market_rule_version: BSE_TRADING_RULES_2026
+      market_rule_clause_state_version: BSE_RULE_STATE_2026-07-06_PARTIAL_DEFERRED
+      deferred_clause_ids:
+        - BSE_2026_DEFERRED_CLAUSE_SENTINEL
+dependence:
+  canonical_dependence_authority_available: false
+  caller_independence_group_is_authority: false
+  required_lineage_fields:
+    - source_instance_id
+    - ancestry_refs
+    - shared_feed_group_ids
+    - shared_feature_group_ids
+    - shared_training_data_group_ids
+    - shared_model_lineage_ids
+  phase1_independence_status: UNVERIFIED
+  copied_or_shared_lineage_result: DEPENDENCE_COLLAPSE_REQUIRED
+  multiple_unverified_sources_without_collision_result: INDEPENDENCE_UNVERIFIED
 retraction:
   append_only: true
   deletion_of_historical_update_forbidden: true
@@ -41,7 +96,9 @@ tolerances:
 forbidden_numeric_shortcuts:
   - LLM_CONFIDENCE_AS_PROBABILITY
   - UI_PERCENT_AS_CANONICAL_POSTERIOR
+  - CALLER_POSTERIOR_AS_VALIDATED_BELIEF
   - HISTORICAL_WIN_RATE_AS_FULL_PREDICTIVE_DISTRIBUTION
   - SAME_DISPLAY_LABEL_WITH_DIFFERENT_TARGET_DEFINITION
   - SILENT_FEATURE_POLARITY_FLIP
   - SILENT_RULE_ERA_POOLING
+  - CALLER_INDEPENDENCE_LABEL_AS_DEPENDENCE_AUTHORITY
