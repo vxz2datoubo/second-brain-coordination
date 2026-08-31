@@ -1,0 +1,27 @@
+schema_version: "1.0"
+packet_id: DS02-PHASE2-READINESS-v1
+source_issue: 522
+future_issue: 521
+status: DESIGN_PREVIEW_ONLY
+implementation_authority: false
+runtime_write_authority: false
+backtest_write_authority: false
+broker_authority: false
+order_authority: false
+account_funds_authority: false
+preconditions:
+  - PR_FROM_ISSUE_522_INDEPENDENTLY_ACCEPTED
+  - PR_FROM_ISSUE_522_CANONICALLY_MERGED
+  - FRESH_MAIN_RECONCILED
+  - NEW_PHASE2_EFFECTIVE_SPEC_SNAPSHOT_PUBLISHED_BEFORE_WRITE
+  - EXECUTION_IDENTITY_AND_SLOT_VALID
+reference_engine_candidate:
+  models: [BETA_BINOMIAL, NORMAL_NORMAL, LOG_ODDS_BAYES_FACTOR]
+  services: [DEPENDENCE_ADMISSION, POINT_IN_TIME_GATE, RULE_COMPATIBILITY_GATE, APPEND_ONLY_BELIEF_RECOMPUTE]
+  explicitly_not_in_phase2: [LIVE_ORDER, BROKER, ACCOUNT_FUNDS, A_SHARE_ALPHA_CLAIM, PRODUCTION_MEMORY_AUTHORITY]
+phase3_candidate:
+  purpose: A_SHARE_OOS_VALIDATION
+  separately_governed: true
+  required_baselines: [BASE_RATE, REGULARIZED_LOGISTIC, PRE_DS02_BASELINE, EXISTING_ENSEMBLE, EXISTING_ENSEMBLE_PLUS_DS02]
+  required_controls: [PURGE, EMBARGO, FINAL_LOCKBOX, COSTS, T_PLUS_ONE, PRICE_LIMITS, SUSPENSIONS, DS10_MULTIPLE_TESTING]
+stop_condition: PACKET_DOES_NOT_AUTHORIZE_RUNTIME_OR_BACKTEST_WRITES
