@@ -254,8 +254,15 @@ def _index_snapshot(snapshot: Mapping[str, Any], *, label: str) -> dict[str, dic
             raise IsolationError(f"{label}:INVALID_RESULT_SHAPE")
         test_id = str(raw.get("test_id") or "")
         status = str(raw.get("status") or "")
+        fingerprint = raw.get("failure_fingerprint")
         if not test_id or status not in {PASS, *NONPASS_STATUSES}:
             raise IsolationError(f"{label}:INVALID_RESULT:{test_id}:{status}")
+        if status == PASS and fingerprint is not None:
+            raise IsolationError(f"{label}:PASS_RESULT_HAS_FAILURE_FINGERPRINT:{test_id}")
+        if status != PASS and not (
+            isinstance(fingerprint, str) and re.fullmatch(r"[0-9A-Fa-f]{64}", fingerprint)
+        ):
+            raise IsolationError(f"{label}:NONPASS_RESULT_INVALID_FINGERPRINT:{test_id}")
         if test_id in index:
             raise IsolationError(f"{label}:DUPLICATE_TEST_ID:{test_id}")
         index[test_id] = dict(raw)
