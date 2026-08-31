@@ -1,17 +1,15 @@
 schema: InteractiveCinematicPlatformStatus/v1
 program_id: INTERACTIVE-CINEMATIC-PLATFORM-0001
 updated_at: 2026-08-31
-status: in_progress
-in_progress_slice:
+status: checkpointed
+in_progress_slice: null
+last_completed_slice:
   id: A1_MULTI_SCRIPT_RUNTIME_AND_DIRECTOR_SWITCHING
   executor: CODEX
   branch: codex/interactive-cinematic-a1-multiscript-runtime
   base_sha: f2895367fcd0ed60305ccc005971789e0644d72b
-  completion_conditions:
-    - Synthetic scenarios are addressed as approved ScriptPackage/v1 records.
-    - New director path requires all DirectorBrief/v2 identity bindings.
-    - Old scenario initialization and replay remain compatible.
-    - Script/style mismatch and tampered context fail closed.
+  implementation_sha: 8736b827a15240f090a9bdbbde077e772158fe9e
+  executor_status: EXECUTOR_VERIFIED_ONLY
 last_completed_slice:
   id: A0_ARCHITECTURE_BASELINE
   executor: CODEX
@@ -20,8 +18,13 @@ last_completed_slice:
   executor_status: EXECUTOR_VERIFIED_ONLY
 next_slice:
   id: A2_FLAGSHIP_SEASON_AND_DRAMA_MANAGER
-  status: planned
+  status: ready_for_implementation
   recommended_executor: CODEX
+  completion_conditions:
+    - Offline NarrativeProposal/v1 simulator emits structured candidates only.
+    - Dramatic manager accepts only approved legal beats and never rewrites player facts.
+    - Primary-choice coverage reports a durable consequence and visible feedback for every approved edge.
+    - Unknown, stale, mismatched, or content-invalid proposals fail closed.
 blocking_items:
   - Real provider access, real Douyin access, and real personal media require separate user approval and local-private adapters.
   - Eustia remains an unimported private-adaptation candidate pending provenance, copyright, content, and asset review.

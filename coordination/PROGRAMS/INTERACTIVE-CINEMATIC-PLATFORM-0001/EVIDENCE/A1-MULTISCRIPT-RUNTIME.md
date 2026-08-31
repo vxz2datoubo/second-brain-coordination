@@ -32,3 +32,9 @@ git diff --check
 - 既有 `test_creative_*.py` 回归：136/136 通过，用时约 95 秒。
 - 控制面验证器：通过；未读取私有数据，未发起外部调用。
 - 下一步：执行 staged diff 检查、提交、推送，再从独立干净克隆复现 A1 专项验证。
+
+## 推送与洁净复现
+
+- 已推送实现提交：`8736b827a15240f090a9bdbbde077e772158fe9e`，分支 `codex/interactive-cinematic-a1-multiscript-runtime`。
+- 独立克隆从该精确 SHA 运行控制面验证器和 A1 专项测试：均通过。
+- 该复现仍属于 `CODEX` 施工者洁净复现，不能替代未参与实现者的独立验收。

@@ -4,7 +4,7 @@ source_agent: CODEX
 target_agent: GPT
 reviewer: GPT_INDEPENDENT_REVIEWER
 executor_status: EXECUTOR_VERIFIED_ONLY
-handoff_state: A1_implementation_in_progress
+handoff_state: A1_checkpointed_A2_ready
 base_sha: f2895367fcd0ed60305ccc005971789e0644d72b
 head_sha: null
 head_binding: Bind exact HEAD only when a completed implementation slice is frozen for formal review; do not infer it from chat history.
@@ -24,5 +24,5 @@ tests:
 known_risks:
   - The architecture is intentionally provider-neutral and offline; it does not demonstrate DeepSeek, MiniMax H3, or Douyin connectivity.
   - Eustia is not a source asset in this program until a separate provenance review allows it.
-next_action: Finish A1 regression and clean-clone reproduction, then freeze an exact implementation HEAD for later independent review.
+next_action: Create a fresh A2 branch from this checkpoint and implement an offline NarrativeProposal/v1 simulator, dramatic-manager validation, and primary-choice consequence coverage.
 rollback: Revert only completed slice commits; no private data or external state has been created by A0 or A1.
