@@ -28,10 +28,20 @@ DEFAULT_WORKFLOW = Path(".github/workflows/creative-runtime-offline.yml")
 _REMOTE_URL = re.compile(r"(?is)^\s*(?:https?:)?//")
 _CSS_REMOTE = re.compile(r"(?is)(?:url\s*\(\s*['\"]?|@import\s+(?:url\s*\(\s*)?['\"]?)((?:https?:)?//)")
 _JS_REMOTE_CAPABILITY = re.compile(r"\b(?:fetch|XMLHttpRequest|WebSocket|EventSource|navigator\.sendBeacon)\s*(?:\(|\.)")
+_JS_REMOTE_IMPORT = re.compile(r"(?is)\b(?:import\s*\(|import[^;\n]*?\bfrom\s*)['\"]\s*(?:https?:)?//")
 
 
 class BoundaryViolation(ValueError):
     """Raised for an unsafe capability or unverifiable scan condition."""
+
+
+def _unique_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise BoundaryViolation(f"Duplicate config key: {key}")
+        result[key] = value
+    return result
 
 
 def _strict_json(path: Path) -> dict[str, Any]:
@@ -41,8 +51,8 @@ def _strict_json(path: Path) -> dict[str, Any]:
         raw = path.read_bytes()
         if not raw:
             raise BoundaryViolation("Config is empty")
-        value = json.loads(raw.decode("utf-8", errors="strict"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        value = json.loads(raw.decode("utf-8", errors="strict"), object_pairs_hook=_unique_object)
+    except (UnicodeDecodeError, json.JSONDecodeError, BoundaryViolation) as error:
         raise BoundaryViolation("Config must be strict UTF-8 JSON") from error
     if not isinstance(value, dict) or value.get("schema") != RULES_SCHEMA:
         raise BoundaryViolation("Unsupported rules schema")
@@ -137,6 +147,12 @@ def verify_python_source(text: str, label: str, rules: Mapping[str, Any]) -> Non
         reference: str | None = None
         if isinstance(node, ast.Call):
             reference = _dotted_name(node.func, aliases)
+            if reference in {"__import__", "importlib.import_module"} and node.args:
+                argument = node.args[0]
+                if isinstance(argument, ast.Constant) and isinstance(argument.value, str) and import_forbidden(argument.value):
+                    raise BoundaryViolation(
+                        f"Forbidden dynamic Python capability import {argument.value}: {label}:{node.lineno}"
+                    )
         elif isinstance(node, ast.Subscript | ast.Attribute):
             reference = _dotted_name(node, aliases)
         if reference and any(reference == item or reference.startswith(item + ".") for item in forbidden_refs):
@@ -145,12 +161,13 @@ def verify_python_source(text: str, label: str, rules: Mapping[str, Any]) -> Non
 
 class _ActiveURLParser(HTMLParser):
     ACTIVE: dict[str, frozenset[str]] = {
-        "audio": frozenset({"src"}), "button": frozenset({"formaction"}),
+        "audio": frozenset({"src"}), "base": frozenset({"href"}), "button": frozenset({"formaction"}),
         "embed": frozenset({"src"}), "form": frozenset({"action"}),
         "iframe": frozenset({"src"}), "img": frozenset({"src", "srcset"}),
         "input": frozenset({"src", "formaction"}), "link": frozenset({"href"}),
         "object": frozenset({"data"}), "script": frozenset({"src"}),
         "source": frozenset({"src", "srcset"}), "track": frozenset({"src"}),
+        "use": frozenset({"href", "xlink:href"}), "image": frozenset({"href", "xlink:href"}),
         "video": frozenset({"src", "poster"}),
     }
 
@@ -160,6 +177,12 @@ class _ActiveURLParser(HTMLParser):
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         active = self.ACTIVE.get(tag.lower(), frozenset())
+        normalized = {name.lower(): value or "" for name, value in attrs}
+        if tag.lower() == "meta" and normalized.get("http-equiv", "").lower() == "refresh":
+            content = normalized.get("content", "")
+            match = re.search(r"(?is)\burl\s*=\s*['\"]?\s*((?:https?:)?//)", content)
+            if match:
+                raise BoundaryViolation(f"Remote meta refresh in {self.label}")
         for name, value in attrs:
             if name.lower() == "style" and value and _CSS_REMOTE.search(value):
                 raise BoundaryViolation(f"Remote CSS load in {self.label}")
@@ -184,8 +207,10 @@ def verify_browser_source(text: str, label: str, suffix: str) -> None:
             raise
         except Exception as error:
             raise BoundaryViolation(f"HTML cannot be safely parsed: {label}") from error
-    if suffix == ".js" and _JS_REMOTE_CAPABILITY.search(text):
+    if suffix in {".html", ".htm", ".js"} and _JS_REMOTE_CAPABILITY.search(text):
         raise BoundaryViolation(f"Browser network capability in {label}")
+    if suffix in {".html", ".htm", ".js"} and _JS_REMOTE_IMPORT.search(text):
+        raise BoundaryViolation(f"Remote JavaScript import in {label}")
 
 
 def _workflow_pr_paths(workflow: Path) -> list[str]:

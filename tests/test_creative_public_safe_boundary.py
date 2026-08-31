@@ -26,6 +26,8 @@ class PublicSafeCapabilityTests(unittest.TestCase):
             "from requests import get\nget('https://example.invalid')\n",
             "from urllib import request\nrequest.urlopen('https://example.invalid')\n",
             "import socket as s\ns.create_connection(('example.invalid', 443))\n",
+            "network = __import__('requests')\nnetwork.get('https://example.invalid')\n",
+            "import importlib as il\nnetwork = il.import_module('httpx')\n",
         )
         for source in attacks:
             with self.subTest(source=source), self.assertRaises(BoundaryViolation):
@@ -36,6 +38,7 @@ class PublicSafeCapabilityTests(unittest.TestCase):
             "from os import getenv\ngetenv('TOKEN')\n",
             "import os as o\no.environ['TOKEN']\n",
             "from os import environ as secrets\nprint(secrets.get('TOKEN'))\n",
+            "from os import getenvb as read_secret\nread_secret(b'TOKEN')\n",
         )
         for source in attacks:
             with self.subTest(source=source), self.assertRaises(BoundaryViolation):
@@ -51,6 +54,9 @@ class PublicSafeCapabilityTests(unittest.TestCase):
             "<form action='//remote.invalid/collect'></form>",
             "<style>body{background:url(//remote.invalid/a.png)}</style>",
             "<img srcset='/local.png 1x, //remote.invalid/a.png 2x'>",
+            "<meta http-equiv='refresh' content='0; url=//remote.invalid/next'>",
+            "<script>fetch('/looks-relative-but-is-network')</script>",
+            "<script type='module'>import('//remote.invalid/module.js')</script>",
         )
         for source in attacks:
             with self.subTest(source=source), self.assertRaises(BoundaryViolation):
@@ -143,7 +149,10 @@ class PublicSafeTraversalAndWorkflowTests(unittest.TestCase):
             repo = Path(directory)
             self._minimal_repository(repo)
             config = repo / "bad.json"
-            for payload in (b"", b"\xff", b'{"schema":"Unknown/v1"}'):
+            for payload in (
+                b"", b"\xff", b'{"schema":"Unknown/v1"}',
+                b'{"schema":"PublicSafeBoundaryRules/v1","schema":"PublicSafeBoundaryRules/v1"}',
+            ):
                 config.write_bytes(payload)
                 with self.subTest(payload=payload), self.assertRaises(BoundaryViolation):
                     verify_repository(repo, Path("bad.json"))

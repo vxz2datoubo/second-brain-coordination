@@ -30,6 +30,15 @@ class MigrationViolation(ValueError):
     """Raised when migration cannot prove a lossless, race-safe result."""
 
 
+def _unique_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise MigrationViolation(f"Duplicate JSON key in session document: {key}")
+        result[key] = value
+    return result
+
+
 def _source_fingerprint(path: Path) -> tuple[int, int, int, int, int]:
     stat_result = path.stat()
     return (
@@ -55,8 +64,8 @@ def _read_regular_source(path: Path) -> tuple[bytes, tuple[int, int, int, int, i
 def _decode_legacy(source_bytes: bytes) -> tuple[dict[str, Any], CreativeLedger]:
     try:
         text = source_bytes.decode("utf-8", errors="strict")
-        document = json.loads(text)
-    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        document = json.loads(text, object_pairs_hook=_unique_object)
+    except (UnicodeDecodeError, json.JSONDecodeError, MigrationViolation) as error:
         raise MigrationViolation("Legacy session is not strict UTF-8 JSON") from error
     if not isinstance(document, dict) or document.get("schema") != LEGACY_SCHEMA:
         raise MigrationViolation("Unsupported legacy session schema")
@@ -112,7 +121,7 @@ def _publish_create_only(staged: Path, target: Path) -> None:
         staged.unlink(missing_ok=True)
 
 
-def _validated_existing_target(target: Path, expected_source_hash: str) -> bool:
+def _validated_existing_target(target: Path, expected_document: Mapping[str, Any]) -> bool:
     if target.is_symlink():
         raise MigrationViolation("Existing v2 target must not be a symlink")
     if not target.exists():
@@ -120,15 +129,13 @@ def _validated_existing_target(target: Path, expected_source_hash: str) -> bool:
     if not target.is_file():
         raise MigrationViolation("Existing v2 target is not a regular file")
     try:
-        document = json.loads(target.read_text(encoding="utf-8", errors="strict"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        document = json.loads(
+            target.read_text(encoding="utf-8", errors="strict"),
+            object_pairs_hook=_unique_object,
+        )
+    except (UnicodeDecodeError, json.JSONDecodeError, MigrationViolation) as error:
         raise MigrationViolation("Existing v2 target is invalid") from error
-    migration = document.get("migration") if isinstance(document, Mapping) else None
-    if (
-        document.get("schema") != CURRENT_SCHEMA
-        or not isinstance(migration, Mapping)
-        or migration.get("source_sha256") != expected_source_hash
-    ):
+    if not isinstance(document, Mapping) or dict(document) != dict(expected_document):
         raise MigrationViolation("Existing v2 target does not match this legacy source")
     try:
         CreativeLedger.from_records(document.get("events", [])).replay()
@@ -162,11 +169,11 @@ def migrate_legacy_session(workspace: Path, slot: str = "default") -> Path:
     target = _ensure_save_directory(workspace) / f"{slot}.json"
     source_bytes, source_fingerprint = _read_regular_source(source)
     _document, ledger = _decode_legacy(source_bytes)
-    source_hash = hashlib.sha256(source_bytes).hexdigest()
-    if _validated_existing_target(target, source_hash):
+    expected_document = _build_v2_document(source_bytes, ledger)
+    if _validated_existing_target(target, expected_document):
         return target
 
-    payload = (canonical_json(_build_v2_document(source_bytes, ledger)) + "\n").encode("utf-8")
+    payload = (canonical_json(expected_document) + "\n").encode("utf-8")
     staged = _write_staged(target.parent, payload)
     try:
         final_bytes, final_fingerprint = _read_regular_source(source)

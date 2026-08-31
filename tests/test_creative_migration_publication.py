@@ -115,6 +115,19 @@ class MigrationPublicationTests(unittest.TestCase):
                 migrate_legacy_session(workspace)
             self.assertEqual(target.read_bytes(), corrupt)
 
+    def test_tampered_existing_replayed_state_fails_and_is_preserved(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory)
+            self._legacy_workspace(workspace)
+            target = migrate_legacy_session(workspace)
+            document = json.loads(target.read_text(encoding="utf-8"))
+            document["replayed_state"]["risk_level"] += 100
+            corrupt = json.dumps(document, sort_keys=True).encode("utf-8")
+            target.write_bytes(corrupt)
+            with self.assertRaises(MigrationViolation):
+                migrate_legacy_session(workspace)
+            self.assertEqual(target.read_bytes(), corrupt)
+
     def test_unsafe_slot_and_corrupt_ledger_fail_without_output(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             workspace = Path(directory)
@@ -124,6 +137,17 @@ class MigrationPublicationTests(unittest.TestCase):
             data = json.loads((workspace / "session.json").read_text(encoding="utf-8"))
             data["events"][-1]["event_hash"] = "0" * 64
             (workspace / "session.json").write_text(json.dumps(data), encoding="utf-8")
+            with self.assertRaises(MigrationViolation):
+                migrate_legacy_session(workspace)
+            self.assertFalse((workspace / "saves" / "default.json").exists())
+
+    def test_duplicate_legacy_json_keys_fail_without_output(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory)
+            self._legacy_workspace(workspace)
+            source = workspace / "session.json"
+            document = source.read_text(encoding="utf-8")
+            source.write_text(document.replace('{"events":', '{"schema":"CreativeSession/v1","events":', 1), encoding="utf-8")
             with self.assertRaises(MigrationViolation):
                 migrate_legacy_session(workspace)
             self.assertFalse((workspace / "saves" / "default.json").exists())
