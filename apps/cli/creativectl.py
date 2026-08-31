@@ -65,6 +65,7 @@ SCENARIOS = {
     "three_scene": StoryState(scene_id="archive_gate", beat_id="arrival", relationships={"mira": 0}),
     "night_signal": StoryState(scene_id="station_platform", beat_id="platform_arrival", relationships={"mira": 0}),
     "harbor_protocol": StoryState(scene_id="harbor_observatory", beat_id="dock_arrival", relationships={"mira": 0}),
+    "glass_harbor": StoryState(scene_id="glass_beacon", beat_id="c1_signal", relationships={"mira": 0, "ren": 0}),
 }
 REVIEW_TAGS = (
     "risk_increases",

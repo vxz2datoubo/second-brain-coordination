@@ -122,6 +122,12 @@ SCENE_CINEMATIC_PROFILES: dict[str, dict[str, str]] = {
     "map_archive": {"orientation_camera": "wide two-shot from the chart index toward the threshold", "consequence_camera": "medium two-shot held on the chart-index axis", "orientation_lighting": "chart table lamps keep the public index legible", "consequence_lighting": "table light marks the verified chart comparison", "orientation_sound": "paper texture and restrained archive ventilation", "consequence_sound": "chart page turn and the consequence of the player choice"},
     "public_forum": {"orientation_camera": "wide two-shot from the forum table toward the exit", "consequence_camera": "medium two-shot held on the forum-table axis", "orientation_lighting": "even forum practicals keep every public statement readable", "consequence_lighting": "table light holds the witnessed record in view", "orientation_sound": "quiet room tone and a distant public hall ambience", "consequence_sound": "pen on paper, a measured pause, and the consequence of the player choice"},
     "sunrise_pier": {"orientation_camera": "wide two-shot from the pier rail toward the street", "consequence_camera": "medium two-shot held on the pier-rail axis", "orientation_lighting": "sunrise along the pier rail opens a safe return path", "consequence_lighting": "morning light marks the accountable daylight handoff", "orientation_sound": "gentle water, gulls, and an open pier ambience", "consequence_sound": "water, distant gulls, and the consequence of the player choice"},
+    "glass_beacon": {"orientation_camera": "wide two-shot from the storm beacon toward the quay", "consequence_camera": "medium two-shot held on the beacon-to-quay axis", "orientation_lighting": "beacon spill cuts through rain over the quay", "consequence_lighting": "beacon rhythm marks the recorded choice", "orientation_sound": "wind, rigging, and a measured beacon pulse", "consequence_sound": "beacon pulse and a restrained harbor response"},
+    "public_archive": {"orientation_camera": "wide two-shot along the public archive desk", "consequence_camera": "medium two-shot held on the archive-desk axis", "orientation_lighting": "even archive lamps keep public pages legible", "consequence_lighting": "desk light isolates the accountable comparison", "orientation_sound": "paper movement and civic hall room tone", "consequence_sound": "page turn and a deliberate pause"},
+    "community_radio": {"orientation_camera": "wide two-shot from the radio console toward the studio door", "consequence_camera": "medium two-shot held on the console-to-door axis", "orientation_lighting": "console indicators balance with a practical door light", "consequence_lighting": "a soft signal meter registers the earned response", "orientation_sound": "quiet radio hum and rain on glass", "consequence_sound": "meter click, rain, and a controlled breath"},
+    "contract_hall": {"orientation_camera": "wide two-shot along the contract hall table", "consequence_camera": "medium two-shot held on the table-to-exit axis", "orientation_lighting": "neutral hall practicals keep every document edge visible", "consequence_lighting": "table light exposes the condition without exaggeration", "orientation_sound": "distant hall ventilation and a pen on paper", "consequence_sound": "paper movement and measured civic room tone"},
+    "daylight_forum": {"orientation_camera": "wide two-shot from the forum table toward daylight windows", "consequence_camera": "medium two-shot held on the table-to-window axis", "orientation_lighting": "daylight and public practicals keep testimony readable", "consequence_lighting": "window light holds the witness boundary in frame", "orientation_sound": "quiet forum ambience and distant harbor traffic", "consequence_sound": "a chair shift, distant traffic, and a held pause"},
+    "harbor_steps": {"orientation_camera": "wide two-shot from harbor steps toward the open quay", "consequence_camera": "medium two-shot held on the steps-to-quay axis", "orientation_lighting": "early daylight opens the public harbor steps", "consequence_lighting": "harbor light marks the final accountable record", "orientation_sound": "water, gulls, and open quay ambience", "consequence_sound": "footsteps, water, and the consequence of the player choice"},
 }
 
 
@@ -176,6 +182,12 @@ def synthetic_asset_index() -> dict[str, dict[str, Any]]:
         "art_scene_map_archive": synthetic_asset(role="scene", source="synthetic_fixture"),
         "art_scene_public_forum": synthetic_asset(role="scene", source="synthetic_fixture"),
         "art_scene_sunrise_pier": synthetic_asset(role="scene", source="synthetic_fixture"),
+        "art_scene_glass_beacon": synthetic_asset(role="scene", source="synthetic_fixture"),
+        "art_scene_public_archive": synthetic_asset(role="scene", source="synthetic_fixture"),
+        "art_scene_community_radio": synthetic_asset(role="scene", source="synthetic_fixture"),
+        "art_scene_contract_hall": synthetic_asset(role="scene", source="synthetic_fixture"),
+        "art_scene_daylight_forum": synthetic_asset(role="scene", source="synthetic_fixture"),
+        "art_scene_harbor_steps": synthetic_asset(role="scene", source="synthetic_fixture"),
         "art_character_mira": synthetic_asset(role="character", name="mira", adult=True, source="synthetic_fixture"),
         "art_character_player": synthetic_asset(role="character", name="player", adult=True, source="synthetic_fixture"),
     }
@@ -213,6 +225,12 @@ def compile_director_brief(
         "map_archive": ("axis:chart-index-to-threshold", "mira:threshold-side", "player:index-side"),
         "public_forum": ("axis:forum-table-to-exit", "mira:table-side", "player:exit-side"),
         "sunrise_pier": ("axis:pier-rail-to-street", "mira:street-side", "player:rail-side"),
+        "glass_beacon": ("axis:beacon-to-quay", "mira:quay-side", "player:beacon-side"),
+        "public_archive": ("axis:archive-desk-to-exit", "mira:desk-side", "player:exit-side"),
+        "community_radio": ("axis:console-to-door", "mira:door-side", "player:console-side"),
+        "contract_hall": ("axis:table-to-exit", "mira:table-side", "player:exit-side"),
+        "daylight_forum": ("axis:forum-table-to-window", "mira:window-side", "player:table-side"),
+        "harbor_steps": ("axis:steps-to-quay", "mira:quay-side", "player:steps-side"),
     }
     spatial_facts = spatial_by_scene.get(state.scene_id, ())
     skill_ids, skill_reasons = select_director_skills(state)

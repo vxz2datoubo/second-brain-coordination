@@ -1,10 +1,15 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import tempfile
 import unittest
+from pathlib import Path
 
 from apps.cli import creativectl
+from creative_runtime.continuity import glass_harbor_story_graph
+from creative_runtime.coverage import cover_routes
 from creative_runtime.flagship_season import FLAGSHIP_SEASON_01, FlagshipSeasonViolation, validate_flagship_season
+from creative_runtime.script_packages import script_for_ledger
 
 
 class FlagshipSeasonTests(unittest.TestCase):
@@ -33,6 +38,20 @@ class FlagshipSeasonTests(unittest.TestCase):
         self.assertFalse(response["validation"]["runtime_ready"])
         self.assertFalse(response["boundary"]["external_assets_loaded"])
         self.assertFalse(response["boundary"]["generated_media_loaded"])
+
+    def test_flagship_graph_has_twelve_verified_edges_and_a_replayable_ending(self) -> None:
+        graph = glass_harbor_story_graph()
+        coverage = cover_routes(graph, creativectl.SCENARIOS["glass_harbor"], max_steps=6)
+        self.assertTrue(coverage.complete)
+        self.assertEqual(12, len(coverage.covered_transition_ids))
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory)
+            creativectl.run(["--workspace", str(workspace), "init", "--script-id", "glass-harbor-season-01", "--script-revision", "GlassHarborSeason01/v1"])
+            for action in ("listen", "listen", "listen", "listen", "listen", "listen"):
+                creativectl.run(["--workspace", str(workspace), "choose", action])
+            replay = creativectl.run(["--workspace", str(workspace), "replay"])
+            self.assertEqual("ending_dawn", replay["state"]["beat_id"])
+            self.assertEqual("glass-harbor-season-01", script_for_ledger(creativectl._load_session(workspace)).script_id)
 
 
 if __name__ == "__main__":

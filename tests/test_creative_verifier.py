@@ -44,7 +44,7 @@ class CreativeVerifierTests(unittest.TestCase):
         self.assertEqual(receipt["demonstration"]["catalog_status"], "scenario_catalog_verified")
         self.assertEqual(receipt["demonstration"]["catalog_transition_count"], 14)
         self.assertEqual(receipt["demonstration"]["script_catalog_status"], "synthetic_registry_verified")
-        self.assertEqual(receipt["demonstration"]["script_catalog_count"], 4)
+        self.assertEqual(receipt["demonstration"]["script_catalog_count"], 5)
         self.assertEqual(receipt["demonstration"]["director_v2_schema"], "DirectorBrief/v2")
         self.assertTrue(receipt["demonstration"]["director_v2_can_generate"])
         self.assertEqual(receipt["demonstration"]["drama_proposal_schema"], "NarrativeProposal/v1")

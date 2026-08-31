@@ -356,6 +356,41 @@ def harbor_protocol_story_graph() -> StoryGraph:
     return StoryGraph(revision, beats, transitions)
 
 
+def glass_harbor_story_graph() -> StoryGraph:
+    """Six-chapter flagship graph compiled from the reviewed authoring bible.
+
+    This graph intentionally holds only public-safe state effects. Character
+    appearance and generated media are separate A3 responsibilities.
+    """
+
+    revision = "GlassHarborSeason01Graph/v1"
+    beats = (
+        GraphBeat("glass_beacon", "c1_signal", "At the storm-lit harbor beacon, two adult archivists choose how to answer a signal with no sender."),
+        GraphBeat("public_archive", "c2_ledger", "A disputed civic ledger is found in a public archive. The group must protect evidence without treating a witness as evidence."),
+        GraphBeat("community_radio", "c3_frequency", "At a community radio room, Ren admits the signal touches a promise he made after the blackout."),
+        GraphBeat("contract_hall", "c4_shadow", "A contractor offers a convenient explanation and a narrow archive route. Mira asks what the offer leaves out."),
+        GraphBeat("daylight_forum", "c5_witness", "Before a daylight hearing, the group chooses how much public burden a witness should carry."),
+        GraphBeat("harbor_steps", "c6_record", "At the harbor steps, every adult ally can see the final record before the city hears it."),
+        GraphBeat("harbor_steps", "ending_dawn", "The group publishes a limited accountable record, protects the witness, and keeps the next inquiry open."),
+        GraphBeat("harbor_steps", "ending_open", "The group releases the full verified chain together and accepts the public aftermath."),
+    )
+    transitions = (
+        _transition(revision, "glass_beacon", "c1_signal", "listen", "Trace the rhythm with Mira", {"scene_id": "public_archive", "beat_id": "c2_ledger", "reveal_facts": ["the beacon repeats a civic reconstruction code"], "relationship_delta": {"mira": 1}, "risk_delta": 1, "flags": {"signal": "traced"}}),
+        _transition(revision, "glass_beacon", "c1_signal", "approach", "Broadcast a cautious public question with Ren", {"scene_id": "public_archive", "beat_id": "c2_ledger", "reveal_facts": ["a caller remembers the reconstruction route"], "risk_delta": 1, "flags": {"signal": "broadcast"}}),
+        _transition(revision, "public_archive", "c2_ledger", "listen", "Seal the ledger and request a witness", {"scene_id": "community_radio", "beat_id": "c3_frequency", "relationship_delta": {"mira": 1}, "flags": {"witness": "requested"}}),
+        _transition(revision, "public_archive", "c2_ledger", "approach", "Compare the ledger against the public archive", {"scene_id": "community_radio", "beat_id": "c3_frequency", "reveal_facts": ["a public page carries a forged reconstruction stamp"], "risk_delta": 1, "flags": {"ledger": "compared"}}),
+        _transition(revision, "community_radio", "c3_frequency", "listen", "Ask Ren to name what he is protecting", {"scene_id": "contract_hall", "beat_id": "c4_shadow", "reveal_facts": ["Ren preserved a route recording after the blackout"], "relationship_delta": {"ren": 1}, "flags": {"ren": "trusted"}}),
+        _transition(revision, "community_radio", "c3_frequency", "approach", "Keep the case procedural and exclude Ren", {"scene_id": "contract_hall", "beat_id": "c4_shadow", "risk_delta": -1, "relationship_delta": {"ren": -1}, "flags": {"ren": "excluded"}}),
+        _transition(revision, "contract_hall", "c4_shadow", "listen", "Accept archive access but log every condition", {"scene_id": "daylight_forum", "beat_id": "c5_witness", "reveal_facts": ["the contract condition omits a witness name"], "risk_delta": 1, "flags": {"contract": "logged"}}),
+        _transition(revision, "contract_hall", "c4_shadow", "approach", "Refuse and follow the harbor workers route", {"scene_id": "daylight_forum", "beat_id": "c5_witness", "relationship_delta": {"mira": 1}, "risk_delta": 1, "flags": {"route": "workers"}}),
+        _transition(revision, "daylight_forum", "c5_witness", "listen", "Let the witness speak only to verified facts", {"scene_id": "harbor_steps", "beat_id": "c6_record", "relationship_delta": {"mira": 1}, "risk_delta": -1, "flags": {"hearing": "limited"}}),
+        _transition(revision, "daylight_forum", "c5_witness", "approach", "Use the signal to force an immediate hearing", {"scene_id": "harbor_steps", "beat_id": "c6_record", "risk_delta": 1, "flags": {"hearing": "immediate"}}),
+        _transition(revision, "harbor_steps", "c6_record", "listen", "Publish a limited record and keep the witness safe", {"beat_id": "ending_dawn", "relationship_delta": {"mira": 1}, "risk_delta": -1, "flags": {"ending": "accountable_dawn"}}),
+        _transition(revision, "harbor_steps", "c6_record", "approach", "Release the full verified chain with the team beside you", {"beat_id": "ending_open", "reveal_facts": ["the verified civic chain is public"], "relationship_delta": {"ren": 1}, "risk_delta": 1, "flags": {"ending": "harbor_open"}}),
+    )
+    return StoryGraph(revision, beats, transitions)
+
+
 def graph_for_initial_state(initial: StoryState) -> StoryGraph:
     """Select the sole graph that can interpret a session's initial state."""
 
@@ -367,6 +402,8 @@ def graph_for_initial_state(initial: StoryState) -> StoryGraph:
         return night_signal_story_graph()
     if initial.scene_id == "harbor_observatory" and initial.beat_id == "dock_arrival":
         return harbor_protocol_story_graph()
+    if initial.scene_id == "glass_beacon" and initial.beat_id == "c1_signal":
+        return glass_harbor_story_graph()
     raise TimelineViolation(
         "No registered story graph for initial state " + initial.scene_id + "/" + initial.beat_id
     )

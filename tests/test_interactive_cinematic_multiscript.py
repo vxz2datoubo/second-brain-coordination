@@ -27,13 +27,13 @@ from creative_runtime.script_packages import (
 class InteractiveCinematicMultiscriptTests(unittest.TestCase):
     def test_registry_contains_only_approved_synthetic_packages_and_four_profiles(self) -> None:
         packages = all_script_packages()
-        self.assertEqual(4, len(packages))
-        self.assertEqual(4, len({package.script_id for package in packages}))
+        self.assertEqual(5, len(packages))
+        self.assertEqual(5, len({package.script_id for package in packages}))
         self.assertTrue(all(package.approval_status == "approved_for_runtime" for package in packages))
         self.assertTrue(all(package.source_provenance == "synthetic_fixture" for package in packages))
         catalog = script_catalog()
         self.assertEqual("synthetic_registry_verified", catalog["status"])
-        self.assertEqual(4, catalog["script_count"])
+        self.assertEqual(5, catalog["script_count"])
         self.assertEqual(
             {"cinematic_live_action", "stylized_3d", "japanese_animation", "ink_wash_animation"},
             {profile["style_profile_id"] for profile in catalog["style_profiles"]},

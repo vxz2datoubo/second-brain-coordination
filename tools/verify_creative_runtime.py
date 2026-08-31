@@ -358,7 +358,7 @@ def verify(
         "harbor_catalog_status": "scenario_catalog_verified",
         "harbor_catalog_transition_count": 12,
         "script_catalog_status": "synthetic_registry_verified",
-        "script_catalog_count": 4,
+        "script_catalog_count": 5,
         "script_style_profile_count": 4,
         "director_v2_status": "director_v2_verified",
         "director_v2_schema": "DirectorBrief/v2",

@@ -130,6 +130,14 @@ SCRIPT_PACKAGES: tuple[ScriptPackage, ...] = (
         ("harbor_observatory", "beacon_room", "map_archive", "public_forum", "sunrise_pier"),
         ("dock_arrival", "beacon_echo", "lens_console", "chart_crosscheck", "witnessed_record", "daylight_return"),
     ),
+    _package(
+        "glass-harbor-season-01",
+        "GlassHarborSeason01/v1",
+        StoryState("glass_beacon", "c1_signal", {"mira": 0, "ren": 0}),
+        "GlassHarborSeason01Graph/v1",
+        ("glass_beacon", "public_archive", "community_radio", "contract_hall", "daylight_forum", "harbor_steps"),
+        ("c1_signal", "c2_ledger", "c3_frequency", "c4_shadow", "c5_witness", "c6_record", "ending_dawn", "ending_open"),
+    ),
 )
 _SCRIPT_BY_ID = {package.script_id: package for package in SCRIPT_PACKAGES}
 _SCRIPT_BY_INITIAL = {
