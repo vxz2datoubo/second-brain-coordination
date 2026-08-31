@@ -206,6 +206,67 @@ class AntagonistState:
 
 
 @dataclass(frozen=True)
+class AvatarIdentity:
+    avatar_id: str
+    private_owner_ref: str
+    consent_revision: str
+    first_approved_asset_ref: str
+    identity_status: str
+    def to_dict(self) -> dict[str, Any]: return {"schema": "AvatarIdentity/v1", **_json_value(self)}
+
+
+@dataclass(frozen=True)
+class AvatarRevision:
+    avatar_revision_id: str
+    avatar_id: str
+    private_asset_ref: str
+    approval_ref: str
+    effective_from_event_id: str
+    replacement_reason: str
+    def to_dict(self) -> dict[str, Any]: return {"schema": "AvatarRevision/v1", **_json_value(self)}
+
+
+@dataclass(frozen=True)
+class AppearanceContinuityRecord:
+    segment_id: str
+    campaign_id: str
+    cast_revision_ids: tuple[str, ...]
+    continuity_ledger_hash: str
+    validation_status: str
+    wardrobe_refs: tuple[str, ...] = ()
+    prop_refs: tuple[str, ...] = ()
+    injury_state: str = "unchanged"
+    space_state: str = "verified_from_story"
+
+    @property
+    def schema(self) -> str:
+        return "AppearanceContinuityRecord/v1"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"schema": self.schema, **_json_value(self)}
+
+
+@dataclass(frozen=True)
+class CharacterAppearanceAnchor:
+    """Approved visual reference metadata; never an image or biometric payload."""
+
+    character_id: str
+    anchor_revision: str
+    approved_reference_ref: str
+    wardrobe_refs: tuple[str, ...]
+    prop_refs: tuple[str, ...]
+    injury_state: str
+    emotion_state: str
+
+    @property
+    def schema(self) -> str:
+        return "CharacterAppearanceAnchor/v1"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"schema": self.schema, **_json_value(self)}
+
+
+@dataclass(frozen=True)
 class DirectorBrief:
     brief_id: str
     story_state: StoryState
@@ -274,6 +335,83 @@ class DirectorBriefV2:
     @property
     def schema(self) -> str:
         return "DirectorBrief/v2"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"schema": self.schema, **_json_value(self)}
+
+
+@dataclass(frozen=True)
+class CinematicSegment:
+    """A short, source-bound segment description, not generated media."""
+
+    segment_id: str
+    campaign_id: str
+    shot_bundle_hash: str
+    duration_seconds: int
+    audio_plan: str
+    style_profile_id: str
+    continuity_record_ref: str
+    generation_authorization_status: str
+
+    @property
+    def schema(self) -> str:
+        return "CinematicSegment/v1"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"schema": self.schema, **_json_value(self)}
+
+
+@dataclass(frozen=True)
+class MediaJob:
+    job_id: str
+    request_hash: str
+    segment_ref: str
+    provider_adapter: str
+    confirmation_status: str
+    budget_gate_ref: str
+    idempotency_key: str
+    status: str
+
+    @property
+    def schema(self) -> str:
+        return "MediaJob/v1"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"schema": self.schema, **_json_value(self)}
+
+
+@dataclass(frozen=True)
+class MediaResult:
+    job_id: str
+    provider_ref: str
+    result_ref: str | None
+    result_hash: str
+    created_at: str
+    status: str
+    failure_reason: str | None = None
+
+    @property
+    def schema(self) -> str:
+        return "MediaResult/v1"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"schema": self.schema, **_json_value(self)}
+
+
+@dataclass(frozen=True)
+class MediaQualityReport:
+    job_id: str
+    identity_check: str
+    continuity_check: str
+    content_check: str
+    audio_check: str
+    policy_check: str
+    verdict: str
+    evidence_refs: tuple[str, ...]
+
+    @property
+    def schema(self) -> str:
+        return "MediaQualityReport/v1"
 
     def to_dict(self) -> dict[str, Any]:
         return {"schema": self.schema, **_json_value(self)}

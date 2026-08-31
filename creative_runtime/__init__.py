@@ -7,16 +7,31 @@ are allowed to add their own deterministic behavior.
 
 from .governance import GovernanceViolation, TaskGovernance, load_task_governance
 from .contracts import (
+    AppearanceContinuityRecord,
+    AvatarIdentity,
+    AvatarRevision,
+    CharacterAppearanceAnchor,
+    CinematicSegment,
     CreativeArtifact,
     CreativeEvent,
     DirectorBrief,
     GenerationRequest,
     GenerationResult,
+    MediaJob,
+    MediaQualityReport,
+    MediaResult,
     PlayerAction,
     ShotPlan,
     StoryBeat,
     StoryState,
     canonical_json,
+)
+from .cinematic_media import (
+    CinematicMediaViolation,
+    OfflineMediaQueue,
+    build_cinematic_segment,
+    create_offline_media_job,
+    execute_offline_media_job,
 )
 from .ledger import CreativeLedger, LedgerViolation, create_artifact
 from .director import SCENE_CINEMATIC_PROFILES, DirectorCompilation, DirectorQualityMetrics, DirectorSkill, QualityFinding, QualityReport, VerifiedDirectorCompilation, compile_director, compile_verified_director, select_director_skills
@@ -115,6 +130,12 @@ from .session import (
 )
 
 __all__ = [
+    "AppearanceContinuityRecord",
+    "AvatarIdentity",
+    "AvatarRevision",
+    "CharacterAppearanceAnchor",
+    "CinematicMediaViolation",
+    "CinematicSegment",
     "CreativeArtifact",
     "CreativeEvent",
     "RouteCoverageEntry",
@@ -151,12 +172,16 @@ __all__ = [
     "SafeIntentResolution",
     "MetricAnchor",
     "MigrationResult",
+    "MediaJob",
+    "MediaQualityReport",
+    "MediaResult",
     "ExternalGenerationGuard",
     "FeedbackRecord",
     "FeedbackViolation",
     "OfflineGenerationAdapter",
     "OfflineGenerationReceipt",
     "OfflineGenerationRecord",
+    "OfflineMediaQueue",
     "PlayerAction",
     "PresentationViolation",
     "ReplayCapsuleViolation",
@@ -195,6 +220,7 @@ __all__ = [
     "adapter_for",
     "assess_anchor",
     "bind_verified_timeline",
+    "build_cinematic_segment",
     "build_verified_session_receipt",
     "build_interactive_frame",
     "build_verified_replay_capsule",
@@ -211,9 +237,11 @@ __all__ = [
     "cover_director_states",
     "coverage_for_scenario",
     "director_coverage_for_scenario",
+    "execute_offline_media_job",
     "ledger_for_route",
     "correct_from_verified_timeline",
     "create_artifact",
+    "create_offline_media_job",
     "default_story_graph",
     "feedback_path",
     "graph_for_initial_state",
