@@ -1,0 +1,120 @@
+schema_version: "1.0"
+packet_id: "DS02-PHASE2-IMPLEMENTATION-READINESS-PACKET-0012B"
+source_issue: 519
+source_pr: 520
+source_contract_head: "bf6364a90ffb03098a2636813fc3a3cad00eb3b6"
+status: "DESIGN_PREVIEW_ONLY / NOT_IMPLEMENTATION_AUTHORITY"
+boundary: "RESEARCH_ONLY / NO_TRADE"
+
+hard_preconditions:
+  - "PR #520 exact-head independent review must ACCEPT the contract slice."
+  - "The accepted contract must become canonical main through governed canonicalization."
+  - "A separate Phase 2 issue/snapshot must authorize runtime paths before first substantive write."
+  - "Implementation branch must not be created before that authorization."
+  - "No live broker/order/account/fund path may be introduced."
+
+future_reference_engine_scope:
+  preferred_module: "research_runtime/bayesian_belief.py"
+  authority: "REBUILDABLE_REFERENCE_ENGINE_ONLY"
+  first_models:
+    - "Beta-Binomial analytic update"
+    - "Normal-Normal analytic update"
+    - "log-odds + log-Bayes-factor stable update"
+  required_functions:
+    - validate_forecast_target
+    - validate_point_in_time_evidence
+    - group_dependent_evidence
+    - beta_binomial_update
+    - normal_normal_update
+    - log_odds_update
+    - build_belief_packet
+    - validate_belief_packet
+    - invalidate_evidence_and_recompute
+    - evaluate_rule_regime_compatibility
+  forbidden:
+    - model_training_on_live_user_accounts
+    - broker_api
+    - order_submission
+    - position_mutation
+    - account_funds_read
+    - second_market_store
+    - second_event_store
+    - second_regime_authority
+
+reference_engine_invariants:
+  - "Canonical posterior must be rebuilt from governed prior/evidence/model inputs, never accepted from caller metadata."
+  - "Dependent evidence is grouped before combination."
+  - "No likelihood model means ABSTAIN/UNKNOWN, not a fabricated Bayes factor."
+  - "All updates produce a new belief identity; old beliefs are immutable evidence."
+  - "Rule/feature/target/version incompatibility fails closed to REVALIDATION_REQUIRED."
+  - "BeliefPacket authority flags remain false."
+
+pit_harness_scope:
+  required_checks:
+    - "available_at <= decision_time"
+    - "revision lineage preserved"
+    - "corporate-action adjustment version bound"
+    - "market calendar version bound"
+    - "rule snapshot effective at decision time"
+    - "exchange/board/security type scope match"
+  initial_synthetic_attacks:
+    - future_news_leak
+    - revised_financial_statement_leak
+    - wrong_exchange_rule_snapshot
+    - deferred_clause_assumed_active
+    - target_definition_alias_collision
+    - feature_polarity_version_collision
+
+implementation_test_plan:
+  unit:
+    - analytic_closed_form_equality
+    - sequential_batch_equivalence_where_valid
+    - evidence_dependency_deduplication
+    - evidence_retraction_recompute
+    - log_space_numeric_stability
+    - canonical_serialization_round_trip
+    - schema_validation
+  metamorphic:
+    - evidence_order_invariance_when_conditional_independence_assumptions_hold
+    - duplicate_dependent_evidence_no_confidence_inflation
+    - UI_rounding_never_changes_replay
+    - rule_version_change_triggers_revalidation
+  adversarial:
+    - caller_supplied_posterior_rejected
+    - probability_out_of_range_rejected
+    - trade_authority_escalation_rejected
+    - missing_horizon_rejected
+    - missing_available_at_rejected
+
+phase2_outputs_if_later_authorized:
+  - "ReferenceBeliefEngine/v1"
+  - "BeliefPacket/v1 builder + validator"
+  - "PITAdmissibilityReport/v1"
+  - "EvidenceDependenceReport/v1"
+  - "RuleCompatibilityReport/v1"
+  - "AnalyticReferenceValidationReport/v1"
+
+phase3_oos_backtest_gate:
+  status: "SEPARATE_FUTURE_SLICE"
+  prerequisites:
+    - phase2_reference_engine_canonical
+    - versioned_A_share_dataset_contract
+    - DS10_experiment_ledger
+    - point_in_time_replay_ready
+  baselines: [B0_BASE_RATE, B1_SIMPLE_LOGISTIC, B2_CURRENT_RULE_BASELINE, B3_CURRENT_ENSEMBLE, B4_B3_PLUS_DS02]
+  horizons: [INTRADAY, 1D, 3D, 5D, 10D, 20D, 60D]
+  validation:
+    - purged_walk_forward
+    - embargo
+    - final_lockbox
+    - regime_split
+    - policy_era_split
+    - rule_version_split
+    - transaction_costs
+    - liquidity
+    - T_plus_1
+    - price_limits
+    - suspensions
+    - DS10_multiple_testing_audit
+
+stop_condition: "PACKET_DOES_NOT_AUTHORIZE_RUNTIME_OR_BACKTEST_WRITES"
