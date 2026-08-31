@@ -1,4 +1,4 @@
-schema_version: "1.0"
+schema_version: "1.1"
 provenance_id: "R172-SINGLE-V2-AUTHORITY-SOURCE-SELECTION"
 project: "SECOND_BRAIN"
 repository: "vxz2datoubo/second-brain-coordination"
@@ -29,16 +29,77 @@ frozen_candidates:
   pr_502: {disposition: "FROZEN_EVIDENCE", commit_import_allowed: false}
   pr_495: {disposition: "FROZEN_UNACCEPTED_EVIDENCE", commit_import_allowed: false}
   pr_493: {disposition: "REFERENCE_ONLY", commit_import_allowed: false}
+codex_continuous_evidence_lineage:
+  root_delivery:
+    branch: "codex/creative-interactive-film-second-brain-0001"
+    observed_head: "d1b29ec356f59f4e2e35f03abe6c17c6f1d790b8"
+    relation: "ANCESTOR_EVIDENCE"
+    disposition: "NONCANONICAL_SPECIFICATION_AND_BEHAVIOR_EVIDENCE_ONLY"
+    commit_import_allowed: false
+  audited_continuous_build:
+    branch: "codex/creative-runtime-continuous-build"
+    observed_head: "a9a85bda200a7160fb244186e4c71c8c28b6463c"
+    relation_to_root_delivery: "DESCENDANT_AHEAD_116_AT_2026-08-31_RECONCILE"
+    audit_anchor: "Issue #518"
+    disposition: "NONCANONICAL_PRODUCT_UX_EVAL_AND_ADVERSARIAL_EVIDENCE_ONLY"
+    commit_import_allowed: false
+    acceptance_transfer_allowed: false
+  continuing_next:
+    branch: "codex/creative-runtime-next"
+    observed_head: "2f12aba6dae4a83038fef1f3d5e737944bd9ce1f"
+    relation_to_audited_continuous_build: "DESCENDANT_AHEAD_15_AT_2026-08-31_RECONCILE"
+    disposition: "MOVING_NONCANONICAL_CODEX_PRODUCT_AND_EVAL_EVIDENCE"
+    commit_import_allowed: false
+    acceptance_transfer_allowed: false
+    exact_head_github_actions_observed: false
+    product_eval_surfaces:
+      - "CreativeSyntheticReplayCapsule/v1"
+      - "portable exact-head replay capsule package + verifier"
+      - "CreativeSyntheticReplayCorpus/v1"
+      - "portable exhaustive replay-corpus package + verifier"
+      - "source-derived replay review board"
+      - "read-only local replay corpus viewer"
+      - "CLI exact-head replay-review filters"
+    allowed_r172_use:
+      - "behavior contracts"
+      - "adversarial cases"
+      - "public interface expectations"
+      - "UX requirements"
+      - "test ideas rewritten independently from canonical-main interfaces"
+    forbidden_r172_use:
+      - "copying code or diff hunks"
+      - "cherry-pick"
+      - "merge-from"
+      - "rebase-from"
+      - "branch ancestry as implementation authority"
+      - "treating replay corpus or review board as session/world authority"
+      - "treating executor clean-clone evidence as independent acceptance"
+  ownership_partition:
+    gpt_single_session_authority_surface:
+      - "CreativeSession/v2 persisted authority"
+      - "migration provenance rederivation"
+      - "single CreativeLedger continuation authority"
+      - "single validation choke point"
+      - "save/load/restore/timeline/director/review consumer validation through that choke point"
+    codex_product_eval_surface:
+      - "verified replay capsules"
+      - "exhaustive synthetic replay corpus"
+      - "source-derived branch review board"
+      - "read-only replay viewers"
+      - "portable synthetic evidence packages and verification tooling"
+    overlap_rule: "O0_BY_DESIGN_ONLY_WHILE_CODEX_PRODUCT_EVAL_SURFACE_DOES_NOT_DEFINE_OR_MUTATE_THE_R172_SESSION_AUTHORITY"
 implementation_rule: >-
-  Independently derive R172 from Issue #515 and canonical-main interfaces after the future pre-write snapshot. Frozen PRs may inform
-  failure cases and externally visible requirements only; no code, diff hunk, branch ancestry, cherry-pick, merge-from, rebase-from,
-  or implementation artifact may be reused.
+  Independently derive R172 from Issue #515 and canonical-main interfaces after the future pre-write snapshot. Frozen PRs and the CODEX continuous
+  evidence lineage may inform failure cases, behavior contracts, UX expectations and test ideas only; no code, diff hunk, commit/blob/tree, branch
+  ancestry, cherry-pick, merge-from, rebase-from or implementation artifact may be reused unless a future separately governed Source Selection
+  Provenance explicitly admits an exact source path and exact commit before first use. The default for every CODEX implementation byte is DENY.
 binding_invariants:
   - "one persisted CreativeSession/v2 authority"
   - "immutable legacy source evidence"
   - "migration receipt never self-authorizes"
   - "graph-derived continuation only"
   - "single validation choke point"
+  - "CODEX replay/review artifacts remain downstream read-only evidence and never session/world authority"
   - "NO_W3_DOMAIN_TRUTH_WRITE"
   - "NO_TRADE"
 status: "BOUND_GOVERNANCE_CANDIDATE / READ_ONLY_AFTER_FUTURE_SNAPSHOT"
