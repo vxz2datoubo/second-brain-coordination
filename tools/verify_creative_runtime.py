@@ -79,6 +79,21 @@ def _demo(cli: Any) -> dict[str, Any]:
         )
         catalogue = cli.run(["catalog", "--scenario", "night_signal"])
         harbor_catalogue = cli.run(["catalog", "--scenario", "harbor_protocol"])
+        script_catalog = cli.run(["script-catalog"])
+        director_v2 = cli.run(
+            [
+                "--workspace", str(workspace), "director-v2",
+                "--script-id", "synthetic-three-scene",
+                "--script-revision", "SyntheticThreeScene/v1",
+                "--style-profile-id", "cinematic_live_action",
+            ]
+        )
+        drama_workspace = workspace / "drama-manager"
+        cli.run(["--workspace", str(drama_workspace), "init", "--script-id", "synthetic-harbor-protocol"])
+        drama_proposal = cli.run(["--workspace", str(drama_workspace), "propose", "listen"])
+        cli.run(["--workspace", str(drama_workspace), "choose", "listen"])
+        drama_campaign = cli.run(["--workspace", str(drama_workspace), "campaign"])
+        drama_coverage = cli.run(["drama-coverage", "--scenario", "harbor_protocol"])
         understanding = cli.run(["--workspace", str(workspace), "understanding"])
         derived = cli.run(
             [
@@ -228,6 +243,19 @@ def _demo(cli: Any) -> dict[str, Any]:
             "catalog_transition_count": len(catalogue["covered_transition_ids"]),
             "harbor_catalog_status": harbor_catalogue["status"],
             "harbor_catalog_transition_count": len(harbor_catalogue["covered_transition_ids"]),
+            "script_catalog_status": script_catalog["status"],
+            "script_catalog_count": script_catalog["script_count"],
+            "script_style_profile_count": len(script_catalog["style_profiles"]),
+            "director_v2_status": director_v2["status"],
+            "director_v2_schema": director_v2["brief"]["schema"],
+            "director_v2_can_generate": director_v2["quality_report"]["can_generate"],
+            "drama_proposal_status": drama_proposal["status"],
+            "drama_proposal_schema": drama_proposal["proposal"]["schema"],
+            "drama_selection_schema": drama_proposal["selection"]["schema"],
+            "drama_campaign_status": drama_campaign["status"],
+            "drama_campaign_opposition_status": drama_campaign["antagonist_states"][0]["status"],
+            "drama_coverage_status": drama_coverage["status"],
+            "drama_coverage_percent": drama_coverage["coverage_percent"],
             "understanding_status": understanding["status"],
             "drift_statuses": [item["status"] for item in understanding["drift_assessments"]],
             "knowledge_status": derived["status"],
@@ -329,6 +357,19 @@ def verify(
         "catalog_transition_count": 14,
         "harbor_catalog_status": "scenario_catalog_verified",
         "harbor_catalog_transition_count": 12,
+        "script_catalog_status": "synthetic_registry_verified",
+        "script_catalog_count": 4,
+        "script_style_profile_count": 4,
+        "director_v2_status": "director_v2_verified",
+        "director_v2_schema": "DirectorBrief/v2",
+        "director_v2_can_generate": True,
+        "drama_proposal_status": "proposal_verified",
+        "drama_proposal_schema": "NarrativeProposal/v1",
+        "drama_selection_schema": "DramaticBeatSelection/v1",
+        "drama_campaign_status": "campaign_progression_verified",
+        "drama_campaign_opposition_status": "pressuring",
+        "drama_coverage_status": "primary_choice_consequences_verified",
+        "drama_coverage_percent": 100,
         "understanding_status": "understanding_mapped",
         "drift_statuses": ["pass", "pass", "pass", "pass"],
         "knowledge_status": "pending_human_review",
