@@ -4,7 +4,7 @@
   "title": "BeliefPacket/v1",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema", "identity", "temporal_provenance", "prior", "evidence", "update", "validation", "predictive", "diagnostics", "numeric_integrity", "authority"],
+  "required": ["schema", "identity", "temporal_provenance", "prior", "evidence", "update", "shrinkage", "validation", "predictive", "diagnostics", "numeric_integrity", "authority"],
   "properties": {
     "schema": {"const": "BeliefPacket/v1"},
     "identity": {
@@ -40,13 +40,21 @@
     },
     "prior": {
       "type": "object", "additionalProperties": false,
-      "required": ["prior_id", "prior_version", "family", "parameters", "training_window", "effective_from", "evidence_digest"],
+      "required": ["prior_id", "prior_version", "family", "parameters", "training_window", "regime_scope", "effective_from", "evidence_digest"],
       "properties": {
         "prior_id": {"type": "string", "minLength": 1},
         "prior_version": {"type": "string", "minLength": 1},
         "family": {"type": "string", "minLength": 1},
         "parameters": {"type": "object"},
-        "training_window": {"type": "string", "minLength": 1},
+        "training_window": {
+          "type": "object", "additionalProperties": false,
+          "required": ["start", "end"],
+          "properties": {
+            "start": {"type": "string", "format": "date-time"},
+            "end": {"type": "string", "format": "date-time"}
+          }
+        },
+        "regime_scope": {"type": "string", "minLength": 1},
         "effective_from": {"type": "string", "format": "date-time"},
         "evidence_digest": {"type": "string", "minLength": 8}
       }
@@ -108,6 +116,17 @@
         "belief_state": {"enum": ["PROPOSAL", "UNKNOWN", "ABSTAIN", "REVALIDATION_REQUIRED"]}
       }
     },
+    "shrinkage": {
+      "type": "object", "additionalProperties": false,
+      "required": ["effective_sample_size", "hierarchy_level", "hierarchical_prior_id", "hierarchical_prior_version", "status"],
+      "properties": {
+        "effective_sample_size": {"type": "number", "minimum": 0},
+        "hierarchy_level": {"enum": ["MARKET", "INDUSTRY", "THEME", "SECURITY"]},
+        "hierarchical_prior_id": {"type": "string", "minLength": 1},
+        "hierarchical_prior_version": {"type": "string", "minLength": 1},
+        "status": {"enum": ["APPLIED", "REVALIDATION_REQUIRED", "NOT_APPLICABLE"]}
+      }
+    },
     "validation": {
       "type": "object", "additionalProperties": false,
       "required": ["authority_state", "packet_status", "validated_computation_receipt", "canonical_belief_authorized"],
@@ -160,7 +179,7 @@
         "probability_serialization_decimals": {"const": 12},
         "rounding_mode": {"const": "ROUND_HALF_EVEN"},
         "ui_precision_is_authority": {"const": false},
-        "canonical_digest": {"type": "string", "minLength": 8}
+        "canonical_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
       }
     },
     "authority": {
