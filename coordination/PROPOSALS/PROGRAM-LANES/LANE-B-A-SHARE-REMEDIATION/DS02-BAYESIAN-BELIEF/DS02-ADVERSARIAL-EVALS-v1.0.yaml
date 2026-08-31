@@ -1,4 +1,4 @@
-schema_version: "1.1"
+schema_version: "1.2"
 pack_id: DS02-ADVERSARIAL-EVALS-v1
 execution_contract:
   every_case_must_execute: true
@@ -37,10 +37,10 @@ cases:
     expected_classification: REVALIDATION_REQUIRED
     expected_code: CALIBRATION_REQUIRED
   - id: ADV-04
-    attack: four successes in five observations tries to mint extreme posterior
-    fixture: POSTERIOR_INCONSISTENT
-    expected_classification: REJECTED
-    expected_code: POSTERIOR_MATH_INCONSISTENT
+    attack: tiny sample four successes in five observations tries to mint extreme confidence
+    fixture: SMALL_SAMPLE_EXTREME_POSTERIOR
+    expected_classification: REVALIDATION_REQUIRED
+    expected_code: SMALL_SAMPLE_SHRINKAGE_REQUIRED
   - id: ADV-05
     attack: evidence available after decision_time enters historical replay
     fixture: FUTURE_EVIDENCE
@@ -52,7 +52,7 @@ cases:
     expected_classification: REJECTED
     expected_code: SCHEMA_REJECT
   - id: ADV-07
-    attack: caller directly supplies posterior_probability as authority metadata
+    attack: caller directly supplies a mathematically inconsistent posterior_probability
     fixture: POSTERIOR_INCONSISTENT
     expected_classification: REJECTED
     expected_code: POSTERIOR_MATH_INCONSISTENT
@@ -141,3 +141,28 @@ cases:
     fixture: DELETE_RETRACTION_HISTORY
     expected_classification: REJECTED
     expected_code: APPEND_ONLY_VIOLATION
+  - id: ADV-25
+    attack: prior becomes effective after the packet knowledge cutoff and is relabeled ex ante
+    fixture: PRIOR_EFFECTIVE_AFTER_CUTOFF
+    expected_classification: REJECTED
+    expected_code: PRIOR_NOT_EX_ANTE
+  - id: ADV-26
+    attack: prior training window includes observations after the packet knowledge cutoff
+    fixture: PRIOR_TRAINING_AFTER_CUTOFF
+    expected_classification: REJECTED
+    expected_code: PRIOR_NOT_EX_ANTE
+  - id: ADV-27
+    attack: evidence is before decision_time but after the stricter knowledge_cutoff
+    fixture: EVIDENCE_AFTER_KNOWLEDGE_CUTOFF
+    expected_classification: REVALIDATION_REQUIRED
+    expected_code: KNOWLEDGE_CUTOFF_VIOLATION
+  - id: ADV-28
+    attack: packet claims a knowledge cutoff later than as_of_time
+    fixture: TEMPORAL_ORDER_INVALID
+    expected_classification: REJECTED
+    expected_code: TEMPORAL_ORDER_INVALID
+  - id: ADV-29
+    attack: caller changes canonical packet content without updating the declared content digest
+    fixture: CANONICAL_DIGEST_TAMPER
+    expected_classification: REJECTED
+    expected_code: CANONICAL_DIGEST_MISMATCH
