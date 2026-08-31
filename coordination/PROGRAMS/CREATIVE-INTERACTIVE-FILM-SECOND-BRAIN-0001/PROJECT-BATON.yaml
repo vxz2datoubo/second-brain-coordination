@@ -12,7 +12,7 @@ human_entrypoint: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0
 history_log: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/PROJECT-HANDOFF-LOG.md
 current_main_rule: "Fresh-fetch remote main before execution; baton is navigation, not authority."
 baton:
-  handoff_id: CIF-RELAY-R174-ACTIVE
+  handoff_id: CIF-RELAY-R175-ACTIVE
   from_agent: GPT_GITHUB_INTEGRATOR
   current_holder: CODEX
   next_preferred_after_holder: GPT_INDEPENDENT_REVIEWER
@@ -20,52 +20,58 @@ baton:
   user_second_start_command_required: false
 current_mission:
   summary: >-
-    Execute R174 clean remediation from canonical implementation baseline only. Close all R173 terminal T3 blockers in one adjacent lifecycle slice, freeze one new exact head, run exact-head CI, hand off, and request uninvolved T3.
-  active_issue: 526
-  parent_issue: 524
-  frozen_pr: 525
-  frozen_head: 2cdacaa5e516d2d938838629ffc965105d364917
-  terminal_review: pullrequestreview-5068184475
-  terminal_result: issuecomment-5480524987
-  route_epoch: 174
-  task_id: CODEX-R173-PUBLIC-SAFE-MIGRATION-REMEDIATION-R174
-  implementation_baseline: c8cbf8d8f3086f0c96daa877c608ed5db9b4a775
-  working_branch: codex/r174-public-safe-migration-remediation
-  branch_head_at_activation: c8cbf8d8f3086f0c96daa877c608ed5db9b4a775
-  effective_spec_snapshot_ref: issuecomment-5480648812
+    Execute the R175 clean successor from the canonical policy-floor baseline only. Close all five terminal R174 T3 blockers in one adjacent lifecycle slice, freeze one new exact head, run exact-head CI, hand off, and request an uninvolved T3.
+  active_issue: 528
+  parent_issue: 526
+  frozen_prs: [527, 525]
+  frozen_head: bebc29e504fbed64aaa6db981e09b359b0c83b80
+  terminal_review: pullrequestreview-5068638956
+  terminal_result: issuecomment-5481082134
+  route_epoch: 175
+  task_id: CODEX-R174-CAPABILITY-CONFINEMENT-REMEDIATION-R175
+  identity_fields:
+    implementation_baseline: 740788a3847a402923bf2e89093d910eda0c89d0
+    snapshot_base: 40166aea147f3797768a2369f55e87346f3e3c52
+    canonical_governance_main_source: FRESH_MAIN_AFTER_ACTIVATION_UPDATES
+  working_branch: codex/r175-capability-policy-confinement-remediation
+  branch_head_at_activation: 740788a3847a402923bf2e89093d910eda0c89d0
+  effective_spec_snapshot_ref: issuecomment-5483140274
   execution_allowed: true
-  next_action: CLAIM_AND_EXECUTE_ISSUE_526_NOW_WITHOUT_SECOND_USER_START
+  next_action: CLAIM_AND_EXECUTE_ISSUE_528_NOW_WITHOUT_SECOND_USER_START
 required_closure:
-  - Python alias/from-import/environment alias forbidden capability gate
-  - protocol-relative and supported browser remote-load rejection
-  - config roots and PR workflow triggers mechanically congruent
-  - any nested symlink/indirect descendant fails closed
-  - migrate_legacy_session final legacy revalidation before publish; race failure creates no shadow v2
+  - nonliteral/computed dynamic Python import and reflective env access fail closed
+  - browser URL/CSS/JS normalized capability gate including alias/bracket/computed import/SVG feImage/backslash/escape forms
+  - candidate config/workflow mechanically bound to canonical non-shrinkable policy floor
+  - source descriptor/lock/identity remains bound through final publish with race failure leaving no new target
+  - workspace/save/staging/target full ancestor symlink/junction/reparse confinement with Windows-aware tests
 parallel_project_state:
   GPT_R172:
     issue: 515
     owner: GPT_ENGINEERING_WORKER
-    state: RESERVED_NOT_ACTIVE_RUNTIME
+    state: SEPARATE_GPT_OWNED_LANE
     surface: SINGLE_MIGRATED_V2_SESSION_AUTHORITY
-    r174_overlap: MINIMAL_MIGRATION_PUBLICATION_RACE_CLOSURE_ONLY
-    rule: R172_MUST_FRESH_RECONCILE_R174_OUTCOME_BEFORE_ANY_LATER_ACTIVATION
-  CODEX_R173:
-    issue: 524
-    pr: 525
-    head: 2cdacaa5e516d2d938838629ffc965105d364917
-    state: FROZEN_CHANGES_REQUIRED
+    r175_overlap: MINIMAL_MIGRATION_PUBLICATION_AND_CONFINEMENT_ONLY
+    rule: R172_MUST_FRESH_RECONCILE_R175_OUTCOME_BEFORE_ANY_LATER_ACTIVATION
   CODEX_R174:
     issue: 526
-    branch: codex/r174-public-safe-migration-remediation
+    pr: 527
+    head: bebc29e504fbed64aaa6db981e09b359b0c83b80
+    state: FROZEN_CHANGES_REQUIRED
+  CODEX_R175:
+    issue: 528
+    branch: codex/r175-capability-policy-confinement-remediation
     state: READY_EXECUTION_ALLOWED
 single_writer_fences:
-  - object: PR_525_EXACT_HEAD
+  - object: PR_527_AND_PR_525
     writer: NONE
     rule: FROZEN_NO_MUTATION_IMPORT_REUSE
+  - object: CANONICAL_PUBLIC_SAFE_POLICY_FLOOR
+    writer: GOVERNANCE_ONLY
+    r175_candidate_write: FORBIDDEN
   - object: GPT_R172_SINGLE_SESSION_AUTHORITY
     writer: GPT_ENGINEERING_WORKER_WHEN_FUTURE_ACTIVATED
-    codex_write: ONLY_MINIMUM_R174_MIGRATION_PUBLICATION_BUGFIX_WHILE_R172_NOT_ACTIVE
-  - object: CODEX_R174_REMEDIATION
+    codex_write: ONLY_MINIMUM_R175_MIGRATION_PUBLICATION_AND_CONFINEMENT_BUGFIX_WHILE_NO_CONFLICTING_R172_WRITE
+  - object: CODEX_R175_REMEDIATION
     writer: CODEX
     execution_authority: ACTIVE_CODEX_TASK_PLUS_ROUTE_CLAIM_LEASE_RESERVATION_SNAPSHOT
 hard_boundaries:
