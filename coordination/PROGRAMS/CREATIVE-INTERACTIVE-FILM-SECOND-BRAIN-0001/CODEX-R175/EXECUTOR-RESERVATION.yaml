@@ -5,9 +5,12 @@ route_epoch: 175
 source_issue: 528
 executor: CODEX
 worker_slot_id: CODEX-R175-CREATIVE-RUNTIME-CONFINEMENT-1
-reservation_state: HELD_PENDING_PREWRITE_SNAPSHOT
+reservation_state: ACTIVE_HELD
 branch: codex/r175-capability-policy-confinement-remediation
 implementation_baseline: 740788a3847a402923bf2e89093d910eda0c89d0
+snapshot_base: 40166aea147f3797768a2369f55e87346f3e3c52
+branch_head_at_activation: 740788a3847a402923bf2e89093d910eda0c89d0
+effective_spec_snapshot_ref: issuecomment-5483140274
 exclusive_write_surface:
   - creative_runtime_public_safe_admission_gate
   - minimal_migration_publication_and_path_confinement_closure
@@ -16,4 +19,4 @@ conflict_fences:
   PR_527: FROZEN_NO_WRITE_NO_IMPORT_NO_REUSE
   PR_525: FROZEN_NO_WRITE_NO_IMPORT_NO_REUSE
   CANONICAL_POLICY_FLOOR: READ_ONLY_FROM_R175_IMPLEMENTATION
-execution_allowed: false
+execution_allowed: true
