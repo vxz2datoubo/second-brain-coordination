@@ -1,0 +1,32 @@
+schema: AI_HANDOFF/v1
+task_id: CODEX-R173-PUBLIC-SAFE-MIGRATION-REMEDIATION-R174
+route_epoch: 174
+source_agent: CODEX
+target_agent: GPT_INDEPENDENT_REVIEWER
+reviewer: GPT_INDEPENDENT_REVIEWER
+executor_status: EXECUTOR_VERIFIED_ONLY
+source_issue: 526
+review_queue_issue: 453
+branch: codex/r174-public-safe-migration-remediation
+base_sha: c8cbf8d8f3086f0c96daa877c608ed5db9b4a775
+tested_code_head: 83e078f87f4f9b5fa6af9db058ab5b8dbe43a05e
+candidate_exact_head_source: PR_AND_ISSUE_526_ENGINEERING_HANDOFF_AFTER_METADATA_COMMIT
+binding_review:
+  frozen_pr: 525
+  review_id: 5068184475
+  review_result_comment: 5480524987
+changed_contracts:
+  - PublicSafeBoundaryRules/v1
+  - PublicSafeBoundaryReceipt/v1
+  - CreativeSession/v2 lossless_legacy_envelope
+tests:
+  suite: 44/44 PASS
+  clean_clone: PASS
+  exact_head_boundary_receipt: PASS
+known_risks:
+  - Independent T3 review is still required before Ready or merge.
+  - The migration is intentionally a lossless legacy envelope; it does not reinterpret old choices through a different story graph.
+  - External and production capabilities remain absent by design.
+rollback: Close the new R174 PR before merge, or revert R174 commits after an authorized merge; never rewrite history.
+next_action: Freeze the final exact head, run exact-head CI, and obtain a genuinely uninvolved GPT_INDEPENDENT_REVIEWER T3 verdict.
+merge_authorized: false

@@ -1,0 +1,38 @@
+schema: EXECUTOR_TEST_RECEIPT/v1
+agent_id: CODEX
+task_id: CODEX-R173-PUBLIC-SAFE-MIGRATION-REMEDIATION-R174
+route_epoch: 174
+implementation_baseline: c8cbf8d8f3086f0c96daa877c608ed5db9b4a775
+tested_code_head: 83e078f87f4f9b5fa6af9db058ab5b8dbe43a05e
+verification_class: EXECUTOR_CLEAN_CLONE_REPRODUCTION_NOT_INDEPENDENT_ACCEPTANCE
+environment:
+  primary_worktree: F:/aidanao-worktrees/codex-r174-public-safe-migration-remediation
+  clean_clone: F:/aidanao-worktrees/standalone-clones/second-brain-r174-verify
+commands:
+  - python -m unittest discover -s tests -p "test_creative_*.py"
+  - python tools/verify_public_safe_boundary.py --expected-head 83e078f87f4f9b5fa6af9db058ab5b8dbe43a05e
+  - git diff --check
+results:
+  complete_creative_suite: 44/44 PASS
+  public_safe_scan: PASS
+  scan_roots: 4
+  scanned_source_files: 11
+  exact_head_identity: PASS
+  clean_clone_status: CLEAN
+focused_negative_coverage:
+  python_import_aliases: PASS
+  python_from_import_aliases: PASS
+  constant_dynamic_imports: PASS
+  environment_aliases: PASS
+  protocol_relative_active_urls: PASS
+  css_and_srcset_remote_urls: PASS
+  meta_refresh_and_inline_js_network: PASS
+  workflow_config_congruence_missing_and_extra: PASS
+  nested_file_and_directory_links_inside_and_outside: PASS
+  migration_post_stage_source_race_no_shadow: PASS
+  migration_preexisting_target_preserved: PASS
+  migration_corrupt_or_tampered_target_preserved: PASS
+  migration_duplicate_keys_and_unsafe_slot: PASS
+limitations:
+  - This is executor evidence, not independent review.
+  - Real provider, credential, deployment, customer-data, and paid-generation paths were intentionally not exercised.
