@@ -12,16 +12,15 @@ human_entrypoint: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0
 history_log: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/PROJECT-HANDOFF-LOG.md
 current_main_rule: "Fresh-fetch remote main before execution; baton is navigation, not authority."
 baton:
-  handoff_id: CIF-RELAY-R174-PREWRITE
-  from_agent: GPT_INDEPENDENT_REVIEWER
-  current_holder: GPT_GITHUB_INTEGRATOR
-  next_preferred_after_holder: CODEX
-  relay_mode: TERMINAL_REVIEW_TO_CLEAN_REMEDIATION
+  handoff_id: CIF-RELAY-R174-ACTIVE
+  from_agent: GPT_GITHUB_INTEGRATOR
+  current_holder: CODEX
+  next_preferred_after_holder: GPT_INDEPENDENT_REVIEWER
+  relay_mode: CLEAN_REMEDIATION_LONG_ROUND
   user_second_start_command_required: false
 current_mission:
   summary: >-
-    R173 PR #525 exact head 2cdacaa5e516d2d938838629ffc965105d364917 is frozen after independent T3 CHANGES_REQUIRED.
-    Integrator is publishing clean CODEX R174 remediation from canonical main. No writes may begin until Issue #526 pre-write snapshot and exact branch-parent verification open the gate.
+    Execute R174 clean remediation from canonical implementation baseline only. Close all R173 terminal T3 blockers in one adjacent lifecycle slice, freeze one new exact head, run exact-head CI, hand off, and request uninvolved T3.
   active_issue: 526
   parent_issue: 524
   frozen_pr: 525
@@ -32,8 +31,16 @@ current_mission:
   task_id: CODEX-R173-PUBLIC-SAFE-MIGRATION-REMEDIATION-R174
   implementation_baseline: c8cbf8d8f3086f0c96daa877c608ed5db9b4a775
   working_branch: codex/r174-public-safe-migration-remediation
-  execution_allowed: false
-  next_action: POST_ISSUE_526_EFFECTIVE_SPEC_SNAPSHOT_THEN_CREATE_BRANCH_FROM_EXACT_BASELINE_AND_ACTIVATE_CODEX
+  branch_head_at_activation: c8cbf8d8f3086f0c96daa877c608ed5db9b4a775
+  effective_spec_snapshot_ref: issuecomment-5480648812
+  execution_allowed: true
+  next_action: CLAIM_AND_EXECUTE_ISSUE_526_NOW_WITHOUT_SECOND_USER_START
+required_closure:
+  - Python alias/from-import/environment alias forbidden capability gate
+  - protocol-relative and supported browser remote-load rejection
+  - config roots and PR workflow triggers mechanically congruent
+  - any nested symlink/indirect descendant fails closed
+  - migrate_legacy_session final legacy revalidation before publish; race failure creates no shadow v2
 parallel_project_state:
   GPT_R172:
     issue: 515
@@ -50,7 +57,7 @@ parallel_project_state:
   CODEX_R174:
     issue: 526
     branch: codex/r174-public-safe-migration-remediation
-    state: GOVERNED_PREWRITE_GATE_CLOSED
+    state: READY_EXECUTION_ALLOWED
 single_writer_fences:
   - object: PR_525_EXACT_HEAD
     writer: NONE
@@ -59,7 +66,8 @@ single_writer_fences:
     writer: GPT_ENGINEERING_WORKER_WHEN_FUTURE_ACTIVATED
     codex_write: ONLY_MINIMUM_R174_MIGRATION_PUBLICATION_BUGFIX_WHILE_R172_NOT_ACTIVE
   - object: CODEX_R174_REMEDIATION
-    writer: CODEX_AFTER_ACTIVE_ROUTE_GATE_OPEN
+    writer: CODEX
+    execution_authority: ACTIVE_CODEX_TASK_PLUS_ROUTE_CLAIM_LEASE_RESERVATION_SNAPSHOT
 hard_boundaries:
   - NO_SELF_REVIEW
   - NO_SELF_MERGE
