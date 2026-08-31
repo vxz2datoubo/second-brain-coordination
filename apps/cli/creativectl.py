@@ -18,12 +18,13 @@ ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from creative_runtime.contracts import PlayerAction, StoryState, canonical_json
+from creative_runtime.contracts import StoryState, canonical_json
 from creative_runtime.ledger import CreativeLedger, LedgerViolation
 from creative_runtime.knowledge import KnowledgeBridgeViolation, KnowledgeReviewBridge
+from creative_runtime.saves import SaveStore, SaveViolation, SavedSession
+from creative_runtime.scene_graph import SceneGraph
 
 
-SCHEMA = "CreativeSession/v1"
 DEFAULT_WORKSPACE = Path(".creative-runtime")
 UNSAFE_TERMS = {"sex", "sexual", "nude", "blood", "gore", "torture"}
 
@@ -78,22 +79,17 @@ def session_path(workspace: Path) -> Path:
     return workspace / "session.json"
 
 
-def _write_session(workspace: Path, ledger: CreativeLedger) -> None:
-    workspace.mkdir(parents=True, exist_ok=True)
-    session_path(workspace).write_text(
-        canonical_json({"schema": SCHEMA, "events": ledger.to_records()}) + "\n",
-        encoding="utf-8",
-    )
+def _write_session(workspace: Path, session: SavedSession) -> None:
+    SaveStore(workspace).save(session)
+
+
+def _load_saved_session(workspace: Path) -> SavedSession:
+    return SaveStore(workspace).load()
 
 
 def _load_session(workspace: Path) -> CreativeLedger:
-    path = session_path(workspace)
-    if not path.is_file():
-        raise LedgerViolation("No session exists; run init first")
-    data = json.loads(path.read_text(encoding="utf-8"))
-    if data.get("schema") != SCHEMA:
-        raise LedgerViolation("Unsupported session schema")
-    return CreativeLedger.from_records(data.get("events", []))
+    """Compatibility surface for existing offline knowledge callers."""
+    return _load_saved_session(workspace).ledger
 
 
 def _knowledge_path(workspace: Path) -> Path:
@@ -112,9 +108,9 @@ def _write_knowledge(workspace: Path, bridge: KnowledgeReviewBridge) -> None:
     _knowledge_path(workspace).write_text(canonical_json({"schema": "CreativeKnowledgeReview/v1", "candidates": bridge.to_records()}) + "\n", encoding="utf-8")
 
 
-def _view(ledger: CreativeLedger) -> dict[str, Any]:
-    state = ledger.replay()
-    beat = synthetic_scene()[state.beat_id]
+def _view(session: SavedSession) -> dict[str, Any]:
+    state = session.state()
+    beat = synthetic_scene()[{"accord": "resolution", "return": "courtyard"}.get(state.beat_id, state.beat_id)]
     options = [
         {"id": action_id, "label": option["label"]}
         for action_id, option in beat["options"].items()
@@ -123,39 +119,43 @@ def _view(ledger: CreativeLedger) -> dict[str, Any]:
 
 
 def initialize(workspace: Path) -> dict[str, Any]:
-    if session_path(workspace).exists():
-        return {"status": "already_initialized", "session": str(session_path(workspace))}
-    ledger = CreativeLedger()
-    ledger.append(
-        "story_initialized",
-        {"state": StoryState(scene_id="synthetic_archive", beat_id="arrival", relationships={"mira": 0}).to_dict()},
-        "2030-01-01T00:00:00Z",
-    )
-    _write_session(workspace, ledger)
-    return {**_view(ledger), "status": "initialized", "session": str(session_path(workspace))}
+    store = SaveStore(workspace)
+    if store.path_for().exists() or session_path(workspace).exists():
+        return {"status": "already_initialized", "session": str(store.path_for())}
+    session = store.create_initial()
+    store.save(session)
+    return {**_view(session), "status": "initialized", "session": str(store.path_for())}
+
+
+def _normalize_action(state: StoryState, action_id: str) -> str | None:
+    legal = set(SceneGraph().legal_actions(state))
+    aliases = {
+        "approach": "knock",
+        "leave": "defer" if state.beat_id == "arrival" else "record" if state.beat_id == "echo" else "retreat",
+    }
+    proposed = aliases.get(action_id, action_id)
+    return proposed if proposed in legal else None
 
 
 def choose(workspace: Path, action_id: str, source_text: str | None = None) -> dict[str, Any]:
-    ledger = _load_session(workspace)
-    state = ledger.replay()
-    beat = synthetic_scene()[state.beat_id]
-    option = beat["options"].get(action_id)
-    if option is None:
+    store = SaveStore(workspace)
+    session = store.load()
+    state = session.state()
+    graph_action = _normalize_action(state, action_id)
+    if graph_action is None:
         return {
             "status": "clarification_required",
             "message": "That action is not legal at this beat; choose one listed option.",
-            "legal_options": sorted(beat["options"]),
+            "legal_options": sorted(SceneGraph().legal_actions(state)),
         }
-    ledger.append(
-        "player_action",
-        {
-            "action": PlayerAction(action_id, "choice", source_text or option["label"]).to_dict(),
-            "resulting_patch": option["patch"],
-        },
-        f"2030-01-01T00:{len(ledger.events):02d}:00Z",
+    session = store.append_choice(
+        session,
+        graph_action,
+        source_text or action_id,
+        f"2030-01-01T00:{len(session.ledger.events):02d}:00Z",
     )
-    _write_session(workspace, ledger)
-    return {**_view(ledger), "status": "chosen", "action_id": action_id}
+    store.save(session)
+    return {**_view(session), "status": "chosen", "action_id": action_id}
 
 
 def parse_free_text(text: str, legal_actions: set[str]) -> tuple[str | None, float]:
@@ -167,6 +167,11 @@ def parse_free_text(text: str, legal_actions: set[str]) -> tuple[str | None, flo
         "listen": {"listen", "hear", "quiet", "door"},
         "approach": {"approach", "knock", "enter", "walk"},
         "leave": {"leave", "withdraw", "back", "wait"},
+        "knock": {"knock", "announce", "enter"},
+        "promise": {"promise", "assure"},
+        "defer": {"defer", "daylight", "wait"},
+        "record": {"record", "mark", "note"},
+        "retreat": {"retreat", "meeting", "withdraw"},
     }
     matches = [action for action in legal_actions if tokens & signals.get(action, set())]
     if len(matches) != 1:
@@ -175,9 +180,8 @@ def parse_free_text(text: str, legal_actions: set[str]) -> tuple[str | None, flo
 
 
 def say(workspace: Path, text: str) -> dict[str, Any]:
-    ledger = _load_session(workspace)
-    state = ledger.replay()
-    legal = set(synthetic_scene()[state.beat_id]["options"])
+    state = _load_saved_session(workspace).state()
+    legal = set(SceneGraph().legal_actions(state))
     action, confidence = parse_free_text(text, legal)
     if action is None or confidence < 0.8:
         return {
@@ -217,14 +221,14 @@ def run(argv: list[str]) -> dict[str, Any]:
     if args.command == "init":
         return initialize(args.workspace)
     if args.command in {"play", "resume"}:
-        return _view(_load_session(args.workspace))
+        return _view(_load_saved_session(args.workspace))
     if args.command == "choose":
         return choose(args.workspace, args.action_id)
     if args.command == "say":
         return say(args.workspace, args.text)
     if args.command == "replay":
-        ledger = _load_session(args.workspace)
-        return {**_view(ledger), "status": "replayed", "event_count": len(ledger.events)}
+        session = _load_saved_session(args.workspace)
+        return {**_view(session), "status": "replayed", "event_count": len(session.ledger.events)}
     if args.command == "knowledge":
         bridge = _load_knowledge(args.workspace)
         if args.knowledge_command == "search":
@@ -243,7 +247,7 @@ def run(argv: list[str]) -> dict[str, Any]:
 def main() -> int:
     try:
         print(json.dumps(run(sys.argv[1:]), ensure_ascii=False, sort_keys=True, indent=2))
-    except (LedgerViolation, KnowledgeBridgeViolation, KeyError, json.JSONDecodeError) as error:
+    except (LedgerViolation, SaveViolation, KnowledgeBridgeViolation, KeyError, json.JSONDecodeError) as error:
         print(json.dumps({"status": "error", "message": str(error)}, ensure_ascii=False, sort_keys=True))
         return 2
     return 0

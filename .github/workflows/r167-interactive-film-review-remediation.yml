@@ -1,0 +1,62 @@
+name: R167 interactive-film review remediation
+
+on:
+  pull_request:
+    paths:
+      - "creative_runtime/**"
+      - "apps/cli/**"
+      - "tests/**"
+      - "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/REVIEW-REMEDIATION-R167/**"
+      - ".github/workflows/r167-interactive-film-review-remediation.yml"
+  push:
+    branches: ["codex/r167-r165-review-remediation"]
+
+permissions:
+  contents: read
+
+jobs:
+  exact-head-remediation:
+    name: R167 exact head (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - name: Assert exact checked-out head
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected='${{ github.event.pull_request.head.sha || github.sha }}'
+          actual="$(git rev-parse HEAD)"
+          test "$actual" = "$expected"
+          echo "R167_EXACT_HEAD=$actual"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Run R167 adversarial regressions
+        run: python -m unittest discover -s tests -p 'test_r167_*.py' -v
+      - name: Run retained offline creative regressions
+        run: python -m unittest discover -s tests -v
+      - name: Compile bounded runtime sources
+        run: python -m compileall -q creative_runtime apps/cli tests
+      - name: Enforce provenance, diff and capability boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='729a8c0e0f6b9a190b8defcecb65f16aaba6538e'
+          git fetch --no-tags origin "$base" 8438805a1bc1aaad5a46c067ee3be293b7543cd9 43785fd2f24e0c9e640bdc7d26d09351c836d8c9 1dcd15011b02e5452186f178ea77746690d4d6a6
+          git diff --check "$base" HEAD
+          git merge-base --is-ancestor 8438805a1bc1aaad5a46c067ee3be293b7543cd9 HEAD && exit 1 || true
+          git merge-base --is-ancestor 43785fd2f24e0c9e640bdc7d26d09351c836d8c9 HEAD && exit 1 || true
+          git merge-base --is-ancestor 1dcd15011b02e5452186f178ea77746690d4d6a6 HEAD && exit 1 || true
+          allowed='^(creative_runtime/|apps/cli/|tests/|coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/REVIEW-REMEDIATION-R167/|\.github/workflows/r167-interactive-film-review-remediation\.yml$|\.gitignore$)'
+          while IFS= read -r path; do test -z "$path" || echo "$path" | grep -Eq "$allowed"; done < <(git diff --name-only "$base" HEAD)
+          if rg -n '(requests\.|urllib\.|http://|https://|OPENAI_API_KEY|ANTHROPIC|DREAMINA|broker|order)' creative_runtime apps/cli; then
+            echo 'R167_FORBIDDEN_CAPABILITY_PATTERN'
+            exit 1
+          fi
