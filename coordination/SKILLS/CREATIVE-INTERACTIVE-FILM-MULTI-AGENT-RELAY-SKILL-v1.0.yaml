@@ -1,0 +1,257 @@
+schema_version: "1.0"
+skill_id: "CREATIVE-INTERACTIVE-FILM-MULTI-AGENT-RELAY-SKILL-0001"
+name: "实时互动电影游戏 GPT/Codex/WorkBuddy 接力协同技能"
+status: "ACTIVE_USER_AUTHORIZED_PROJECT_SKILL"
+project_id: "CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001"
+coordination_repo: "vxz2datoubo/second-brain-coordination"
+
+purpose: >-
+  Make GPT, Codex and WorkBuddy able to continue and hand off the realtime interactive film/game project
+  from one stable GitHub entry point without relying on chat-window memory, while preserving existing
+  Control Tower, per-agent ACTIVE routes, Issues, PRs and canonical repositories as the real execution authorities.
+
+user_short_commands:
+  continue_project:
+    triggers:
+      - "继续实时互动电影游戏项目"
+      - "继续实时互动电影游戏"
+      - "继续互动电影游戏项目"
+      - "继续这个实时互动电影项目"
+      - "开始推进实时互动电影游戏"
+    meaning: "READ_PROJECT_BATON_RECONCILE_CLAIM_AND_CONTINUE"
+    second_start_command_required: false
+  handoff:
+    triggers:
+      - "做交接"
+      - "交接"
+      - "做一下交接"
+      - "交接给下一个"
+      - "准备交接"
+    meaning: "WRITE_DURABLE_HANDOFF_UPDATE_BATON_AND_STOP_AT_SAFE_CHECKPOINT"
+    second_confirmation_required: false
+
+stable_entrypoints:
+  human_first: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CONTINUE-HERE.md"
+  machine_current: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/PROJECT-BATON.yaml"
+  append_only_history: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/PROJECT-HANDOFF-LOG.md"
+  legacy_executor_handoff: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/AI_HANDOFF.yaml"
+
+source_of_truth_hierarchy:
+  - rank: 1
+    source: "canonical repository main + exact Issue/PR/review evidence"
+    role: "technical and governance truth"
+  - rank: 2
+    source: "per-agent ACTIVE route / Work Claim / Lease / Executor Reservation / Effective Spec Snapshot"
+    role: "who may execute or write"
+  - rank: 3
+    source: "PROJECT-BATON.yaml"
+    role: "current relay/navigation pointer only"
+  - rank: 4
+    source: "PROJECT-HANDOFF-LOG.md"
+    role: "append-only history and human-readable continuity"
+  - rank: 5
+    source: "chat memory or local agent workspace"
+    role: "locator/hint only; never overrides fresh GitHub evidence"
+
+hard_rule: >-
+  PROJECT-BATON and PROJECT-HANDOFF-LOG are coordination/navigation records, not a second execution authority,
+  world-state authority, session ledger, code authority, review authority or merge authority.
+
+agent_roles:
+  GPT:
+    strengths:
+      - architecture and authority-boundary reasoning
+      - cross-repository reconciliation
+      - governance/task release and exact-head handoff
+      - canonical single-writer implementation when explicitly routed
+    default_project_surface:
+      - AWRSE authority/federation work
+      - GPT R172 single migrated-v2 session authority when activated
+      - integration decisions and Codex/WorkBuddy task publication
+    must_not:
+      - silently take CODEX-only implementation
+      - self-review or self-merge engineering candidates
+  CODEX:
+    strengths:
+      - sustained code implementation
+      - CLI/product/runtime/eval tooling
+      - broad regression construction and reproducible closeout packages
+    default_project_surface:
+      - creative runtime product/eval lane
+      - replay capsule/corpus/review board/viewer/package tooling
+    must_not:
+      - write GPT-owned single-session authority without a fresh route
+      - treat executor CI as independent acceptance
+  WORKBUDDY:
+    strengths:
+      - local machine/environment/path/service/runtime fact verification
+      - deployment-adjacent and capability discovery under explicit authorization
+      - reproducibility and local execution diagnostics
+    default_project_surface:
+      - local environment probes
+      - path/service/tool availability
+      - independent reproduction support when a task explicitly routes to WorkBuddy
+    must_not:
+      - substitute local observations for canonical GitHub truth
+      - take Codex/GPT code authority without a WorkBuddy route
+
+relay_mode:
+  type: "USER_DRIVEN_SEQUENTIAL_RELAY_WITH_CAPABILITY_ROUTING"
+  preferred_rotation: ["GPT", "CODEX", "WORKBUDDY", "GPT"]
+  rule: >-
+    Rotation is a convenience, not authority. Skip an agent when it has no applicable READY route, is blocked,
+    or the next work belongs to another agent's single-writer surface. If the user names the next agent, use that
+    target if governance permits it.
+  single_active_baton_holder: true
+  concurrent_read_only_analysis_allowed: true
+  concurrent_write_rule: "Only non-overlapping, explicitly routed surfaces may write concurrently."
+
+continue_algorithm:
+  - step: 1
+    action: "Fetch latest remote main of second-brain-coordination."
+  - step: 2
+    action: "Read PROJECT-BATON.yaml and this skill."
+  - step: 3
+    action: "Read only the baton-listed current_issue/current_pr/current_exact_head and required per-agent route sources."
+  - step: 4
+    action: "Fresh reconcile canonical mains, exact heads, reviews/CI and whether the baton is stale."
+  - step: 5
+    action: >-
+      If baton state is stale, update the baton to observed truth before substantive work; do not follow a stale next_action blindly.
+  - step: 6
+    action: >-
+      Resolve current agent identity. If baton target matches and route is executable, claim/continue immediately.
+      If another agent owns the next write surface, do not steal it; report the precise handoff target and preserve the baton.
+  - step: 7
+    action: "Perform the first meaningful authorized action in the same turn; do not stop at a plan-only acknowledgement."
+  - step: 8
+    action: "At meaningful checkpoints, keep Issue/PR evidence current. Baton updates are needed only on state/owner/next-action changes."
+
+handoff_algorithm:
+  - step: 1
+    action: "Reach a safe checkpoint: commit/push or otherwise freeze exact evidence; do not hand off an unrecorded local-only mutation."
+  - step: 2
+    action: "Fresh reconcile current main, task Issue, PR/head, CI/review state and current route/lease."
+  - step: 3
+    action: "Append one new entry to PROJECT-HANDOFF-LOG.md; never rewrite prior entries except explicit corruption repair."
+  - step: 4
+    action: "Update PROJECT-BATON.yaml with last_handoff_id, from_agent, next_agent, current work, evidence and exact next action."
+  - step: 5
+    action: >-
+      If the next agent needs a new task/route, create or update the proper Issue/ACTIVE route first; the baton may point to it but may not authorize it itself.
+  - step: 6
+    action: "Stop writes on any exact head sent for independent review."
+  - step: 7
+    action: "Tell the user only the minimal handoff result and stable entrypoint; no giant prompt should be required."
+
+handoff_entry_required_fields:
+  - handoff_id
+  - timestamp
+  - from_agent
+  - to_agent
+  - reason
+  - completed
+  - current_state
+  - current_issue_or_task
+  - current_pr_or_branch
+  - exact_head_if_any
+  - tests_ci_review
+  - blockers_or_unknowns
+  - next_action
+  - do_not_touch
+  - provenance_refs
+
+freshness_and_conflict_rules:
+  baton_stale_when:
+    - "listed current PR head differs from fresh remote PR head"
+    - "listed canonical main differs and the difference affects the next step"
+    - "listed review status has been superseded by a newer exact-head review"
+    - "listed next agent lacks or loses an executable route"
+    - "a new higher-authority Issue/route/lease supersedes the baton pointer"
+  on_stale: "RECONCILE_AND_REWRITE_BATON_BEFORE_CONTINUING"
+  conflicting_agents: "STOP_SHARED_WRITE / PRESERVE_SINGLE_WRITER / ESCALATE_TO_GPT_OR_USER"
+  ambiguous_handoff: "FAIL_CLOSED_AND_RECORD_UNKNOWN"
+
+knowledge_mapping_states:
+  KNOWN_SAID:
+    user_friendly: "你明确说过、或者GitHub已经直接证明的。"
+    rule: "Treat as fact within scope and preserve provenance."
+  KNOWN_UNSAID_INFERRED:
+    user_friendly: "你没有明说，但从目标和架构几乎可以确定你也需要的。"
+    rule: "Use as a high-confidence design inference, never as a quoted user instruction."
+  UNKNOWN_BUT_ACCESSIBLE:
+    user_friendly: "你以前没接触过，但解释一下你就能看懂、能参与决定的。"
+    rule: "Explain with concrete project examples before jargon."
+  UNKNOWN_REQUIRES_SCAFFOLDING:
+    user_friendly: "如果直接丢专业词会很难懂，需要先搭几个台阶。"
+    rule: "Explain failure example -> simple model -> professional term -> exact project mapping."
+
+user_intent_map:
+  KNOWN_SAID:
+    - "GPT、Codex、WorkBuddy轮流或协同推进实时互动电影游戏。"
+    - "用户希望只说‘继续实时互动电影游戏项目’就能自动接上。"
+    - "用户说‘做交接’时，当前AI必须把状态同步到共享日志。"
+    - "用户不希望每次复制长提示词或重新解释项目。"
+  KNOWN_UNSAID_INFERRED:
+    - "接力必须跨聊天窗口持久化，因此聊天上下文不能作为唯一载体。"
+    - "当前状态与历史日志必须分离，否则日志越长越难找到下一步。"
+    - "必须保留single-writer和exact-head review，否则轮流工作会变成互相覆盖。"
+    - "WorkBuddy的本地事实与GitHub canonical事实需要明确分层。"
+  UNKNOWN_BUT_ACCESSIBLE:
+    - "Baton/接力棒：只保存‘现在轮到谁和下一步’，类似工地交接牌。"
+    - "Append-only log/只追加日志：历史交接不覆盖，方便追责和恢复。"
+    - "Source of truth/事实源：真正决定代码和权限的地方，不等于日志。"
+    - "Fresh reconcile/新鲜对账：开工前确认日志没有落后于GitHub现实。"
+  UNKNOWN_REQUIRES_SCAFFOLDING:
+    - "Fencing token/epoch：防止拿旧授权的AI回来继续写。"
+    - "Provenance：证明代码、结论和交接信息究竟来自哪个精确版本。"
+    - "Single writer：同一类正式对象同一时刻只能有一个写入权威。"
+    - "Materialized projection：给人看的状态页可以重建，不能反过来成为真相源。"
+
+professional_term_map:
+  baton: "接力棒 / 当前工作指针"
+  handoff_log: "交接流水账 / 历史记录"
+  canonical: "已经正式生效的主版本"
+  candidate: "候选版本，还没正式生效"
+  exact_head: "精确版本坐标，像给代码拍下唯一指纹"
+  provenance: "来源证明"
+  lease_or_work_claim: "当前谁被允许动这块东西"
+  single_writer: "同一个正式对象不能两个AI同时改"
+  fresh_reconcile: "开工前重新核对GitHub真实状态"
+  fail_closed: "看不清就停，不用猜的继续写"
+  reviewer: "验算者，和实际写代码的人分开"
+
+minimal_user_experience:
+  continue_example: >-
+    User: 继续实时互动电影游戏项目。
+    Agent behavior: silently read baton -> reconcile -> read active task evidence -> continue first authorized action -> report progress.
+  handoff_example: >-
+    User: 做交接。
+    Agent behavior: freeze checkpoint -> append log -> update baton -> create/update target route if required -> stop conflicting writes -> report next agent.
+
+validation_cases:
+  - id: RELAY-E01
+    scenario: "User opens a brand-new GPT window and says only 继续实时互动电影游戏项目."
+    expected: "GPT finds CONTINUE-HERE/BATON, fresh-reconciles and continues without asking user to restate history."
+  - id: RELAY-E02
+    scenario: "User says 做交接 while Codex has an exact head under review."
+    expected: "Codex records exact head/review state, stops writes and targets next agent without moving the head."
+  - id: RELAY-E03
+    scenario: "Baton says Codex but latest route is non-executable."
+    expected: "Agent does not execute; baton is reconciled and blocker recorded."
+  - id: RELAY-E04
+    scenario: "WorkBuddy local path conflicts with GitHub canonical state."
+    expected: "Local fact is evidence only; GitHub canonical/route authority wins unless a governed import changes it."
+  - id: RELAY-E05
+    scenario: "Two agents attempt to modify the same session authority."
+    expected: "Single-writer conflict; one lane stops and handoff/route ownership is resolved before writes."
+  - id: RELAY-E06
+    scenario: "User says continue after a reviewer ACCEPT but before merge."
+    expected: "Agent records ACCEPTED_NOT_CANONICAL and does not treat candidate as main."
+
+hard_boundaries:
+  - "No handoff record may grant merge/review/runtime/world/session authority by itself."
+  - "No agent may self-review or transfer an ACCEPT verdict to a moved head."
+  - "No secret/private/local-only material is copied into public GitHub merely for handoff convenience."
+  - "No force-push/reset/amend/history rewrite as a handoff shortcut."
+  - "No second Ledger/Gateway/Resolver/Authority is created by this relay skill."
