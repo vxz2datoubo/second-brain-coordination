@@ -1,4 +1,4 @@
-schema_version: "174.0"
+schema_version: "174.1"
 repository: vxz2datoubo/second-brain-coordination
 target_agent: CODEX
 active_issue: 526
@@ -7,8 +7,8 @@ parent_task_id: CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001
 route_epoch: 174
 mode: clean_nonretroactive_review_remediation
 mode_label: R174 public-safe capability + migration publish race remediation
-status: READY_PENDING_PREWRITE_SNAPSHOT
-execution_allowed: false
+status: READY
+execution_allowed: true
 automatic_resume_within_task: true
 second_user_start_command_required: false
 merge_authorized: false
@@ -18,6 +18,9 @@ canonical_route: coordination/ROUTES/CODEX-R173-PUBLIC-SAFE-MIGRATION-REMEDIATIO
 canonical_contract: coordination/TASK-BRIEFS/CODEX-R173-PUBLIC-SAFE-MIGRATION-REMEDIATION-R174.yaml
 implementation_baseline: c8cbf8d8f3086f0c96daa877c608ed5db9b4a775
 implementation_branch: codex/r174-public-safe-migration-remediation
+branch_head_at_activation: c8cbf8d8f3086f0c96daa877c608ed5db9b4a775
+effective_spec_snapshot_id: SECOND-BRAIN-R174-ISSUE526-SNAPSHOT-001
+effective_spec_snapshot_ref: issuecomment-5480648812
 activation:
   issue: 526
   parent_issue: 524
@@ -35,12 +38,17 @@ lease:
   authorization_witness: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R174/AUTHORIZATION-WITNESS.yaml
   source_provenance: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R174/SOURCE-SELECTION-PROVENANCE.yaml
   control_tower_scan: coordination/CONTROL-TOWER/R174-CREATIVE-RUNTIME-REMEDIATION-ACTIVATION-SCAN.yaml
-  substantive_write_gate: CLOSED_UNTIL_ISSUE_526_EFFECTIVE_SPEC_SNAPSHOT_AND_BRANCH_PARENT_VERIFY
+  substantive_write_gate: OPEN
 execution_protocols:
   AMED: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R174/AMED.yaml
   PMA_BIG: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R174/PMA-BIG.yaml
   WPDCR: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R174/WPDCR.yaml
   PDER: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R174/PDER.yaml
+mandatory_blockers:
+  - P1-01_PUBLIC_SAFE_RULES_MATCH_TOKENS_NOT_FORBIDDEN_CAPABILITIES
+  - P1-02_WORKFLOW_TRIGGER_DOES_NOT_COVER_DECLARED_SCAN_SURFACE
+  - P1-03_NESTED_DIRECTORY_SYMLINK_IS_SILENTLY_SKIPPED
+  - P1-04_MIGRATION_TOCTOU_CAN_FAIL_AFTER_CREATING_SHADOW_V2_SAVE
 allowed_write_paths:
   - .github/workflows/creative-runtime-offline.yml
   - creative_runtime/**
@@ -70,4 +78,4 @@ review_gate:
   exact_head_review_required: true
   executor_ci_is_evidence_only: true
 completion_signal: R174_CODEX_PUBLIC_SAFE_MIGRATION_REMEDIATION_READY_FOR_INDEPENDENT_T3
-next_command: WAIT_FOR_ISSUE_526_EFFECTIVE_SPEC_SNAPSHOT_THEN_BRANCH_PARENT_VERIFY_AND_EXECUTE
+next_command: CLAIM_AND_EXECUTE_ISSUE_526_NOW_WITHOUT_SECOND_USER_START
