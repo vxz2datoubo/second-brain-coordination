@@ -1,0 +1,116 @@
+schema: CreativeInteractiveFilmProjectBaton/v1
+project_id: CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001
+project_names:
+  - 实时互动电影游戏
+  - 实时互动电影游戏项目
+  - 互动电影游戏
+  - Creative Interactive Film + Second Brain
+status: ACTIVE_RELAY
+updated_at: "2026-08-31T08:12:00-05:00"
+updated_by: GPT
+
+stable_skill: coordination/SKILLS/CREATIVE-INTERACTIVE-FILM-MULTI-AGENT-RELAY-SKILL-v1.0.yaml
+human_entrypoint: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CONTINUE-HERE.md
+history_log: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/PROJECT-HANDOFF-LOG.md
+
+baton:
+  handoff_id: CIF-RELAY-0001
+  from_agent: GPT
+  current_holder: CODEX
+  next_preferred_after_holder: WORKBUDDY
+  relay_mode: USER_DRIVEN_SEQUENTIAL_RELAY_WITH_CAPABILITY_ROUTING
+  user_second_start_command_required: false
+
+current_mission:
+  summary: >-
+    Codex takes the current engineering baton for the creative-runtime product/eval lane.
+    First close the independently confirmed public-safe verifier false-pass defect,
+    then produce a new exact-head closeout candidate for independent T3 audit.
+  coordination_repo: vxz2datoubo/second-brain-coordination
+  active_issue: 524
+  active_issue_url: https://github.com/vxz2datoubo/second-brain-coordination/issues/524
+  working_branch: codex/creative-runtime-next
+  starting_exact_head: 2f12aba6dae4a83038fef1f3d5e737944bd9ce1f
+  predecessor_audit_issue: 518
+  predecessor_audit_verdict: BLOCKED
+  predecessor_confirmed_p1: AUDIT_EVIDENCE_P1_PUBLIC_SAFE_BOUNDARY_FALSE_PASS
+  next_action: >-
+    Read Issue #524 and all current comments, fresh-check branch head and current main,
+    claim the Codex task if still executable, close the fail-closed scanner defect,
+    run the required creative runtime/package/replay/review-board verification,
+    freeze a new exact head and request independent re-audit.
+
+parallel_project_state:
+  AWRSE_I9A:
+    repository: vxz2datoubo/ai-world-simulation-engine
+    issue: 81
+    pr: 101
+    exact_head: 862b36299f687df82b60ee85b9722a6c710aa8c8
+    independent_review: ACCEPT
+    canonical_state: ACCEPTED_NOT_CANONICAL_AT_LAST_HANDOFF
+    rule: "Do not consume as canonical until fresh main proves governed canonicalization."
+  SECOND_BRAIN_R168:
+    repository: vxz2datoubo/second-brain-coordination
+    issue: 496
+    pr: 517
+    exact_head: 6a00939495ec7d8c974e5fbe8a8940a56dec3855
+    independent_review: ACCEPT
+    canonical_state: ACCEPTED_NOT_CANONICAL_AT_LAST_HANDOFF
+    rule: "R172 remains gated until fresh canonicalization and reservation activation evidence."
+  GPT_R172:
+    repository: vxz2datoubo/second-brain-coordination
+    issue: 515
+    governance_head_last_observed: 88f4cffca9e16bc5a1aa21df539933437dc816ca
+    intended_owner: GPT_ENGINEERING_WORKER
+    surface: SINGLE_MIGRATED_V2_SESSION_AUTHORITY
+    state: RESERVED_NOT_EXECUTABLE_AT_LAST_HANDOFF
+    do_not_touch_by_codex: true
+  WORKBUDDY:
+    intended_role: LOCAL_ENVIRONMENT_PATH_SERVICE_REPRODUCTION_FACTS
+    state: STANDBY_NO_PROJECT_WRITE_ROUTE_AT_LAST_HANDOFF
+    next_use_candidate: >-
+      Use WorkBuddy after Codex handoff when local/runtime/environment reproduction or capability/path verification
+      is the highest-value next step and an explicit WorkBuddy task/route is published.
+
+read_order_for_any_agent:
+  - coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/PROJECT-BATON.yaml
+  - coordination/SKILLS/CREATIVE-INTERACTIVE-FILM-MULTI-AGENT-RELAY-SKILL-v1.0.yaml
+  - "baton.current_mission.active_issue and all current comments"
+  - "current holder's per-agent ACTIVE route / Work Claim / Lease / reservation if applicable"
+  - "current PR/branch/exact-head CI/reviews named by the issue"
+  - "only then read deeper historical handoff/evidence files if needed"
+
+short_command_behavior:
+  on_continue_project: >-
+    Fresh-read this baton, reconcile it against GitHub, then immediately perform the first meaningful authorized action.
+    Do not ask the user to restate project history.
+  on_handoff: >-
+    Reach a safe checkpoint, append one PROJECT-HANDOFF-LOG entry, update this baton to the next viable agent/task,
+    create/update a proper route or Issue if required, and stop conflicting writes.
+
+freshness:
+  this_file_is_navigation_not_execution_authority: true
+  must_reconcile_before_work: true
+  if_stale: UPDATE_FROM_HIGHER_AUTHORITY_EVIDENCE
+  never_transfer_review_across_moved_head: true
+  accepted_is_not_canonical: true
+
+single_writer_fences:
+  - object: GPT_R172_SINGLE_SESSION_AUTHORITY
+    writer: GPT_ENGINEERING_WORKER_WHEN_ACTIVATED
+    codex_write: FORBIDDEN_WITHOUT_NEW_ROUTE
+    workbuddy_write: FORBIDDEN_WITHOUT_NEW_ROUTE
+  - object: CODEX_CREATIVE_RUNTIME_PRODUCT_EVAL_LINE
+    writer: CODEX_WHEN_ACTIVE_ROUTE_OR_ISSUE_AUTHORIZES
+    gpt_write: NO_SILENT_TAKEOVER
+    workbuddy_write: NO_SILENT_TAKEOVER
+  - object: LOCAL_ENVIRONMENT_FACTS
+    writer: WORKBUDDY_WHEN_ROUTED
+    rule: "Local evidence never overrides GitHub canonical truth by itself."
+
+hard_boundaries:
+  - NO_SELF_REVIEW
+  - NO_SELF_MERGE
+  - NO_SECOND_LEDGER_GATEWAY_RESOLVER_AUTHORITY
+  - NO_CHAT_MEMORY_AS_EXECUTION_AUTHORITY
+  - NO_LOCAL_ONLY_HANDOFF_WITHOUT_DURABLE_GITHUB_CHECKPOINT
