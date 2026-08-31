@@ -1,0 +1,19 @@
+schema: PDER/v1
+task_id: CODEX-R173-PUBLIC-SAFE-MIGRATION-REMEDIATION-R174
+route_epoch: 174
+predicted_files:
+  - .github/workflows/creative-runtime-offline.yml
+  - tools/verify_public_safe_boundary.py
+  - tools/public_safe_boundary_rules.json
+  - tests/test_creative_public_safe_boundary.py
+  - creative_runtime/session.py_or_current_migration_owner
+  - tests/current_migration_regression_surface
+predicted_failure_modes:
+  - alias_or_from_import_evades_lexical_pattern
+  - protocol_relative_remote_url_evades_http_https_pattern
+  - workflow_path_filter_does_not_run_for_declared_root_change
+  - nested_directory_symlink_is_skipped
+  - legacy_source_changes_after_staging_before_publish
+predicted_scope_risk: MEDIUM
+unexpected_scope_policy: STOP_AND_REPORT_IF_ARCHITECTURE_OR_R172_AUTHORITY_EXPANSION_REQUIRED
+post_execution_compare_required: true
