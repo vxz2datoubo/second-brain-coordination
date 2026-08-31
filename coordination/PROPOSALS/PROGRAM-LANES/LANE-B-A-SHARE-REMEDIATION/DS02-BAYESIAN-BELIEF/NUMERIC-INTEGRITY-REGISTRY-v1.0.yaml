@@ -1,0 +1,136 @@
+schema_version: "1.0"
+registry_id: "DS02-NUMERIC-INTEGRITY-REGISTRY-0012B"
+source_issue: 519
+skill_ref: "BAYESIAN-BELIEF-UPDATE-FORECAST-FUSION-SKILL-0012B"
+boundary: "CONTRACT_ONLY / RESEARCH_ONLY / NO_TRADE"
+
+canonical_numeric_policy:
+  probability_internal_type: float64
+  probability_serialization_decimal_places: 12
+  probability_range: [0.0, 1.0]
+  use_log_space_for_repeated_likelihood_updates: true
+  canonical_probability_source: "full-precision persisted posterior, never UI display"
+  money_storage: "integer smallest currency unit where representable"
+  share_quantity_storage: integer
+  price_storage: "exchange-tick-quantized"
+  timestamp_policy: "timezone-explicit ISO-8601"
+  canonical_digest_required: true
+  rounding_policy_version: "DS02-ROUNDING-1.0"
+  tolerance_policy_version: "DS02-TOLERANCE-1.0"
+
+rounding_policy:
+  probability_persisted:
+    decimal_places: 12
+    mode: ROUND_HALF_EVEN
+  probability_ui:
+    authority: DISPLAY_ONLY
+    default_percent_decimal_places: 1
+  rule: "UI precision must never be fed back into inference or canonical replay."
+
+tolerance_registry:
+  analytic_probability_absolute_tolerance: 1.0e-12
+  analytic_parameter_absolute_tolerance: 1.0e-12
+  serialization_round_trip_absolute_tolerance: 5.0e-13
+  rule: "Tolerance is test/equality policy, not permission to mutate target definitions or source values."
+
+feature_definition_contract:
+  required:
+    - feature_id
+    - feature_definition_version
+    - unit
+    - polarity
+    - source_semantics_version
+    - adjustment_version
+    - market_calendar_version
+    - available_at_semantics
+  version_bump_required_when:
+    - mathematical_definition_changes
+    - polarity_changes
+    - unit_changes
+    - source_field_semantics_change
+    - adjustment_method_changes
+    - time_alignment_changes
+    - available_at_semantics_change
+
+feature_polarity_registry:
+  RETURN:
+    definition: "canonical return target family"
+    positive_meaning: PRICE_INCREASE
+    negative_meaning: PRICE_DECREASE
+  CVD_PROXY:
+    definition: "directional cumulative volume-delta proxy only when source classification is explicitly versioned"
+    positive_meaning: MORE_BUY_CLASSIFIED_THAN_SELL_CLASSIFIED_VOLUME
+    negative_meaning: MORE_SELL_CLASSIFIED_THAN_BUY_CLASSIFIED_VOLUME
+    hard_warning: "Vendor/proxy classification is not exchange participant identity truth."
+  CMF:
+    definition: "Chaikin Money Flow under versioned formula/window"
+    positive_meaning: POSITIVE_CMF_BY_FORMULA
+    negative_meaning: NEGATIVE_CMF_BY_FORMULA
+    hard_warning: "CMF sign is an indicator value, not institutional identity truth."
+  POLICY_SURPRISE:
+    definition: "actual/frozen-expectation surprise under dimension-specific versioned mapping"
+    positive_meaning: POSITIVE_RELATIVE_TO_FROZEN_EXPECTATION_FOR_DEFINED_DIMENSION
+    negative_meaning: NEGATIVE_RELATIVE_TO_FROZEN_EXPECTATION_FOR_DEFINED_DIMENSION
+    hard_warning: "Positive surprise does not universally mean bullish price impact."
+
+label_registry:
+  RET-CLOSE-CLOSE-1D:
+    definition: "close[t+1] / close[t] - 1"
+    horizon: 1D
+    same_label_may_not_mean: "close[t+1] / open[t+1] - 1"
+  RET-CLOSE-CLOSE-3D:
+    definition: "close[t+3] / close[t] - 1"
+    horizon: 3D
+  RET-CLOSE-CLOSE-5D:
+    definition: "close[t+5] / close[t] - 1"
+    horizon: 5D
+  RET-CLOSE-CLOSE-10D:
+    definition: "close[t+10] / close[t] - 1"
+    horizon: 10D
+  RET-CLOSE-CLOSE-20D:
+    definition: "close[t+20] / close[t] - 1"
+    horizon: 20D
+  RET-CLOSE-CLOSE-60D:
+    definition: "close[t+60] / close[t] - 1"
+    horizon: 60D
+
+point_in_time_contract:
+  required_times:
+    - event_time
+    - published_at
+    - available_at
+    - market_effective_at
+    - ingested_at
+  admission_rule: "available_at <= decision_time"
+  revision_rule: "revised value must preserve original available value and revision lineage"
+  forbidden:
+    - "use latest restated fundamental value as if historically available"
+    - "replace missing available_at with event_time"
+    - "replace missing published_at with ingested_at"
+
+market_rule_binding:
+  required:
+    - exchange
+    - board
+    - security_type
+    - rule_source_ref
+    - rule_version
+    - effective_from
+    - effective_to_or_current
+    - clause_applicability_status
+  statuses:
+    - ACTIVE
+    - HISTORICAL
+    - DEFERRED
+    - UNKNOWN
+    - SUPERSEDED
+    - REVALIDATION_REQUIRED
+  cross_exchange_substitution_authorized: false
+
+invariants:
+  - "Same feature_id + version cannot have conflicting polarity."
+  - "Same target_id + version cannot have conflicting mathematical definitions."
+  - "Probability display text cannot be canonical numeric truth."
+  - "Rule-version changes may invalidate likelihood even if feature name is unchanged."
+  - "Unknown or deferred exchange clauses remain explicit; they cannot be assumed active."
+  - "Hash/digest binds canonical serialized content and its definition versions."
