@@ -12,6 +12,31 @@
 3. 当活动路由为`READY`且`execution_allowed: true`时，Agent本次响应返回前至少完成第一个有意义的授权动作并提供证据。长任务可在检查点回报，但检查点必须包含实质进展、测试或真实阻塞，不能只承诺稍后执行。
 4. 当活动路由不可执行时，禁止猜测或切换任务。必须报告失败字段/依赖、已完成检查与尝试、最小缺失能力或决定、受影响与不受影响范围、精确请求对象/动作和恢复条件。只写`BLOCKED`无效。
 
+## 实时互动电影游戏项目短命令路由
+
+当用户对GPT、Codex、WorkBuddy或未来参与该项目的Agent说“继续实时互动电影游戏项目”“继续实时互动电影游戏”“继续互动电影游戏项目”“开始推进实时互动电影游戏”或明确同义句时：
+
+1. 固定协调仓库为 `vxz2datoubo/second-brain-coordination`。
+2. 先同步或直接读取远端最新`main`，不得依赖旧聊天窗口或本地缓存状态。
+3. 固定机器入口为 `coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/PROJECT-BATON.yaml`。
+4. 固定技能为 `coordination/SKILLS/CREATIVE-INTERACTIVE-FILM-MULTI-AGENT-RELAY-SKILL-v1.0.yaml`。
+5. 人类快速入口为 `coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CONTINUE-HERE.md`；历史交接只追加在同目录 `PROJECT-HANDOFF-LOG.md`。
+6. `PROJECT-BATON.yaml` 只是当前接力/导航指针，不得覆盖对应 canonical main、Issue、PR、ACTIVE route、Work Claim、Lease、Executor Reservation、Effective Spec Snapshot 或 Independent Review 的更高权威事实。
+7. 必须按 Skill 的 `continue_algorithm` fresh reconcile Baton 指向的当前 Issue/PR/exact head/CI/review/route；若 Baton 过期，先依据更高权威证据纠正 Baton，再执行。
+8. 若当前Agent正是合法执行者且任务可执行，本轮必须直接完成第一个有意义的授权动作，不得让用户重新解释历史或再说一次“开始”。
+9. 若下一写入面属于另一Agent的single-writer surface，禁止静默接管；必须保持现有写权边界并指出精确接力对象。
+10. `ACCEPT` 不等于 `canonical`；未 governed merge/canonicalization 的 exact head 不得作为 main 消费。
+
+当用户说“做交接”“交接”“做一下交接”“交接给下一个”或明确同义句时：
+
+1. 当前Agent必须先到达可复现安全检查点；不能把只存在本地或聊天里的未记录改动直接甩给下一位。
+2. fresh reconcile 当前 main、Issue、PR/exact head、CI/review、route/claim/lease。
+3. 向 `PROJECT-HANDOFF-LOG.md` 只追加一条记录，不覆盖旧交接历史。
+4. 更新 `PROJECT-BATON.yaml` 的 `handoff_id`、from/current/next agent、current mission、证据、blocker、do-not-touch 与 exact next action。
+5. 若下一Agent需要新Issue/route/claim，必须先创建或更新真正的执行权威，再让 Baton 指过去；Baton 自身不能授予执行、review 或 merge 权。
+6. 任何已送独立review的 exact head 必须停止写入，head movement 必须重新验算。
+7. 交接完成后只需向用户说明“已交给谁 + 稳定入口”，不得要求用户复制长提示词。
+
 ## Codex短命令路由
 
 当用户对Codex说“读取任务”“执行任务”“开始任务”或同义短句时：
