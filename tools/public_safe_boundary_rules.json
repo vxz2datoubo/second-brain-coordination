@@ -1,0 +1,59 @@
+{
+  "schema": "PublicSafeBoundaryRules/v2",
+  "scan_roots": [
+    "creative_runtime",
+    "apps/cli",
+    "apps/web",
+    "tools"
+  ],
+  "scanned_suffixes": [
+    ".py",
+    ".html",
+    ".htm",
+    ".css",
+    ".js",
+    ".mjs",
+    ".svg"
+  ],
+  "forbidden_python_imports": [
+    "aiohttp",
+    "anthropic",
+    "builtins",
+    "http.client",
+    "httpx",
+    "importlib",
+    "openai",
+    "operator",
+    "requests",
+    "socket",
+    "urllib.request",
+    "websockets"
+  ],
+  "forbidden_python_references": [
+    "os.environ",
+    "os.environb",
+    "os.getenv",
+    "os.getenvb"
+  ],
+  "forbidden_capability_classes": [
+    "NETWORK_IMPORT_OR_DYNAMIC_RESOLUTION",
+    "CREDENTIAL_OR_ENVIRONMENT_READ",
+    "REFLECTIVE_FORBIDDEN_CAPABILITY_ACCESS",
+    "REMOTE_URL_AFTER_NORMALIZATION",
+    "CSS_REMOTE_LOAD_AFTER_ESCAPE_NORMALIZATION",
+    "JS_NETWORK_API_DIRECT_ALIAS_BRACKET_OR_COMPUTED_ACCESS",
+    "DYNAMIC_REMOTE_IMPORT",
+    "SVG_ACTIVE_REMOTE_LOAD"
+  ],
+  "required_pull_request_paths": [
+    ".github/workflows/creative-runtime-offline.yml",
+    "apps/cli/**",
+    "apps/web/**",
+    "coordination/GOVERNANCE/CREATIVE-RUNTIME-PUBLIC-SAFE-POLICY-FLOOR-v1.yaml",
+    "creative_runtime/**",
+    "tests/**",
+    "tools/**",
+    "tools/public_safe_boundary_rules.json",
+    "tools/verify_public_safe_boundary.py"
+  ]
+}
