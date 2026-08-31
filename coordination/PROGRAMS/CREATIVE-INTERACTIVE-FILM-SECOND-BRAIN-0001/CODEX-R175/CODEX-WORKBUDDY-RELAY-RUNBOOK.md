@@ -16,6 +16,8 @@
 
 WorkBuddy 必须自动读取 `PROJECT-BATON.yaml`、自己的 ACTIVE route 和本目录的 relay package。它不能要求用户重新讲历史。
 
+接力包同时记录持续前进的实施分支和冻结的 checkpoint remote ref。WorkBuddy 验算必须使用 checkpoint ref；实施分支后来继续前进不会使已经排队的被测 SHA 失效。
+
 如果 WorkBuddy ACTIVE route 仍为 `execution_allowed: false`，用户不要让它强行施工。此时唯一缺口是由 GitHub integrator 发布一次正式 WorkBuddy route。最短请求为：
 
 ```text
@@ -29,9 +31,10 @@ Codex 在接近额度边界前必须：
 1. 只保留可构建状态；
 2. 运行与当前风险相称的一套本地回归；
 3. 普通 commit 并 push，不 amend、不 force-push；
-4. 记录 baseline、40 位 exact head、测试、风险、回滚和唯一下一步；
-5. 声明哪些写入面交出、哪些仍保留；
-6. 若 WorkBuddy route 尚未发布，状态必须是 `BLOCKED_PENDING_TARGET_ROUTE`，不能假装已交棒。
+4. 为 exact head 创建一个新的、从不移动的 `codex/checkpoint-...` 远端分支；
+5. 记录 baseline、40 位 exact head、checkpoint remote ref、测试、风险、回滚和唯一下一步；
+6. 声明哪些写入面交出、哪些仍保留；
+7. 若 WorkBuddy route 尚未发布，状态必须是 `BLOCKED_PENDING_TARGET_ROUTE`，不能假装已交棒。
 
 ## WorkBuddy 接棒后的连续工作
 

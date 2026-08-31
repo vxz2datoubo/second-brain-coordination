@@ -30,6 +30,15 @@ class ExecutorRelayValidationTests(unittest.TestCase):
     def test_current_package_is_safely_blocked_until_workbuddy_route(self) -> None:
         checks = MODULE.validate_package(self.payload)
         self.assertIn("target_authority_fail_closed", checks)
+        self.assertIn("dedicated_checkpoint_ref_valid", checks)
+
+    def test_moving_implementation_branch_cannot_be_checkpoint_ref(self) -> None:
+        candidate = copy.deepcopy(self.payload)
+        candidate["source"]["checkpoint_remote_ref"] = (
+            "refs/remotes/origin/" + candidate["source"]["branch"]
+        )
+        with self.assertRaisesRegex(MODULE.RelayValidationError, "dedicated executor checkpoint"):
+            MODULE.validate_package(candidate)
 
     def test_baton_or_chat_cannot_replace_route_authority(self) -> None:
         candidate = copy.deepcopy(self.payload)
@@ -75,6 +84,12 @@ class ExecutorRelayValidationTests(unittest.TestCase):
         candidate = copy.deepcopy(self.payload)
         candidate["verification_plan"]["commands"] = ["runner --token abc"]
         with self.assertRaisesRegex(MODULE.RelayValidationError, "secret material"):
+            MODULE.validate_package(candidate)
+
+    def test_verification_command_must_bind_checkpoint_identity(self) -> None:
+        candidate = copy.deepcopy(self.payload)
+        candidate["verification_plan"]["commands"] = ["python -m unittest"]
+        with self.assertRaisesRegex(MODULE.RelayValidationError, "do not bind"):
             MODULE.validate_package(candidate)
 
 

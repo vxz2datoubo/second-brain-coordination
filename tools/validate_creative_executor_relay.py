@@ -67,6 +67,13 @@ def validate_package(payload: dict[str, Any]) -> list[str]:
     source_branch = _require(source, "branch", "source")
     if not isinstance(source_branch, str) or not source_branch.startswith(AGENT_PREFIX[source_agent]):
         raise RelayValidationError("source branch does not identify its executor")
+    checkpoint_ref = _require(source, "checkpoint_remote_ref", "source")
+    expected_checkpoint_prefix = f"refs/remotes/origin/{AGENT_PREFIX[source_agent]}checkpoint-"
+    if not isinstance(checkpoint_ref, str) or not checkpoint_ref.startswith(expected_checkpoint_prefix):
+        raise RelayValidationError("source checkpoint must use a dedicated executor checkpoint remote ref")
+    moving_ref = f"refs/remotes/origin/{source_branch}"
+    if checkpoint_ref == moving_ref:
+        raise RelayValidationError("source checkpoint cannot be the moving implementation branch")
     target_branch = _require(target, "proposed_branch", "target")
     if not isinstance(target_branch, str) or not target_branch.startswith(AGENT_PREFIX[target_agent]):
         raise RelayValidationError("target branch does not identify its executor")
@@ -109,6 +116,16 @@ def validate_package(payload: dict[str, Any]) -> list[str]:
     for command in commands:
         if any(fragment in command.casefold() for fragment in forbidden_command_fragments):
             raise RelayValidationError("verification command appears to contain secret material")
+    exact_head = source["exact_head"]
+    identity_command_present = any(
+        f"--expected-head {exact_head}" in command
+        and f"--remote-ref {checkpoint_ref}" in command
+        for command in commands
+    )
+    if not identity_command_present:
+        raise RelayValidationError(
+            "verification commands do not bind the declared exact head and checkpoint remote ref"
+        )
     semantics = _require(plan, "receipt_semantics", "verification_plan")
     if semantics.get("independent_acceptance") is not False or semantics.get("may_ready_or_merge") is not False:
         raise RelayValidationError("executor receipt cannot grant acceptance or merge authority")
@@ -117,9 +134,11 @@ def validate_package(payload: dict[str, Any]) -> list[str]:
         "schema_valid",
         "agent_identity_valid",
         "exact_sha_valid",
+        "dedicated_checkpoint_ref_valid",
         "checkpoint_pushed_and_clean",
         "single_writer_surfaces_disjoint",
         "target_authority_fail_closed" if not executable else "target_authority_complete",
+        "verification_command_identity_bound",
         "receipt_semantics_safe",
     ]
 
