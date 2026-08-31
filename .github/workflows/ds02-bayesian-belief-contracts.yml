@@ -57,10 +57,15 @@ jobs:
               root / 'DS02-RESEARCH-SOURCE-REGISTRY-v1.0.yaml',
               root / 'NUMERIC-INTEGRITY-REGISTRY-v1.0.yaml',
               root / 'DS02-INTEGRATION-INTERFACE-MATRIX-v1.0.yaml',
+              root / 'PHASE2-IMPLEMENTATION-READINESS-PACKET-v1.0.yaml',
           ]
           for path in yaml_paths:
               doc = yaml.safe_load(path.read_text(encoding='utf-8'))
               assert isinstance(doc, dict), path
+          phase2 = yaml.safe_load((root / 'PHASE2-IMPLEMENTATION-READINESS-PACKET-v1.0.yaml').read_text(encoding='utf-8'))
+          assert phase2['status'] == 'DESIGN_PREVIEW_ONLY / NOT_IMPLEMENTATION_AUTHORITY'
+          assert phase2['stop_condition'] == 'PACKET_DOES_NOT_AUTHORIZE_RUNTIME_OR_BACKTEST_WRITES'
+          assert 'NO_TRADE' in phase2['boundary']
           schema = json.loads((root / 'BELIEF-PACKET-v1.schema.json').read_text(encoding='utf-8'))
           assert schema['title'] == 'BeliefPacket/v1'
           print('DS02_FORMAT_VALIDATION_PASS')
@@ -126,6 +131,7 @@ jobs:
           coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DS02-BAYESIAN-BELIEF/DS02-INTEGRATION-INTERFACE-MATRIX-v1.0.yaml
           coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DS02-BAYESIAN-BELIEF/DS02-RESEARCH-SOURCE-REGISTRY-v1.0.yaml
           coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DS02-BAYESIAN-BELIEF/NUMERIC-INTEGRITY-REGISTRY-v1.0.yaml
+          coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DS02-BAYESIAN-BELIEF/PHASE2-IMPLEMENTATION-READINESS-PACKET-v1.0.yaml
           coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DS02-BAYESIAN-BELIEF/tests/test_ds02_bayesian_contract.py
           coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DS02-BAYESIAN-BELIEF/tests/test_ds02_integration_boundaries.py
           coordination/SKILLS/BAYESIAN-BELIEF-UPDATE-FORECAST-FUSION-SKILL-v1.0.yaml
