@@ -14,6 +14,7 @@ authorize a merge/deployment/customer intake action.
 - implementation commits:
   - `38f6c92b29b9ec5a13a194150e069abfe8db36a9` — verified replay capsule
   - `f30854a8ae52593a3c3b8910df98dd11ed858efc` — fixed portable replay package
+  - `ae305b12bfa9afaed0cc518bef8a1b8e7c769eeb` — exhaustive replay corpus
 
 Rollback is Git-native: leave the preceding audited branch untouched, or
 select the preceding exact commit in a new review/implementation branch. Do
@@ -47,6 +48,23 @@ patch, an altered transition, an unregistered initial scenario, an invalid
 ledger, an incomplete route graph, or a failing director quality gate. It does
 not create a shadow/default session on failure.
 
+## Exhaustive replay corpus
+
+`python tools/build_replay_corpus.py --expected-head <SHA> --output-file
+<new-file>` constructs a `CreativeSyntheticReplayCorpus/v1` directly from the
+bounded production graph coverage, not from a local player workspace. It
+contains a verified replay capsule for every terminal safe route across every
+registered scenario. `python tools/verify_replay_corpus.py --expected-head
+<SHA> --corpus <file>` rejects any changed Git identity, scenario set, route
+metadata, action/transition, capsule, director field or source-bound timeline.
+It also refuses an already existing output file rather than overwriting it.
+
+At `ae305b12bfa9afaed0cc518bef8a1b8e7c769eeb`, a clean clone built and
+verified 38 routes: `harbor_protocol: 14`, `legacy_archive: 6`,
+`night_signal: 12`, and `three_scene: 6`. The corpus ID was
+`replay_corpus_5a7e5d55977bd620ee6c`; its byte hash was
+`00545b904a14ff2c328371ce9a80e9c706dcd94fc09d1390ec7151e0e8c1c110`.
+
 ## Reproduction evidence
 
 At `f30854a8ae52593a3c3b8910df98dd11ed858efc`:
@@ -72,6 +90,12 @@ Its receipt confirms a 4-event three-scene route, matching timeline hash
 capsule/package ID `capsule_09fe81517beb47fdb780`, a three-member package
 payload plus manifest, and `contains_caller_free_text: false`. It remains
 executor-provided reproducibility evidence, not independent acceptance.
+
+After the corpus commit, the full creative suite increased to **126** tests
+and passed on both Python 3.13 (157.153 seconds) and Python 3.12 (165.417
+seconds). The deliberate increase is the cost of all-route reconstruction,
+not a hidden remote service or paid operation. The clean clone also passed the
+same 126-test runtime verifier at exact head `ae305b12bfa9afaed0cc518bef8a1b8e7c769eeb`.
 
 ## Still deliberately out of scope
 
