@@ -1,29 +1,43 @@
-schema_version: "173.0"
+schema_version: "173.1"
 repository: vxz2datoubo/second-brain-coordination
 target_agent: CODEX
 active_issue: 524
 task_id: CODEX-CREATIVE-RUNTIME-PUBLIC-SAFE-CLOSEOUT-R173
 parent_task_id: CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001
 route_epoch: 173
-mode: controlled_engineering_remediation_and_closeout
-mode_label: Creative runtime public-safe fail-closed remediation and exact-head closeout
-status: READY
-execution_allowed: true
-automatic_resume_within_task: true
+mode: frozen_exact_head_awaiting_independent_t3
+mode_label: Creative runtime R173 frozen candidate awaiting terminal independent review
+status: WAITING_INDEPENDENT_REVIEW
+execution_allowed: false
+automatic_resume_within_task: false
 second_user_start_command_required: false
 merge_authorized: false
-runtime_code_change_allowed: true
+runtime_code_change_allowed: false
 active_executor: CODEX-R173-CREATIVE-RUNTIME-NEXT-1
 canonical_route: coordination/ROUTES/CODEX-CREATIVE-RUNTIME-PUBLIC-SAFE-CLOSEOUT-R173.yaml
 canonical_contract: coordination/TASK-BRIEFS/CODEX-CREATIVE-RUNTIME-PUBLIC-SAFE-CLOSEOUT-R173.yaml
 implementation_baseline: 2f12aba6dae4a83038fef1f3d5e737944bd9ce1f
 implementation_branch: codex/creative-runtime-next
-activation:
-  issue: 524
-  predecessor_audit_issue: 518
-  predecessor_audit_verdict: BLOCKED
-  confirmed_blocker: AUDIT_EVIDENCE_P1_PUBLIC_SAFE_BOUNDARY_FALSE_PASS
-  release_decision: PROCEED_R173_CODEX_CONTROLLED_REMEDIATION
+frozen_candidate:
+  pr: 525
+  exact_head: 2cdacaa5e516d2d938838629ffc965105d364917
+  engineering_handoff_ref: issuecomment-5480237705
+  review_request_ref: issuecomment-5480244352
+  exact_head_ci_run: 33405737572
+  exact_head_ci_conclusion: SUCCESS_EXECUTOR_EVIDENCE_ONLY
+  write_state: FROZEN_NO_FURTHER_SUBSTANTIVE_WRITE
+  ready_authorized: false
+  merge_authorized: false
+review_gate:
+  queue_issue: 453
+  independent_reviewer: GPT_INDEPENDENT_REVIEWER
+  review_depth: T3
+  exact_head_review_required: true
+  terminal_review_result_required: true
+  integrator_must_not_technical_review: true
+  current_status: ACTIVE_REVIEW_PENDING_TERMINAL_RESULT
+  on_changes_required: PUBLISH_NEW_CLEAN_CODEX_REMEDIATION_ROUTE
+  on_accept: GOVERNED_CANONICALIZATION_RECONCILE_THEN_NEXT_CODEX_VERTICAL_SLICE
 lease:
   worker_slot_id: CODEX-R173-CREATIVE-RUNTIME-NEXT-1
   task_lease: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R173/TASK-LEASE.yaml
@@ -32,22 +46,9 @@ lease:
   authorization_witness: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R173/AUTHORIZATION-WITNESS.yaml
   source_provenance: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R173/SOURCE-SELECTION-PROVENANCE.yaml
   control_tower_scan: coordination/CONTROL-TOWER/R173-CREATIVE-RUNTIME-ACTIVATION-SCAN.yaml
-  substantive_write_gate: OPEN_AFTER_ISSUE_524_EFFECTIVE_SPEC_SNAPSHOT
-execution_protocols:
-  AMED: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R173/AMED.yaml
-  PMA_BIG: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R173/PMA-BIG.yaml
-  WPDCR: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R173/WPDCR.yaml
-  PDER: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R173/PDER.yaml
-allowed_write_paths:
-  - .github/workflows/creative-runtime-offline.yml
-  - creative_runtime/**
-  - apps/cli/**
-  - apps/web/**
-  - tools/**
-  - tests/**
-  - coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R173/**
-  - .gitignore
+  substantive_write_gate: CLOSED_FROZEN_FOR_INDEPENDENT_REVIEW
 hard_locks:
+  - NO_PR525_MUTATION_WHILE_UNDER_REVIEW
   - NO_R171_OR_PR513_REVIVAL_OR_REUSE
   - NO_PR493_PR495_PR502_PR506_PR508_PR511_PR513_MUTATION_IMPORT_REUSE
   - NO_GPT_R172_ISSUE515_WRITE_OR_AUTHORITY_CLAIM
@@ -60,12 +61,5 @@ hard_locks:
   - NO_SECOND_LEDGER_GATEWAY_RESOLVER_AUTHORITY
   - NO_SELF_REVIEW_SELF_ACCEPT_SELF_MERGE
   - NO_FORCE_PUSH_REBASE_RESET_AMEND_HISTORY_REWRITE
-review_gate:
-  queue_issue: 453
-  independent_reviewer: GPT_INDEPENDENT_REVIEWER
-  review_depth: T3
-  exact_head_review_required: true
-  executor_ci_is_evidence_only: true
-  real_engineering_handoff_ref_required: true
-completion_signal: R173_CODEX_CREATIVE_RUNTIME_READY_FOR_INDEPENDENT_T3_AUDIT
-next_command: READ_ISSUE_524_EFFECTIVE_SPEC_SNAPSHOT_CLAIM_AND_EXECUTE_WITHOUT_SECOND_USER_START
+completion_signal: R173_CODEX_CREATIVE_RUNTIME_WAITING_FOR_TERMINAL_T3
+next_command: WAIT_FOR_MATCHING_REVIEW_RESULT_ON_PR525_EXACT_HEAD_THEN_INTEGRATOR_ROUTE_BY_VERDICT
