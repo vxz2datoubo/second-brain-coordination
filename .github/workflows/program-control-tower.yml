@@ -43,10 +43,13 @@ jobs:
       - name: Compile CI-isolation helper
         working-directory: coordination/CONTROL-TOWER
         run: python -m py_compile integration_state_isolation.py tests/test_integration_state_isolation.py
-      - name: Attack unproven object-address normalization
+      - name: Attack unproven object-address and temp-path normalization
         working-directory: coordination/CONTROL-TOWER
         run: |
           python - <<'PY'
+          from pathlib import Path
+          import tempfile
+
           from integration_state_isolation import failure_fingerprint, normalize_failure_text
 
           semantic_pairs = (
@@ -65,6 +68,26 @@ jobs:
           assert failure_fingerprint('FAIL', trace_left, roots=['/tmp/a/repo']) == failure_fingerprint(
               'FAIL', trace_right, roots=['/tmp/b/repo']
           )
+
+          with tempfile.TemporaryDirectory() as first_dir, tempfile.TemporaryDirectory() as second_dir:
+              assert Path(first_dir).name != Path(second_dir).name
+              same_left = f"AssertionError: artifact at {Path(first_dir) / 'result.json'}"
+              same_right = f"AssertionError: artifact at {Path(second_dir) / 'result.json'}"
+              same_left_fp = failure_fingerprint('FAIL', same_left)
+              same_right_fp = failure_fingerprint('FAIL', same_right)
+              assert normalize_failure_text(same_left) == normalize_failure_text(same_right)
+              assert same_left_fp == same_right_fp
+
+              semantic_right = f"AssertionError: artifact at {Path(second_dir) / 'other.json'}"
+              assert normalize_failure_text(same_left) != normalize_failure_text(semantic_right)
+              assert same_left_fp != failure_fingerprint('FAIL', semantic_right)
+
+          temp_root = Path(tempfile.gettempdir())
+          semantic_path_left = f"AssertionError: artifact at {temp_root / 'semantic-alpha' / 'result.json'}"
+          semantic_path_right = f"AssertionError: artifact at {temp_root / 'semantic-beta' / 'result.json'}"
+          assert normalize_failure_text(semantic_path_left) != normalize_failure_text(semantic_path_right)
+          assert failure_fingerprint('FAIL', semantic_path_left) != failure_fingerprint('FAIL', semantic_path_right)
+
           print('R168_PROVENANCE_SAFE_NORMALIZATION_PASS')
           PY
       - name: Attack candidate remote-ref namespace
