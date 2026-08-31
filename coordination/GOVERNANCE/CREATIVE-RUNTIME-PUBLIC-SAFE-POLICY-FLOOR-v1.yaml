@@ -1,0 +1,71 @@
+schema: CREATIVE_RUNTIME_PUBLIC_SAFE_POLICY_FLOOR/v1
+policy_id: CREATIVE-RUNTIME-PUBLIC-SAFE-POLICY-FLOOR-001
+authority: CANONICAL_MAIN_GOVERNANCE_ONLY
+candidate_modification: FORBIDDEN
+purpose: >-
+  Define the non-self-shrinkable minimum public-safe admission surface for creative-runtime candidates.
+  Candidate-owned verifier config and workflow triggers may widen this floor but MUST NOT remove, rename,
+  weaken, alias-away, or jointly shrink any required root, suffix class, trigger path, or capability class.
+minimum_scan_roots:
+  - creative_runtime
+  - apps/cli
+  - tools
+  - apps/web
+minimum_source_suffixes:
+  python:
+    - .py
+  web:
+    - .html
+    - .htm
+    - .css
+    - .js
+    - .mjs
+    - .svg
+minimum_pull_request_trigger_paths:
+  - creative_runtime/**
+  - apps/cli/**
+  - tools/**
+  - apps/web/**
+  - tests/**
+  - .github/workflows/creative-runtime-offline.yml
+  - tools/verify_public_safe_boundary.py
+  - tools/public_safe_boundary_rules.json
+  - coordination/GOVERNANCE/CREATIVE-RUNTIME-PUBLIC-SAFE-POLICY-FLOOR-v1.yaml
+minimum_forbidden_capability_classes:
+  python:
+    - NETWORK_IMPORT_OR_DYNAMIC_RESOLUTION
+    - CREDENTIAL_OR_ENVIRONMENT_READ
+    - REFLECTIVE_FORBIDDEN_CAPABILITY_ACCESS
+  browser:
+    - REMOTE_URL_AFTER_NORMALIZATION
+    - CSS_REMOTE_LOAD_AFTER_ESCAPE_NORMALIZATION
+    - JS_NETWORK_API_DIRECT_ALIAS_BRACKET_OR_COMPUTED_ACCESS
+    - DYNAMIC_REMOTE_IMPORT
+    - SVG_ACTIVE_REMOTE_LOAD
+normalization_floor:
+  browser_url:
+    - trim_ascii_control_and_space
+    - reject_or_normalize_backslash_as_url_parser_would
+    - reject_protocol_relative_remote
+    - decode_css_escapes_before_classification
+    - normalize_attribute_and_svg_href_forms
+  python:
+    - bounded_constant_expression_resolution
+    - reject_unresolved_dynamic_import_targets_when_forbidden_capability_cannot_be_proven_absent
+    - track_alias_from_import_and_reflective_attribute_dictionary_access
+filesystem_confinement_floor:
+  - workspace_path_and_all_ancestors_must_be_confined_nonlink_nonreparse
+  - save_directory_and_all_ancestors_must_be_confined_nonlink_nonreparse
+  - staged_and_final_target_parent_chain_must_be_confined_nonlink_nonreparse
+  - symlink_junction_mount_reparse_or_platform_equivalent_indirection_must_fail_closed_when_detectable
+  - windows_aware_regression_required
+migration_publication_floor:
+  - source_identity_must_remain_bound_through_publication_not_only_before_publication
+  - final_publication_must_be_create_only
+  - detected_race_failure_must_leave_no_new_target_from_failed_attempt
+  - preexisting_target_must_never_be_removed_or_overwritten
+  - descriptor_lock_identity_or_equivalent_protocol_must_prove_source_identity_through_publish
+change_control:
+  modification_requires: NEW_GOVERNED_CONTROL_PLANE_CHANGE_OUTSIDE_IMPLEMENTATION_CANDIDATE
+  implementation_branch_must_not_modify_this_file: true
+  independent_review_required_for_floor_weakening: true
