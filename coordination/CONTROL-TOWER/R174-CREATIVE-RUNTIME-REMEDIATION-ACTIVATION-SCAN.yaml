@@ -1,0 +1,33 @@
+schema: CONTROL_TOWER_ACTIVATION_SCAN/v1
+scan_id: R174-CREATIVE-RUNTIME-REMEDIATION-ACTIVATION-SCAN
+project: CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001
+route_epoch: 174
+task_id: CODEX-R173-PUBLIC-SAFE-MIGRATION-REMEDIATION-R174
+source_issue: 526
+canonical_main_observed: c8cbf8d8f3086f0c96daa877c608ed5db9b4a775
+implementation_baseline: c8cbf8d8f3086f0c96daa877c608ed5db9b4a775
+target_branch: codex/r174-public-safe-migration-remediation
+target_branch_state_at_scan: ABSENT
+review_binding:
+  pr: 525
+  exact_head: 2cdacaa5e516d2d938838629ffc965105d364917
+  verdict: CHANGES_REQUIRED
+  review: 5068184475
+  result: 5480524987
+checks:
+  route_epoch_174_unused: PASS
+  codex_singleton_capacity_after_r173_freeze: PASS
+  frozen_pr_525_write_allowed: false
+  source_is_current_canonical_main_only: PASS
+  frozen_candidate_implementation_reuse_allowed: false
+  hard_boundary_conflict: NONE
+  gpt_r172_issue_515_state: RESERVED_NOT_ACTIVE_RUNTIME
+  r172_same_object_concurrent_writer: NONE_AT_RELEASE
+  r172_future_activation_reconcile_required: true
+  target_branch_absent_before_snapshot: PASS
+collision_analysis:
+  public_safe_verifier_surface: CODEX_R174_EXCLUSIVE
+  migration_publication_surface: O1_BOUNDED_TEMPORARY_OVERLAP_WITH_RESERVED_R172_SPEC_ONLY
+  disposition: PASS_WITH_FUTURE_R172_RECONCILE_GATE
+scan_result: PASS_PRE_SNAPSHOT
+substantive_write_gate: CLOSED_UNTIL_EFFECTIVE_SPEC_SNAPSHOT_AND_BRANCH_PARENT_VERIFY
