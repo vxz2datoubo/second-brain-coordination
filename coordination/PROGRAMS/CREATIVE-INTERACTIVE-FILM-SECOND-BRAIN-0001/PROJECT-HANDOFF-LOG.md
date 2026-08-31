@@ -75,3 +75,42 @@ Codex 交棒前至少满足：
 - 如果进入独立 review，则停止修改该 exact head。
 
 ---
+
+## CIF-RELAY-R173-T3
+
+- **时间**：2026-08-31T10:08:00-05:00
+- **从**：CODEX
+- **交给**：GPT_INDEPENDENT_REVIEWER
+- **治理接力者**：GPT_GITHUB_INTEGRATOR
+- **原因**：R173 已完成工程 handoff 并冻结 PR #525 exact head，当前唯一合法动作是独立 T3 terminal verdict。
+
+### 冻结候选
+
+- Issue：`#524`
+- PR：`#525`
+- Branch：`codex/creative-runtime-next`
+- Exact head：`2cdacaa5e516d2d938838629ffc965105d364917`
+- Engineering handoff：`issuecomment-5480237705`
+- REVIEW_REQUEST：`issuecomment-5480244352`
+- Exact-head CI：`33405737572` SUCCESS executor evidence only
+
+### 当前权威状态
+
+- CODEX writes：**FROZEN**
+- `ACTIVE-CODEX-TASK.yaml`：`WAITING_INDEPENDENT_REVIEW`, `execution_allowed: false`
+- 当前 holder：`GPT_INDEPENDENT_REVIEWER`
+- GPT_GITHUB_INTEGRATOR：只做治理接力，不做本 exact head 的独立技术验算
+- Merge：未授权
+
+### Terminal verdict 后的唯一分叉
+
+- `CHANGES_REQUIRED`：冻结 #525 不动；基于全部 blockers 发布新的 clean CODEX remediation Issue / route / claim / lease / reservation / Control Tower / pre-write EFFECTIVE_SPEC_SNAPSHOT，覆盖相邻生命周期。
+- `ACCEPT`：不替 CODEX 扩权；integrator fresh reconcile current main、merge/canonicalization 权限与 drift。只有合法 canonicalization 后，才发布下一项不与 GPT R172 single-session authority 冲突的高价值 CODEX 纵切片。
+
+### 不要碰
+
+- PR #525 exact head 及历史冻结 PR；
+- GPT R172 / Issue #515 single-session authority；
+- 任何外部 provider、凭证、customer data、部署、交易、canonical knowledge。
+
+---
