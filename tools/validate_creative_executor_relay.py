@@ -98,7 +98,15 @@ def validate_package(payload: dict[str, Any]) -> list[str]:
     if not isinstance(route, dict):
         raise RelayValidationError("target.route_authority must be an object")
     executable = route.get("execution_allowed") is True
-    authority_refs = ("route_ref", "claim_ref", "lease_ref", "snapshot_ref")
+    authority_refs = (
+        "task_id",
+        "active_issue",
+        "route_epoch",
+        "route_ref",
+        "claim_ref",
+        "lease_ref",
+        "snapshot_ref",
+    )
     if executable:
         missing = [name for name in authority_refs if not route.get(name)]
         if missing:

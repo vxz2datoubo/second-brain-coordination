@@ -96,3 +96,13 @@ python tools/create_creative_quota_checkpoint.py `
 ```
 
 工具只接受干净工作树、执行者前缀正确的当前分支以及和当前 HEAD 完全一致的冻结远端引用。收据只保存测试名称和结论，不嵌入原始日志；输出只能写入 Git 忽略的 `.creative-evidence/`。
+
+任何 Agent 在让 WorkBuddy 开工前都应运行一次 canonical readiness audit：
+
+```powershell
+python tools/audit_creative_relay_readiness.py `
+  --main-ref origin/main `
+  --package coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/EXECUTOR-RELAY-QUEUE.yaml
+```
+
+只有输出 `status: READY` 才能领取 WorkBuddy 任务。`BLOCKED` 会列出 canonical ACTIVE route、package route 或 checkpoint SHA 的精确不一致，并给出唯一下一步；这个审计器只观察权限，永远不能自行授予执行、review 或 merge 权。

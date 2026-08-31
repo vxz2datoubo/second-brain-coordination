@@ -60,6 +60,9 @@ class ExecutorRelayValidationTests(unittest.TestCase):
         route = candidate["target"]["route_authority"]
         route.update(
             execution_allowed=True,
+            task_id="WORKBUDDY-CREATIVE-RELAY-1",
+            active_issue=900,
+            route_epoch=200,
             route_ref="coordination/ROUTES/example.yaml",
             claim_ref="coordination/PROGRAMS/example/WORK-CLAIM.yaml",
             lease_ref="coordination/PROGRAMS/example/TASK-LEASE.yaml",
