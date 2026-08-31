@@ -53,6 +53,8 @@ class CreativeReplayReviewTests(unittest.TestCase):
                 self.assertTrue(choice["transition_id"])
                 self.assertEqual(choice["terminal_route_count"], len(choice["terminal_outcomes"]))
                 self.assertTrue(all(outcome["terminal_delta"]["final_state_hash"] for outcome in choice["terminal_outcomes"]))
+                self.assertTrue(all(outcome["director_continuity"]["opening"]["axis"] for outcome in choice["terminal_outcomes"]))
+                self.assertEqual(choice["review_tags"], sorted(choice["review_tags"]))
 
     def test_verifier_rejects_forged_outcome_delta_or_branch_choice(self) -> None:
         forged_delta = copy.deepcopy(self.board)
@@ -63,6 +65,10 @@ class CreativeReplayReviewTests(unittest.TestCase):
         forged_choice["branch_points"][0]["choices"][0]["action_id"] = "forged"
         with self.assertRaises(ReplayReviewViolation):
             verify_verified_replay_review_board(self.head, self.corpus, forged_choice)
+        forged_camera = copy.deepcopy(self.board)
+        forged_camera["branch_points"][0]["choices"][0]["terminal_outcomes"][0]["director_continuity"]["closing"]["camera"] = "forged"
+        with self.assertRaises(ReplayReviewViolation):
+            verify_verified_replay_review_board(self.head, self.corpus, forged_camera)
 
     def test_file_builder_and_verifier_refuse_overwrite_and_head_drift(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

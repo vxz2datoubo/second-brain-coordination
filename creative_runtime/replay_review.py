@@ -61,8 +61,56 @@ def _state_delta(initial: Mapping[str, Any], final: Mapping[str, Any]) -> dict[s
     }
 
 
+def _director_continuity(entry: Mapping[str, Any]) -> dict[str, Any]:
+    """Expose source-owned opening and terminal film cues without interpreting them."""
+
+    director = entry["capsule"].get("director")
+    if not isinstance(director, Mapping) or not isinstance(director.get("shots"), list) or not director["shots"]:
+        raise ReplayReviewViolation("Replay review route capsule has no verified director shots")
+    shots = director["shots"]
+
+    def projection(shot: Any) -> dict[str, Any]:
+        if not isinstance(shot, Mapping):
+            raise ReplayReviewViolation("Replay review director shot is malformed")
+        fields = ("shot_id", "scene_id", "beat_id", "camera", "axis", "lighting", "sound", "duration_seconds")
+        if any(field not in shot for field in fields):
+            raise ReplayReviewViolation("Replay review director shot lacks a continuity field")
+        return {field: shot[field] for field in fields}
+
+    projections = [projection(shot) for shot in shots]
+    return {
+        "opening": projections[0],
+        "closing": projections[-1],
+        "total_duration_seconds": sum(int(shot["duration_seconds"]) for shot in projections),
+    }
+
+
+def _review_tags(delta: Mapping[str, Any], continuity: Mapping[str, Any]) -> list[str]:
+    """Derive stable display filters from already verified terminal evidence."""
+
+    tags: set[str] = set()
+    risk_delta = int(delta["risk_delta"])
+    if risk_delta > 0:
+        tags.add("risk_increases")
+    if risk_delta < 0:
+        tags.add("risk_decreases")
+    if delta["relationship_delta"]:
+        tags.add("relationship_changes")
+    if delta["new_known_facts"]:
+        tags.add("new_facts")
+    if delta["lost_known_facts"]:
+        tags.add("lost_facts")
+    if delta["flag_changes"]:
+        tags.add("flag_changes")
+    if continuity["opening"]["scene_id"] != continuity["closing"]["scene_id"]:
+        tags.add("scene_change")
+    return sorted(tags)
+
+
 def _route_outcome(entry: Mapping[str, Any], prefix_state: Mapping[str, Any]) -> dict[str, Any]:
     final_state = dict(entry["final_state"])
+    delta = _state_delta(prefix_state, final_state)
+    continuity = _director_continuity(entry)
     return {
         "route_id": entry["route_id"],
         "action_ids": list(entry["action_ids"]),
@@ -70,7 +118,9 @@ def _route_outcome(entry: Mapping[str, Any], prefix_state: Mapping[str, Any]) ->
         "timeline_hash": entry["timeline_hash"],
         "capsule_id": entry["capsule_id"],
         "final_state": final_state,
-        "terminal_delta": _state_delta(prefix_state, final_state),
+        "terminal_delta": delta,
+        "director_continuity": continuity,
+        "review_tags": _review_tags(delta, continuity),
     }
 
 
@@ -137,6 +187,7 @@ def build_verified_replay_review_board(head_sha: str, corpus: Mapping[str, Any])
                     "transition_id": next(iter(choice["transition_ids"])),
                     "terminal_route_count": len(outcomes),
                     "terminal_outcomes": outcomes,
+                    "review_tags": sorted({tag for outcome in outcomes for tag in outcome["review_tags"]}),
                 }
             )
         material = {
@@ -150,6 +201,7 @@ def build_verified_replay_review_board(head_sha: str, corpus: Mapping[str, Any])
                 "branch_point_id": "branch_" + hashlib.sha256(canonical_json(material).encode("utf-8")).hexdigest()[:20],
                 **material,
                 "prefix_state": group["prefix_state"],
+                "review_tags": sorted({tag for choice in choices for tag in choice["review_tags"]}),
             }
         )
     ordered = sorted(branch_points, key=lambda value: (str(value["scenario"]), tuple(value["prefix_action_ids"])))
