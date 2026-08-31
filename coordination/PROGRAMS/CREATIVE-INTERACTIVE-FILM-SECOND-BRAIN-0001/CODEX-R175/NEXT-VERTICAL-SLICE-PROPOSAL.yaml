@@ -1,0 +1,188 @@
+schema: CreativeRuntimeNextVerticalSliceProposal/v1
+agent_id: CODEX
+project_id: CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001
+proposal_id: A1-MULTI-SCRIPT-CAMPAIGN-DIRECTOR-SWITCH-001
+authority: PROPOSAL_ONLY_NO_EXECUTION_GRANT
+status: READY_FOR_FUTURE_GOVERNED_RELEASE
+
+observed_exact_source:
+  branch: codex/r175-capability-policy-confinement-remediation
+  head: e7082214111a2726091e24c46b76ab696372dee9
+  evidence_method: DIRECT_SOURCE_INSPECTION
+
+current_facts:
+  - CLI resolves every beat through one hard-coded synthetic_scene function
+  - CLI persists one CreativeSession/v1 file at workspace/session.json
+  - StoryState has scene and beat but no script revision campaign or style identity
+  - DirectorBrief has no script campaign state-hash style cast-revision or continuity-ledger binding
+  - director character goals spatial facts shots and asset IDs are synthetic-archive constants
+  - CreativeSession/v2 currently exists only as a lossless migration envelope
+  - GPT R172 retains a separate single-migrated-v2-session authority lane and must be reconciled before session authority changes
+
+product_understanding_map:
+  KNOWN_SAID:
+    - one runtime must support many switchable scripts and many players
+    - effect quality takes priority while shared immutable content should save space
+    - AI director owns picture sound shot and continuity compilation rather than narrative truth
+    - Codex and WorkBuddy should coordinate continuously while GPT performs stage-level review only on user sync or closeout
+  KNOWN_UNSAID_INFERRED:
+    - script identity revision and approval must be explicit in every campaign and director call
+    - shared script packages and per-player event ledgers must have separate storage authority
+    - style switching must not change narrative facts character identity or player consequence history
+    - session migration cannot be redesigned until the GPT R172 authority lane is fresh-reconciled
+  UNKNOWN_BUT_ACCESSIBLE:
+    - ScriptPackage is the reusable movie game cartridge shared by all players
+    - PlayerCampaign is one player's save and only stores their incremental choices and consequences
+    - DirectorBrief/v2 is the verified handoff from story truth to shot and sound generation
+  UNKNOWN_REQUIRES_SCAFFOLDING:
+    - content-addressed immutable packages prevent one hundred players from storing one hundred duplicate scripts
+    - optimistic campaign append and exact previous hash prevent simultaneous comments from silently overwriting each other
+    - schema and revision compatibility matrices make old saves readable without weakening new contracts
+
+root_outcome: >-
+  Run at least two approved synthetic scripts through one deterministic runtime, create many independent player campaigns
+  that reference shared immutable content, and compile any reachable verified campaign state into an explicit multi-script
+  DirectorBrief/v2 without hard-coded Eustia or synthetic-archive assumptions.
+
+proposed_contracts:
+  ScriptPackage_v1:
+    required_identity:
+      - script_id
+      - script_revision
+      - package_hash
+      - approval_status
+      - content_rating
+    shared_content:
+      - world_bible
+      - character_bibles
+      - scene_bibles
+      - story_beats
+      - legal_choices
+      - consequence_rules
+      - reward_rules
+      - ending_rules
+      - style_profiles
+      - asset_manifest
+      - source_provenance
+  PlayerCampaign_v1:
+    required_identity:
+      - campaign_id
+      - player_ref
+      - script_id
+      - script_revision
+      - script_package_hash
+      - selected_style_profile_id
+    incremental_state:
+      - event_ledger_ref
+      - current_story_state_hash
+      - quest_state
+      - reward_state
+      - relationship_state
+      - evidence_inventory
+      - continuity_ledger_hash
+  DirectorBrief_v2:
+    required_binding:
+      - script_id
+      - script_revision
+      - campaign_id
+      - verified_story_state_hash
+      - style_profile_id
+      - cast_revision_ids
+      - scene_asset_refs
+      - continuity_ledger_hash
+      - director_policy_revision
+
+codex_lane:
+  role: PRIMARY_ARCHITECT_AND_IMPLEMENTATION_WRITER
+  proposed_scope:
+    - JSON-only frozen contracts and validators
+    - immutable script registry and package-hash verification
+    - campaign reference model and deterministic replay integration
+    - DirectorBrief/v2 compiler without fixed story or asset constants
+    - CLI script selection campaign creation resume replay and explicit style switching
+    - focused acceptance-oracle tests and negative version/tamper tests
+  required_immediate_tests:
+    - contract roundtrip and strict validation
+    - package hash tamper rejection
+    - campaign script revision mismatch rejection
+    - same events same state hash across fresh runs
+    - style change leaves story state hash unchanged
+
+workbuddy_lane:
+  role: MILESTONE_REPRODUCTION_AND_ENVIRONMENT_VALIDATION_AFTER_NEW_ROUTE
+  current_execution_allowed: false
+  proposed_non_overlapping_scope:
+    - run exact-head clean reproduction with tools/verify_creative_executor_checkpoint.py
+    - measure disk use for many campaigns sharing one package
+    - Windows path length filename Unicode and concurrent process probes
+    - repeated init resume replay style-switch and failed-write recovery exercises
+    - verify local operator runbook and fixture installation from a fresh clone
+    - implement only separately routed simple scripts documentation or environment probes on workbuddy branch
+  must_not:
+    - change Codex acceptance oracles while reporting a pass
+    - patch the Codex branch
+    - claim final independent acceptance or merge authority
+
+gpt_stage_review:
+  activation: USER_SAYS_SYNC_OR_CLOSEOUT
+  focus:
+    - cross-module contract consistency
+    - R172 session-authority reconciliation
+    - integration and governance drift
+    - whether evidence proves product behavior rather than only local tests
+  not_requested_by_this_proposal: true
+
+ordered_slices:
+  - id: A1_1
+    owner: CODEX
+    outcome: ScriptPackage/v1 registry with two synthetic approved fixtures and content hashes
+  - id: A1_2
+    owner: CODEX
+    outcome: PlayerCampaign/v1 shared-package reference and deterministic per-player ledger
+  - id: A1_3
+    owner: CODEX
+    outcome: DirectorBrief/v2 and ShotBundle compilation selected by script revision and style
+  - id: A1_4
+    owner: CODEX
+    outcome: CLI init script-select campaign resume replay and style-switch lifecycle
+  - id: A1_WB_1
+    owner: WORKBUDDY_AFTER_EXPLICIT_RELEASE
+    outcome: exact-head clean reproduction storage scaling and Windows operator evidence
+
+numeric_acceptance:
+  script_fixtures: 2
+  minimum_style_profiles_per_script: 4
+  campaign_scaling_fixture_count: 100
+  approved_reachable_edges_replayable_percent: 100
+  reachable_states_compilable_to_valid_director_brief_percent: 100
+  main_choice_real_state_difference_percent: 100
+  package_duplication_across_campaign_files: 0
+  unverified_model_output_promoted_to_story_fact: 0
+  external_network_or_paid_generation_calls: 0
+  real_user_photo_comment_or_secret_files_in_git: 0
+
+failure_and_tamper_matrix:
+  - unknown script ID
+  - unapproved script package
+  - package hash mismatch
+  - campaign package or revision mismatch
+  - unknown style profile
+  - invalid beat or action for package graph
+  - cross-player campaign reference
+  - director brief state-hash mismatch
+  - missing cast or scene asset reference
+  - repeated append and interrupted-save recovery
+  - old CreativeSession/v1 and v2 authority conflict
+
+hard_boundaries:
+  - NO_EXECUTION_UNTIL_NEW_CODEX_ROUTE_AND_PREWRITE_SNAPSHOT
+  - NO_WORKBUDDY_EXECUTION_UNTIL_NEW_WORKBUDDY_ROUTE
+  - NO_GPT_R172_SESSION_AUTHORITY_OVERWRITE
+  - NO_EUSTIA_IMPORT_WITHOUT_SEPARATE_PROVENANCE_AND_RIGHTS_REVIEW
+  - NO_EXTERNAL_MODEL_CREDENTIAL_DEPLOYMENT_CUSTOMER_DATA_OR_CANONICAL_KNOWLEDGE
+  - NO_SELF_REVIEW_READY_ACCEPT_OR_MERGE
+
+unique_next_action: >-
+  On the next authorized project-development release, fresh-reconcile GPT R172 Issue 515 and its current authority state,
+  then release A1_1 to a new clean Codex branch from the accepted canonical creative-runtime baseline. Separately release
+  A1_WB_1 only after the WorkBuddy ACTIVE route is explicitly reactivated.
