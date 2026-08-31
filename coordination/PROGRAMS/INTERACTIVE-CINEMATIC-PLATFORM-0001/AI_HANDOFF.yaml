@@ -1,0 +1,26 @@
+schema: AIHandoff/v1
+program_id: INTERACTIVE-CINEMATIC-PLATFORM-0001
+source_agent: CODEX
+target_agent: GPT
+reviewer: GPT_INDEPENDENT_REVIEWER
+executor_status: EXECUTOR_VERIFIED_ONLY
+handoff_state: architecture_checkpoint_open_for_next_slice
+base_sha: 2f12aba6dae4a83038fef1f3d5e737944bd9ce1f
+head_sha: null
+head_binding: Bind exact HEAD only when a completed implementation slice is frozen for formal review; do not infer it from chat history.
+changed_contracts:
+  - InteractiveCinematicPlatformControlPlane/v1
+  - ScriptPackage/v1
+  - PlayerCampaign/v1
+  - DirectorBrief/v2
+  - ManualIntake/v1
+tests:
+  - command: python tools/verify_interactive_cinematic_platform.py
+    purpose: deterministic control-plane and contract-catalogue validation
+  - command: python -m unittest tests.test_interactive_cinematic_platform_architecture
+    purpose: verifier mutation tests
+known_risks:
+  - The architecture is intentionally provider-neutral and offline; it does not demonstrate DeepSeek, MiniMax H3, or Douyin connectivity.
+  - Eustia is not a source asset in this program until a separate provenance review allows it.
+next_action: Implement A1 on an isolated allowed branch; first bind a new exact base SHA and update STATUS.yaml before code changes.
+rollback: Revert only the completed slice commit; no private data or external state has been created by A0.

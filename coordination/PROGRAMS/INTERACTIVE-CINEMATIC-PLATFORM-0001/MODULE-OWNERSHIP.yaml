@@ -1,0 +1,66 @@
+schema: InteractiveCinematicPlatformOwnership/v1
+program_id: INTERACTIVE-CINEMATIC-PLATFORM-0001
+shared_rules:
+  source_of_truth: GitHub only
+  branch_prefixes:
+    CODEX: codex/interactive-cinematic-
+    GPT: gpt/interactive-cinematic-
+    WORKBUDDY: workbuddy/interactive-cinematic-
+  commit_trailer:
+    CODEX: '[agent:CODEX]'
+    GPT: '[agent:GPT]'
+    WORKBUDDY: '[agent:WORKBUDDY]'
+  protected_main_requires:
+    - exact_head
+    - reproducible_commands_and_evidence
+    - AI_HANDOFF.yaml
+    - actual_executor_and_independent_reviewer
+    - no_private_data_or_credentials
+    - independent_GPT_verification
+    - explicit_user_merge_authorization
+owners:
+  CODEX:
+    responsibilities:
+      - runtime_and_contract_implementation
+      - replay_and_tamper_tests
+      - director_compiler_and_offline_media_adapter
+      - deterministic_verification
+    writable_paths:
+      - creative_runtime/
+      - apps/cli/
+      - tests/
+      - tools/
+      - coordination/PROGRAMS/INTERACTIVE-CINEMATIC-PLATFORM-0001/
+    prohibited:
+      - self_review_or_acceptance
+      - self_merge
+      - production_deployment
+      - credential_or_private_media_access
+  GPT:
+    responsibilities:
+      - architecture_integration
+      - issue_and_pull_request_control
+      - independent_verification
+      - final_merge_after_user_authorization
+    prohibited:
+      - direct_local_production_writes
+      - real_user_data_access
+  WORKBUDDY:
+    responsibilities:
+      - local_private_adapters
+      - environment_capability_validation
+      - operator_tooling_and_predeployment_rehearsal
+    writable_paths:
+      - private_adapters/
+      - local_operator_tools/
+      - coordination/PROGRAMS/INTERACTIVE-CINEMATIC-PLATFORM-0001/
+    prohibited:
+      - treating_unverified_local_assets_as_canonical
+      - unapproved_architecture_changes
+  USER:
+    responsibilities:
+      - product_direction
+      - budget_and_retention_policy
+      - real_provider_and_platform_approval
+      - public_release_and_final_decisions
+handoff_rule: An executor may mark only EXECUTOR_VERIFIED_ONLY; an uninvolved reviewer is required for INDEPENDENTLY_VERIFIED.

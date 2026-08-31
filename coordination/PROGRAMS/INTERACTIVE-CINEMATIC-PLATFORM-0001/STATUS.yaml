@@ -1,0 +1,32 @@
+schema: InteractiveCinematicPlatformStatus/v1
+program_id: INTERACTIVE-CINEMATIC-PLATFORM-0001
+updated_at: 2026-08-31
+status: checkpointed
+in_progress_slice: null
+last_completed_slice:
+  id: A0_ARCHITECTURE_BASELINE
+  executor: CODEX
+  branch: codex/interactive-cinematic-platform-architecture
+  base_sha: 2f12aba6dae4a83038fef1f3d5e737944bd9ce1f
+  executor_status: EXECUTOR_VERIFIED_ONLY
+next_slice:
+  id: A1_MULTI_SCRIPT_RUNTIME_AND_DIRECTOR_SWITCHING
+  recommended_executor: CODEX
+  branch_prefix: codex/interactive-cinematic-
+  allowed_paths:
+    - creative_runtime/
+    - apps/cli/
+    - tests/
+    - tools/
+    - coordination/PROGRAMS/INTERACTIVE-CINEMATIC-PLATFORM-0001/
+  completion_conditions:
+    - ScriptPackage/v1 registry exists for synthetic scenarios.
+    - Director inputs require script_id, revision, campaign_id, state hash, style profile, cast revisions, scene refs, continuity hash, and policy revision.
+    - Existing synthetic campaign replay remains compatible.
+    - Offline tests cover script selection and legacy migration.
+blocking_items:
+  - Real provider access, real Douyin access, and real personal media require separate user approval and local-private adapters.
+  - Eustia remains an unimported private-adaptation candidate pending provenance, copyright, content, and asset review.
+drift_check:
+  command: python tools/verify_interactive_cinematic_platform.py
+  expected_result: status=pass

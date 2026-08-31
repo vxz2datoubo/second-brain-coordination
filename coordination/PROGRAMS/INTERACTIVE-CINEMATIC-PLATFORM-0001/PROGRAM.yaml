@@ -1,0 +1,74 @@
+schema: InteractiveCinematicPlatformProgram/v1
+program_id: INTERACTIVE-CINEMATIC-PLATFORM-0001
+title: Real-time Interactive Cinema × AI Director × Second Brain
+source_of_truth: GitHub repository plus this control directory
+product_goal: >-
+  Build a private-first, text-led interactive cinematic platform where verified
+  player choices produce dramatic consequences, director-ready short segments,
+  and reviewable creative-learning candidates without treating model output as fact.
+user_outcome: >-
+  A player can type a choice, understand its consequences, experience an
+  emotionally coherent cinematic continuation, and return to a durable campaign.
+current_phase: A0_ARCHITECTURE_BASELINE
+phase_order:
+  - A0_ARCHITECTURE_BASELINE
+  - A1_MULTI_SCRIPT_RUNTIME_AND_DIRECTOR_SWITCHING
+  - A2_FLAGSHIP_SEASON_AND_DRAMA_MANAGER
+  - A3_PRIVATE_APPEARANCE_CONTINUITY_AND_MEDIA_JOBS
+  - A4_MANUAL_OPERATIONS_AND_DOUYIN_REHEARSAL
+  - A5_USER_APPROVED_REAL_MODEL_PILOT
+flagship_season:
+  genre: adventure_mystery_crime_emotion
+  target_duration_minutes:
+    value: 45
+    upper_bound: 60
+    unit: minutes
+    source: user_approved_product_direction
+    measured_at: 2026-08-31
+  structure:
+    acts: 3
+    chapters: 6
+    primary_choice_points: 12
+  content_boundary: adult_roles_non_explicit_no_sexual_exploitation_detail_no_gore_closeups
+style_profiles:
+  primary: cinematic_live_action
+  variants:
+    - stylized_3d
+    - japanese_animation
+    - ink_wash_animation
+  invariant: story facts, character identity, wardrobe, props, spatial continuity, and camera responsibility
+module_versions:
+  content_and_scripts: ScriptPackage/v1
+  player_and_drama: PlayerCampaign/v1
+  appearance_and_private_assets: AvatarIdentity/v1
+  director_and_media: DirectorBrief/v2
+  operations_and_douyin: ManualIntake/v1
+  knowledge_candidates: CreativeKnowledgeCandidate/v1
+hard_boundaries:
+  github_only_for_current_phase: true
+  no_production_deployment: true
+  no_external_or_paid_model_calls: true
+  no_credential_read: true
+  no_real_player_data: true
+  no_real_media_commit: true
+  no_eustia_import_without_separate_provenance_review: true
+  no_canonical_knowledge_write_without_human_review: true
+acceptance_table:
+  A0:
+    status: checkpointed
+    acceptance: A clean checkout can identify scope, ownership, contracts, safety boundaries, validation, and next slice without chat history.
+  A1:
+    status: planned
+    acceptance: A registered synthetic script can drive a director through explicit script and style selectors while legacy replay stays compatible.
+  A2:
+    status: planned
+    acceptance: Every primary choice has a validated state consequence and a visible dramatic feedback type.
+  A3:
+    status: planned
+    acceptance: Avatar revisions and offline media jobs preserve per-player privacy and visual continuity.
+  A4:
+    status: planned
+    acceptance: Synthetic comment intake can advance a campaign, with deduplication and a verified manual-image fallback.
+  A5:
+    status: blocked_by_user_approval
+    acceptance: Real providers, permissions, retention, budgets, and pilot audience are separately approved by the user.

@@ -1,0 +1,162 @@
+schema: ProductUnderstandingMap/v1
+program_id: INTERACTIVE-CINEMATIC-PLATFORM-0001
+method: UnderstandingCard/v1; record observed requirements before making inferences; use explicit drift checks for all material assumptions.
+cards:
+  - card_id: UMAP-001
+    subject: product_goal
+    layer: explicit_known
+    statement: A player interacts by text and receives an enjoyable, cinematic, branching story with real consequences.
+    authority_ref: user_plan_2026-08-31
+    evidence_tier: E0_observed_requirement
+    confidence: high
+    valid_from: 2026-08-31
+    supersedes: null
+    numeric_anchors: []
+    drift_checks: [Review PROGRAM.yaml before each phase.] 
+    decision_impact: Requires choice validation and replayable state rather than free-form model state mutation.
+    owner: USER
+    human_explanation: 玩家可自由表达，但系统只把验证通过的选择变成剧情事实。
+  - card_id: UMAP-002
+    subject: flagship_season
+    layer: explicit_known
+    statement: The first season is adventure, mystery, crime, and emotion, designed for 45 to 60 minutes with three acts, six chapters, and twelve primary choices.
+    authority_ref: user_plan_2026-08-31
+    evidence_tier: E0_observed_requirement
+    confidence: high
+    valid_from: 2026-08-31
+    supersedes: null
+    numeric_anchors:
+      - metric: season_duration
+        value: 45_to_60
+        unit: minutes
+        source: user_approved_product_direction
+        measured_at: 2026-08-31
+        target: 45_to_60
+    drift_checks: [Validate beat graph coverage in A2.] 
+    decision_impact: Establishes a bounded seasonal narrative rather than an unbounded chat.
+    owner: USER
+    human_explanation: 时长和章数是创作约束，不是强制用户在线时长。
+  - card_id: UMAP-003
+    subject: visual_style
+    layer: explicit_known
+    statement: Cinematic live action is primary; stylized 3D, Japanese animation, and ink-wash animation are alternate visual profiles that preserve story and continuity facts.
+    authority_ref: user_plan_2026-08-31
+    evidence_tier: E0_observed_requirement
+    confidence: high
+    valid_from: 2026-08-31
+    supersedes: null
+    numeric_anchors: []
+    drift_checks: [A3 must prove the same verified state yields equivalent director constraints across profiles.] 
+    decision_impact: Keeps story logic independent from rendering style.
+    owner: CODEX
+    human_explanation: 换画风不等于换人设、道具、伤势、空间或镜头意图。
+  - card_id: UMAP-004
+    subject: model_roles
+    layer: explicit_known
+    statement: DeepSeek is the proposed real-time narrative provider and MiniMax H3 is the proposed short audiovisual segment provider, but neither is callable in GitHub A0-A4.
+    authority_ref: user_plan_2026-08-31
+    evidence_tier: E0_observed_requirement
+    confidence: high
+    valid_from: 2026-08-31
+    supersedes: null
+    numeric_anchors:
+      - metric: target_segment_duration
+        value: 4_to_15
+        unit: seconds
+        source: MiniMax_H3_official_capability_reference
+        measured_at: 2026-08-31
+        target: 4_to_15
+    drift_checks: [Reconfirm official provider limits, pricing, and policies before A5.] 
+    decision_impact: Requires provider-neutral proposal and media-job contracts plus deterministic offline adapters.
+    owner: USER
+    human_explanation: 当前能在 GitHub 验证的是离线模拟；真实模型要在以后单独开闸。
+  - card_id: UMAP-005
+    subject: player_appearance
+    layer: explicit_known
+    statement: A first approved photo establishes a private avatar identity; only an explicit command using 整容 plus role and a new image creates a future-facing revision.
+    authority_ref: user_plan_2026-08-31
+    evidence_tier: E0_observed_requirement
+    confidence: high
+    valid_from: 2026-08-31
+    supersedes: null
+    numeric_anchors: []
+    drift_checks: [A3 must test revision isolation and no historical-segment mutation.] 
+    decision_impact: Requires local private storage and immutable GitHub references only.
+    owner: WORKBUDDY
+    human_explanation: 换脸只影响已批准的后续片段，旧片段不会被悄悄重做。
+  - card_id: UMAP-006
+    subject: douyin_intake
+    layer: explainable_unknown
+    statement: Comment text is the first-class intake. Comment-image retrieval is gated because the documented comment listing API does not promise a stable image field.
+    authority_ref: https://open.douyin.com/platform/resource/docs/openapi/interaction-management/comment-management-user/comment-list
+    evidence_tier: E0_documented_external_constraint
+    confidence: medium
+    valid_from: 2026-08-31
+    supersedes: null
+    numeric_anchors: []
+    drift_checks: [Run a user-approved platform capability test before enabling any image path.] 
+    decision_impact: Requires a non-blocking manual-image fallback and a capability gate.
+    owner: WORKBUDDY
+    human_explanation: 拿不到评论图片时，文字选择照常推进；运营端收到人工导图通知。
+  - card_id: UMAP-007
+    subject: meaningful_agency
+    layer: implicit_known
+    statement: Each primary choice needs at least one durable difference in clue, relationship, resource, risk, quest, scene, or ending path.
+    authority_ref: user_plan_2026-08-31 plus Foreseeing_Meaningful_Choices_AAAI_2014
+    evidence_tier: E1_deterministic_product_rule
+    confidence: high
+    valid_from: 2026-08-31
+    supersedes: null
+    numeric_anchors:
+      - metric: primary_choice_state_difference_coverage
+        value: 100
+        unit: percent
+        source: product_hard_gate
+        measured_at: 2026-08-31
+        threshold: 100
+    drift_checks: [A2 coverage board rejects pseudo-choices.] 
+    decision_impact: Makes perceived agency testable and protects against decorative branching.
+    owner: CODEX
+    human_explanation: 每个主要选择至少要真正改变一件可回放的事。
+  - card_id: UMAP-008
+    subject: knowledge_learning
+    layer: explicit_known
+    statement: The second brain receives only review candidates; unreviewed player preferences and generated results cannot alter canonical scripts or reusable skills.
+    authority_ref: user_plan_2026-08-31
+    evidence_tier: E0_observed_requirement
+    confidence: high
+    valid_from: 2026-08-31
+    supersedes: null
+    numeric_anchors: []
+    drift_checks: [A4 verifies human review before promotion.] 
+    decision_impact: Separates creative evidence from formal knowledge.
+    owner: GPT
+    human_explanation: 系统会积累“候选经验”，但不会自己把偏好变成正式规则。
+  - card_id: UMAP-009
+    subject: long_term_storage
+    layer: explainable_unknown
+    statement: Long-term personal-media retention needs a separately approved local-private retention policy, consent version, deletion workflow, and access audit.
+    authority_ref: user_request_for_long_term_photo_storage_2026-08-31
+    evidence_tier: E0_observed_requirement_pending_policy
+    confidence: medium
+    valid_from: 2026-08-31
+    supersedes: null
+    numeric_anchors: []
+    drift_checks: [USER must approve retention duration, deletion, and access model before A5.] 
+    decision_impact: GitHub stores only irreversible references, consent revision, and approval status.
+    owner: USER
+    human_explanation: 长期保存不是“默认永久保存”；需要你以后明确保存多久、谁能看、如何删除。
+  - card_id: UMAP-010
+    subject: hidden_implementation_complexity
+    layer: opaque_unknown
+    statement: Provider latency, generated-media quality variance, platform permissions, and future operating cost cannot be known from offline architecture alone.
+    authority_ref: A0_architecture_boundary
+    evidence_tier: E0_unknown_explicitly_recorded
+    confidence: low
+    valid_from: 2026-08-31
+    supersedes: null
+    numeric_anchors: []
+    drift_checks: [Measure de-identified local pilot metrics only after A5 approval.] 
+    decision_impact: Keeps budget, latency, and launch claims out of current acceptance criteria.
+    owner: USER
+    human_explanation: 这些是现实运营变量，不能靠现在的测试假装已经解决。
