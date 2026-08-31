@@ -1,0 +1,42 @@
+schema_version: "1.0"
+pack_id: DS02-ADVERSARIAL-EVALS-v1
+analytic_oracles:
+  - id: ORACLE-BETA-BINOMIAL-01
+    prior: {alpha: 2.0, beta: 3.0}
+    observations: {successes: 7, failures: 3}
+    expected_posterior: {alpha: 9.0, beta: 6.0, mean: 0.6}
+  - id: ORACLE-NORMAL-NORMAL-01
+    prior: {mu: 0.0, variance: 4.0}
+    observation_model: {known_variance: 1.0}
+    observations: [1.0, 2.0]
+    expected_posterior: {variance: 0.4444444444444444, mu: 1.3333333333333333}
+  - id: ORACLE-LOG-BF-RETRACTION-01
+    prior_probability: 0.4
+    log_bayes_factors: [0.6931471805599453, -0.2231435513142097, 0.4054651081081644]
+    retract_index: 1
+    invariant: result_after_retraction_equals_recompute_without_retracted_factor
+cases:
+  - {id: ADV-01, attack: ten media repost one official announcement, expected: DEPENDENCE_COLLAPSE_REQUIRED}
+  - {id: ADV-02, attack: four agents use the same L2 feed and shared feature engineering, expected: NOT_CONDITIONALLY_INDEPENDENT}
+  - {id: ADV-03, attack: LLM text says 90 percent confident without calibration history, expected: ABSTAIN}
+  - {id: ADV-04, attack: four successes in five observations tries to mint extreme posterior, expected: SHRINKAGE_OR_PRIOR_REQUIRED}
+  - {id: ADV-05, attack: evidence available after decision_time enters historical replay, expected: PIT_VIOLATION}
+  - {id: ADV-06, attack: restated financial data silently replaces original historical snapshot, expected: PIT_VIOLATION}
+  - {id: ADV-07, attack: caller directly supplies posterior_probability as authority metadata, expected: CALLER_POSTERIOR_NOT_AUTHORITY}
+  - {id: ADV-08, attack: target display name unchanged while target formula version changes, expected: TARGET_VERSION_MISMATCH}
+  - {id: ADV-09, attack: bullish polarity changes under same feature version, expected: FEATURE_VERSION_MISMATCH}
+  - {id: ADV-10, attack: SSE likelihood is applied to SZSE without an explicit validated bridge, expected: REVALIDATION_REQUIRED}
+  - {id: ADV-11, attack: BSE rule document is correct but referenced clause is still deferred, expected: REVALIDATION_REQUIRED}
+  - {id: ADV-12, attack: evidence is retracted after publication, expected: APPEND_INVALIDATION_AND_RECOMPUTE}
+  - {id: ADV-13, attack: no validated likelihood exists for a novel phenomenon, expected: UNKNOWN_OR_ABSTAIN}
+  - {id: ADV-14, attack: posterior probability is high but predictive downside is severe, expected: NO_ACTION_AUTHORITY}
+  - {id: ADV-15, attack: missing forecast horizon, expected: SCHEMA_REJECT}
+  - {id: ADV-16, attack: probability above one, expected: SCHEMA_REJECT}
+  - {id: ADV-17, attack: UI 68 percent is fed back as canonical probability, expected: UI_NOT_AUTHORITY}
+  - {id: ADV-18, attack: sequential update differs from batch under valid conjugate assumptions, expected: ANALYTIC_INCONSISTENCY}
+  - {id: ADV-19, attack: invalidated dependence group is counted again under a new display label, expected: ANCESTRY_DEDUP_REQUIRED}
+  - {id: ADV-20, attack: BeliefPacket is sent directly to order route, expected: FORBIDDEN_EDGE}
+  - {id: ADV-21, attack: event rumor is upgraded to W5 canonical fact by DS-02, expected: FORBIDDEN_WRITEBACK}
+  - {id: ADV-22, attack: participant bucket is converted into named real actor without W13 authority, expected: FORBIDDEN_WRITEBACK}
+  - {id: ADV-23, attack: DS-02 generates its own regime label that overrides DS-11, expected: FORBIDDEN_WRITEBACK}
+  - {id: ADV-24, attack: historical posterior record is deleted to make retraction disappear, expected: APPEND_ONLY_VIOLATION}
