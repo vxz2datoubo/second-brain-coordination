@@ -1,0 +1,61 @@
+name: Creative runtime offline safety
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/creative-runtime-offline.yml'
+      - 'apps/cli/**'
+      - 'apps/web/**'
+      - 'creative_runtime/**'
+      - 'tests/**'
+      - 'tools/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-creative-verification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out exact pull-request head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Assert exact-head identity
+        shell: bash
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+
+      - name: Run complete creative test suite
+        run: python -m unittest discover -s tests -p 'test_creative_*.py'
+
+      - name: Verify public-safe boundary and write receipt
+        shell: bash
+        run: python tools/verify_public_safe_boundary.py --expected-head "$(git rev-parse HEAD)" --receipt .creative-evidence/public-safe-boundary.json
+
+      - name: Verify diff and R174 write scope
+        shell: bash
+        run: |
+          git diff --check c8cbf8d8f3086f0c96daa877c608ed5db9b4a775...HEAD
+          while IFS= read -r path; do
+            case "$path" in
+              .github/workflows/creative-runtime-offline.yml|creative_runtime/*|apps/cli/*|apps/web/*|tools/*|tests/*|coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R174/*|.gitignore) ;;
+              *) echo "Out-of-scope path: $path" >&2; exit 1 ;;
+            esac
+          done < <(git diff --name-only c8cbf8d8f3086f0c96daa877c608ed5db9b4a775...HEAD)
+
+      - name: Upload machine-readable executor evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: r174-public-safe-boundary-${{ github.event.pull_request.head.sha || github.sha }}
+          path: .creative-evidence/public-safe-boundary.json

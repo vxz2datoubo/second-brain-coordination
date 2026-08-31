@@ -1,0 +1,39 @@
+{
+  "schema": "PublicSafeBoundaryRules/v1",
+  "scan_roots": [
+    "creative_runtime",
+    "apps/cli",
+    "apps/web",
+    "tools"
+  ],
+  "scanned_suffixes": [
+    ".py",
+    ".html",
+    ".htm",
+    ".css",
+    ".js"
+  ],
+  "forbidden_python_imports": [
+    "aiohttp",
+    "anthropic",
+    "http.client",
+    "httpx",
+    "openai",
+    "requests",
+    "socket",
+    "urllib.request",
+    "websockets"
+  ],
+  "forbidden_python_references": [
+    "os.environ",
+    "os.getenv"
+  ],
+  "required_pull_request_paths": [
+    ".github/workflows/creative-runtime-offline.yml",
+    "apps/cli/**",
+    "apps/web/**",
+    "creative_runtime/**",
+    "tests/**",
+    "tools/**"
+  ]
+}
