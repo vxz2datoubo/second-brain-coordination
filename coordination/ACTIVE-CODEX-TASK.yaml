@@ -1,57 +1,59 @@
-schema_version: "173.1"
+schema_version: "174.0"
 repository: vxz2datoubo/second-brain-coordination
 target_agent: CODEX
-active_issue: 524
-task_id: CODEX-CREATIVE-RUNTIME-PUBLIC-SAFE-CLOSEOUT-R173
+active_issue: 526
+task_id: CODEX-R173-PUBLIC-SAFE-MIGRATION-REMEDIATION-R174
 parent_task_id: CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001
-route_epoch: 173
-mode: frozen_exact_head_awaiting_independent_t3
-mode_label: Creative runtime R173 frozen candidate awaiting terminal independent review
-status: WAITING_INDEPENDENT_REVIEW
+route_epoch: 174
+mode: clean_nonretroactive_review_remediation
+mode_label: R174 public-safe capability + migration publish race remediation
+status: READY_PENDING_PREWRITE_SNAPSHOT
 execution_allowed: false
-automatic_resume_within_task: false
+automatic_resume_within_task: true
 second_user_start_command_required: false
 merge_authorized: false
-runtime_code_change_allowed: false
-active_executor: CODEX-R173-CREATIVE-RUNTIME-NEXT-1
-canonical_route: coordination/ROUTES/CODEX-CREATIVE-RUNTIME-PUBLIC-SAFE-CLOSEOUT-R173.yaml
-canonical_contract: coordination/TASK-BRIEFS/CODEX-CREATIVE-RUNTIME-PUBLIC-SAFE-CLOSEOUT-R173.yaml
-implementation_baseline: 2f12aba6dae4a83038fef1f3d5e737944bd9ce1f
-implementation_branch: codex/creative-runtime-next
-frozen_candidate:
-  pr: 525
-  exact_head: 2cdacaa5e516d2d938838629ffc965105d364917
-  engineering_handoff_ref: issuecomment-5480237705
-  review_request_ref: issuecomment-5480244352
-  exact_head_ci_run: 33405737572
-  exact_head_ci_conclusion: SUCCESS_EXECUTOR_EVIDENCE_ONLY
-  write_state: FROZEN_NO_FURTHER_SUBSTANTIVE_WRITE
-  ready_authorized: false
-  merge_authorized: false
-review_gate:
-  queue_issue: 453
-  independent_reviewer: GPT_INDEPENDENT_REVIEWER
-  review_depth: T3
-  exact_head_review_required: true
-  terminal_review_result_required: true
-  integrator_must_not_technical_review: true
-  current_status: ACTIVE_REVIEW_PENDING_TERMINAL_RESULT
-  on_changes_required: PUBLISH_NEW_CLEAN_CODEX_REMEDIATION_ROUTE
-  on_accept: GOVERNED_CANONICALIZATION_RECONCILE_THEN_NEXT_CODEX_VERTICAL_SLICE
+runtime_code_change_allowed: true
+active_executor: CODEX-R174-CREATIVE-RUNTIME-REMEDIATION-1
+canonical_route: coordination/ROUTES/CODEX-R173-PUBLIC-SAFE-MIGRATION-REMEDIATION-R174.yaml
+canonical_contract: coordination/TASK-BRIEFS/CODEX-R173-PUBLIC-SAFE-MIGRATION-REMEDIATION-R174.yaml
+implementation_baseline: c8cbf8d8f3086f0c96daa877c608ed5db9b4a775
+implementation_branch: codex/r174-public-safe-migration-remediation
+activation:
+  issue: 526
+  parent_issue: 524
+  blocking_review: 5068184475
+  review_result: 5480524987
+  reviewed_pr: 525
+  reviewed_head: 2cdacaa5e516d2d938838629ffc965105d364917
+  verdict: CHANGES_REQUIRED
+  release_decision: PROCEED_R174_CLEAN_REMEDIATION_FREEZE_PR525
 lease:
-  worker_slot_id: CODEX-R173-CREATIVE-RUNTIME-NEXT-1
-  task_lease: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R173/TASK-LEASE.yaml
-  work_claim: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R173/WORK-CLAIM.yaml
-  executor_reservation: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R173/EXECUTOR-RESERVATION.yaml
-  authorization_witness: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R173/AUTHORIZATION-WITNESS.yaml
-  source_provenance: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R173/SOURCE-SELECTION-PROVENANCE.yaml
-  control_tower_scan: coordination/CONTROL-TOWER/R173-CREATIVE-RUNTIME-ACTIVATION-SCAN.yaml
-  substantive_write_gate: CLOSED_FROZEN_FOR_INDEPENDENT_REVIEW
+  worker_slot_id: CODEX-R174-CREATIVE-RUNTIME-REMEDIATION-1
+  task_lease: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R174/TASK-LEASE.yaml
+  work_claim: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R174/WORK-CLAIM.yaml
+  executor_reservation: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R174/EXECUTOR-RESERVATION.yaml
+  authorization_witness: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R174/AUTHORIZATION-WITNESS.yaml
+  source_provenance: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R174/SOURCE-SELECTION-PROVENANCE.yaml
+  control_tower_scan: coordination/CONTROL-TOWER/R174-CREATIVE-RUNTIME-REMEDIATION-ACTIVATION-SCAN.yaml
+  substantive_write_gate: CLOSED_UNTIL_ISSUE_526_EFFECTIVE_SPEC_SNAPSHOT_AND_BRANCH_PARENT_VERIFY
+execution_protocols:
+  AMED: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R174/AMED.yaml
+  PMA_BIG: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R174/PMA-BIG.yaml
+  WPDCR: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R174/WPDCR.yaml
+  PDER: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R174/PDER.yaml
+allowed_write_paths:
+  - .github/workflows/creative-runtime-offline.yml
+  - creative_runtime/**
+  - apps/cli/**
+  - apps/web/**
+  - tools/**
+  - tests/**
+  - coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R174/**
+  - .gitignore
 hard_locks:
-  - NO_PR525_MUTATION_WHILE_UNDER_REVIEW
-  - NO_R171_OR_PR513_REVIVAL_OR_REUSE
+  - NO_PR525_MUTATION_IMPORT_REUSE
   - NO_PR493_PR495_PR502_PR506_PR508_PR511_PR513_MUTATION_IMPORT_REUSE
-  - NO_GPT_R172_ISSUE515_WRITE_OR_AUTHORITY_CLAIM
+  - NO_GPT_R172_ARCHITECTURE_CLAIM_OR_CONCURRENT_SESSION_AUTHORITY_WRITE
   - NO_NETWORK_PROVIDER_MODEL_RUNTIME
   - NO_CREDENTIAL_OR_ACCOUNT_INTROSPECTION
   - NO_DEPLOYMENT_PUBLIC_RELEASE
@@ -61,5 +63,11 @@ hard_locks:
   - NO_SECOND_LEDGER_GATEWAY_RESOLVER_AUTHORITY
   - NO_SELF_REVIEW_SELF_ACCEPT_SELF_MERGE
   - NO_FORCE_PUSH_REBASE_RESET_AMEND_HISTORY_REWRITE
-completion_signal: R173_CODEX_CREATIVE_RUNTIME_WAITING_FOR_TERMINAL_T3
-next_command: WAIT_FOR_MATCHING_REVIEW_RESULT_ON_PR525_EXACT_HEAD_THEN_INTEGRATOR_ROUTE_BY_VERDICT
+review_gate:
+  queue_issue: 453
+  independent_reviewer: GPT_INDEPENDENT_REVIEWER
+  review_depth: T3
+  exact_head_review_required: true
+  executor_ci_is_evidence_only: true
+completion_signal: R174_CODEX_PUBLIC_SAFE_MIGRATION_REMEDIATION_READY_FOR_INDEPENDENT_T3
+next_command: WAIT_FOR_ISSUE_526_EFFECTIVE_SPEC_SNAPSHOT_THEN_BRANCH_PARENT_VERIFY_AND_EXECUTE
