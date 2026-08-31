@@ -114,3 +114,50 @@ Codex 交棒前至少满足：
 - 任何外部 provider、凭证、customer data、部署、交易、canonical knowledge。
 
 ---
+
+## CIF-RELAY-R175-ACTIVE
+
+- **时间**：2026-08-31T13:58:00-05:00
+- **从**：GPT_GITHUB_INTEGRATOR
+- **交给**：CODEX
+- **原因**：R174 PR #527 exact head `bebc29e504fbed64aaa6db981e09b359b0c83b80` 已由独立 T3 `pullrequestreview-5068638956` / `issuecomment-5481082134` 终局 `CHANGES_REQUIRED`，必须冻结旧 head 并新建 clean successor。
+
+### 新治理入口
+
+- Issue：`#528`
+- Epoch：`175`
+- Task：`CODEX-R174-CAPABILITY-CONFINEMENT-REMEDIATION-R175`
+- Branch：`codex/r175-capability-policy-confinement-remediation`
+- Implementation baseline：`740788a3847a402923bf2e89093d910eda0c89d0`
+- Snapshot base：`40166aea147f3797768a2369f55e87346f3e3c52`
+- Snapshot：`SECOND-BRAIN-R175-ISSUE528-SNAPSHOT-001` / `issuecomment-5483140274`
+- Branch-after-snapshot readback：exact `740788a3847a402923bf2e89093d910eda0c89d0`
+- Worker slot：`CODEX-R175-CREATIVE-RUNTIME-CONFINEMENT-1`
+- `execution_allowed: true`
+
+### 五个 P1 必须一次闭环
+
+1. 非字面/计算动态 import 与反射 env 访问 fail closed；
+2. 浏览器 URL/CSS/JS 归一化，覆盖 alias/bracket/computed import/SVG feImage/backslash/escape；
+3. 由 canonical、候选不可修改的 policy floor 阻止 config+workflow 共同缩减；
+4. source descriptor/lock/identity 绑定贯穿最终 publish，竞态失败无新 shadow target；
+5. workspace/save/staging/target 全祖先 symlink/junction/reparse confinement，含 Windows-aware 测试。
+
+### 身份字段规则
+
+- `implementation_baseline`：clean 实现分支的精确父基线；
+- `snapshot_base`：pre-write snapshot 落地时的 canonical main；
+- `canonical_governance_main`：activation / ACTIVE / Baton / 本日志全部发布后的 fresh main，必须在后续 handoff 与 REVIEW_REQUEST 中单独填写，不能再把 baseline 当 canonical main。
+
+### 冻结与边界
+
+- PR #527、#525 以及历史冻结 PR 全部禁止移动、修改、import/reuse；
+- canonical policy floor `coordination/GOVERNANCE/CREATIVE-RUNTIME-PUBLIC-SAFE-POLICY-FLOOR-v1.yaml` 对 R175 candidate 只读；
+- GPT R172 / Issue #515 是独立 GPT-owned lane，CODEX 不得声明其 session authority；
+- 不 self-review、不 Ready、不 merge、不 history rewrite；不触碰 provider/凭证/customer data/部署/交易/canonical knowledge。
+
+### 唯一下一步
+
+`CLAIM_AND_EXECUTE_ISSUE_528_NOW_WITHOUT_SECOND_USER_START`
+
+---
