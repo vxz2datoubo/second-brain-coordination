@@ -56,9 +56,19 @@ def test_declined_slice_remains_suppressed():
 
 
 def test_forgotten_method_name_not_required():
-    result = detect_mids_opportunity(
-        "我不一定知道最后要做成什么样，你先帮我想一想，然后通过提问把需求弄清楚。",
-        material_project_decision=True,
-    )
+    request = "我不一定知道最后要做成什么样，你先帮我想一想，然后通过提问把需求弄清楚。"
+    result = detect_mids_opportunity(request, material_project_decision=True)
     assert result.level == "HIGH"
-    assert "MIDS" not in "我不一定知道最后要做成什么样，你先帮我想一想，然后通过提问把需求弄清楚。"
+    assert "mids" not in request.casefold()
+
+
+def test_new_user_never_knew_method_name_can_still_trigger():
+    request = "我有一个方向，但是不知道具体怎么落地，你先帮我确认整体应该做成什么。"
+    result = detect_mids_opportunity(request, material_project_decision=True)
+    assert result.level == "HIGH"
+    assert "mids" not in request.casefold()
+
+
+def test_plain_factual_question_should_not_be_interrupted():
+    result = detect_mids_opportunity("这个术语是什么意思？")
+    assert result.level == "LOW"
