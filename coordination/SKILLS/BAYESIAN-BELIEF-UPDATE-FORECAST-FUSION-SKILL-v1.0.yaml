@@ -1,0 +1,271 @@
+schema_version: "1.0"
+skill_id: "BAYESIAN-BELIEF-UPDATE-FORECAST-FUSION-SKILL-0012B"
+module_id: "DECISION-SCIENCE-AND-A-SHARE-SKILL-FAMILY-0012"
+parent_issue: 63
+implementation_issue: 519
+lifecycle_stage: BELIEVE
+priority: P0
+status: CANDIDATE_SKILL_REGISTERED
+maturity: RESEARCH_VALIDATION_IN_PROGRESS
+boundary: "research_only / NO_TRADE"
+
+purpose: >-
+  Convert point-in-time base rates, evidence, models, expert forecasts and market-implied
+  information into auditable posterior beliefs and posterior-predictive distributions while
+  preserving dependence, unknown mass, regime validity, numerical integrity and provenance.
+
+non_goals:
+  - "Create a second market, event, risk, decision, portfolio, regime or execution authority."
+  - "Treat LLM confidence as calibrated probability."
+  - "Treat correlated forecasts or copied sources as independent evidence."
+  - "Generate live orders or autonomous position sizes."
+  - "Claim A-share alpha before out-of-sample and shadow validation."
+
+systems_of_record:
+  market_and_replay: W2
+  event_evidence: W5
+  risk: W7
+  decision_freeze: W10
+  allocation_consumer: W11
+  probability_and_belief: W12
+  participant_flow_context: W13
+  epistemic_projection: "EPISTEMIC-KNOWLEDGE-STATE-AND-FRONTIER-MAPPING-SKILL-0013"
+  downstream_kelly: "Issue #62"
+
+subskills:
+  - {id: BBU-01, name: Forecast Target Contract, priority: P0}
+  - {id: BBU-02, name: Prior Registry, priority: P0}
+  - {id: BBU-03, name: Evidence Likelihood Adapter, priority: P0}
+  - {id: BBU-04, name: Evidence Dependence Map, priority: P0}
+  - {id: BBU-05, name: Bayesian Update Engine, priority: P0}
+  - {id: BBU-06, name: Hierarchical Shrinkage, priority: P1}
+  - {id: BBU-07, name: Regime and ChangePoint Integration, priority: P0}
+  - {id: BBU-08, name: Forecast Fusion, priority: P1}
+  - {id: BBU-09, name: Posterior Predictive, priority: P0}
+  - {id: BBU-10, name: Calibration and Diagnostics, priority: P0}
+  - {id: BBU-11, name: Belief Ledger and Numeric Integrity, priority: P0}
+  - {id: BBU-12, name: Decision Adapter, priority: P0}
+  - {id: BBU-13, name: Epistemic Adapter, priority: P1}
+
+forecast_target_contract:
+  required_fields:
+    - target_id
+    - target_definition_version
+    - universe_or_security_scope
+    - forecast_horizon
+    - threshold
+    - benchmark
+    - as_of_time
+    - knowledge_cutoff
+    - market_rule_version
+  initial_a_share_horizons: [INTRADAY, 1D, 3D, 5D, 10D, 20D, 60D]
+  hard_rule: "A probability without an explicit target and horizon is invalid."
+
+belief_packet_v1:
+  identity:
+    - belief_id
+    - target_id
+    - target_definition_version
+    - symbol_or_universe
+    - exchange
+    - board
+    - security_type
+    - forecast_horizon
+    - as_of_time
+    - knowledge_cutoff
+    - market_rule_version
+  temporal_provenance:
+    - event_time
+    - published_at
+    - available_at
+    - market_effective_at
+    - ingested_at
+  prior:
+    - prior_id
+    - prior_version
+    - prior_family
+    - prior_parameters
+    - prior_training_window
+    - prior_regime_scope
+    - prior_effective_from
+    - prior_evidence_digest
+  evidence:
+    - evidence_id
+    - evidence_type
+    - source_ref
+    - source_grade
+    - source_family_id
+    - independence_group_id
+    - feature_definition_version
+    - feature_value
+    - feature_unit
+    - feature_polarity
+    - likelihood_model_id
+    - likelihood_model_version
+    - valid_from
+    - valid_until
+    - data_snapshot_hash
+  update:
+    - prior_probability
+    - prior_log_odds
+    - log_bayes_factor_by_evidence
+    - cumulative_log_bayes_factor
+    - posterior_probability
+    - posterior_log_odds
+    - posterior_family
+    - posterior_parameters
+    - unknown_mass
+  ensemble:
+    - forecast_models
+    - model_versions
+    - dependence_matrix_ref
+    - model_weights
+    - ensemble_method
+    - ensemble_version
+  regime:
+    - market_regime_posterior
+    - volatility_regime_posterior
+    - liquidity_regime_posterior
+    - policy_regime_posterior
+    - changepoint_probability
+    - validity_window
+    - regime_model_version
+  predictive:
+    - expected_value
+    - median
+    - p05
+    - p25
+    - p50
+    - p75
+    - p95
+    - probability_positive
+    - probability_below_loss_threshold
+    - predictive_distribution_ref
+  diagnostics:
+    - inference_engine
+    - inference_engine_version
+    - code_commit_sha
+    - random_seed
+    - rhat_max
+    - ess_bulk_min
+    - ess_tail_min
+    - divergent_transition_count
+    - prior_predictive_status
+    - posterior_predictive_status
+    - simulation_based_calibration_status
+    - psis_loo_status
+    - pareto_k_max
+    - calibration_status
+    - calibration_model_version
+
+numeric_integrity:
+  probability_internal_type: float64
+  probability_serialization_precision_decimal_places: 12
+  monetary_storage: "integer smallest currency unit where possible"
+  share_quantity: integer
+  price_storage: "exchange-tick-quantized"
+  timestamps: "timezone-explicit"
+  feature_polarity_registry_required: true
+  label_definition_version_required: true
+  corporate_action_adjustment_version_required: true
+  market_calendar_version_required: true
+  rounding_policy_version_required: true
+  numeric_tolerance_registry_required: true
+  canonical_digest_required: true
+  ui_display_is_truth: false
+
+prior_policy:
+  allowed_families:
+    - empirical_base_rate
+    - hierarchical
+    - weakly_informative
+    - regime_conditioned
+    - provenance_bound_expert
+  forbidden:
+    - "Retrospectively tuned prior represented as ex-ante."
+    - "Unversioned prior parameters."
+
+independence_policy:
+  required_dimensions:
+    - source_family_id
+    - independence_group_id
+    - shared_feature_group
+    - shared_training_data_group
+    - shared_model_family
+    - provenance_ancestry_refs
+  hard_rule: >-
+    Copied media, agents reading the same feed, or skills derived from the same underlying
+    observation must not be multiplied as conditionally independent Bayes factors without evidence.
+
+regime_policy:
+  authority: "consume DS-11; do not create a second regime authority"
+  invalidation_triggers:
+    - structural_break
+    - market_rule_change
+    - data_semantics_change
+    - policy_regime_change
+    - material_calibration_drift
+  invalidation_state: REVALIDATION_REQUIRED
+
+unknown_policy:
+  states: [UNOBSERVED, UNKNOWN, ABSTAIN, REVALIDATION_REQUIRED]
+  unknown_mass_required_when_material: true
+  rule: "No reliable likelihood means UNKNOWN/ABSTAIN, not an invented likelihood."
+
+validation_ladder:
+  V0: "Analytic correctness with Beta-Binomial and Normal-Normal known solutions."
+  V1: "Metamorphic tests: sequential/batch equivalence where valid, dependence dedupe, retraction, serialization stability."
+  V2: "Point-in-time: available_at must not exceed decision time."
+  V3: "Simulation-based calibration on known synthetic worlds."
+  V4: "Inference diagnostics including R-hat, bulk/tail ESS and divergences for sampling paths."
+  V5: "Prior and posterior predictive checks."
+  V6: "Forecast calibration: Brier, log score, reliability, calibration slope/intercept and useful abstention."
+  V7: "A-share purged walk-forward + embargo + lockbox economic increment against B0-B4 baselines."
+  V8: "Route experiment family to DS-10 multiple-testing/overfitting audit."
+  V9: "No-trade shadow validation for calibration drift, abstention, regime decay, latency and reproducibility."
+
+adversarial_cases:
+  - "Ten outlets copy one primary event; do not count ten independent confirmations."
+  - "Four agents consume the same L2 feed; dependence map blocks naive probability multiplication."
+  - "LLM reports 90% confidence without calibration history; reject conversion to probability 0.90."
+  - "Tiny 4/5 sample; hierarchical shrinkage prevents extreme confidence."
+  - "Policy or A-share rule regime changes; old likelihood requires revalidation."
+  - "Revised financial data leaks into historical replay; PIT gate fails."
+  - "Caller-supplied probability metadata attempts to mint canonical posterior; fail closed."
+  - "Two different target definitions share a display name; version mismatch fails."
+  - "Posterior is high but payoff is asymmetric; DS-02 still has no BUY authority."
+  - "Novel phenomenon has no reliable likelihood; preserve unknown mass / abstain."
+  - "Evidence is retracted or denied; append an invalidation transition and recompute."
+
+a_share_constraints:
+  - "Read exchange, board, security type and effective-date rule version."
+  - "Model T+1 sellable inventory downstream; never imply same-day stop-loss certainty."
+  - "Version price limits, no-limit periods, suspensions, relistings, ST and IPO regimes."
+  - "Version lot/declaration quantity, tick size and session/auction rules."
+  - "Preserve costs, slippage, impact, queueing and partial-fill assumptions downstream."
+  - "Do not assume short or margin capability without verified account/instrument evidence."
+
+authority_flags:
+  market_truth_authority: false
+  event_truth_authority: false
+  regime_truth_authority: false
+  decision_authority: false
+  risk_override_authority: false
+  position_authority: false
+  order_authority: false
+  trade_authority: false
+
+maturity_state_machine:
+  - CANDIDATE_SKILL_REGISTERED
+  - RESEARCH_VALIDATED
+  - CONTRACTED
+  - IMPLEMENTED
+  - A_SHARE_BACKTESTED
+  - SHADOW_VALIDATED
+  - VALIDATED_RESEARCH_CAPABILITY
+
+first_slice:
+  scope: "architecture / contract / eval only"
+  runtime_implementation_authorized: false
+  live_trade: PROHIBITED
+  completion_gate: "exact-head CI + independent review"
