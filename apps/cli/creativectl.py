@@ -1,8 +1,8 @@
 """Offline, private-adaptation interactive-scene command line tool.
 
 It is deliberately a bounded state machine: free text maps to a legal action or
-asks for clarification.  It never calls a model, reads credentials, or produces
-media.  The fixture is synthetic and uses adult characters only.
+asks for clarification. It never calls a model, reads credentials, or produces
+media. The fixture is synthetic and uses adult characters only.
 """
 
 from __future__ import annotations
@@ -11,7 +11,7 @@ import argparse
 import json
 from pathlib import Path
 import sys
-from typing import Any, Mapping
+from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -21,6 +21,7 @@ if str(ROOT) not in sys.path:
 from creative_runtime.contracts import PlayerAction, StoryState, canonical_json
 from creative_runtime.ledger import CreativeLedger, LedgerViolation
 from creative_runtime.knowledge import KnowledgeBridgeViolation, KnowledgeReviewBridge
+from creative_runtime import continuation
 
 
 SCHEMA = "CreativeSession/v1"
@@ -29,7 +30,7 @@ UNSAFE_TERMS = {"sex", "sexual", "nude", "blood", "gore", "torture"}
 
 
 def synthetic_scene() -> dict[str, dict[str, Any]]:
-    """A non-explicit fixture with distinct choices and observable consequences."""
+    """A non-explicit v1 fixture with distinct choices and observable consequences."""
 
     return {
         "arrival": {
@@ -109,7 +110,10 @@ def _load_knowledge(workspace: Path) -> KnowledgeReviewBridge:
 
 def _write_knowledge(workspace: Path, bridge: KnowledgeReviewBridge) -> None:
     workspace.mkdir(parents=True, exist_ok=True)
-    _knowledge_path(workspace).write_text(canonical_json({"schema": "CreativeKnowledgeReview/v1", "candidates": bridge.to_records()}) + "\n", encoding="utf-8")
+    _knowledge_path(workspace).write_text(
+        canonical_json({"schema": "CreativeKnowledgeReview/v1", "candidates": bridge.to_records()}) + "\n",
+        encoding="utf-8",
+    )
 
 
 def _view(ledger: CreativeLedger) -> dict[str, Any]:
@@ -136,6 +140,15 @@ def initialize(workspace: Path) -> dict[str, Any]:
 
 
 def choose(workspace: Path, action_id: str, source_text: str | None = None) -> dict[str, Any]:
+    if continuation.has_default(workspace):
+        state = continuation.choose(workspace, action_id, source_text=source_text)
+        return {
+            **continuation.view(workspace),
+            "status": "chosen",
+            "action_id": action_id,
+            "state": state.to_dict(),
+            "v2": True,
+        }
     ledger = _load_session(workspace)
     state = ledger.replay()
     beat = synthetic_scene()[state.beat_id]
@@ -167,6 +180,11 @@ def parse_free_text(text: str, legal_actions: set[str]) -> tuple[str | None, flo
         "listen": {"listen", "hear", "quiet", "door"},
         "approach": {"approach", "knock", "enter", "walk"},
         "leave": {"leave", "withdraw", "back", "wait"},
+        "knock": {"approach", "knock", "enter", "walk"},
+        "defer": {"leave", "withdraw", "back", "wait", "defer", "daylight"},
+        "record": {"record", "mark", "note", "withdraw", "leave"},
+        "promise": {"listen", "hear", "promise", "carefully", "safe"},
+        "retreat": {"leave", "withdraw", "back", "retreat", "daylight"},
     }
     matches = [action for action in legal_actions if tokens & signals.get(action, set())]
     if len(matches) != 1:
@@ -175,6 +193,17 @@ def parse_free_text(text: str, legal_actions: set[str]) -> tuple[str | None, flo
 
 
 def say(workspace: Path, text: str) -> dict[str, Any]:
+    if continuation.has_default(workspace):
+        legal = set(continuation.legal_actions(workspace))
+        action, confidence = parse_free_text(text, legal)
+        if action is None or confidence < 0.8:
+            return {
+                "status": "clarification_required",
+                "message": "Use a clear, non-explicit intent or select an available v2 option.",
+                "legal_options": sorted(legal),
+                "v2": True,
+            }
+        return choose(workspace, action, source_text=text)
     ledger = _load_session(workspace)
     state = ledger.replay()
     legal = set(synthetic_scene()[state.beat_id]["options"])
@@ -200,6 +229,11 @@ def run(argv: list[str]) -> dict[str, Any]:
     say_parser.add_argument("text")
     subparsers.add_parser("resume")
     subparsers.add_parser("replay")
+    save_parser = subparsers.add_parser("save-slot")
+    save_parser.add_argument("name")
+    restore_parser = subparsers.add_parser("restore-slot")
+    restore_parser.add_argument("name")
+    subparsers.add_parser("review-packet")
     knowledge_parser = subparsers.add_parser("knowledge")
     knowledge_subparsers = knowledge_parser.add_subparsers(dest="knowledge_command", required=True)
     knowledge_search = knowledge_subparsers.add_parser("search")
@@ -217,14 +251,34 @@ def run(argv: list[str]) -> dict[str, Any]:
     if args.command == "init":
         return initialize(args.workspace)
     if args.command in {"play", "resume"}:
+        if continuation.has_default(args.workspace):
+            return continuation.view(args.workspace)
         return _view(_load_session(args.workspace))
     if args.command == "choose":
         return choose(args.workspace, args.action_id)
     if args.command == "say":
         return say(args.workspace, args.text)
     if args.command == "replay":
+        if continuation.has_default(args.workspace):
+            view = continuation.view(args.workspace)
+            timeline = continuation.timeline(args.workspace)
+            return {**view, "status": "replayed", "event_count": len(timeline["events"])}
         ledger = _load_session(args.workspace)
         return {**_view(ledger), "status": "replayed", "event_count": len(ledger.events)}
+    if args.command == "save-slot":
+        if not continuation.has_default(args.workspace):
+            raise LedgerViolation("Named slots require a validated CreativeSession/v2 save")
+        continuation.save_slot(args.workspace, args.name)
+        return {"status": "slot_saved", "slot": args.name, **continuation.view(args.workspace)}
+    if args.command == "restore-slot":
+        if not continuation.has_default(args.workspace):
+            raise LedgerViolation("Named slots require a validated CreativeSession/v2 save")
+        state = continuation.restore_slot(args.workspace, args.name)
+        return {"status": "slot_restored", "slot": args.name, "state": state.to_dict(), **continuation.view(args.workspace)}
+    if args.command == "review-packet":
+        if not continuation.has_default(args.workspace):
+            raise LedgerViolation("Review packet requires a validated CreativeSession/v2 save")
+        return {"status": "review_packet", "packet": continuation.review_packet(args.workspace)}
     if args.command == "knowledge":
         bridge = _load_knowledge(args.workspace)
         if args.knowledge_command == "search":
