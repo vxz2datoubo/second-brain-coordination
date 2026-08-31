@@ -21,79 +21,37 @@ if str(ROOT) not in sys.path:
 from creative_runtime.contracts import PlayerAction, StoryState, canonical_json
 from creative_runtime.ledger import CreativeLedger, LedgerViolation
 from creative_runtime.knowledge import KnowledgeBridgeViolation, KnowledgeReviewBridge
+from creative_runtime.saves import SESSION_SCHEMA, SaveStore, SavedSession, SaveViolation
+from creative_runtime.scene_graph import DEFAULT_SCENE_GRAPH, SceneGraphViolation
 
 
-SCHEMA = "CreativeSession/v1"
+SCHEMA = SESSION_SCHEMA
 DEFAULT_WORKSPACE = Path(".creative-runtime")
 UNSAFE_TERMS = {"sex", "sexual", "nude", "blood", "gore", "torture"}
 
 
 def synthetic_scene() -> dict[str, dict[str, Any]]:
-    """A non-explicit fixture with distinct choices and observable consequences."""
+    """Presentation-only copy; legality comes exclusively from SceneGraph."""
 
     return {
-        "arrival": {
-            "text": "Two adult archivists pause outside a locked, rain-lit archive door.",
-            "options": {
-                "listen": {
-                    "label": "Listen at the door",
-                    "patch": {"beat_id": "echo", "reveal_facts": ["a witness is inside"], "risk_delta": 1},
-                },
-                "approach": {
-                    "label": "Knock and announce yourself",
-                    "patch": {"beat_id": "threshold", "relationship_delta": {"mira": 1}, "flags": {"arrival": "announced"}},
-                },
-                "leave": {
-                    "label": "Step back and call for daylight",
-                    "patch": {"beat_id": "courtyard", "risk_delta": -1, "flags": {"arrival": "deferred"}},
-                },
-            },
-        },
-        "echo": {
-            "text": "A low voice names an old case number; Mira watches the corridor.",
-            "options": {
-                "approach": {"label": "Ask Mira to knock", "patch": {"beat_id": "threshold", "relationship_delta": {"mira": 1}}},
-                "leave": {"label": "Mark the clue and withdraw", "patch": {"beat_id": "courtyard", "flags": {"clue": "recorded"}}},
-            },
-        },
-        "threshold": {
-            "text": "The door opens a handspan. The unseen witness asks whether the archive is safe.",
-            "options": {
-                "listen": {"label": "Promise to listen before acting", "patch": {"beat_id": "resolution", "relationship_delta": {"mira": 1}, "risk_delta": -1}},
-                "leave": {"label": "Leave a safe meeting place", "patch": {"beat_id": "courtyard", "flags": {"meeting": "offered"}}},
-            },
-        },
-        "courtyard": {
-            "text": "Morning light reaches the courtyard. The case is paused, not erased.",
-            "options": {},
-        },
-        "resolution": {
-            "text": "The group agrees to preserve the record and meet in daylight.",
-            "options": {},
-        },
+        "arrival": {"text": "Two adult archivists pause outside a locked, rain-lit archive door."},
+        "echo": {"text": "A low voice names an old case number; Mira watches the corridor."},
+        "threshold": {"text": "The door opens a handspan. The unseen witness asks whether the archive is safe."},
+        "accord": {"text": "The group agrees to preserve the record and meet in daylight."},
+        "return": {"text": "Morning reaches the courtyard. The case is paused, not erased."},
     }
 
 
 def session_path(workspace: Path) -> Path:
-    return workspace / "session.json"
+    return SaveStore(workspace).path_for()
 
 
-def _write_session(workspace: Path, ledger: CreativeLedger) -> None:
-    workspace.mkdir(parents=True, exist_ok=True)
-    session_path(workspace).write_text(
-        canonical_json({"schema": SCHEMA, "events": ledger.to_records()}) + "\n",
-        encoding="utf-8",
-    )
+def _load_saved_session(workspace: Path) -> SavedSession:
+    return SaveStore(workspace).load()
 
 
 def _load_session(workspace: Path) -> CreativeLedger:
-    path = session_path(workspace)
-    if not path.is_file():
-        raise LedgerViolation("No session exists; run init first")
-    data = json.loads(path.read_text(encoding="utf-8"))
-    if data.get("schema") != SCHEMA:
-        raise LedgerViolation("Unsupported session schema")
-    return CreativeLedger.from_records(data.get("events", []))
+    return _load_saved_session(workspace).ledger
 
 
 def _knowledge_path(workspace: Path) -> Path:
@@ -112,50 +70,45 @@ def _write_knowledge(workspace: Path, bridge: KnowledgeReviewBridge) -> None:
     _knowledge_path(workspace).write_text(canonical_json({"schema": "CreativeKnowledgeReview/v1", "candidates": bridge.to_records()}) + "\n", encoding="utf-8")
 
 
-def _view(ledger: CreativeLedger) -> dict[str, Any]:
-    state = ledger.replay()
+def _view(session: SavedSession) -> dict[str, Any]:
+    state = session.state()
     beat = synthetic_scene()[state.beat_id]
     options = [
-        {"id": action_id, "label": option["label"]}
-        for action_id, option in beat["options"].items()
+        {"id": action_id, "label": DEFAULT_SCENE_GRAPH.transition_for(state, action_id).label}
+        for action_id in DEFAULT_SCENE_GRAPH.legal_actions(state)
     ]
     return {"status": "ready", "state": state.to_dict(), "text": beat["text"], "options": options}
 
 
 def initialize(workspace: Path) -> dict[str, Any]:
-    if session_path(workspace).exists():
-        return {"status": "already_initialized", "session": str(session_path(workspace))}
-    ledger = CreativeLedger()
-    ledger.append(
-        "story_initialized",
-        {"state": StoryState(scene_id="synthetic_archive", beat_id="arrival", relationships={"mira": 0}).to_dict()},
-        "2030-01-01T00:00:00Z",
-    )
-    _write_session(workspace, ledger)
-    return {**_view(ledger), "status": "initialized", "session": str(session_path(workspace))}
+    session, status = SaveStore(workspace).initialize()
+    return {**_view(session), "status": status, "session": str(session_path(workspace))}
 
 
 def choose(workspace: Path, action_id: str, source_text: str | None = None) -> dict[str, Any]:
-    ledger = _load_session(workspace)
-    state = ledger.replay()
-    beat = synthetic_scene()[state.beat_id]
-    option = beat["options"].get(action_id)
-    if option is None:
+    session = _load_saved_session(workspace)
+    ledger = session.ledger
+    state = session.state()
+    try:
+        transition = DEFAULT_SCENE_GRAPH.transition_for(state, action_id)
+    except SceneGraphViolation:
         return {
             "status": "clarification_required",
             "message": "That action is not legal at this beat; choose one listed option.",
-            "legal_options": sorted(beat["options"]),
+            "legal_options": list(DEFAULT_SCENE_GRAPH.legal_actions(state)),
         }
     ledger.append(
         "player_action",
         {
-            "action": PlayerAction(action_id, "choice", source_text or option["label"]).to_dict(),
-            "resulting_patch": option["patch"],
+            "action": PlayerAction(action_id, "choice", source_text or transition.label).to_dict(),
+            "transition_id": transition.transition_id,
+            "resulting_patch": dict(transition.patch),
         },
         f"2030-01-01T00:{len(ledger.events):02d}:00Z",
     )
-    _write_session(workspace, ledger)
-    return {**_view(ledger), "status": "chosen", "action_id": action_id}
+    updated = SavedSession(ledger, session.migration_receipt, session.migration_history)
+    SaveStore(workspace).save(updated)
+    return {**_view(updated), "status": "chosen", "action_id": action_id}
 
 
 def parse_free_text(text: str, legal_actions: set[str]) -> tuple[str | None, float]:
@@ -165,8 +118,11 @@ def parse_free_text(text: str, legal_actions: set[str]) -> tuple[str | None, flo
         return None, 0.0
     signals = {
         "listen": {"listen", "hear", "quiet", "door"},
-        "approach": {"approach", "knock", "enter", "walk"},
-        "leave": {"leave", "withdraw", "back", "wait"},
+        "knock": {"approach", "knock", "enter", "walk"},
+        "defer": {"leave", "withdraw", "back", "wait"},
+        "record": {"leave", "withdraw", "record", "back"},
+        "promise": {"listen", "promise", "safe"},
+        "retreat": {"leave", "withdraw", "back", "meeting"},
     }
     matches = [action for action in legal_actions if tokens & signals.get(action, set())]
     if len(matches) != 1:
@@ -175,9 +131,8 @@ def parse_free_text(text: str, legal_actions: set[str]) -> tuple[str | None, flo
 
 
 def say(workspace: Path, text: str) -> dict[str, Any]:
-    ledger = _load_session(workspace)
-    state = ledger.replay()
-    legal = set(synthetic_scene()[state.beat_id]["options"])
+    session = _load_saved_session(workspace)
+    legal = set(DEFAULT_SCENE_GRAPH.legal_actions(session.state()))
     action, confidence = parse_free_text(text, legal)
     if action is None or confidence < 0.8:
         return {
@@ -217,14 +172,14 @@ def run(argv: list[str]) -> dict[str, Any]:
     if args.command == "init":
         return initialize(args.workspace)
     if args.command in {"play", "resume"}:
-        return _view(_load_session(args.workspace))
+        return _view(_load_saved_session(args.workspace))
     if args.command == "choose":
         return choose(args.workspace, args.action_id)
     if args.command == "say":
         return say(args.workspace, args.text)
     if args.command == "replay":
-        ledger = _load_session(args.workspace)
-        return {**_view(ledger), "status": "replayed", "event_count": len(ledger.events)}
+        session = _load_saved_session(args.workspace)
+        return {**_view(session), "status": "replayed", "event_count": len(session.ledger.events)}
     if args.command == "knowledge":
         bridge = _load_knowledge(args.workspace)
         if args.knowledge_command == "search":
@@ -243,7 +198,7 @@ def run(argv: list[str]) -> dict[str, Any]:
 def main() -> int:
     try:
         print(json.dumps(run(sys.argv[1:]), ensure_ascii=False, sort_keys=True, indent=2))
-    except (LedgerViolation, KnowledgeBridgeViolation, KeyError, json.JSONDecodeError) as error:
+    except (LedgerViolation, SaveViolation, KnowledgeBridgeViolation, KeyError, json.JSONDecodeError) as error:
         print(json.dumps({"status": "error", "message": str(error)}, ensure_ascii=False, sort_keys=True))
         return 2
     return 0

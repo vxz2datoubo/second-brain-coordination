@@ -1,0 +1,15 @@
+schema: AMEDResearchLedger/v1
+task_id: CODEX-R163-CLEAN-SUCCESSOR-R165
+agent_id: CODEX
+research_scope: local repository and GitHub-recorded R163 review evidence only
+questions:
+  - Can an append-only event hash authorise a caller-authored state mutation?
+  - Can a legacy terminal mapping remain available without becoming a universal bypass?
+findings:
+  - Hashes detect changed event bytes but are recomputable by a save editor; they cannot grant authority.
+  - A legacy bridge is bounded when the complete source event list deterministically regenerates the exact immutable prefix.
+negative_results:
+  - No provider/network, credentials, external media, or canonical knowledge paths were needed or inspected.
+evidence:
+  - tests/test_r165_clean_successor.py
+  - Issue #499 task release and Issue #453 independent governance result

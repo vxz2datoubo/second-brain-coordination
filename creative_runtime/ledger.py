@@ -97,7 +97,7 @@ class CreativeLedger:
         occurred_at: str,
         parent_artifact_ids: Iterable[str] = (),
     ) -> CreativeEvent:
-        if event_type not in {"story_initialized", "player_action", "state_patch"}:
+        if event_type not in {"story_initialized", "player_action", "state_patch", "migration_bridge"}:
             raise LedgerViolation("Unsupported event type: " + event_type)
         sequence = len(self.events)
         previous_hash = self.events[-1].event_hash if self.events else None
@@ -124,7 +124,17 @@ class CreativeLedger:
         self.events.append(event)
         return event
 
-    def replay(self) -> StoryState:
+    def replay(self, *, allow_migration_bridge: bool = False) -> StoryState:
+        """Replay ordinary story events.
+
+        Event hashes prove that bytes have not changed; they are deliberately
+        not authority credentials.  In particular, a caller who can rewrite a
+        save can also recompute hashes.  ``state_patch`` therefore never has
+        authority in the normal replay API.  The one legacy bridge is admitted
+        only by :mod:`creative_runtime.saves` after it mechanically validates
+        a source-bound migration receipt, and uses ``migration_bridge`` rather
+        than granting general state-patch authority.
+        """
         self.verify_chain()
         if not self.events or self.events[0].event_type != "story_initialized":
             raise LedgerViolation("A ledger must start with story_initialized")
@@ -136,9 +146,13 @@ class CreativeLedger:
                     raise LedgerViolation("player_action requires a resulting_patch")
                 state = apply_state_patch(state, patch)
             elif event.event_type == "state_patch":
+                raise LedgerViolation("Caller-authored state_patch has no replay authority")
+            elif event.event_type == "migration_bridge":
+                if not allow_migration_bridge:
+                    raise LedgerViolation("migration_bridge requires validated migration provenance")
                 patch = event.payload.get("patch")
                 if not isinstance(patch, Mapping):
-                    raise LedgerViolation("state_patch requires a patch")
+                    raise LedgerViolation("migration_bridge requires a patch")
                 state = apply_state_patch(state, patch)
             else:
                 raise LedgerViolation("story_initialized may only appear first")
