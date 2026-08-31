@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://second-brain.local/contracts/ds02/belief-packet-v1.schema.json",
+  "title": "BeliefPacket/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "identity", "temporal_provenance", "prior", "evidence", "update", "predictive", "diagnostics", "numeric_integrity", "authority"],
+  "properties": {
+    "schema": {"const": "BeliefPacket/v1"},
+    "identity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["belief_id", "target_id", "target_definition_version", "symbol_or_universe", "forecast_horizon", "as_of_time", "knowledge_cutoff", "market_rule_version", "market_rule_clause_state_version"],
+      "properties": {
+        "belief_id": {"type": "string", "minLength": 1},
+        "target_id": {"type": "string", "minLength": 1},
+        "target_definition_version": {"type": "string", "minLength": 1},
+        "symbol_or_universe": {"type": "string", "minLength": 1},
+        "forecast_horizon": {"enum": ["INTRADAY", "1D", "3D", "5D", "10D", "20D", "60D"]},
+        "as_of_time": {"type": "string", "format": "date-time"},
+        "knowledge_cutoff": {"type": "string", "format": "date-time"},
+        "market_rule_version": {"type": "string", "minLength": 1},
+        "market_rule_clause_state_version": {"type": "string", "minLength": 1}
+      }
+    },
+    "temporal_provenance": {
+      "type": "object", "additionalProperties": false,
+      "required": ["decision_time"],
+      "properties": {"decision_time": {"type": "string", "format": "date-time"}}
+    },
+    "prior": {
+      "type": "object", "additionalProperties": false,
+      "required": ["prior_id", "prior_version", "family", "parameters", "training_window", "effective_from", "evidence_digest"],
+      "properties": {
+        "prior_id": {"type": "string", "minLength": 1},
+        "prior_version": {"type": "string", "minLength": 1},
+        "family": {"type": "string", "minLength": 1},
+        "parameters": {"type": "object"},
+        "training_window": {"type": "string", "minLength": 1},
+        "effective_from": {"type": "string", "format": "date-time"},
+        "evidence_digest": {"type": "string", "minLength": 8}
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["evidence_id", "source_ref", "source_family_id", "independence_group_id", "available_at", "data_snapshot_hash", "feature_definition_version", "polarity", "likelihood_model_id", "likelihood_model_version", "status"],
+        "properties": {
+          "evidence_id": {"type": "string", "minLength": 1},
+          "source_ref": {"type": "string", "minLength": 1},
+          "source_family_id": {"type": "string", "minLength": 1},
+          "independence_group_id": {"type": "string", "minLength": 1},
+          "available_at": {"type": "string", "format": "date-time"},
+          "data_snapshot_hash": {"type": "string", "minLength": 8},
+          "feature_definition_version": {"type": "string", "minLength": 1},
+          "polarity": {"enum": ["POSITIVE", "NEGATIVE", "NEUTRAL", "NON_DIRECTIONAL"]},
+          "likelihood_model_id": {"type": "string", "minLength": 1},
+          "likelihood_model_version": {"type": "string", "minLength": 1},
+          "status": {"enum": ["ADMITTED", "INVALIDATED", "RETRACTED", "UNKNOWN"]}
+        }
+      }
+    },
+    "update": {
+      "type": "object", "additionalProperties": false,
+      "required": ["prior_probability", "cumulative_log_bayes_factor", "posterior_probability", "unknown_mass", "belief_state"],
+      "properties": {
+        "prior_probability": {"type": "number", "minimum": 0, "maximum": 1},
+        "cumulative_log_bayes_factor": {"type": "number"},
+        "posterior_probability": {"type": "number", "minimum": 0, "maximum": 1},
+        "unknown_mass": {"type": "number", "minimum": 0, "maximum": 1},
+        "belief_state": {"enum": ["VALID", "UNKNOWN", "ABSTAIN", "REVALIDATION_REQUIRED"]}
+      }
+    },
+    "predictive": {
+      "type": "object", "additionalProperties": false,
+      "required": ["expected_value", "quantiles", "probability_positive", "probability_below_loss_threshold", "predictive_distribution_ref"],
+      "properties": {
+        "expected_value": {"type": ["number", "null"]},
+        "quantiles": {
+          "type": "object", "additionalProperties": false,
+          "required": ["p05", "p25", "p50", "p75", "p95"],
+          "properties": {
+            "p05": {"type": ["number", "null"]}, "p25": {"type": ["number", "null"]},
+            "p50": {"type": ["number", "null"]}, "p75": {"type": ["number", "null"]},
+            "p95": {"type": ["number", "null"]}
+          }
+        },
+        "probability_positive": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "probability_below_loss_threshold": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "predictive_distribution_ref": {"type": "string", "minLength": 1}
+      }
+    },
+    "diagnostics": {
+      "type": "object", "additionalProperties": false,
+      "required": ["engine", "engine_version", "code_sha", "calibration_status", "prior_predictive_status", "posterior_predictive_status"],
+      "properties": {
+        "engine": {"type": "string", "minLength": 1}, "engine_version": {"type": "string", "minLength": 1},
+        "code_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"}, "seed": {"type": ["integer", "null"]},
+        "rhat_max": {"type": ["number", "null"], "minimum": 1},
+        "ess_bulk_min": {"type": ["number", "null"], "minimum": 0},
+        "ess_tail_min": {"type": ["number", "null"], "minimum": 0},
+        "divergences": {"type": ["integer", "null"], "minimum": 0},
+        "pareto_k_max": {"type": ["number", "null"]},
+        "calibration_status": {"enum": ["NOT_RUN", "PASS", "FAIL", "REVALIDATION_REQUIRED"]},
+        "prior_predictive_status": {"enum": ["NOT_RUN", "PASS", "FAIL"]},
+        "posterior_predictive_status": {"enum": ["NOT_RUN", "PASS", "FAIL"]}
+      }
+    },
+    "numeric_integrity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["probability_serialization_decimals", "rounding_mode", "ui_precision_is_authority", "canonical_digest"],
+      "properties": {
+        "probability_serialization_decimals": {"const": 12},
+        "rounding_mode": {"const": "ROUND_HALF_EVEN"},
+        "ui_precision_is_authority": {"const": false},
+        "canonical_digest": {"type": "string", "minLength": 8}
+      }
+    },
+    "authority": {
+      "type": "object", "additionalProperties": false,
+      "required": ["market_truth_authority", "event_truth_authority", "regime_authority", "epistemic_authority", "decision_authority", "risk_override_authority", "position_authority", "order_authority", "trade_authority"],
+      "properties": {
+        "market_truth_authority": {"const": false}, "event_truth_authority": {"const": false},
+        "regime_authority": {"const": false}, "epistemic_authority": {"const": false},
+        "decision_authority": {"const": false}, "risk_override_authority": {"const": false},
+        "position_authority": {"const": false}, "order_authority": {"const": false}, "trade_authority": {"const": false}
+      }
+    }
+  }
+}
