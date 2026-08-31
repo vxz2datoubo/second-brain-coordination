@@ -29,6 +29,12 @@ def _load_tool(name: str, filename: str):
 
 review_builder = _load_tool("creative_replay_review_builder", "build_replay_review_board.py")
 review_verifier = _load_tool("creative_replay_review_verifier", "verify_replay_review_board.py")
+CLI_SPEC = importlib.util.spec_from_file_location(
+    "creativectl_replay_review", ROOT / "apps" / "cli" / "creativectl.py"
+)
+assert CLI_SPEC and CLI_SPEC.loader
+creativectl = importlib.util.module_from_spec(CLI_SPEC)
+CLI_SPEC.loader.exec_module(creativectl)
 
 
 class CreativeReplayReviewTests(unittest.TestCase):
@@ -83,6 +89,15 @@ class CreativeReplayReviewTests(unittest.TestCase):
             path.write_text(json.dumps(supplied), encoding="utf-8")
             with self.assertRaises(RuntimeError):
                 review_verifier.verify_review_board(path, self.head, require_clean_worktree=False)
+
+    def test_cli_exposes_a_read_only_exact_head_filter(self) -> None:
+        selection = creativectl.run(["replay-review", "--scenario", "three_scene", "--tag", "scene_change"])
+        self.assertEqual(selection["schema"], "CreativeSyntheticReplayReviewSelection/v1")
+        self.assertEqual(selection["filters"], {"scenario": "three_scene", "review_tag": "scene_change"})
+        self.assertGreater(selection["branch_point_count"], 0)
+        self.assertTrue(all(branch["scenario"] == "three_scene" for branch in selection["branch_points"]))
+        self.assertTrue(all("scene_change" in branch["review_tags"] for branch in selection["branch_points"]))
+        self.assertFalse(selection["boundary"]["external_provider_called"])
 
 
 if __name__ == "__main__":

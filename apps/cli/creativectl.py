@@ -11,6 +11,7 @@ import argparse
 import json
 from pathlib import Path
 import re
+import subprocess
 import sys
 from typing import Any, Mapping
 
@@ -33,6 +34,8 @@ from creative_runtime.intent import resolve_safe_intent
 from creative_runtime.operations import build_operations_report
 from creative_runtime.presentation import PresentationViolation, build_interactive_frame
 from creative_runtime.replay_capsule import ReplayCapsuleViolation, build_verified_replay_capsule
+from creative_runtime.replay_corpus import build_verified_synthetic_replay_corpus
+from creative_runtime.replay_review import build_verified_replay_review_board
 from creative_runtime.sequence import SequenceViolation, build_verified_sequence
 from creative_runtime.understanding import bind_verified_timeline
 from creative_runtime.session import (
@@ -58,12 +61,53 @@ SCENARIOS = {
     "night_signal": StoryState(scene_id="station_platform", beat_id="platform_arrival", relationships={"mira": 0}),
     "harbor_protocol": StoryState(scene_id="harbor_observatory", beat_id="dock_arrival", relationships={"mira": 0}),
 }
+REVIEW_TAGS = (
+    "risk_increases",
+    "risk_decreases",
+    "relationship_changes",
+    "new_facts",
+    "lost_facts",
+    "flag_changes",
+    "scene_change",
+)
 
 
 def synthetic_scene() -> dict[str, dict[str, Any]]:
     """Render the canonical graph; the CLI no longer owns a shadow graph."""
 
     return default_story_graph().to_cli_scene()
+
+
+def _git_head() -> str:
+    result = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, check=False, text=True, capture_output=True)
+    if result.returncode != 0:
+        raise RuntimeError("Cannot resolve exact Git head for replay review")
+    return result.stdout.strip()
+
+
+def _filtered_replay_review(scenario: str | None, review_tag: str | None) -> dict[str, Any]:
+    """Return a display selection over one exact, read-only review board."""
+
+    head = _git_head()
+    board = build_verified_replay_review_board(head, build_verified_synthetic_replay_corpus(head).to_dict())
+    branches = [
+        branch
+        for branch in board["branch_points"]
+        if (scenario is None or branch["scenario"] == scenario)
+        and (review_tag is None or review_tag in branch["review_tags"])
+    ]
+    return {
+        "schema": "CreativeSyntheticReplayReviewSelection/v1",
+        "status": "synthetic_replay_review_selection_verified",
+        "head_sha": head,
+        "review_board_id": board["review_board_id"],
+        "corpus_id": board["corpus_id"],
+        "filters": {"scenario": scenario, "review_tag": review_tag},
+        "branch_point_count": len(branches),
+        "branch_points": branches,
+        "boundary": dict(board["boundary"]),
+        "authority_note": "Read-only filter over an exact source-derived review board; it does not calculate story state, choose an ending, authorize generation, or process customer data.",
+    }
 
 
 def session_path(workspace: Path, slot: str = DEFAULT_SLOT) -> Path:
@@ -405,6 +449,9 @@ def run(argv: list[str]) -> dict[str, Any]:
     director_coverage_parser.add_argument("--scenario", choices=sorted(SCENARIOS), default="three_scene")
     director_review_parser = subparsers.add_parser("director-review")
     director_review_parser.add_argument("--scenario", choices=sorted(SCENARIOS), default="three_scene")
+    replay_review_parser = subparsers.add_parser("replay-review")
+    replay_review_parser.add_argument("--scenario", choices=sorted(SCENARIOS))
+    replay_review_parser.add_argument("--tag", choices=REVIEW_TAGS)
     knowledge_parser = subparsers.add_parser("knowledge")
     knowledge_subparsers = knowledge_parser.add_subparsers(dest="knowledge_command", required=True)
     knowledge_search = knowledge_subparsers.add_parser("search")
@@ -560,6 +607,8 @@ def run(argv: list[str]) -> dict[str, Any]:
         return director_coverage_for_scenario(args.scenario).to_dict()
     if args.command == "director-review":
         return build_director_review_board(args.scenario).to_dict()
+    if args.command == "replay-review":
+        return _filtered_replay_review(args.scenario, args.tag)
     if args.command == "knowledge":
         bridge = _load_knowledge(args.workspace, slot)
         if args.knowledge_command == "search":
