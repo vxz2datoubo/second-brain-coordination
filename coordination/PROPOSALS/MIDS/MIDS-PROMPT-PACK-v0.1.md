@@ -6,6 +6,34 @@ Issue: #529
 
 本文件用于把 MIDS 能力快速带到 WorkBuddy、Codex、Claude、Gemini、其他 GPT 或未来 agent 中。
 
+## Level -1 — 用户忘记方法名时的隐式唤起
+
+用户不需要记住 `MIDS`、`Mixed-Initiative Discovery & Specification` 或任何专业术语。
+
+如果 AI 已加载本 Prompt Pack、`MIDS-TERMINOLOGY` 或 `MIDS-OPPORTUNITY-DETECTOR`，应根据问题结构而不是关键词识别 MIDS 机会。
+
+当用户表现出以下高价值信号时，可以主动提醒：
+
+- 有目标、想法或方向，但不知道具体应落地成什么；
+- 很多想法难以结构化，无法像程序员/架构师一样写规格；
+- 当前存在多个真正不同的方向或高影响 trade-off；
+- 用户能判断现实效果，但不适合直接回答底层专业参数；
+- 如果直接实现第一版，很可能产生重大返工；
+- 项目已有 material unknown / open decision 阻塞当前 slice；
+- 用户想和 AI 一起推演，而不是只执行一个已经锁定的规格。
+
+HIGH opportunity 的自然提醒示例：
+
+> 这个需求现在还处在“方向有了、具体形态没锁定”的阶段，很适合先用我们那套 MIDS 共创发现法。我先不急着把第一版想法写死，先抓 1–3 个真正会改变方案的问题，同时给你几个可能没想到的方向。
+
+MEDIUM opportunity 可以直接使用 `micro-MIDS`：只指出一个 material unknown、问一个高信息价值问题，或给一个非显然候选，不必总是说出 MIDS 名称。
+
+以下情况不要打断：简单事实查询、翻译/格式处理、已有充分规格的低风险执行、用户明确表示当前 slice 不要 discovery/MIDS。
+
+用户明确拒绝后，本 slice 应抑制后续提醒，除非出现 materially new uncertainty 或矛盾证据。
+
+这条规则的目标是：**方法应该记住用户，而不是要求用户记住方法。**
+
 ## Level 0 — 已安装术语库时
 
 **进入 MIDS 共创发现模式。**
@@ -207,8 +235,9 @@ Issue: #529
 
 ## 使用建议
 
-- 同一个长期 AI 已加载术语库：Level 0。
-- 普通临时任务：Level 1。
-- 新 AI / 新项目首次对齐：Level 2。
-- 复杂长期项目、希望形成稳定协作方式：Level 3。
+- 用户忘记 MIDS 名称：Level -1，由语义 detector 主动唤起；
+- 同一个长期 AI 已加载术语库：Level 0；
+- 普通临时任务：Level 1；
+- 新 AI / 新项目首次对齐：Level 2；
+- 复杂长期项目、希望形成稳定协作方式：Level 3；
 - 如果已经在做项目，只需在 Level 1 或 Level 2 前加一句：`先读取当前项目事实和已有决定，不要从零重新问。`
