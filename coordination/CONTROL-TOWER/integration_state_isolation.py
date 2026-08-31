@@ -56,10 +56,28 @@ def _sha256(value: Any) -> str:
     return hashlib.sha256(_stable_json(value).encode("utf-8")).hexdigest()
 
 
+def _normalize_default_tempdir_children(text: str) -> str:
+    """Normalize only CPython default TemporaryDirectory child identities.
+
+    Failure text is flattened and therefore cannot prove arbitrary path segments are
+    volatile. The one path identity we can safely recognize here is the default
+    ``tempfile.TemporaryDirectory()`` / ``mkdtemp()`` child under the platform temp
+    root: prefix ``tmp`` plus the eight-character `_RandomNameSequence` token.
+    Preserve every descendant component so semantic path differences remain visible.
+    """
+
+    temp_root = str(Path(tempfile.gettempdir()).resolve()).replace("\\", "/").rstrip("/")
+    if not temp_root:
+        return text
+    pattern = rf"(?<![A-Za-z0-9_.-]){re.escape(temp_root)}/tmp[a-z0-9_]{{8}}(?=/)"
+    return re.sub(pattern, f"{temp_root}/<TMPDIR>", text)
+
+
 def normalize_failure_text(text: str, *, roots: Iterable[str | Path] = ()) -> str:
     """Remove only demonstrably volatile execution noise without erasing semantics."""
 
     normalized = str(text or "").replace("\\", "/")
+    normalized = _normalize_default_tempdir_children(normalized)
     candidates = {str(Path(root).resolve()).replace("\\", "/") for root in roots if str(root)}
     candidates.add(str(Path(tempfile.gettempdir()).resolve()).replace("\\", "/"))
     for root in sorted(candidates, key=len, reverse=True):
