@@ -595,11 +595,40 @@ def _git(repo: Path, *args: str) -> str:
     return _run(repo, *args).stdout.strip()
 
 
-def _remote_sha(repo: Path, branch: str) -> str:
-    output = _git(repo, "ls-remote", "origin", f"refs/heads/{branch}")
+def _remote_ref(branch_or_ref: str) -> str:
+    value = str(branch_or_ref or "").strip()
+    if not value:
+        raise IsolationError("REMOTE_REF_EMPTY")
+    if re.fullmatch(r"refs/pull/[1-9][0-9]*/head", value):
+        return value
+    if value.startswith("refs/"):
+        if not value.startswith("refs/heads/"):
+            raise IsolationError(f"REMOTE_REF_UNSUPPORTED:{value}")
+        branch = value[len("refs/heads/") :]
+    else:
+        branch = value
+    if (
+        not branch
+        or branch.startswith("-")
+        or branch.endswith((".", "/"))
+        or branch == "@"
+        or ".." in branch
+        or "@{" in branch
+        or "//" in branch
+        or any(ch in branch for ch in " ~^:?*[\\")
+        or any(ord(ch) < 32 or ord(ch) == 127 for ch in branch)
+        or any(part.startswith(".") or part.endswith(".lock") for part in branch.split("/"))
+    ):
+        raise IsolationError(f"REMOTE_BRANCH_INVALID:{branch_or_ref}")
+    return f"refs/heads/{branch}"
+
+
+def _remote_sha(repo: Path, branch_or_ref: str) -> str:
+    remote_ref = _remote_ref(branch_or_ref)
+    output = _git(repo, "ls-remote", "origin", remote_ref)
     fields = output.split()
     if len(fields) < 1 or not re.fullmatch(r"[0-9a-f]{40}", fields[0]):
-        raise IsolationError(f"REMOTE_REF_UNRESOLVED:{branch}")
+        raise IsolationError(f"REMOTE_REF_UNRESOLVED:{branch_or_ref}")
     return fields[0]
 
 
@@ -819,6 +848,7 @@ def run_proof(
     if _git(repo, "status", "--porcelain"):
         raise IsolationError("TRUSTED_REPOSITORY_WORKTREE_DIRTY")
 
+    candidate_remote_ref = _remote_ref(candidate_branch)
     initial_main = _remote_sha(repo, "main")
     initial_candidate = _remote_sha(repo, candidate_branch)
     local_head = _git(repo, "rev-parse", "HEAD")
@@ -832,8 +862,8 @@ def run_proof(
         "fetch",
         "--no-tags",
         "origin",
-        f"main:refs/remotes/origin/main",
-        f"{candidate_branch}:refs/remotes/origin/{candidate_branch}",
+        "main:refs/remotes/origin/main",
+        f"{candidate_remote_ref}:refs/remotes/origin/ci-state-isolation-candidate",
     )
     merge_base = _git(repo, "merge-base", initial_main, initial_candidate)
     main_tree = _git(repo, "rev-parse", f"{initial_main}^{{tree}}")
