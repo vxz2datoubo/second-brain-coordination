@@ -22,6 +22,8 @@ class CampaignProgressionTests(unittest.TestCase):
             self.assertEqual("campaign_progression_verified", first["status"])
             self.assertEqual("active", first["quest_state"]["status"])
             self.assertEqual(1, first["relationship_states"][0]["trust"])
+            self.assertEqual("pressuring", first["antagonist_states"][0]["status"])
+            self.assertEqual(first["relationship_states"][0]["known_by_character"], first["antagonist_states"][0]["secret_boundary"])
             self.assertTrue(first["reward_states"])
             self.assertTrue(all(reward["source_event_id"].startswith("evt_") for reward in first["reward_states"]))
 
@@ -33,6 +35,7 @@ class CampaignProgressionTests(unittest.TestCase):
             self.assertEqual("PlayerCampaignProgression/v1", response["schema"])
             self.assertIn("quest_state", response)
             self.assertIn("relationship_states", response)
+            self.assertIn("antagonist_states", response)
             self.assertIn("reward_states", response)
             self.assertFalse(response["ending"]["is_terminal"])
 

@@ -11,7 +11,7 @@ import hashlib
 from typing import Any
 
 from .continuity import graph_for_ledger, replay_timeline, timeline_hash
-from .contracts import QuestState, RelationshipState, RewardState, canonical_json
+from .contracts import AntagonistState, QuestState, RelationshipState, RewardState, canonical_json
 
 
 class CampaignProgressionViolation(ValueError):
@@ -45,6 +45,17 @@ def build_campaign_progression(ledger: Any) -> dict[str, Any]:
         pressure=final.state.risk_level,
         status="chapter_resolved" if not legal else "active",
     )
+    # A0/A1 fixtures do not invent a named villain.  This explicit unresolved
+    # opposition contract lets a later flagship package introduce one only from
+    # approved story facts, rather than asking a model to manufacture motives.
+    opposition = AntagonistState(
+        antagonist_id="unresolved_opposition",
+        objective="keep the verified lead unresolved until the player earns a lawful next fact",
+        secret_boundary=facts,
+        pressure=max(0, final.state.risk_level),
+        countermeasure="restrict the next beat to approved evidence, relationship, and safety consequences",
+        status="pressuring" if final.state.risk_level > 0 else "dormant",
+    )
     rewards: list[RewardState] = []
     for entry in timeline[1:]:
         consequence = entry.consequence
@@ -54,13 +65,14 @@ def build_campaign_progression(ledger: Any) -> dict[str, Any]:
             rewards.append(RewardState(_id("reward_", {"event": entry.event_id, "type": "relationship"}), "relationship", entry.event_id, "A companion visibly responds to the recorded choice.", "Trust can expose a later obligation."))
         if consequence.get("risk_delta", 0) < 0:
             rewards.append(RewardState(_id("reward_", {"event": entry.event_id, "type": "safety"}), "safety", entry.event_id, "A safer route creates breathing room.", "Safety may defer information or urgency."))
-    material = {"graph_revision": graph.revision, "timeline_hash": timeline_hash(timeline), "quest": quest.to_dict(), "relationship": relationship.to_dict(), "rewards": [reward.to_dict() for reward in rewards]}
+    material = {"graph_revision": graph.revision, "timeline_hash": timeline_hash(timeline), "quest": quest.to_dict(), "relationship": relationship.to_dict(), "opposition": opposition.to_dict(), "rewards": [reward.to_dict() for reward in rewards]}
     return {
         "schema": "PlayerCampaignProgression/v1",
         "status": "campaign_progression_verified",
         "timeline_hash": timeline_hash(timeline),
         "quest_state": quest.to_dict(),
         "relationship_states": [relationship.to_dict()],
+        "antagonist_states": [opposition.to_dict()],
         "reward_states": [reward.to_dict() for reward in rewards],
         "ending": {"is_terminal": not legal, "current_path": quest.phase, "approved_terminal_only": True},
         "progression_hash": hashlib.sha256(canonical_json(material).encode("utf-8")).hexdigest(),

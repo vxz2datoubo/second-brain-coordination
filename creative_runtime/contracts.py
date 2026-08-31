@@ -189,6 +189,23 @@ class RelationshipState:
 
 
 @dataclass(frozen=True)
+class AntagonistState:
+    antagonist_id: str
+    objective: str
+    secret_boundary: tuple[str, ...]
+    pressure: int
+    countermeasure: str
+    status: str
+
+    @property
+    def schema(self) -> str:
+        return "AntagonistState/v1"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"schema": self.schema, **_json_value(self)}
+
+
+@dataclass(frozen=True)
 class DirectorBrief:
     brief_id: str
     story_state: StoryState
