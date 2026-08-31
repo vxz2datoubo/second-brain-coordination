@@ -72,7 +72,7 @@ def _director_continuity(entry: Mapping[str, Any]) -> dict[str, Any]:
     def projection(shot: Any) -> dict[str, Any]:
         if not isinstance(shot, Mapping):
             raise ReplayReviewViolation("Replay review director shot is malformed")
-        fields = ("shot_id", "scene_id", "beat_id", "camera", "axis", "lighting", "sound", "duration_seconds")
+        fields = ("shot_id", "beat_id", "camera", "axis", "lighting", "sound", "duration_seconds")
         if any(field not in shot for field in fields):
             raise ReplayReviewViolation("Replay review director shot lacks a continuity field")
         return {field: shot[field] for field in fields}
@@ -85,7 +85,7 @@ def _director_continuity(entry: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
-def _review_tags(delta: Mapping[str, Any], continuity: Mapping[str, Any]) -> list[str]:
+def _review_tags(delta: Mapping[str, Any], prefix_state: Mapping[str, Any], final_state: Mapping[str, Any]) -> list[str]:
     """Derive stable display filters from already verified terminal evidence."""
 
     tags: set[str] = set()
@@ -102,7 +102,7 @@ def _review_tags(delta: Mapping[str, Any], continuity: Mapping[str, Any]) -> lis
         tags.add("lost_facts")
     if delta["flag_changes"]:
         tags.add("flag_changes")
-    if continuity["opening"]["scene_id"] != continuity["closing"]["scene_id"]:
+    if prefix_state["scene_id"] != final_state["scene_id"]:
         tags.add("scene_change")
     return sorted(tags)
 
@@ -120,7 +120,7 @@ def _route_outcome(entry: Mapping[str, Any], prefix_state: Mapping[str, Any]) ->
         "final_state": final_state,
         "terminal_delta": delta,
         "director_continuity": continuity,
-        "review_tags": _review_tags(delta, continuity),
+        "review_tags": _review_tags(delta, prefix_state, final_state),
     }
 
 
