@@ -39,15 +39,21 @@ self-accept, mark ready, or merge its own work.
 
 ## Verification cadence
 
-1. Fast local tests after coherent code changes.
-2. Full local standard-library suite at milestone checkpoints.
+1. Fast local tests after coherent code changes, using Python 3.13.
+2. Full local standard-library suite at milestone checkpoints, using Python 3.13.
 3. Fresh-clone / clean-worktree reproduction for major milestones and close-out.
 4. One concentrated GPT independent review only after user-directed close-out.
 
 GitHub additionally runs the same offline suite on the exact submitted commit
-through `.github/workflows/creative-runtime-offline.yml` using Python 3.11 and
-3.13. This is reproducibility evidence, not an approval to deploy or receive
-customer data.
+through `.github/workflows/creative-runtime-offline.yml` using the one
+supported daily runtime, Python 3.13. This is reproducibility evidence, not an
+approval to deploy or receive customer data.
+
+Python 3.12/3.11 compatibility is deliberately **not** a routine CI or local
+milestone requirement. Run it only when the owner explicitly requests support
+for that interpreter, when the supported runtime changes, or at a separately
+approved release-compatibility gate. This preserves a clear contract while
+avoiding a second full run that currently adds no user-facing coverage.
 
 The reproducibility entry point is `python tools/verify_creative_runtime.py
 --expected-head <frozen-SHA>`. It checks identity, the full creative test suite,

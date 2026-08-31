@@ -67,7 +67,8 @@ verified 38 routes: `harbor_protocol: 14`, `legacy_archive: 6`,
 
 ## Reproduction evidence
 
-At `f30854a8ae52593a3c3b8910df98dd11ed858efc`:
+At `f30854a8ae52593a3c3b8910df98dd11ed858efc` (historical dual-runtime
+evidence, before the daily-runtime policy changed):
 
 | Check | Result |
 | --- | --- |
@@ -92,10 +93,21 @@ payload plus manifest, and `contains_caller_free_text: false`. It remains
 executor-provided reproducibility evidence, not independent acceptance.
 
 After the corpus commit, the full creative suite increased to **126** tests
-and passed on both Python 3.13 (157.153 seconds) and Python 3.12 (165.417
-seconds). The deliberate increase is the cost of all-route reconstruction,
-not a hidden remote service or paid operation. The clean clone also passed the
-same 126-test runtime verifier at exact head `ae305b12bfa9afaed0cc518bef8a1b8e7c769eeb`.
+and passed historically on both Python 3.13 (157.153 seconds) and Python 3.12
+(165.417 seconds). The deliberate increase is the cost of all-route
+reconstruction, not a hidden remote service or paid operation. The clean clone
+also passed the same 126-test runtime verifier at exact head
+`ae305b12bfa9afaed0cc518bef8a1b8e7c769eeb`.
+
+## Daily verification policy (current)
+
+From this checkpoint forward, routine local milestones and the GitHub offline
+workflow run the suite **once**, on Python **3.13**. The earlier Python 3.12
+result remains historical compatibility evidence; it is not repeated by
+default. A second interpreter is allowed only for an owner-requested
+compatibility promise, a supported-runtime change, or an explicitly approved
+release gate. At the measured 126-test size this avoids roughly 165 seconds of
+additional local compute for each otherwise identical full milestone run.
 
 ## Still deliberately out of scope
 

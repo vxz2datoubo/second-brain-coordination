@@ -27,12 +27,8 @@ permissions:
 
 jobs:
   offline-runtime:
-    name: Offline runtime (Python ${{ matrix.python-version }})
+    name: Offline runtime (Python 3.13)
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.11", "3.13"]
     steps:
       - name: Checkout exact event head
         uses: actions/checkout@v4
@@ -53,7 +49,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.13"
 
       - name: Run deterministic creative-runtime tests
         env:
@@ -64,13 +60,13 @@ jobs:
         env:
           PYTHONDONTWRITEBYTECODE: "1"
           EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
-          RECEIPT_PATH: ${{ runner.temp }}/creative-runtime-verification-python-${{ matrix.python-version }}.json
+          RECEIPT_PATH: ${{ runner.temp }}/creative-runtime-verification-python-3.13.json
         run: python tools/verify_creative_runtime.py --expected-head "$EXPECTED_HEAD" > "$RECEIPT_PATH"
 
       - name: Rehearse bounded synthetic multi-session operations
         env:
           PYTHONDONTWRITEBYTECODE: "1"
-          REHEARSAL_PATH: ${{ runner.temp }}/creative-runtime-operations-rehearsal-python-${{ matrix.python-version }}.json
+          REHEARSAL_PATH: ${{ runner.temp }}/creative-runtime-operations-rehearsal-python-3.13.json
         run: python tools/rehearse_creative_operations.py --session-count 8 > "$REHEARSAL_PATH"
 
       - name: Verify public-safe runtime boundary
@@ -90,10 +86,10 @@ jobs:
       - name: Upload exact-head runtime evidence
         uses: actions/upload-artifact@v4
         with:
-          name: creative-runtime-evidence-python-${{ matrix.python-version }}-${{ github.event.pull_request.head.sha || github.sha }}
+          name: creative-runtime-evidence-python-3.13-${{ github.event.pull_request.head.sha || github.sha }}
           path: |
-            ${{ runner.temp }}/creative-runtime-verification-python-${{ matrix.python-version }}.json
-            ${{ runner.temp }}/creative-runtime-operations-rehearsal-python-${{ matrix.python-version }}.json
+            ${{ runner.temp }}/creative-runtime-verification-python-3.13.json
+            ${{ runner.temp }}/creative-runtime-operations-rehearsal-python-3.13.json
           if-no-files-found: error
           retention-days: 7
 
