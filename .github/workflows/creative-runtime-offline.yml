@@ -1,0 +1,245 @@
+name: Creative runtime offline verification
+
+on:
+  pull_request:
+    paths:
+      - "creative_runtime/**"
+      - "apps/cli/creativectl.py"
+      - "apps/web/**"
+      - "tests/test_creative*.py"
+      - "tools/verify_creative_runtime.py"
+      - "tools/verify_public_safe_boundary.py"
+      - "tools/public_safe_boundary_rules.json"
+      - "tools/build_experience_demo.py"
+      - "tools/build_experience_package.py"
+      - "tools/build_experience_library_package.py"
+      - "tools/build_replay_corpus_package.py"
+      - "tools/build_replay_review_board.py"
+      - "tools/rehearse_creative_operations.py"
+      - "tools/verify_experience_artifact.py"
+      - "tools/verify_experience_library.py"
+      - "tools/verify_replay_corpus_package.py"
+      - "tools/verify_replay_review_board.py"
+      - "skills/creative-program-understanding-map/**"
+      - "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/**"
+      - ".github/workflows/creative-runtime-offline.yml"
+  push:
+    branches:
+      - "codex/creative-runtime-continuous-build"
+      - "codex/creative-runtime-next"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-runtime:
+    name: Offline runtime (Python 3.13)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact event head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 2
+
+      - name: Assert exact checked-out source identity
+        shell: bash
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          test -z "$(git status --porcelain)"
+          echo "CREATIVE_RUNTIME_EXACT_HEAD=$EXPECTED_HEAD"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Run deterministic creative-runtime tests
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: python -m unittest discover -s tests -p "test_creative*.py" -v
+
+      - name: Run complete offline lifecycle verification
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+          RECEIPT_PATH: ${{ runner.temp }}/creative-runtime-verification-python-3.13.json
+        run: python tools/verify_creative_runtime.py --expected-head "$EXPECTED_HEAD" > "$RECEIPT_PATH"
+
+      - name: Rehearse bounded synthetic multi-session operations
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+          REHEARSAL_PATH: ${{ runner.temp }}/creative-runtime-operations-rehearsal-python-3.13.json
+        run: python tools/rehearse_creative_operations.py --session-count 8 > "$REHEARSAL_PATH"
+
+      - name: Verify public-safe runtime boundary
+        env:
+          PUBLIC_SAFE_RECEIPT_PATH: ${{ runner.temp }}/creative-runtime-public-safe-boundary-python-3.13.json
+        run: python tools/verify_public_safe_boundary.py --root . --config tools/public_safe_boundary_rules.json > "$PUBLIC_SAFE_RECEIPT_PATH"
+
+      - name: Upload exact-head runtime evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: creative-runtime-evidence-python-3.13-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            ${{ runner.temp }}/creative-runtime-verification-python-3.13.json
+            ${{ runner.temp }}/creative-runtime-operations-rehearsal-python-3.13.json
+            ${{ runner.temp }}/creative-runtime-public-safe-boundary-python-3.13.json
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Verify whitespace only within event diff
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
+        run: |
+          set -euo pipefail
+          if [ -n "$BASE_SHA" ]; then
+            git fetch --no-tags --depth=1 origin "$BASE_SHA"
+            git diff --check "$BASE_SHA" HEAD
+          else
+            git diff --check HEAD^ HEAD
+          fi
+
+  synthetic-experience-artifact:
+    name: Synthetic experience artifact (${{ matrix.scenario }})
+    runs-on: ubuntu-latest
+    needs: offline-runtime
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario: [night_signal, harbor_protocol]
+    steps:
+      - name: Checkout exact event head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 2
+
+      - name: Assert exact checked-out source identity
+        shell: bash
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          test -z "$(git status --porcelain)"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Build exact-head synthetic experience artifact
+        shell: bash
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+          EXPERIENCE_PACKAGE: ${{ runner.temp }}/creative-runtime-experience-${{ matrix.scenario }}
+        run: |
+          set -euo pipefail
+          python tools/build_experience_package.py --expected-head "$EXPECTED_HEAD" --scenario "${{ matrix.scenario }}" --output-dir "$EXPERIENCE_PACKAGE"
+          python tools/verify_experience_artifact.py --expected-head "$EXPECTED_HEAD" --package-dir "$EXPERIENCE_PACKAGE"
+
+      - name: Upload public-safe synthetic experience
+        uses: actions/upload-artifact@v4
+        with:
+          name: creative-runtime-synthetic-experience-${{ matrix.scenario }}-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/creative-runtime-experience-${{ matrix.scenario }}
+          if-no-files-found: error
+          retention-days: 7
+
+  synthetic-experience-library:
+    name: Synthetic experience library
+    runs-on: ubuntu-latest
+    needs: offline-runtime
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout exact event head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 2
+
+      - name: Assert exact checked-out source identity
+        shell: bash
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          test -z "$(git status --porcelain)"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Build and verify exact-head multi-scenario library
+        shell: bash
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+          LIBRARY_PACKAGE: ${{ runner.temp }}/creative-runtime-experience-library
+        run: |
+          set -euo pipefail
+          python tools/build_experience_library_package.py --expected-head "$EXPECTED_HEAD" --output-dir "$LIBRARY_PACKAGE"
+          python tools/verify_experience_library.py --expected-head "$EXPECTED_HEAD" --package-dir "$LIBRARY_PACKAGE"
+
+      - name: Upload public-safe synthetic experience library
+        uses: actions/upload-artifact@v4
+        with:
+          name: creative-runtime-synthetic-experience-library-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/creative-runtime-experience-library
+          if-no-files-found: error
+          retention-days: 7
+
+  synthetic-replay-corpus:
+    name: Synthetic replay corpus package
+    runs-on: ubuntu-latest
+    needs: offline-runtime
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout exact event head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 2
+
+      - name: Assert exact checked-out source identity
+        shell: bash
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          test -z "$(git status --porcelain)"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Build and verify exact-head replay corpus package
+        shell: bash
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+          CORPUS_PACKAGE: ${{ runner.temp }}/creative-runtime-replay-corpus
+        run: |
+          set -euo pipefail
+          python tools/build_replay_corpus_package.py --expected-head "$EXPECTED_HEAD" --output-dir "$CORPUS_PACKAGE"
+          python tools/verify_replay_corpus_package.py --expected-head "$EXPECTED_HEAD" --package-dir "$CORPUS_PACKAGE"
+
+      - name: Upload verified synthetic replay corpus
+        uses: actions/upload-artifact@v4
+        with:
+          name: creative-runtime-replay-corpus-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/creative-runtime-replay-corpus
+          if-no-files-found: error
+          retention-days: 7

@@ -49,6 +49,18 @@ class CreativeS02CliTests(unittest.TestCase):
             self.assertEqual(result["status"], "chosen")
             self.assertEqual(result["action_id"], "listen")
 
+    def test_chinese_intent_is_supported_but_non_explicit_gate_stays_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory)
+            creativectl.run(["--workspace", str(workspace), "init"])
+            chosen = creativectl.run(["--workspace", str(workspace), "say", "我先倾听门后的声音"])
+            state = creativectl.run(["--workspace", str(workspace), "resume"])["state"]
+            rejected = creativectl.run(["--workspace", str(workspace), "say", "进行露骨性行为"])
+            after = creativectl.run(["--workspace", str(workspace), "resume"])["state"]
+            self.assertEqual(chosen["action_id"], "listen")
+            self.assertEqual(rejected["status"], "clarification_required")
+            self.assertEqual(after, state)
+
 
 if __name__ == "__main__":
     unittest.main()

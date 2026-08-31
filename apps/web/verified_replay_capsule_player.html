@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Verified Replay Capsule Viewer</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; background: #10141d; color: #edf2fb; }
+    body { margin: 0; min-height: 100vh; background: radial-gradient(circle at top, #294760, #10141d 55%); }
+    main { max-width: 940px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+    .card { background: rgba(14, 22, 33, .94); border: 1px solid #46617b; border-radius: 16px; box-shadow: 0 18px 44px #0006; padding: 1.2rem; margin: 1rem 0; }
+    h1, h2, p { margin-top: 0; } h1 { letter-spacing: -.03em; } h2 { color: #b4d5ff; font-size: 1rem; }
+    .muted, code { color: #aab8ca; } .warning { border-color: #c6a34a; background: #3b3019; } .error { border-color: #ed7082; background: #441f2a; }
+    .hidden { display: none; } .meta { display: flex; flex-wrap: wrap; gap: .5rem; } .pill { border: 1px solid #58738d; border-radius: 999px; padding: .25rem .55rem; font-size: .82rem; color: #d3e2f8; }
+    .file-label { display: inline-block; font: inherit; border: 1px solid #7894af; border-radius: 10px; background: #294966; color: #fff; cursor: pointer; padding: .7rem .85rem; }
+    .file-label:hover { background: #386587; } input[type=file] { position: absolute; height: 1px; width: 1px; opacity: 0; }
+    dl { display: grid; grid-template-columns: max-content 1fr; gap: .4rem .8rem; margin: 0; } dt { color: #a9c0d8; } dd { margin: 0; overflow-wrap: anywhere; }
+    ol { padding-left: 1.4rem; } li { margin: .8rem 0; line-height: 1.45; } pre { white-space: pre-wrap; word-break: break-word; color: #c9d8eb; font-size: .82rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Verified Replay Capsule</h1>
+    <p class="muted">A read-only local viewer for one completed synthetic interactive-film route. It does not calculate state, accept choices, save data, call a model, access an account, or contact a network service.</p>
+    <section class="card warning"><strong>Boundary:</strong> synthetic fixed-choice replay only. This is not customer intake, an account feature, a generation tool, a production deployment, or publication authority.</section>
+    <section class="card">
+      <h2>Load a replay capsule</h2>
+      <p>Choose <code>replay_capsule.json</code> from a complete fixed four-file package. This viewer checks the safety envelope for display; the matching repository verifier performs the exact-head cryptographic and runtime reconstruction check.</p>
+      <label class="file-label" for="capsule-file">Choose replay capsule JSON</label>
+      <input id="capsule-file" type="file" accept="application/json,.json">
+      <p id="load-status" class="muted" aria-live="polite">No capsule loaded.</p>
+    </section>
+    <section id="replay" class="hidden" aria-live="polite">
+      <section class="card"><div class="meta" id="meta"></div><dl id="summary"></dl></section>
+      <section class="card"><h2>Verified route</h2><ol id="route"></ol></section>
+      <section class="card"><h2>Final story state</h2><dl id="state"></dl></section>
+      <section class="card"><h2>Director continuity</h2><dl id="director"></dl></section>
+    </section>
+    <section id="error" class="card error hidden"><strong>Capsule rejected by viewer.</strong><pre id="error-text"></pre></section>
+  </main>
+  <script>
+    "use strict";
+    const input = document.querySelector("#capsule-file");
+    const replay = document.querySelector("#replay");
+    const errorBox = document.querySelector("#error");
+    const errorText = document.querySelector("#error-text");
+    const loadStatus = document.querySelector("#load-status");
+    const meta = document.querySelector("#meta");
+    const summary = document.querySelector("#summary");
+    const route = document.querySelector("#route");
+    const state = document.querySelector("#state");
+    const director = document.querySelector("#director");
+    function require(condition, message) { if (!condition) throw new Error(message); }
+    function text(value) { return value == null ? "—" : String(value); }
+    function pairs(node, values) { node.replaceChildren(); for (const [key, value] of values) { const term = document.createElement("dt"); term.textContent = key; const description = document.createElement("dd"); description.textContent = text(value); node.append(term, description); } }
+    function consequence(entry) {
+      const value = entry && entry.consequence;
+      if (!value || value.kind === "initialized") return "Story initialized.";
+      const parts = [];
+      if (value.scene_changed) parts.push("scene changed"); if (value.beat_changed) parts.push("beat advanced");
+      if (value.risk_delta) parts.push("risk " + (value.risk_delta > 0 ? "+" : "") + value.risk_delta);
+      for (const [name, delta] of Object.entries(value.relationship_delta || {})) parts.push(name + " relationship " + (delta > 0 ? "+" : "") + delta);
+      for (const fact of value.new_facts || []) parts.push("new fact: " + fact);
+      for (const [name, flag] of Object.entries(value.flag_changes || {})) parts.push(name + " = " + text(flag));
+      return parts.length ? parts.join(" · ") : "Verified action produced no visible state delta.";
+    }
+    function prepare(payload) {
+      require(payload && typeof payload === "object", "Capsule root must be an object.");
+      require(payload.schema === "CreativeSyntheticReplayCapsule/v1" && payload.status === "synthetic_replay_capsule_verified", "Unexpected replay capsule schema or status.");
+      require(typeof payload.capsule_id === "string" && /^capsule_[0-9a-f]{20}$/.test(payload.capsule_id), "Capsule identity is malformed.");
+      require(typeof payload.scenario === "string" && typeof payload.timeline_hash === "string", "Capsule scenario or timeline identity is malformed.");
+      const boundary = payload.boundary;
+      require(boundary && boundary.synthetic_only === true && boundary.contains_customer_material === false && boundary.contains_caller_free_text === false, "Capsule crosses the synthetic-only privacy boundary.");
+      require(boundary.external_provider_called === false && boundary.publication_authorized === false && boundary.canonical_knowledge_write === false && boundary.client_story_authority === false, "Capsule claims an unauthorized capability.");
+      const source = payload.source;
+      require(source && Array.isArray(source.timeline) && source.timeline.length > 0 && Array.isArray(source.events), "Capsule source timeline is missing.");
+      require(source.event_count === source.events.length && source.timeline.length === source.events.length, "Capsule event and timeline counts disagree.");
+      require(source.final_state && typeof source.final_state === "object", "Capsule final state is missing.");
+      const sequence = payload.sequence;
+      const directorData = payload.director;
+      require(sequence && sequence.status === "sequence_plan_verified" && sequence.timeline_hash === payload.timeline_hash, "Verified sequence is absent or not bound to this replay.");
+      require(directorData && directorData.verified_input && directorData.verified_input.timeline_hash === payload.timeline_hash, "Verified director input is absent or not bound to this replay.");
+      require(Array.isArray(directorData.shots) && directorData.shots.length > 0 && directorData.quality_report && directorData.quality_report.can_generate === true, "Verified director plan is incomplete or blocked.");
+      return payload;
+    }
+    function render(payload) {
+      meta.replaceChildren();
+      for (const label of ["scenario: " + payload.scenario, "capsule: " + payload.capsule_id, "timeline: " + payload.timeline_hash.slice(0, 16) + "…", "events: " + payload.source.event_count]) { const pill = document.createElement("span"); pill.className = "pill"; pill.textContent = label; meta.append(pill); }
+      pairs(summary, [["Graph revision", payload.graph_revision], ["Slot", payload.slot_id], ["Route coverage", payload.route_coverage.status], ["Sequence duration", payload.sequence.total_duration_seconds + " seconds"]]);
+      route.replaceChildren();
+      payload.source.timeline.forEach((entry, index) => { const item = document.createElement("li"); const current = entry.state || {}; const action = entry.action_id ? entry.action_id + " / " + entry.transition_id : "initial state"; item.textContent = "Turn " + index + ": " + action + " → " + text(current.scene_id) + " / " + text(current.beat_id) + " · " + consequence(entry); route.append(item); });
+      const finalState = payload.source.final_state;
+      pairs(state, [["Scene", finalState.scene_id], ["Beat", finalState.beat_id], ["Risk", finalState.risk_level], ["Relationships", JSON.stringify(finalState.relationships || {})], ["Known facts", (finalState.known_facts || []).join("; ") || "none"], ["Flags", JSON.stringify(finalState.flags || {})]]);
+      const firstShot = payload.director.shots[0];
+      pairs(director, [["Quality gate", payload.director.quality_report.can_generate ? "passed" : "blocked"], ["Shot count", payload.director.shots.length], ["Opening camera", firstShot.camera], ["Opening axis", firstShot.axis], ["Sound role", firstShot.sound_role]]);
+      errorBox.classList.add("hidden"); replay.classList.remove("hidden"); loadStatus.textContent = "Synthetic replay capsule loaded for display. Use the repository verifier to independently reconstruct it.";
+    }
+    function reject(error) { replay.classList.add("hidden"); errorBox.classList.remove("hidden"); errorText.textContent = error instanceof Error ? error.message : String(error); loadStatus.textContent = "The selected file was not accepted."; }
+    input.addEventListener("change", async () => { const file = input.files && input.files[0]; if (!file) return; try { render(prepare(JSON.parse(await file.text()))); } catch (error) { reject(error); } });
+  </script>
+</body>
+</html>

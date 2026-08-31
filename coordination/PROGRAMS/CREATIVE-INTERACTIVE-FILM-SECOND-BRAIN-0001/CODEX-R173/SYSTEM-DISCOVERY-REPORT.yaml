@@ -1,0 +1,19 @@
+schema: CODEX_SYSTEM_DISCOVERY_REPORT/v1
+task_id: CODEX-CREATIVE-RUNTIME-PUBLIC-SAFE-CLOSEOUT-R173
+discoveries:
+  - id: R173-DISCOVERY-001
+    severity: P1_CONFIRMED_AND_REMEDIATED
+    finding: Optional executable failure inside a shell if predicate can produce a false safety pass.
+    system_impact: Executor CI before R173 cannot prove the public-safe boundary.
+  - id: R173-DISCOVERY-002
+    severity: ENGINEERING_HARNESS
+    finding: Python 3.13 dynamic import of a dataclass module can depend on prior sys.modules registration.
+    system_impact: The first new regression collection failed even though the verifier CLI was functional.
+    resolution: Use immutable NamedTuple records so the verifier has no hidden import-registration prerequisite.
+  - id: R173-DISCOVERY-003
+    severity: PROCESS
+    finding: Manually transcribing a 40-character commit SHA caused an exact-head mismatch.
+    system_impact: The verifier rejected the run and no false receipt was produced.
+    resolution: Read the SHA from git for subsequent executor commands and bind the final SHA in GitHub.
+authority_changes: NONE
+parallel_authority_created: false

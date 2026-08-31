@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Verified Replay Corpus Index</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #10141d; color: #edf2fb; }
+    body { margin: 0; min-height: 100vh; background: radial-gradient(circle at top, #294760, #10141d 55%); }
+    main { max-width: 1040px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+    .card { background: rgba(14,22,33,.94); border: 1px solid #46617b; border-radius: 16px; padding: 1.2rem; margin: 1rem 0; }
+    h1, h2, p { margin-top: 0; } h2 { color: #b4d5ff; font-size: 1rem; } .muted, code { color: #aab8ca; }
+    .warning { border-color: #c6a34a; background: #3b3019; } .error { border-color: #ed7082; background: #441f2a; }
+    .hidden { display: none; } .meta, #routes { display: flex; flex-wrap: wrap; gap: .5rem; }
+    .pill { border: 1px solid #58738d; border-radius: 999px; padding: .25rem .55rem; font-size: .82rem; }
+    .file-label, button, select { font: inherit; border: 1px solid #7894af; border-radius: 10px; background: #294966; color: #fff; cursor: pointer; padding: .6rem .75rem; }
+    .file-label:hover, button:hover, button[aria-pressed="true"] { background: #547b9e; } input[type=file] { position: absolute; height: 1px; width: 1px; opacity: 0; }
+    dl { display: grid; grid-template-columns: max-content 1fr; gap: .4rem .8rem; margin: 0; } dt { color: #a9c0d8; } dd { margin: 0; overflow-wrap: anywhere; }
+    ol { padding-left: 1.4rem; } li { margin: .65rem 0; line-height: 1.45; } pre { white-space: pre-wrap; word-break: break-word; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Verified Replay Corpus</h1>
+    <p class="muted">A read-only local index for completed synthetic interactive-film routes. It does not calculate story state, accept choices, save data, call a model, access an account, or contact a network service.</p>
+    <section class="card warning"><strong>Boundary:</strong> synthetic regression evidence only. This page is not customer intake, a live game server, a generation tool, a production deployment, or publication authority.</section>
+    <section class="card">
+      <h2>Load a corpus</h2>
+      <p>Choose <code>replay_corpus.json</code> from the fixed five-file package. This viewer performs display-boundary checks only; the matching repository verifier rebuilds every route at the package Git head.</p>
+      <label class="file-label" for="corpus-file">Choose replay corpus JSON</label>
+      <input id="corpus-file" type="file" accept="application/json,.json">
+      <p id="load-status" class="muted" aria-live="polite">No corpus loaded.</p>
+      <label class="file-label" for="review-file">Choose optional review board JSON</label>
+      <input id="review-file" type="file" accept="application/json,.json">
+      <p id="review-status" class="muted" aria-live="polite">No branch-review board loaded.</p>
+    </section>
+    <section id="corpus" class="hidden" aria-live="polite">
+      <section class="card"><div class="meta" id="meta"></div><dl id="summary"></dl></section>
+      <section class="card"><h2>Completed routes</h2><div id="routes"></div></section>
+      <section class="card"><h2 id="route-heading">Route</h2><dl id="route-summary"></dl><h2>Verified timeline</h2><ol id="timeline"></ol><h2>Final story state</h2><dl id="state"></dl></section>
+      <section id="review" class="card hidden"><h2>Precomputed branch comparisons</h2><p class="muted">These alternatives are source-bound review evidence. The page displays them but does not derive or score an outcome.</p><p><label>Scenario <select id="review-scenario-filter"><option value="">All scenarios</option></select></label> <label>Visible consequence <select id="review-tag-filter"><option value="">All consequences</option></select></label></p><ol id="branch-points"></ol></section>
+    </section>
+    <section id="error" class="card error hidden"><strong>Corpus rejected by viewer.</strong><pre id="error-text"></pre></section>
+  </main>
+  <script>
+    "use strict";
+    const input = document.querySelector("#corpus-file"), reviewInput = document.querySelector("#review-file"), corpusBox = document.querySelector("#corpus"), errorBox = document.querySelector("#error"), errorText = document.querySelector("#error-text"), loadStatus = document.querySelector("#load-status"), reviewStatus = document.querySelector("#review-status"), meta = document.querySelector("#meta"), summary = document.querySelector("#summary"), routes = document.querySelector("#routes"), routeHeading = document.querySelector("#route-heading"), routeSummary = document.querySelector("#route-summary"), timeline = document.querySelector("#timeline"), state = document.querySelector("#state"), review = document.querySelector("#review"), branchPoints = document.querySelector("#branch-points"), scenarioFilter = document.querySelector("#review-scenario-filter"), tagFilter = document.querySelector("#review-tag-filter");
+    let activeRoute = null, loadedCorpus = null;
+    function require(condition, message) { if (!condition) throw new Error(message); }
+    function text(value) { return value == null ? "—" : String(value); }
+    function pairs(node, values) { node.replaceChildren(); for (const [key, value] of values) { const term = document.createElement("dt"), description = document.createElement("dd"); term.textContent = key; description.textContent = text(value); node.append(term, description); } }
+    function consequence(entry) { const value = entry && entry.consequence; if (!value || value.kind === "initialized") return "Story initialized."; const parts = []; if (value.scene_changed) parts.push("scene changed"); if (value.beat_changed) parts.push("beat advanced"); if (value.risk_delta) parts.push("risk " + (value.risk_delta > 0 ? "+" : "") + value.risk_delta); for (const [name, delta] of Object.entries(value.relationship_delta || {})) parts.push(name + " relationship " + (delta > 0 ? "+" : "") + delta); for (const fact of value.new_facts || []) parts.push("new fact: " + fact); for (const [name, flag] of Object.entries(value.flag_changes || {})) parts.push(name + " = " + text(flag)); return parts.length ? parts.join(" · ") : "Verified action produced no visible state delta."; }
+    function prepare(payload) {
+      require(payload && typeof payload === "object", "Corpus root must be an object.");
+      require(payload.schema === "CreativeSyntheticReplayCorpus/v1" && payload.status === "synthetic_replay_corpus_verified", "Unexpected corpus schema or status.");
+      require(typeof payload.corpus_id === "string" && /^replay_corpus_[0-9a-f]{20}$/.test(payload.corpus_id), "Corpus identity is malformed.");
+      require(typeof payload.head_sha === "string" && /^[0-9a-f]{40}$/.test(payload.head_sha), "Corpus exact source identity is malformed.");
+      const boundary = payload.boundary;
+      require(boundary && boundary.synthetic_only === true && boundary.customer_data_present === false && boundary.caller_free_text_present === false, "Corpus crosses the synthetic-only privacy boundary.");
+      require(boundary.external_provider_called === false && boundary.publication_authorized === false && boundary.canonical_knowledge_write === false && boundary.client_story_authority === false, "Corpus claims an unauthorized capability.");
+      require(Array.isArray(payload.scenario_ids) && Array.isArray(payload.entries) && payload.entries.length > 0 && payload.entry_count === payload.entries.length, "Corpus route index is incomplete.");
+      const seen = new Set();
+      for (const entry of payload.entries) { require(entry && typeof entry === "object" && typeof entry.route_id === "string" && typeof entry.scenario === "string", "Corpus route identity is malformed."); require(!seen.has(entry.route_id), "Corpus contains duplicate route identities."); seen.add(entry.route_id); require(Array.isArray(entry.action_ids) && Array.isArray(entry.transition_ids) && entry.capsule && entry.capsule.source && Array.isArray(entry.capsule.source.timeline), "Corpus route replay evidence is incomplete."); require(entry.capsule.boundary && entry.capsule.boundary.contains_caller_free_text === false, "Corpus route contains caller-authored text."); }
+      return payload;
+    }
+    function renderRoute(entry) {
+      activeRoute = entry.route_id; routeHeading.textContent = entry.scenario + " / " + entry.route_id;
+      pairs(routeSummary, [["Capsule", entry.capsule_id], ["Timeline", entry.timeline_hash], ["Actions", entry.action_ids.join(" → ") || "none"], ["Transitions", entry.transition_ids.join(" → ") || "none"], ["Director quality", entry.capsule.director.quality_report.can_generate ? "passed" : "blocked"]]);
+      timeline.replaceChildren(); entry.capsule.source.timeline.forEach((turn, index) => { const item = document.createElement("li"), current = turn.state || {}, action = turn.action_id ? turn.action_id + " / " + turn.transition_id : "initial state"; item.textContent = "Turn " + index + ": " + action + " → " + text(current.scene_id) + " / " + text(current.beat_id) + " · " + consequence(turn); timeline.append(item); });
+      const finalState = entry.final_state; pairs(state, [["Scene", finalState.scene_id], ["Beat", finalState.beat_id], ["Risk", finalState.risk_level], ["Relationships", JSON.stringify(finalState.relationships || {})], ["Known facts", (finalState.known_facts || []).join("; ") || "none"], ["Flags", JSON.stringify(finalState.flags || {})]]);
+      for (const button of routes.querySelectorAll("button")) button.setAttribute("aria-pressed", String(button.dataset.routeId === activeRoute));
+    }
+    function render(payload) {
+      loadedCorpus = payload; review.classList.add("hidden"); reviewStatus.textContent = "No branch-review board loaded."; scenarioFilter.replaceChildren(new Option("All scenarios", "")); tagFilter.replaceChildren(new Option("All consequences", ""));
+      meta.replaceChildren(); for (const label of ["corpus: " + payload.corpus_id, "head: " + payload.head_sha.slice(0, 12) + "…", "routes: " + payload.entry_count]) { const pill = document.createElement("span"); pill.className = "pill"; pill.textContent = label; meta.append(pill); }
+      pairs(summary, [["Scenarios", payload.scenario_ids.join(", ")], ["Route counts", JSON.stringify(payload.scenario_route_counts)], ["Source head", payload.head_sha], ["Authority", "display only; use repository verifier for reconstruction"]]);
+      routes.replaceChildren(); for (const entry of payload.entries) { const button = document.createElement("button"); button.type = "button"; button.dataset.routeId = entry.route_id; button.textContent = entry.scenario + " · " + entry.route_id; button.addEventListener("click", () => renderRoute(entry)); routes.append(button); }
+      renderRoute(payload.entries[0]); errorBox.classList.add("hidden"); corpusBox.classList.remove("hidden"); loadStatus.textContent = "Synthetic replay corpus loaded for display. Use the repository verifier to independently reconstruct every route.";
+    }
+    const tagLabels = {risk_increases: "risk increases", risk_decreases: "risk decreases", relationship_changes: "relationship changes", new_facts: "new facts", lost_facts: "lost facts", flag_changes: "story flags change", scene_change: "scene changes"};
+    function applyReviewFilters() { for (const item of branchPoints.querySelectorAll("li")) { const scenarioMatches = !scenarioFilter.value || item.dataset.scenario === scenarioFilter.value, tagMatches = !tagFilter.value || item.dataset.tags.split(" ").includes(tagFilter.value); item.classList.toggle("hidden", !(scenarioMatches && tagMatches)); } }
+    function renderReview(board) {
+      require(loadedCorpus, "Load replay_corpus.json before a review board.");
+      require(board && typeof board === "object" && board.schema === "CreativeSyntheticReplayReviewBoard/v1" && board.status === "synthetic_replay_review_board_verified", "Unexpected review-board schema or status.");
+      require(board.head_sha === loadedCorpus.head_sha && board.corpus_id === loadedCorpus.corpus_id, "Review board is not bound to the loaded corpus.");
+      require(Array.isArray(board.branch_points) && board.branch_point_count === board.branch_points.length, "Review board branch index is incomplete.");
+      branchPoints.replaceChildren(); const scenarios = new Set(), tags = new Set();
+      for (const branch of board.branch_points) {
+        require(branch && Array.isArray(branch.choices) && branch.choices.length >= 2 && branch.prefix_state && Array.isArray(branch.review_tags), "Review board branch data is malformed.");
+        const item = document.createElement("li"), prefix = branch.prefix_action_ids.length ? branch.prefix_action_ids.join(" → ") : "initial state", choiceLines = [];
+        for (const choice of branch.choices) { require(choice && Array.isArray(choice.terminal_outcomes), "Review board choice data is malformed."); const endings = choice.terminal_outcomes.map((outcome) => { const finalState = outcome.final_state || {}, delta = outcome.terminal_delta || {}, continuity = outcome.director_continuity || {}, opening = continuity.opening || {}, closing = continuity.closing || {}; require(opening.camera && closing.camera, "Review board director continuity is incomplete."); return outcome.route_id + ": " + text(finalState.scene_id) + "/" + text(finalState.beat_id) + ", risk " + (delta.risk_delta > 0 ? "+" : "") + text(delta.risk_delta) + "; camera " + text(opening.camera) + " → " + text(closing.camera); }).join(" | "); choiceLines.push(choice.action_id + " / " + choice.transition_id + " → " + endings); }
+        item.dataset.scenario = branch.scenario; item.dataset.tags = branch.review_tags.join(" "); item.textContent = branch.scenario + " after " + prefix + " (" + text(branch.prefix_state.scene_id) + "/" + text(branch.prefix_state.beat_id) + "): " + choiceLines.join(" · "); branchPoints.append(item); scenarios.add(branch.scenario); for (const tag of branch.review_tags) tags.add(tag);
+      }
+      scenarioFilter.replaceChildren(new Option("All scenarios", "")); tagFilter.replaceChildren(new Option("All consequences", "")); for (const scenario of [...scenarios].sort()) scenarioFilter.add(new Option(scenario, scenario)); for (const tag of [...tags].sort()) tagFilter.add(new Option(tagLabels[tag] || tag, tag)); applyReviewFilters(); review.classList.remove("hidden"); reviewStatus.textContent = "Source-bound branch-review board loaded for display. Use the repository verifier for exact reconstruction.";
+    }
+    function reject(error) { corpusBox.classList.add("hidden"); errorBox.classList.remove("hidden"); errorText.textContent = error instanceof Error ? error.message : String(error); loadStatus.textContent = "The selected file was not accepted."; }
+    input.addEventListener("change", async () => { const file = input.files && input.files[0]; if (!file) return; try { render(prepare(JSON.parse(await file.text()))); } catch (error) { reject(error); } });
+    reviewInput.addEventListener("change", async () => { const file = reviewInput.files && reviewInput.files[0]; if (!file) return; try { renderReview(JSON.parse(await file.text())); } catch (error) { reject(error); } });
+    scenarioFilter.addEventListener("change", applyReviewFilters); tagFilter.addEventListener("change", applyReviewFilters);
+  </script>
+</body>
+</html>
