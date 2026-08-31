@@ -12,7 +12,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from belief_contract import expected_posterior, validate_packet
+from belief_contract import canonical_packet_digest, expected_posterior, validate_packet
 
 SCHEMA = json.loads((ROOT / "BELIEF-PACKET-v1.schema.json").read_text(encoding="utf-8"))
 EVALS = yaml.safe_load((ROOT / "DS02-ADVERSARIAL-EVALS-v1.0.yaml").read_text(encoding="utf-8"))
@@ -75,7 +75,11 @@ def positive_packet():
             "prior_version": "v1",
             "family": "BETA",
             "parameters": {"alpha": 2.0, "beta": 3.0},
-            "training_window": "2020-01-01/2025-12-31",
+            "training_window": {
+                "start": "2020-01-01T00:00:00+08:00",
+                "end": "2025-12-31T23:59:59+08:00"
+            },
+            "regime_scope": "ALL_REGIMES_REFERENCE_ONLY",
             "effective_from": "2026-01-01T00:00:00+08:00",
             "evidence_digest": "deadbeef0001"
         },
@@ -114,6 +118,13 @@ def positive_packet():
             "unknown_mass": 0.1,
             "belief_state": "PROPOSAL"
         },
+        "shrinkage": {
+            "effective_sample_size": 100.0,
+            "hierarchy_level": "SECURITY",
+            "hierarchical_prior_id": "market-industry-security-hierarchy",
+            "hierarchical_prior_version": "v1",
+            "status": "APPLIED"
+        },
         "validation": {
             "authority_state": "UNAVAILABLE_PHASE1",
             "packet_status": "UNVALIDATED_PROPOSAL",
@@ -145,7 +156,7 @@ def positive_packet():
             "probability_serialization_decimals": 12,
             "rounding_mode": "ROUND_HALF_EVEN",
             "ui_precision_is_authority": False,
-            "canonical_digest": "0123456789abcdef"
+            "canonical_digest": "0" * 64
         },
         "authority": {
             "market_truth_authority": False,
@@ -161,7 +172,13 @@ def positive_packet():
     }
 
 
+def rebind_digest(packet):
+    packet["numeric_integrity"]["canonical_digest"] = canonical_packet_digest(packet)
+    return packet
+
+
 def validate(packet):
+    rebind_digest(packet)
     return validate_packet(packet, schema=SCHEMA, numeric_registry=NUMERIC)
 
 
@@ -202,6 +219,15 @@ def execute_fixture(name):
         receipt = validate(packet)
         return receipt["classification"], "CALIBRATION_REQUIRED" if "CALIBRATION_REQUIRED" in receipt["codes"] else "MISSING"
 
+    if name == "SMALL_SAMPLE_EXTREME_POSTERIOR":
+        target = 0.95
+        packet["update"]["cumulative_log_bayes_factor"] = logit(target) - logit(packet["update"]["prior_probability"])
+        packet["update"]["posterior_probability"] = target
+        packet["shrinkage"]["effective_sample_size"] = 5.0
+        packet["shrinkage"]["status"] = "REVALIDATION_REQUIRED"
+        receipt = validate(packet)
+        return receipt["classification"], "SMALL_SAMPLE_SHRINKAGE_REQUIRED" if "SMALL_SAMPLE_SHRINKAGE_REQUIRED" in receipt["codes"] else "MISSING"
+
     if name == "POSTERIOR_INCONSISTENT":
         packet["update"]["posterior_probability"] = 0.999999
         receipt = validate(packet)
@@ -216,6 +242,33 @@ def execute_fixture(name):
         packet["evidence"][0]["revision_provenance"]["is_revised"] = True
         receipt = validate(packet)
         return receipt["classification"], "SCHEMA_REJECT" if "SCHEMA_REJECT" in receipt["codes"] else "MISSING"
+
+    if name == "PRIOR_EFFECTIVE_AFTER_CUTOFF":
+        packet["prior"]["effective_from"] = "2026-08-30T01:00:01+08:00"
+        receipt = validate(packet)
+        return receipt["classification"], "PRIOR_NOT_EX_ANTE" if "PRIOR_NOT_EX_ANTE" in receipt["codes"] else "MISSING"
+
+    if name == "PRIOR_TRAINING_AFTER_CUTOFF":
+        packet["prior"]["training_window"]["end"] = "2026-08-30T01:00:01+08:00"
+        receipt = validate(packet)
+        return receipt["classification"], "PRIOR_NOT_EX_ANTE" if "PRIOR_NOT_EX_ANTE" in receipt["codes"] else "MISSING"
+
+    if name == "EVIDENCE_AFTER_KNOWLEDGE_CUTOFF":
+        packet["temporal_provenance"]["decision_time"] = "2026-08-30T02:00:00+08:00"
+        packet["evidence"][0]["available_at"] = "2026-08-30T01:30:00+08:00"
+        receipt = validate(packet)
+        return receipt["classification"], "KNOWLEDGE_CUTOFF_VIOLATION" if "KNOWLEDGE_CUTOFF_VIOLATION" in receipt["codes"] else "MISSING"
+
+    if name == "TEMPORAL_ORDER_INVALID":
+        packet["identity"]["knowledge_cutoff"] = "2026-08-30T01:30:00+08:00"
+        receipt = validate(packet)
+        return receipt["classification"], "TEMPORAL_ORDER_INVALID" if "TEMPORAL_ORDER_INVALID" in receipt["codes"] else "MISSING"
+
+    if name == "CANONICAL_DIGEST_TAMPER":
+        rebind_digest(packet)
+        packet["predictive"]["expected_value"] = 0.123456
+        receipt = validate_packet(packet, schema=SCHEMA, numeric_registry=NUMERIC)
+        return receipt["classification"], "CANONICAL_DIGEST_MISMATCH" if "CANONICAL_DIGEST_MISMATCH" in receipt["codes"] else "MISSING"
 
     if name == "MISSING_TARGET_VERSION":
         del packet["identity"]["target_definition_version"]
@@ -321,9 +374,9 @@ class TestAnalyticOracles(unittest.TestCase):
 
 class TestMachineContract(unittest.TestCase):
     def test_positive_packet_is_proposal_only(self):
-        packet = positive_packet()
+        packet = rebind_digest(positive_packet())
         jsonschema.Draft202012Validator(SCHEMA, format_checker=jsonschema.FormatChecker()).validate(packet)
-        receipt = validate(packet)
+        receipt = validate_packet(packet, schema=SCHEMA, numeric_registry=NUMERIC)
         self.assertEqual(receipt["classification"], "PASS_PROPOSAL_ONLY")
         self.assertTrue(receipt["proposal_only"])
         self.assertFalse(receipt["canonical_belief_authorized"])
@@ -378,13 +431,34 @@ class TestMachineContract(unittest.TestCase):
         self.assertEqual(classification, "REVALIDATION_REQUIRED")
         self.assertEqual(code, "RULE_CLAUSE_DEFERRED")
 
+    def test_ex_post_prior_is_rejected(self):
+        classification, code = execute_fixture("PRIOR_EFFECTIVE_AFTER_CUTOFF")
+        self.assertEqual((classification, code), ("REJECTED", "PRIOR_NOT_EX_ANTE"))
+
+    def test_post_cutoff_predecision_evidence_revalidates(self):
+        classification, code = execute_fixture("EVIDENCE_AFTER_KNOWLEDGE_CUTOFF")
+        self.assertEqual((classification, code), ("REVALIDATION_REQUIRED", "KNOWLEDGE_CUTOFF_VIOLATION"))
+
+    def test_tiny_sample_extreme_posterior_requires_shrinkage(self):
+        classification, code = execute_fixture("SMALL_SAMPLE_EXTREME_POSTERIOR")
+        self.assertEqual((classification, code), ("REVALIDATION_REQUIRED", "SMALL_SAMPLE_SHRINKAGE_REQUIRED"))
+
+    def test_canonical_digest_binds_packet_content(self):
+        packet = rebind_digest(positive_packet())
+        original = packet["numeric_integrity"]["canonical_digest"]
+        packet["predictive"]["expected_value"] = 0.321
+        self.assertEqual(packet["numeric_integrity"]["canonical_digest"], original)
+        receipt = validate_packet(packet, schema=SCHEMA, numeric_registry=NUMERIC)
+        self.assertEqual(receipt["classification"], "REJECTED")
+        self.assertIn("CANONICAL_DIGEST_MISMATCH", receipt["codes"])
+
     def test_probability_serialization_uses_twelve_decimals(self):
         self.assertEqual(canonical_probability(0.685), "0.685000000000")
 
 
 class TestAdversarialPack(unittest.TestCase):
-    def test_pack_has_exact_24_executable_cases(self):
-        self.assertEqual(len(EVALS["cases"]), 24)
+    def test_pack_has_exact_29_executable_cases(self):
+        self.assertEqual(len(EVALS["cases"]), 29)
         self.assertTrue(EVALS["execution_contract"]["every_case_must_execute"])
         self.assertTrue(EVALS["execution_contract"]["label_presence_only_is_not_evidence"])
 
