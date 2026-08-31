@@ -79,3 +79,20 @@ python tools/validate_creative_executor_relay.py `
 ```
 
 预期结果为 `PASS`，并包含 `target_authority_fail_closed`。发布完整 WorkBuddy route 后，更新 route 四个引用和状态，预期应变为 `target_authority_complete`。
+
+生成额度检查点收据前，必须先把当前 HEAD 推送到新的冻结 checkpoint 分支并 fetch 为远端跟踪引用，然后运行：
+
+```powershell
+python tools/create_creative_quota_checkpoint.py `
+  --source-agent CODEX `
+  --target-agent WORKBUDDY `
+  --baseline <IMPLEMENTATION_BASELINE> `
+  --checkpoint-remote-ref refs/remotes/origin/codex/checkpoint-<TASK>-<SHORT_SHA> `
+  --remaining-next-action "<ONE_NEXT_ACTION>" `
+  --test creative_suite=PASS `
+  --test public_safe=PASS `
+  --completed "<COMPLETED_SCOPE>" `
+  --output .creative-evidence/quota-checkpoint.json
+```
+
+工具只接受干净工作树、执行者前缀正确的当前分支以及和当前 HEAD 完全一致的冻结远端引用。收据只保存测试名称和结论，不嵌入原始日志；输出只能写入 Git 忽略的 `.creative-evidence/`。
