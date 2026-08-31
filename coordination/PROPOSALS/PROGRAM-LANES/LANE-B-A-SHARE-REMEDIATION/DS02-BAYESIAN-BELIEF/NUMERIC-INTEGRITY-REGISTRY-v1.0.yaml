@@ -1,4 +1,4 @@
-schema_version: "1.1"
+schema_version: "1.2"
 registry_id: DS02-NUMERIC-INTEGRITY-v1
 probability:
   internal_type: IEEE754_FLOAT64
@@ -16,10 +16,34 @@ probability:
     caller_probability_is_validated_belief: false
     phase1_packet_status: UNVALIDATED_PROPOSAL
     validated_computation_receipt_available: false
+  canonical_digest:
+    algorithm: SHA256
+    encoding: LOWERCASE_HEX_64
+    canonicalization: SORTED_KEYS_COMPACT_JSON_UTF8
+    excludes_field: numeric_integrity.canonical_digest
+    authenticity_claim: false
+    purpose: CONTENT_INTEGRITY_NOT_PRODUCER_AUTHORITY
 time:
   timestamps_timezone_explicit: true
   point_in_time_gate: "available_at <= decision_time"
+  knowledge_cutoff_gate: "available_at <= knowledge_cutoff"
+  identity_order_gate: "knowledge_cutoff <= as_of_time <= decision_time"
   unknown_temporal_fields_may_not_be_backfilled_from_other_fields: true
+prior:
+  ex_ante_required: true
+  structured_training_window_required: true
+  training_window_end_must_not_exceed_knowledge_cutoff: true
+  effective_from_must_not_exceed_knowledge_cutoff: true
+  retrospective_tuning_as_ex_ante: REJECTED
+  regime_scope_required: true
+shrinkage:
+  contract_safety_gate_only_not_alpha_parameter: true
+  hierarchy_required_for_security_level_small_sample_reasoning: true
+  minimum_effective_sample_size_for_extreme_probability: 20
+  extreme_probability_threshold: 0.90
+  below_threshold_extreme_posterior_result: SMALL_SAMPLE_SHRINKAGE_REQUIRED
+  result_classification: REVALIDATION_REQUIRED
+  empirical_optimality_claim: false
 revision:
   data_snapshot_hash_required: true
   revised_data_requires_revision_lineage: true
@@ -102,3 +126,7 @@ forbidden_numeric_shortcuts:
   - SILENT_FEATURE_POLARITY_FLIP
   - SILENT_RULE_ERA_POOLING
   - CALLER_INDEPENDENCE_LABEL_AS_DEPENDENCE_AUTHORITY
+  - RETROSPECTIVE_PRIOR_AS_EX_ANTE
+  - KNOWLEDGE_AFTER_CUTOFF_AS_HISTORICAL_EVIDENCE
+  - SMALL_SAMPLE_EXTREME_POSTERIOR_WITHOUT_SHRINKAGE_REVALIDATION
+  - UNBOUND_CANONICAL_DIGEST
