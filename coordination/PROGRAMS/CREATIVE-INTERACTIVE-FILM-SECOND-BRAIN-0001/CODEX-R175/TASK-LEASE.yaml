@@ -1,0 +1,19 @@
+schema: TASK_LEASE/v1
+project: CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001
+task_id: CODEX-R174-CAPABILITY-CONFINEMENT-REMEDIATION-R175
+route_epoch: 175
+source_issue: 528
+executor: CODEX
+worker_slot_id: CODEX-R175-CREATIVE-RUNTIME-CONFINEMENT-1
+lease_state: RESERVED_PENDING_PREWRITE_SNAPSHOT
+implementation_baseline: 740788a3847a402923bf2e89093d910eda0c89d0
+branch: codex/r175-capability-policy-confinement-remediation
+execution_allowed: false
+second_user_start_command_required: false
+release_condition: >-
+  Prewrite snapshot is posted on Issue #528 while branch is absent, snapshot binds exact snapshot_base and implementation_baseline, then branch is created from exact implementation_baseline and readback verifies exact head.
+stop_conditions:
+  - exact_head_frozen_for_independent_review
+  - hard_boundary_or_role_conflict
+  - new_independent_review_result
+history_rewrite_allowed: false
