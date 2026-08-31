@@ -6,6 +6,10 @@ protocol_name: "Mixed-Initiative Discovery & Specification"
 protocol_name_zh: "混合主动式共创发现与规格化"
 
 portable_triggers:
+  implicit_semantic_recall:
+    rule: "The user does not need to remember or name MIDS. Detect suitable opportunities from request semantics and project state."
+    zh: "用户不需要记住 MIDS 名称；当需求结构明显适合共创发现时，由 AI 主动识别、提醒或使用 micro-MIDS。"
+    detector_ref: "coordination/PROPOSALS/MIDS/MIDS-OPPORTUNITY-DETECTOR-v0.1.yaml"
   shortest:
     - "进入 MIDS 共创发现模式。"
     - "先 discovery，后 specification；主动追问和挑战我。"
@@ -62,6 +66,15 @@ actions:
     definition: "当当前 bounded slice 足够清晰时停止继续发散，整理为可验证规格。"
 
 concepts:
+  IMPLICIT_MIDS_RECALL:
+    zh: "MIDS 隐式唤起"
+    definition: "即使用户忘记或从未知道 MIDS 名称，AI 也根据需求的模糊度、决策影响、未知项、返工风险和设计空间主动识别 MIDS 机会。"
+  MICRO_MIDS:
+    zh: "微型 MIDS"
+    definition: "在中等机会场景中不启动正式长流程，只指出一个关键未知、问一个高价值问题、给一个非显然候选或提示一个关键假设。"
+  MIDS_OPPORTUNITY_DETECTOR:
+    zh: "MIDS 机会探测器"
+    definition: "判断当前请求是否适合主动提醒或使用 MIDS 的非权威检测机制；HIGH/MEDIUM/LOW/SUPPRESSED 分级。"
   EPISTEMIC_COVERAGE_MATRIX:
     zh: "认知覆盖矩阵"
     definition: "区分用户显性知识、隐性知识、AI 可发现选项、专家盲区、推断与未知的结构。"
@@ -157,6 +170,7 @@ handoff_statuses:
 
 shared_layer_may_own:
   - portable_invocation_vocabulary
+  - implicit_MIDS_opportunity_detection
   - discovery_session_envelope
   - question_selection_semantics
   - provenance_status_vocabulary
@@ -184,3 +198,5 @@ hard_failures:
   - REJECTED_OPTION_REINTRODUCED_AS_ACCEPTED
   - MULTI_AGENT_USER_QUESTION_BOMBARDMENT
   - UNBOUNDED_DISCOVERY_WITHOUT_STOPPING_CONDITION
+  - MIDS_REMINDER_SPAM
+  - MIDS_FORCED_AFTER_USER_REJECTION
