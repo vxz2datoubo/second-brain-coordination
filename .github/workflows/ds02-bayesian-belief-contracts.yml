@@ -1,0 +1,138 @@
+name: DS-02 Bayesian Belief Contracts
+
+on:
+  pull_request:
+    paths:
+      - "coordination/SKILLS/BAYESIAN-BELIEF-UPDATE-FORECAST-FUSION-SKILL-v1.0.yaml"
+      - "coordination/BLUEPRINTS/BAYESIAN-BELIEF-UPDATE-FORECAST-FUSION-BLUEPRINT-v1.0.md"
+      - "coordination/BLUEPRINTS/BAYESIAN-BELIEF-UPDATE-FORECAST-FUSION-RESEARCH-VALIDATION-v1.0.md"
+      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DS02-BAYESIAN-BELIEF/**"
+      - ".github/workflows/ds02-bayesian-belief-contracts.yml"
+  push:
+    branches:
+      - "gpt/ds02-bayesian-belief-contract"
+
+jobs:
+  contract-tests:
+    name: DS-02 Bayesian contracts (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 2
+
+      - name: Verify exact-head provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXPECTED="${{ github.event.pull_request.head.sha || github.sha }}"
+          ACTUAL="$(git rev-parse HEAD)"
+          test "$ACTUAL" = "$EXPECTED"
+          echo "EXACT_HEAD=$ACTUAL"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install test-only contract dependencies
+        run: python -m pip install pyyaml jsonschema
+
+      - name: Validate YAML and JSON syntax
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import yaml
+
+          root = Path('coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DS02-BAYESIAN-BELIEF')
+          yaml_paths = [
+              Path('coordination/SKILLS/BAYESIAN-BELIEF-UPDATE-FORECAST-FUSION-SKILL-v1.0.yaml'),
+              root / 'DS02-ADVERSARIAL-EVALS-v1.0.yaml',
+              root / 'DS02-RESEARCH-SOURCE-REGISTRY-v1.0.yaml',
+              root / 'NUMERIC-INTEGRITY-REGISTRY-v1.0.yaml',
+              root / 'DS02-INTEGRATION-INTERFACE-MATRIX-v1.0.yaml',
+          ]
+          for path in yaml_paths:
+              doc = yaml.safe_load(path.read_text(encoding='utf-8'))
+              assert isinstance(doc, dict), path
+          schema = json.loads((root / 'BELIEF-PACKET-v1.schema.json').read_text(encoding='utf-8'))
+          assert schema['title'] == 'BeliefPacket/v1'
+          print('DS02_FORMAT_VALIDATION_PASS')
+          PY
+
+      - name: Run deterministic contract and adversarial tests
+        run: >-
+          python -m unittest discover
+          -s coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DS02-BAYESIAN-BELIEF/tests
+          -v
+
+      - name: Verify no-trade and single-authority boundaries
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import yaml
+
+          skill = yaml.safe_load(Path('coordination/SKILLS/BAYESIAN-BELIEF-UPDATE-FORECAST-FUSION-SKILL-v1.0.yaml').read_text(encoding='utf-8'))
+          flags = skill['authority_flags']
+          assert flags and all(v is False for v in flags.values())
+          assert skill['first_slice']['runtime_implementation_authorized'] is False
+          assert skill['first_slice']['live_trade'] == 'PROHIBITED'
+          assert 'NO_TRADE' in skill['boundary']
+          systems = skill['systems_of_record']
+          assert systems['market_and_replay'] == 'W2'
+          assert systems['event_evidence'] == 'W5'
+          assert systems['risk'] == 'W7'
+          assert systems['decision_freeze'] == 'W10'
+          assert systems['allocation_consumer'] == 'W11'
+          assert systems['probability_and_belief'] == 'W12'
+          assert systems['participant_flow_context'] == 'W13'
+          print('DS02_AUTHORITY_BOUNDARY_PASS')
+          PY
+
+      - name: Verify exact additive scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="${{ github.event.pull_request.base.sha || '' }}"
+          if [ -n "$BASE" ]; then
+            git fetch --no-tags --depth=1 origin "$BASE"
+          else
+            BASE="HEAD~10"
+          fi
+          mapfile -t CHANGED < <(git diff --name-only "$BASE" HEAD | sort)
+          printf '%s\n' "${CHANGED[@]}"
+          cat > /tmp/ds02-allowed.txt <<'EOF'
+          .github/workflows/ds02-bayesian-belief-contracts.yml
+          coordination/BLUEPRINTS/BAYESIAN-BELIEF-UPDATE-FORECAST-FUSION-BLUEPRINT-v1.0.md
+          coordination/BLUEPRINTS/BAYESIAN-BELIEF-UPDATE-FORECAST-FUSION-RESEARCH-VALIDATION-v1.0.md
+          coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DS02-BAYESIAN-BELIEF/BELIEF-PACKET-v1.schema.json
+          coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DS02-BAYESIAN-BELIEF/DS02-ADVERSARIAL-EVALS-v1.0.yaml
+          coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DS02-BAYESIAN-BELIEF/DS02-INTEGRATION-INTERFACE-MATRIX-v1.0.yaml
+          coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DS02-BAYESIAN-BELIEF/DS02-RESEARCH-SOURCE-REGISTRY-v1.0.yaml
+          coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DS02-BAYESIAN-BELIEF/NUMERIC-INTEGRITY-REGISTRY-v1.0.yaml
+          coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DS02-BAYESIAN-BELIEF/tests/test_ds02_bayesian_contract.py
+          coordination/SKILLS/BAYESIAN-BELIEF-UPDATE-FORECAST-FUSION-SKILL-v1.0.yaml
+          EOF
+          sort -o /tmp/ds02-allowed.txt /tmp/ds02-allowed.txt
+          printf '%s\n' "${CHANGED[@]}" > /tmp/ds02-changed.txt
+          diff -u /tmp/ds02-allowed.txt /tmp/ds02-changed.txt
+          echo 'DS02_EXACT_SCOPE_PASS'
+
+      - name: Verify diff whitespace
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="${{ github.event.pull_request.base.sha || '' }}"
+          if [ -n "$BASE" ]; then
+            git fetch --no-tags --depth=1 origin "$BASE"
+            git diff --check "$BASE" HEAD
+          else
+            git diff --check HEAD^ HEAD
+          fi
