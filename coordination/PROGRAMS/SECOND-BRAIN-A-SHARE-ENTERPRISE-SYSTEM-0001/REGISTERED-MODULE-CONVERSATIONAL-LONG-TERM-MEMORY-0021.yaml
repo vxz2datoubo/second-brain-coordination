@@ -1,0 +1,188 @@
+schema_version: "1.0"
+module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
+name: "W3 Conversational Long-Term Memory and Mobile Second Brain"
+program_id: "SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001"
+workstream: "W3"
+cross_workstreams: ["W10", "W8", "W9"]
+status: "BLUEPRINT_COMPLETE_IMPLEMENTATION_NOT_STARTED"
+implementation_issue: null
+implementation_agent: "CODEX_PRIMARY_WITH_QCLAW_REUSE_AND_GPT_REVIEW"
+blueprint: "coordination/BLUEPRINTS/CONVERSATIONAL-LONG-TERM-MEMORY-AND-MOBILE-SECOND-BRAIN-BLUEPRINT-v1.0.md"
+program_charter: "coordination/BLUEPRINTS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-PROGRAM-CHARTER-v1.5.md"
+integration_index: "coordination/BLUEPRINTS/PROJECT-BLUEPRINT-INTEGRATION-INDEX-v1.5.md"
+canonical_owner: "W3"
+owns_new_system_of_record: false
+canonical_runtime_policy: "EXTEND_EXISTING_W3_ONLY"
+
+user_outcome:
+  - "Natural ChatGPT conversation on mobile/web/desktop becomes a first-class Second-Brain source."
+  - "Important experiences, preferences, corrections, decisions, learning and open loops can persist across sessions with provenance and temporal history."
+  - "Future ChatGPT answers can retrieve relevant W3 long-term memory before responding when history materially matters."
+  - "AI-film, A-share and future projects can consume only task-relevant user memory through scoped MemoryContextBundles."
+
+source_contracts:
+  required:
+    - "ConversationSourceManifest"
+    - "ConversationEpisode"
+    - "ConversationTurnReference"
+    - "ConversationMemoryCandidate"
+  raw_episode_is_primary_evidence: true
+  summary_may_replace_raw_episode: false
+  coverage_required: true
+  coverage_values: ["complete", "partial", "unknown"]
+
+memory_views:
+  - "WORKING_MEMORY"
+  - "EPISODIC_MEMORY"
+  - "SEMANTIC_MEMORY"
+  - "PROCEDURAL_MEMORY"
+  - "AUTOBIOGRAPHICAL_USER_MEMORY"
+  - "RELATIONSHIP_CONTEXT_MEMORY"
+  - "PROJECT_MEMORY"
+  - "DECISION_MEMORY"
+  - "OPEN_LOOP_MEMORY"
+  - "CONFLICT_AND_UNKNOWN_MEMORY"
+  - "META_MEMORY"
+
+temporal_model:
+  bitemporal_required: true
+  valid_time_fields: ["valid_from", "valid_to"]
+  record_time_fields: ["recorded_at", "updated_at"]
+  silent_history_rewrite_forbidden: true
+  correction_relations: ["CORRECTION", "REFINES", "UPDATES", "SUPERSEDES", "RESOLVES_UNKNOWN", "REVOKES"]
+
+capture:
+  mobile_first: true
+  surfaces: ["CHATGPT_MOBILE", "CHATGPT_WEB", "CHATGPT_DESKTOP"]
+  hot_path_candidate_capture: "TO_IMPLEMENT"
+  background_consolidation: "TASK_EXISTS_CANDIDATE_MODE_CANONICAL_INGESTION_PENDING"
+  important_candidate_classes:
+    - "USER_EXPLICIT_LONG_TERM_PREFERENCE"
+    - "USER_CORRECTION"
+    - "IMPORTANT_EVENT"
+    - "PROJECT_DECISION"
+    - "OPEN_LOOP"
+    - "RESOLUTION"
+    - "NEW_STABLE_RULE"
+    - "IMPORTANT_LEARNING"
+    - "FAILURE_LESSON"
+    - "RELATIONSHIP_CONTEXT_UPDATE"
+    - "GOAL_OR_CONSTRAINT_CHANGE"
+
+retrieval:
+  memory_router: "TO_IMPLEMENT"
+  trust_gate: "TO_IMPLEMENT"
+  required_retriever_families:
+    - "LEXICAL_BM25"
+    - "EXACT_ID_ENTITY"
+    - "VECTOR_SEMANTIC"
+    - "KNOWLEDGE_GRAPH"
+    - "TEMPORAL_VERSION"
+    - "SOURCE_EVIDENCE"
+    - "USER_PROJECT_SCOPE"
+    - "CONFLICT_UNKNOWN"
+  output_contracts: ["MemoryContextBundle", "AnswerEvidenceBundle"]
+  vector_only_forbidden: true
+
+semantic_reconstruction_reuse:
+  module_id: "KNOWLEDGE-SOURCE-SEMANTIC-RECONSTRUCTION-AND-GRAPH-PROJECTION-0020"
+  issue: 216
+  use_when: "Conversation/ASR/OCR/oral source requires auditable normalization."
+  duplicate_normalization_runtime_forbidden: true
+
+chatgpt_integration:
+  level_a:
+    name: "NATIVE_SOFT_GUARANTEE"
+    components: ["ChatGPT Memory", "Reference Chat History", "Projects", "Apps/GitHub", "W3 Recall Protocol"]
+  level_b:
+    name: "CUSTOM_MEMORY_APP_MCP"
+    status: "PRODUCT_AND_PLAN_DEPENDENT"
+  level_c:
+    name: "HARD_GUARANTEE_MEMORY_GATEWAY"
+    status: "FUTURE_OPTION"
+    rule: "No LLM response before mandatory W3 recall when the gateway is used."
+
+private_data_plane:
+  recommended_repository: "second-brain-knowledge-private"
+  role: "W3_PRIVATE_DURABLE_KNOWLEDGE_DATA_PLANE"
+  new_runtime: false
+  public_coordination_repo_private_conversation_body_allowed: false
+
+formal_persistence:
+  status: "BLOCKED_PENDING_E61"
+  active_codex_route: "coordination/ROUTES/CODEX-E61-ACTIVE-ROUTE-CONTRACT.yaml"
+  active_issue: 209
+  gate: "GPT_ACCEPTED_REAL_PRODUCTION_DURABLE_AUTHORITY_BINDING"
+  bypass_forbidden: true
+
+first_vertical_slice:
+  sequence:
+    - "Session A: ingest one long-term-value user statement."
+    - "Session B: recall it cross-session without user repetition."
+    - "Session C: user corrects it."
+    - "Session D: current-state query returns only the corrected current state."
+    - "Session E: historical query can retrieve the prior state and valid interval."
+  completion_signal: "CONVERSATIONAL_MEMORY_VERTICAL_SLICE_READY"
+
+evaluation:
+  benchmark_families:
+    - "FACT_RECALL"
+    - "CROSS_SESSION_REASONING"
+    - "TEMPORAL_REASONING"
+    - "KNOWLEDGE_UPDATE"
+    - "ABSTENTION"
+    - "IMPLICIT_CONSTRAINT"
+    - "USER_CORRECTION"
+    - "STALE_MEMORY"
+    - "SUPERSEDED_MEMORY"
+    - "PROJECT_BLEED"
+    - "USER_SCOPE_LEAK"
+    - "CONFLICT_RECALL"
+    - "UNKNOWN_RECALL"
+    - "OPEN_LOOP_RESOLUTION"
+    - "PROVENANCE"
+    - "PROMPT_INJECTION_MEMORY"
+    - "NEGATION"
+    - "EXCEPTION"
+    - "HISTORICAL_QUERY"
+  metrics:
+    - "Recall@K"
+    - "Precision@K"
+    - "MRR"
+    - "Temporal Accuracy"
+    - "Knowledge Update Accuracy"
+    - "Stale Leakage"
+    - "Superseded Leakage"
+    - "Cross-project Bleed"
+    - "Conflict Recall"
+    - "UNKNOWN Recall"
+    - "Provenance Coverage"
+    - "Abstention Precision/Recall"
+    - "Constraint Consistency"
+    - "Token Cost"
+    - "Latency"
+
+research_basis:
+  required:
+    - "OpenAI official Memory / Projects / Tasks / Apps / MCP documentation"
+    - "Generative Agents"
+    - "MemGPT"
+    - "LongMemEval"
+    - "LoCoMo"
+    - "LoCoMo-Plus"
+    - "A-MEM"
+    - "HippoRAG"
+    - "W3C PROV"
+    - "Event Sourcing"
+    - "Bitemporal History"
+  evidence_classes: ["OFFICIAL_DOC", "PEER_REVIEWED", "PREPRINT", "ENGINEERING_CASE", "DESIGN_INFERENCE"]
+
+hard_boundaries:
+  - "No second canonical memory runtime."
+  - "No private conversation body in public repository."
+  - "No credential values in memory, embeddings, logs, tests or commits."
+  - "No silent rewrite of historical memory."
+  - "No assumption that scheduled tasks can read all account conversations."
+  - "No formal PROJECT/GLOBAL persistence before E61 acceptance."
+  - "No cross-project memory exposure without scope and relevance checks."
+  - "No trade/account/order access."
