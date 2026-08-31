@@ -4,8 +4,8 @@ source_agent: CODEX
 target_agent: GPT
 reviewer: GPT_INDEPENDENT_REVIEWER
 executor_status: EXECUTOR_VERIFIED_ONLY
-handoff_state: architecture_checkpoint_open_for_next_slice
-base_sha: 2f12aba6dae4a83038fef1f3d5e737944bd9ce1f
+handoff_state: A1_implementation_in_progress
+base_sha: f2895367fcd0ed60305ccc005971789e0644d72b
 head_sha: null
 head_binding: Bind exact HEAD only when a completed implementation slice is frozen for formal review; do not infer it from chat history.
 changed_contracts:
@@ -19,8 +19,10 @@ tests:
     purpose: deterministic control-plane and contract-catalogue validation
   - command: python -m unittest tests.test_interactive_cinematic_platform_architecture
     purpose: verifier mutation tests
+  - command: python -m unittest tests.test_interactive_cinematic_multiscript
+    purpose: script-registry, legacy-compatibility, DirectorBrief/v2 binding, and fail-closed mismatch tests
 known_risks:
   - The architecture is intentionally provider-neutral and offline; it does not demonstrate DeepSeek, MiniMax H3, or Douyin connectivity.
   - Eustia is not a source asset in this program until a separate provenance review allows it.
-next_action: Implement A1 on an isolated allowed branch; first bind a new exact base SHA and update STATUS.yaml before code changes.
-rollback: Revert only the completed slice commit; no private data or external state has been created by A0.
+next_action: Finish A1 regression and clean-clone reproduction, then freeze an exact implementation HEAD for later independent review.
+rollback: Revert only completed slice commits; no private data or external state has been created by A0 or A1.

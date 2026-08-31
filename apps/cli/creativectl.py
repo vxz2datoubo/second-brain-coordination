@@ -24,6 +24,7 @@ from creative_runtime.contracts import PlayerAction, StoryState, canonical_json
 from creative_runtime.continuity import TimelineViolation, default_story_graph, graph_for_ledger, replay_timeline, timeline_hash
 from creative_runtime.coverage import RouteCoverageViolation, coverage_for_scenario, director_coverage_for_scenario
 from creative_runtime.director import compile_verified_director
+from creative_runtime.director_context import compile_verified_director_v2
 from creative_runtime.director_review import DirectorReviewViolation, build_director_review_board
 from creative_runtime.generation import GenerationViolation, offline_generation_receipt_path, record_offline_generation, verify_offline_generation_record
 from creative_runtime.feedback import FeedbackViolation, build_feedback_record, feedback_path, load_feedback, record_feedback
@@ -50,6 +51,7 @@ from creative_runtime.session import (
     v2_session_path,
     verify_v2_source_binding,
 )
+from creative_runtime.script_packages import initial_state_for_script, script_catalog, script_package
 
 
 SCHEMA = "CreativeSession/v1"
@@ -297,14 +299,28 @@ def _existing_command_result(ledger: CreativeLedger, command_id: str, action_id:
     }
 
 
-def initialize(workspace: Path, scenario: str = "legacy_archive", slot: str = DEFAULT_SLOT) -> dict[str, Any]:
+def initialize(
+    workspace: Path,
+    scenario: str | None = None,
+    slot: str = DEFAULT_SLOT,
+    script_id: str | None = None,
+    script_revision: str | None = None,
+) -> dict[str, Any]:
     normalized_slot = validate_slot(slot)
     with session_mutation_lock(workspace, normalized_slot):
         if session_path(workspace, normalized_slot).exists():
             return {"status": "already_initialized", "session": str(session_path(workspace, normalized_slot)), "slot_id": normalized_slot}
-        initial = SCENARIOS.get(scenario)
-        if initial is None:
-            raise LedgerViolation("Unknown scenario: " + scenario)
+        if script_id is not None:
+            package = script_package(script_id, script_revision)
+            initial = initial_state_for_script(package.script_id, package.script_revision)
+            if scenario is not None and SCENARIOS.get(scenario) != initial:
+                raise LedgerViolation("scenario and script_id resolve to different initial story states")
+        else:
+            selected_scenario = scenario or "legacy_archive"
+            initial = SCENARIOS.get(selected_scenario)
+            if initial is None:
+                raise LedgerViolation("Unknown scenario: " + selected_scenario)
+            package = None
         ledger = CreativeLedger()
         ledger.append(
             "story_initialized",
@@ -312,7 +328,13 @@ def initialize(workspace: Path, scenario: str = "legacy_archive", slot: str = DE
             "2030-01-01T00:00:00Z",
         )
         _write_session(workspace, ledger, normalized_slot)
-        return {**_view(ledger), "status": "initialized", "session": str(session_path(workspace, normalized_slot)), "slot_id": normalized_slot}
+        return {
+            **_view(ledger),
+            "status": "initialized",
+            "session": str(session_path(workspace, normalized_slot)),
+            "slot_id": normalized_slot,
+            **({"script_package": package.to_dict()} if package is not None else {}),
+        }
 
 
 def choose(
@@ -409,7 +431,9 @@ def run(argv: list[str]) -> dict[str, Any]:
     parser.add_argument("--slot", default=DEFAULT_SLOT, help="Validated local story slot; default preserves session.json compatibility.")
     subparsers = parser.add_subparsers(dest="command", required=True)
     init_parser = subparsers.add_parser("init")
-    init_parser.add_argument("--scenario", choices=sorted(SCENARIOS), default="legacy_archive")
+    init_parser.add_argument("--scenario", choices=sorted(SCENARIOS))
+    init_parser.add_argument("--script-id")
+    init_parser.add_argument("--script-revision")
     subparsers.add_parser("play")
     choose_parser = subparsers.add_parser("choose")
     choose_parser.add_argument("action_id")
@@ -423,6 +447,12 @@ def run(argv: list[str]) -> dict[str, Any]:
     subparsers.add_parser("replay")
     subparsers.add_parser("timeline")
     subparsers.add_parser("director")
+    director_v2_parser = subparsers.add_parser("director-v2")
+    director_v2_parser.add_argument("--script-id", required=True)
+    director_v2_parser.add_argument("--script-revision", required=True)
+    director_v2_parser.add_argument("--style-profile-id", default="cinematic_live_action")
+    director_v2_parser.add_argument("--campaign-id")
+    subparsers.add_parser("script-catalog")
     subparsers.add_parser("understanding")
     subparsers.add_parser("migrate")
     subparsers.add_parser("verify-v2")
@@ -470,7 +500,7 @@ def run(argv: list[str]) -> dict[str, Any]:
     args = parser.parse_args(argv)
     slot = validate_slot(args.slot)
     if args.command == "init":
-        return initialize(args.workspace, args.scenario, slot)
+        return initialize(args.workspace, args.scenario, slot, args.script_id, args.script_revision)
     if args.command in {"play", "resume"}:
         return {**_view(_load_session(args.workspace, slot)), "slot_id": slot}
     if args.command == "choose":
@@ -508,6 +538,20 @@ def run(argv: list[str]) -> dict[str, Any]:
             "quality_report": compiled.compilation.quality_report.to_dict(),
             "slot_id": slot,
         }
+    if args.command == "director-v2":
+        ledger = _load_session(args.workspace, slot)
+        return {
+            **compile_verified_director_v2(
+                ledger,
+                script_id=args.script_id,
+                script_revision=args.script_revision,
+                style_profile_id=args.style_profile_id,
+                campaign_id=args.campaign_id,
+            ).to_dict(),
+            "slot_id": slot,
+        }
+    if args.command == "script-catalog":
+        return script_catalog()
     if args.command == "understanding":
         ledger = _load_session(args.workspace, slot)
         compiled = compile_verified_director(ledger, graph=graph_for_ledger(ledger))

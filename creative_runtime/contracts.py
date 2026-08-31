@@ -100,6 +100,63 @@ class DirectorBrief:
 
 
 @dataclass(frozen=True)
+class ScriptPackage:
+    """Immutable, approved content package for one replayable story graph."""
+
+    script_id: str
+    script_revision: str
+    genre: tuple[str, ...]
+    content_rating: str
+    season_catalog: tuple[str, ...]
+    chapter_catalog: tuple[str, ...]
+    scene_catalog: tuple[str, ...]
+    world_bible_ref: str
+    character_bible_refs: tuple[str, ...]
+    scene_bible_refs: tuple[str, ...]
+    story_beats: tuple[str, ...]
+    legal_choices: tuple[str, ...]
+    consequence_rules: tuple[str, ...]
+    reward_rules: tuple[str, ...]
+    ending_rules: tuple[str, ...]
+    style_profiles: tuple[str, ...]
+    asset_manifest_ref: str
+    source_provenance: str
+    approval_status: str
+    initial_state: StoryState
+    graph_revision: str
+
+    @property
+    def schema(self) -> str:
+        return "ScriptPackage/v1"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"schema": self.schema, **_json_value(self)}
+
+
+@dataclass(frozen=True)
+class DirectorBriefV2:
+    """A director brief explicitly bound to a script, campaign, and style."""
+
+    script_id: str
+    script_revision: str
+    campaign_id: str
+    verified_story_state_hash: str
+    style_profile_id: str
+    cast_revision_ids: tuple[str, ...]
+    scene_asset_refs: tuple[str, ...]
+    continuity_ledger_hash: str
+    director_policy_revision: str
+    narrative_brief: DirectorBrief
+
+    @property
+    def schema(self) -> str:
+        return "DirectorBrief/v2"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"schema": self.schema, **_json_value(self)}
+
+
+@dataclass(frozen=True)
 class ShotPlan:
     shot_id: str
     beat_id: str
