@@ -83,6 +83,64 @@ class PlayerAction:
 
 
 @dataclass(frozen=True)
+class ChoiceIntent:
+    intent_id: str
+    campaign_id: str
+    source_type: str
+    normalized_choice_id: str | None
+    confidence: float
+    clarification_required: bool
+    content_gate_status: str
+
+    @property
+    def schema(self) -> str:
+        return "ChoiceIntent/v1"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"schema": self.schema, **_json_value(self)}
+
+
+@dataclass(frozen=True)
+class NarrativeProposal:
+    proposal_id: str
+    campaign_id: str
+    based_on_state_hash: str
+    choice_intent_id: str
+    candidate_dialogue: tuple[str, ...]
+    candidate_character_reactions: Mapping[str, str]
+    candidate_beat_ids: tuple[str, ...]
+    candidate_presentation: Mapping[str, str]
+    model_or_simulator_ref: str
+    policy_revision: str
+    proposed_transition_id: str
+
+    @property
+    def schema(self) -> str:
+        return "NarrativeProposal/v1"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"schema": self.schema, **_json_value(self)}
+
+
+@dataclass(frozen=True)
+class DramaticBeatSelection:
+    selection_id: str
+    campaign_id: str
+    eligible_beat_ids: tuple[str, ...]
+    selected_beat_id: str
+    selection_reason: str
+    preserved_player_facts_hash: str
+    policy_revision: str
+
+    @property
+    def schema(self) -> str:
+        return "DramaticBeatSelection/v1"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"schema": self.schema, **_json_value(self)}
+
+
+@dataclass(frozen=True)
 class DirectorBrief:
     brief_id: str
     story_state: StoryState

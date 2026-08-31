@@ -21,10 +21,11 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from creative_runtime.contracts import PlayerAction, StoryState, canonical_json
-from creative_runtime.continuity import TimelineViolation, default_story_graph, graph_for_ledger, replay_timeline, timeline_hash
+from creative_runtime.continuity import TimelineViolation, default_story_graph, graph_for_initial_state, graph_for_ledger, replay_timeline, timeline_hash
 from creative_runtime.coverage import RouteCoverageViolation, coverage_for_scenario, director_coverage_for_scenario
 from creative_runtime.director import compile_verified_director
 from creative_runtime.director_context import compile_verified_director_v2
+from creative_runtime.drama_manager import primary_choice_consequence_coverage, propose_offline_narrative, select_verified_dramatic_beat
 from creative_runtime.director_review import DirectorReviewViolation, build_director_review_board
 from creative_runtime.generation import GenerationViolation, offline_generation_receipt_path, record_offline_generation, verify_offline_generation_record
 from creative_runtime.feedback import FeedbackViolation, build_feedback_record, feedback_path, load_feedback, record_feedback
@@ -453,6 +454,10 @@ def run(argv: list[str]) -> dict[str, Any]:
     director_v2_parser.add_argument("--style-profile-id", default="cinematic_live_action")
     director_v2_parser.add_argument("--campaign-id")
     subparsers.add_parser("script-catalog")
+    proposal_parser = subparsers.add_parser("propose")
+    proposal_parser.add_argument("action_id")
+    drama_coverage_parser = subparsers.add_parser("drama-coverage")
+    drama_coverage_parser.add_argument("--scenario", choices=sorted(SCENARIOS), default="three_scene")
     subparsers.add_parser("understanding")
     subparsers.add_parser("migrate")
     subparsers.add_parser("verify-v2")
@@ -552,6 +557,14 @@ def run(argv: list[str]) -> dict[str, Any]:
         }
     if args.command == "script-catalog":
         return script_catalog()
+    if args.command == "propose":
+        ledger = _load_session(args.workspace, slot)
+        proposal = propose_offline_narrative(ledger, args.action_id)
+        selection = select_verified_dramatic_beat(ledger, proposal)
+        return {"status": "proposal_verified", "proposal": proposal.to_dict(), "selection": selection.to_dict(), "slot_id": slot}
+    if args.command == "drama-coverage":
+        initial = SCENARIOS[args.scenario]
+        return primary_choice_consequence_coverage(graph_for_initial_state(initial))
     if args.command == "understanding":
         ledger = _load_session(args.workspace, slot)
         compiled = compile_verified_director(ledger, graph=graph_for_ledger(ledger))
