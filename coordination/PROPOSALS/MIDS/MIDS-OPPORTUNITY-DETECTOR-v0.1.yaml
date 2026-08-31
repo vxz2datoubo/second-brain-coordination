@@ -14,6 +14,7 @@ core_principle:
   reminder_is_capability_recall_not_requirement_invention: true
   preserve_user_agency: true
   domain_authority_unchanged: true
+  mnemonic_rule_zh: "方法应该记住用户，而不是要求用户记住方法。"
 
 trigger_signals:
   strong:
@@ -94,6 +95,12 @@ intervention_policy:
     behavior:
       - do_not_interrupt
       - answer_normally
+  SUPPRESSED:
+    conditions:
+      - user_explicitly_declined_MIDS_or_discovery_for_current_slice: true
+    behavior:
+      - answer_normally_without_MIDS_reminder
+      - reopen_only_on_materially_new_uncertainty_or_contradictory_evidence
 
 implicit_recall_rule:
   description: >-
@@ -162,6 +169,8 @@ learning_and_suppression:
 
 shadow_eval:
   required_before_canonical_runtime_activation: true
+  implementation_ref: "coordination/PROPOSALS/MIDS/shadow/mids_opportunity_detector.py"
+  regression_ref: "coordination/PROPOSALS/MIDS/shadow/test_mids_opportunity_detector.py"
   replay_cases:
     - vague_idea_that_later_caused_requirement_rework
     - expert_blind_zone_where_scenario_questions_would_have_helped
@@ -181,7 +190,11 @@ shadow_eval:
     - domain_authority_violation
 
 activation_boundary:
-  current_state: "DOCUMENTED_CANDIDATE_NOT_CANONICAL_RUNTIME"
+  current_state: "DOCUMENTED_AND_SHADOW_IMPLEMENTED_NOT_CANONICAL_RUNTIME"
+  current_claim: >-
+    The protocol, detector semantics and deterministic shadow implementation are now recorded in the
+    candidate PR. Automatic reminders must not be claimed as globally active until governed integration
+    with the real intake/assistant routing surface is independently reviewed and canonicalized.
   requires_before_claiming_active:
     - independent_review
     - accepted_shadow_or_replay_evidence
