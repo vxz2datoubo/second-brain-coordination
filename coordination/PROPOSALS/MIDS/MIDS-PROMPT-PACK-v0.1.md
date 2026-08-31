@@ -34,6 +34,10 @@ MEDIUM opportunity 可以直接使用 `micro-MIDS`：只指出一个 material un
 
 这条规则的目标是：**方法应该记住用户，而不是要求用户记住方法。**
 
+机器可读策略：`MIDS-OPPORTUNITY-DETECTOR-v0.1.yaml`。
+Shadow detector：`shadow/mids_opportunity_detector.py`。
+Regression：`shadow/test_mids_opportunity_detector.py`。
+
 ## Level 0 — 已安装术语库时
 
 **进入 MIDS 共创发现模式。**
