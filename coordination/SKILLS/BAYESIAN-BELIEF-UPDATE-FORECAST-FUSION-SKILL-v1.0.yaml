@@ -1,0 +1,115 @@
+schema_version: "1.0"
+skill:
+  id: BAYESIAN-BELIEF-UPDATE-FORECAST-FUSION-SKILL-0012B
+  name: Bayesian Belief Update and Forecast Fusion
+  lifecycle_stage: BELIEVE
+  maturity: CONTRACT_CANDIDATE
+  source_issue: 522
+  parent_registry_issue: 63
+  effective_spec_snapshot:
+    id: SECOND-BRAIN-DS02-CLEAN-SUCCESSOR-ISSUE522-SNAPSHOT-001
+    ref: issuecomment-5473031902
+    canonical_base: 1a514fe839b1c47a14d7fad4a96e8c9fd2365338
+  boundaries:
+    research_only: true
+    no_trade: true
+    runtime_implemented: false
+    backtest_implemented: false
+    second_market_authority: false
+    second_event_authority: false
+    second_regime_authority: false
+    second_decision_authority: false
+    second_risk_authority: false
+    second_portfolio_authority: false
+    execution_authority: false
+  responsibility: >-
+    Transform admitted, provenance-bound probabilistic evidence into a versioned belief
+    contract while preserving dependence, uncertainty, invalidation, and downstream
+    authority separation. It does not decide, size, execute, or claim alpha.
+  sub_capabilities:
+    - id: BBU-01
+      name: Forecast Target Identity
+      requires: [target_id, target_definition_version, forecast_horizon, as_of_time, knowledge_cutoff, market_rule_version]
+      fail_closed_on: [missing_target, missing_horizon, definition_collision]
+    - id: BBU-02
+      name: Prior Registry
+      requires: [prior_id, prior_version, prior_family, training_window, evidence_digest, effective_from]
+      invariant: prior provenance must predate the decision and remain distinguishable from evidence
+    - id: BBU-03
+      name: Evidence Likelihood Adapter
+      invariant: uncalibrated confidence is not a likelihood
+      fallback: [UNKNOWN, ABSTAIN]
+    - id: BBU-04
+      name: Dependence Map
+      keys: [source_family_id, independence_group_id, shared_feature_group, shared_training_data_group, ancestry_refs]
+      invariant: correlated evidence must not be multiplied as conditionally independent
+    - id: BBU-05
+      name: Bayesian Update Contract
+      required_sanity_models: [BETA_BINOMIAL, NORMAL_NORMAL, LOG_ODDS_BAYES_FACTOR]
+      invariant: use numerically stable updates and preserve the update ledger
+    - id: BBU-06
+      name: Hierarchical Shrinkage
+      purpose: prevent tiny A-share samples from manufacturing extreme certainty
+    - id: BBU-07
+      name: Regime and ChangePoint Adapter
+      authority_owner: DS-11
+      output_on_break: REVALIDATION_REQUIRED
+    - id: BBU-08
+      name: Dependence-Aware Forecast Fusion
+      allowed_methods: [baseline_pooling, dependence_aware_pooling, stacking_candidate, hierarchical_combination_candidate]
+    - id: BBU-09
+      name: Posterior Predictive Contract
+      invariant: predictive distribution cannot be replaced by scalar P(up)
+    - id: BBU-10
+      name: Calibration and Diagnostics
+      metrics: [brier_score, log_score, reliability, calibration_slope, calibration_intercept, rhat, ess, divergences, psis_loo, pareto_k]
+    - id: BBU-11
+      name: Belief Ledger and Numeric Integrity
+      invariant: transitions are append-only and canonical serialized probability is deterministic
+    - id: BBU-12
+      name: Decision Adapter
+      allowed_consumers: [W7_RISK, W10_DECISION_EPISODE, W11_ALLOCATION, ISSUE_62_KELLY_EV]
+      forbidden_consumers: [BROKER, LIVE_ORDER, ACCOUNT_FUNDS]
+    - id: BBU-13
+      name: Epistemic Adapter
+      authority_owner: ISSUE_457
+      legal_states: [KNOWN_SAID, KNOWN_UNSAID_INFERRED, UNKNOWN_BUT_ACCESSIBLE, UNKNOWN_REQUIRES_SCAFFOLDING, UNKNOWN, ABSTAIN, REVALIDATION_REQUIRED]
+  authority_contract:
+    upstream_authorities_retained:
+      market_truth: W2
+      event_evidence: W5
+      participant_context: W13
+      regime: DS-11
+      epistemic_state: ISSUE_457
+    downstream_authorities_retained:
+      risk: W7
+      decision: W10
+      allocation: W11
+      capital_allocation: ISSUE_62
+      research_overfitting_audit: DS-10
+    belief_packet_authority_flags:
+      market_truth_authority: false
+      event_truth_authority: false
+      regime_authority: false
+      epistemic_authority: false
+      decision_authority: false
+      risk_override_authority: false
+      position_authority: false
+      order_authority: false
+      trade_authority: false
+  validation_ladder:
+    - V0_ANALYTIC_CORRECTNESS
+    - V1_METAMORPHIC_PROPERTIES
+    - V2_POINT_IN_TIME
+    - V3_SIMULATION_BASED_CALIBRATION
+    - V4_INFERENCE_DIAGNOSTICS
+    - V5_PRIOR_POSTERIOR_PREDICTIVE
+    - V6_FORECAST_CALIBRATION
+    - V7_A_SHARE_OOS_ECONOMIC_INCREMENT
+    - V8_RESEARCH_OVERFITTING_AUDIT
+    - V9_SHADOW_VALIDATION
+  phase_gate:
+    current: CONTRACT_AND_DETERMINISTIC_EVAL_ONLY
+    next_issue: 521
+    next_implementation_authorized: false
+    canonicalization_required_before_next_phase: true
