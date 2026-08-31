@@ -166,9 +166,14 @@ class _BoundSource(AbstractContextManager["_BoundSource"]):
         except OSError as error:
             raise MigrationViolation("Could not open the legacy source without following links") from error
         descriptor_details = os.fstat(self.stream.fileno())
-        if not stat.S_ISREG(descriptor_details.st_mode) or _file_id(descriptor_details) != _file_id(path_details):
+        if (
+            not stat.S_ISREG(descriptor_details.st_mode)
+            or _file_id(descriptor_details) != _file_id(path_details)
+            or descriptor_details.st_nlink != 1
+            or path_details.st_nlink != 1
+        ):
             self.stream.close()
-            raise MigrationViolation("Legacy path and opened descriptor identities differ")
+            raise MigrationViolation("Legacy source must be a single-link regular file with bound path identity")
         self.initial_identity = _identity(descriptor_details)
         self.lock_kind = _acquire_lock(self.stream, descriptor_details.st_size)
         self.initial_bytes = self._read_descriptor()

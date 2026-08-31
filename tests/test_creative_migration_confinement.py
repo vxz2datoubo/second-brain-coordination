@@ -142,6 +142,18 @@ class BoundMigrationTests(unittest.TestCase):
             self.assertEqual(target.read_bytes(), before)
             self.assertEqual(twin.read_bytes(), before)
 
+    def test_hardlinked_legacy_source_is_rejected_without_shadow(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory)
+            source, _state = self._workspace(workspace)
+            twin = workspace / "legacy-alias.json"
+            os.link(workspace / "session.json", twin)
+            with self.assertRaises(MigrationViolation):
+                migrate_legacy_session(workspace)
+            self.assertEqual((workspace / "session.json").read_bytes(), source)
+            self.assertEqual(twin.read_bytes(), source)
+            self.assertFalse((workspace / "saves" / "default.json").exists())
+
     def test_idempotent_exact_target_and_unsafe_slot(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             workspace = Path(directory)
