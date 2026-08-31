@@ -1,0 +1,62 @@
+schema: ExecutorMilestoneCheckpoint/v1
+agent_id: CODEX
+project_id: CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001
+task_id: CODEX-R174-CAPABILITY-CONFINEMENT-REMEDIATION-R175
+route_epoch: 175
+status: EXECUTOR_VERIFIED_ONLY
+independent_acceptance: false
+
+milestone: CODEX_WORKBUDDY_COORDINATED_VERIFICATION_RUNNER
+verified_head: e61aaed6f00e326b72f4ccdf67c7819fa0fb6f56
+remote_ref: refs/remotes/origin/codex/r175-capability-policy-confinement-remediation
+implementation_baseline: 740788a3847a402923bf2e89093d910eda0c89d0
+policy_floor_ref: 740788a3847a402923bf2e89093d910eda0c89d0
+
+delivered:
+  - one-command exact-head executor clean reproduction runner
+  - local HEAD and remote branch identity equality gate
+  - pre-run and post-run clean worktree gates
+  - complete creative suite public-safe policy scope and diff orchestration
+  - hashed stdout and stderr evidence without durable raw-log copying
+  - CODEX or WORKBUDDY executor identity restriction
+  - explicit independent_acceptance false boundary
+  - WorkBuddy future-release runbook without present authority grant
+
+clean_reproduction:
+  clone: F:/aidanao-worktrees/standalone-clones/second-brain-r175-verify
+  operating_system: Windows
+  python: "3.13"
+  command: >-
+    python tools/verify_creative_executor_checkpoint.py --agent-id CODEX
+    --expected-head e61aaed6f00e326b72f4ccdf67c7819fa0fb6f56
+    --remote-ref refs/remotes/origin/codex/r175-capability-policy-confinement-remediation
+    --baseline 740788a3847a402923bf2e89093d910eda0c89d0
+    --policy-floor-ref 740788a3847a402923bf2e89093d910eda0c89d0
+  result: PASS
+  creative_tests: 51_PASS
+  expected_platform_skip: 1_POSIX_ONLY_ON_WINDOWS
+  public_safe_boundary: PASS_13_SCANNED_SOURCE_FILES
+  r175_scope: PASS
+  diff_check: PASS
+  remote_identity: PASS
+  worktree_clean_before_and_after: PASS
+
+workbuddy_authority_state:
+  observed_active_route: PAUSED_COMPUTE_UNAVAILABLE
+  execution_allowed: false
+  effect: NO_WORKBUDDY_EXECUTION_OR_CLAIM_PERFORMED
+  future_requirement: NEW_EXPLICIT_GOVERNED_WORKBUDDY_RELEASE
+
+review_routing:
+  direct_gpt_activation: NOT_PERFORMED
+  user_trigger_for_stage_review: 收尾_OR_同步
+  final_reviewer_role: GPT_INDEPENDENT_REVIEWER
+
+rollback:
+  type: GIT_NATIVE
+  instruction: revert the executor-runner commit and this evidence commit without history rewrite
+
+next_action: >-
+  Keep Codex as the implementation writer. When a fresh WorkBuddy route is later released, run the exact same
+  command with agent-id WORKBUDDY from a separate clean clone. Do not treat either executor receipt as final
+  stage acceptance; reserve GPT cross-module review for the user's 收尾 or 同步 command.
