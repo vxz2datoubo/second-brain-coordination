@@ -1,0 +1,66 @@
+{
+  "schema": "CreativeExecutorRelayPackage/v1",
+  "package_id": "CIF-R175-CODEX-TO-WORKBUDDY-PREP-001",
+  "project_id": "CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001",
+  "created_by": "CODEX",
+  "source": {
+    "agent": "CODEX",
+    "branch": "codex/r175-capability-policy-confinement-remediation",
+    "baseline": "740788a3847a402923bf2e89093d910eda0c89d0",
+    "exact_head": "492c83332698678354695f978cf112cc04f05f7c",
+    "pushed": true,
+    "worktree_clean_at_checkpoint": true,
+    "write_surfaces": [
+      "creative_runtime/**",
+      "apps/cli/**",
+      "apps/web/**",
+      "tools/**",
+      "tests/test_creative_*.py",
+      "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/**"
+    ]
+  },
+  "target": {
+    "agent": "WORKBUDDY",
+    "requested_mode": "VERIFICATION_THEN_SEPARATELY_ROUTED_SIMPLE_WORK",
+    "route_authority": {
+      "status": "PAUSED_COMPUTE_UNAVAILABLE",
+      "execution_allowed": false,
+      "route_ref": null,
+      "claim_ref": null,
+      "lease_ref": null,
+      "snapshot_ref": null
+    },
+    "proposed_branch": "workbuddy/interactive-cinematic-r175-verification",
+    "write_surfaces_after_future_route": [
+      ".creative-evidence/**",
+      "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/**"
+    ]
+  },
+  "relay_state": "BLOCKED_PENDING_TARGET_ROUTE",
+  "verification_plan": {
+    "commands": [
+      "python tools/verify_creative_executor_checkpoint.py --agent-id WORKBUDDY --expected-head 492c83332698678354695f978cf112cc04f05f7c --remote-ref refs/remotes/origin/codex/r175-capability-policy-confinement-remediation --baseline 740788a3847a402923bf2e89093d910eda0c89d0 --policy-floor-ref 740788a3847a402923bf2e89093d910eda0c89d0"
+    ],
+    "attack_classes": [
+      "computed Python capability bypass",
+      "browser remote-load normalization bypass",
+      "candidate policy co-shrink",
+      "source mutation during migration publication",
+      "symlink junction reparse and hardlink confinement",
+      "repeated save and recovery",
+      "Windows path and concurrent process behavior"
+    ],
+    "receipt_semantics": {
+      "label": "EXECUTOR_CLEAN_REPRODUCTION",
+      "independent_acceptance": false,
+      "may_ready_or_merge": false
+    }
+  },
+  "return_protocol": {
+    "PASS": "Write a hashed receipt and propose the next separately routed non-overlapping task.",
+    "FAIL": "Write a minimal reproducible finding against the exact tested SHA; do not patch the Codex branch.",
+    "BLOCKED": "Record the missing capability or authority and the exact condition that closes it.",
+    "codex_resume_rule": "Codex resumes from GitHub evidence only and does not assume WorkBuddy chat or local state."
+  },
+  "unique_next_action": "A GitHub integrator must publish a fresh WorkBuddy task/route/claim/lease/snapshot and change execution_allowed to true before WorkBuddy runs this package."
+}

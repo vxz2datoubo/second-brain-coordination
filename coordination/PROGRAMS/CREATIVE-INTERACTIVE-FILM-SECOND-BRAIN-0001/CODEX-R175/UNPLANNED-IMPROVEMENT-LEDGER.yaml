@@ -1,0 +1,47 @@
+schema: UnplannedImprovementLedger/v1
+agent_id: CODEX
+task_id: CODEX-R174-CAPABILITY-CONFINEMENT-REMEDIATION-R175
+status: RECORDED
+
+items:
+  - id: R175-B01-WINDOWS-APPEND-LOCK-SPAN
+    class: B
+    trigger: Microsoft documentation showed byte-range locks protect only the named range
+    improvement: lock the supported positive range beyond current EOF instead of only current source length
+    value: prevents append mutation from landing immediately outside the source lock
+    evidence: test_windows_lock_blocks_append_beyond_current_eof
+    rollback: revert migration lock-span commit
+  - id: R175-B02-DYNAMIC-IMPORT-RESULT-TRACKING
+    class: B
+    trigger: adjacent AST review found direct __import__('os').getenv access bypassed name-only aliases
+    improvement: resolve bounded dynamic-import return modules and __call__ forms before reference classification
+    value: closes equivalent forbidden capability paths rather than only reviewed spellings
+    evidence: PythonCapabilityFloorTests
+    rollback: revert public-safe verifier hardening commit
+  - id: R175-B03-CANDIDATE-RULE-PATH-CONFINEMENT
+    class: B
+    trigger: candidate scan roots could otherwise name absolute or parent paths
+    improvement: require canonical repository-relative roots triggers suffixes references and capability names
+    value: prevents the verifier from reading outside the repository
+    evidence: test_rules_cannot_escape_repository_or_use_ambiguous_paths
+    rollback: revert candidate-rule shape validation
+  - id: R175-B04-EXECUTOR-CLEAN-REPRODUCTION-RUNNER
+    class: B
+    trigger: user requested coordinated Codex implementation and WorkBuddy verification with lower Codex cost
+    improvement: one-command local and remote exact-head verification with hashed output receipts
+    value: moves repetitive milestone reproduction to either executor without weakening role separation
+    evidence: ExecutorCheckpointTests and clean clone receipt at head 492c83332698678354695f978cf112cc04f05f7c
+    rollback: revert e61aaed6f00e326b72f4ccdf67c7819fa0fb6f56 and e7082214111a2726091e24c46b76ab696372dee9
+  - id: R175-C01-MULTI-SCRIPT-RUNTIME
+    class: C
+    trigger: direct source inspection found a hard-coded synthetic scene single session and fixed director assets
+    action: proposal_only
+    artifact: NEXT-VERTICAL-SLICE-PROPOSAL.yaml
+    owner: FUTURE_CODEX_ROUTE_PLUS_FUTURE_WORKBUDDY_ROUTE
+    validation_gate: reconcile GPT R172 session authority before implementation
+
+checked_but_not_implemented:
+  - external provider or paid generation adapters
+  - production deployment or public release
+  - real player comment photo or customer-media ingestion
+  - canonical knowledge promotion

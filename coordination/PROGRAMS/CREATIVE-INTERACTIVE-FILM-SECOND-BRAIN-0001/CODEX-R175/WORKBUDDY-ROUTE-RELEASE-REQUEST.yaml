@@ -1,0 +1,50 @@
+{
+  "schema": "WorkBuddyRouteReleaseRequest/v1",
+  "authority": "PROPOSAL_ONLY_NOT_AN_ACTIVE_ROUTE",
+  "project_id": "CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001",
+  "requested_executor": "WORKBUDDY",
+  "requested_mode": "EXACT_HEAD_VERIFICATION_AND_BOUNDED_SIMPLE_TASK_QUEUE",
+  "source_issue": 528,
+  "source_branch": "codex/r175-capability-policy-confinement-remediation",
+  "source_exact_head": "492c83332698678354695f978cf112cc04f05f7c",
+  "source_baseline": "740788a3847a402923bf2e89093d910eda0c89d0",
+  "release_preconditions": [
+    "fresh reconcile canonical main and Issue 528",
+    "verify source branch remote exact head",
+    "verify no active writer owns the requested WorkBuddy surfaces",
+    "publish WorkBuddy Issue, route, Work Claim, Lease, reservation and pre-write snapshot",
+    "create workbuddy branch only after snapshot",
+    "set ACTIVE-WORKBUDDY-TASK execution_allowed=true only after readback"
+  ],
+  "ordered_scope": [
+    {
+      "id": "WB-V1",
+      "outcome": "Clean-clone exact-head reproduction with the repository runner.",
+      "write_paths": [".creative-evidence/**"]
+    },
+    {
+      "id": "WB-V2",
+      "outcome": "Consolidated adversarial and Windows environment matrix without patching the Codex branch.",
+      "write_paths": ["coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/EVIDENCE/**"]
+    },
+    {
+      "id": "WB-S1",
+      "outcome": "Add storage scaling and repeated init/resume/replay probes only if explicitly retained in the released route.",
+      "write_paths": [
+        "tests/workbuddy/**",
+        "tools/workbuddy/**",
+        "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/**"
+      ]
+    }
+  ],
+  "automatic_resume_within_task": true,
+  "stop_before": [
+    "core runtime or contract modification",
+    "acceptance oracle change",
+    "overlap with an active Codex writer",
+    "external model, credential, real customer data, deployment, trading or canonical knowledge",
+    "any task not listed in the canonical released route"
+  ],
+  "return_target": "CODEX",
+  "final_review": "GPT_ONLY_AFTER_USER_SAYS_SYNC_OR_CLOSEOUT"
+}

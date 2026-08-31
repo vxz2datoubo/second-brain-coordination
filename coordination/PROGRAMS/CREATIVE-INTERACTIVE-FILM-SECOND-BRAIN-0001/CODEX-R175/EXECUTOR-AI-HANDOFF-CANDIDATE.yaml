@@ -1,0 +1,57 @@
+schema: AI_HANDOFF/v1
+handoff_id: R175-CODEX-CHECKPOINT-NOT-SUBMITTED
+source_agent: CODEX
+target_agent: USER_MANUAL_GPT_ACTIVATION_AFTER_SYNC_OR_CLOSEOUT
+reviewer: GPT_INDEPENDENT_REVIEWER
+executor_status: EXECUTOR_VERIFIED_ONLY
+project_id: CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001
+task_id: CODEX-R174-CAPABILITY-CONFINEMENT-REMEDIATION-R175
+route_epoch: 175
+
+identity:
+  canonical_governance_main_at_release: 326b782253a22b667d8b8f211fbba55ca8a9b8e0
+  snapshot_base: 40166aea147f3797768a2369f55e87346f3e3c52
+  implementation_baseline: 740788a3847a402923bf2e89093d910eda0c89d0
+  verified_head_before_reporting: 492c83332698678354695f978cf112cc04f05f7c
+  branch: codex/r175-capability-policy-confinement-remediation
+
+changed_contracts:
+  - CreativeSession/v2 lossless bound legacy envelope
+  - PublicSafeBoundaryRules/v2
+  - PublicSafeBoundaryReceipt/v2
+  - CreativeExecutorCleanReproductionReceipt/v1
+  - CLI migrate --slot behavior
+
+tests:
+  executor_clean_reproduction: PASS
+  creative_suite: 52_PASS
+  expected_platform_skip: 1_POSIX_ONLY_ON_WINDOWS
+  windows_junction: PASS
+  windows_append_lock: PASS
+  public_safe_boundary: PASS
+  scope: PASS
+  diff_check: PASS
+
+known_risks:
+  - no GitHub Actions or independent review yet
+  - WorkBuddy route is paused and produced no evidence
+  - custom filesystem filters and network shares are unsupported
+  - next PlayerCampaign implementation overlaps unresolved GPT R172 authority
+
+do_not_touch:
+  - PR_527
+  - PR_525
+  - PR_493
+  - PR_495
+  - PR_502
+  - PR_506
+  - PR_508
+  - PR_511
+  - PR_513
+  - coordination/GOVERNANCE/CREATIVE-RUNTIME-PUBLIC-SAFE-POLICY-FLOOR-v1.yaml
+
+rollback: GIT_NATIVE_REVERT_NO_HISTORY_REWRITE
+next_action: >-
+  Do not deliver this handoff to GPT yet. On explicit user sync or closeout, fresh-reconcile main and remote head,
+  rerun exact-head verification, create the governed review-ready PR and exact-head CI evidence, replace the
+  pre-report head with the final exact head, then let the user manually activate GPT stage-level review.
