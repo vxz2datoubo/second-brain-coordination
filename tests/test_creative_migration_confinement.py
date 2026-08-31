@@ -93,6 +93,30 @@ class BoundMigrationTests(unittest.TestCase):
                     migrate_legacy_session(workspace)
             self.assertFalse((workspace / "saves" / "default.json").exists())
 
+    @unittest.skipUnless(os.name == "nt", "Windows byte-range append lock regression")
+    def test_windows_lock_blocks_append_beyond_current_eof(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory)
+            original, _state = self._workspace(workspace)
+            source = workspace / "session.json"
+            real_publish = migration._publish_create_only
+            append_blocked = False
+
+            def append_then_publish(staged: Path, target: Path) -> tuple[int, int]:
+                nonlocal append_blocked
+                try:
+                    with source.open("ab", buffering=0) as stream:
+                        stream.write(b" ")
+                except OSError:
+                    append_blocked = True
+                return real_publish(staged, target)
+
+            with mock.patch.object(migration, "_publish_create_only", side_effect=append_then_publish):
+                target = migrate_legacy_session(workspace)
+            self.assertTrue(append_blocked)
+            self.assertTrue(target.exists())
+            self.assertEqual(source.read_bytes(), original)
+
     def test_preexisting_target_is_never_overwritten_or_removed(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             workspace = Path(directory)

@@ -32,6 +32,13 @@ _ASCII_EDGE = "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f\
 _CSS_ESCAPE = re.compile(r"\\(?:([0-9a-fA-F]{1,6})[ \t\r\n\f]?|(.))", re.DOTALL)
 _JS_ESCAPE = re.compile(r"\\(?:x([0-9a-fA-F]{2})|u\{([0-9a-fA-F]{1,6})\}|u([0-9a-fA-F]{4}))")
 _DANGEROUS_JS_NAMES = ("fetch", "xmlhttprequest", "websocket", "eventsource", "sendbeacon")
+_MINIMUM_FORBIDDEN_IMPORTS = frozenset({
+    "aiohttp", "anthropic", "builtins", "ftplib", "http.client", "httpx",
+    "imaplib", "importlib", "openai", "operator", "poplib", "requests",
+    "smtplib", "socket", "telnetlib", "urllib.request", "urllib3",
+    "websockets", "xmlrpc.client",
+})
+_MINIMUM_FORBIDDEN_REFS = frozenset({"os.environ", "os.environb", "os.getenv", "os.getenvb"})
 
 
 class BoundaryViolation(ValueError):
@@ -70,6 +77,36 @@ def _load_rules(path: Path) -> dict[str, Any]:
             raise BoundaryViolation(f"Rules field {field} must be a non-empty string list")
         if len(values) != len(set(values)):
             raise BoundaryViolation(f"Rules field {field} contains duplicates")
+    if not _MINIMUM_FORBIDDEN_IMPORTS.issubset(rules["forbidden_python_imports"]):
+        raise BoundaryViolation("Rules shrink the verifier's minimum forbidden import capabilities")
+    if not _MINIMUM_FORBIDDEN_REFS.issubset(rules["forbidden_python_references"]):
+        raise BoundaryViolation("Rules shrink the verifier's minimum environment-read capabilities")
+    relative_component = re.compile(r"[A-Za-z0-9_.-]+")
+    for root in rules["scan_roots"]:
+        parts = root.split("/")
+        if (
+            "\\" in root or root.startswith("/") or ":" in root
+            or any(part in {"", ".", ".."} or not relative_component.fullmatch(part) for part in parts)
+        ):
+            raise BoundaryViolation(f"Scan root is not a canonical repository-relative path: {root}")
+    for suffix in rules["scanned_suffixes"]:
+        if not re.fullmatch(r"\.[a-z0-9]+", suffix):
+            raise BoundaryViolation(f"Unsafe source suffix rule: {suffix}")
+    for field in ("forbidden_python_imports", "forbidden_python_references"):
+        for reference in rules[field]:
+            if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*", reference):
+                raise BoundaryViolation(f"Unsafe Python capability reference in {field}: {reference}")
+    for capability in rules["forbidden_capability_classes"]:
+        if not re.fullmatch(r"[A-Z][A-Z0-9_]*", capability):
+            raise BoundaryViolation(f"Unsafe capability class: {capability}")
+    for trigger in rules["required_pull_request_paths"]:
+        plain = trigger[:-3] if trigger.endswith("/**") else trigger
+        parts = plain.split("/")
+        if (
+            "\\" in trigger or trigger.startswith("/") or ":" in trigger
+            or any(part in {"", ".", ".."} or not relative_component.fullmatch(part) for part in parts)
+        ):
+            raise BoundaryViolation(f"Unsafe pull-request trigger path: {trigger}")
     return rules
 
 
@@ -223,12 +260,20 @@ def _constant_string(node: ast.AST, bindings: Mapping[str, str]) -> str | None:
     return None
 
 
-def _dotted(node: ast.AST, aliases: Mapping[str, str]) -> str | None:
+def _dotted(
+    node: ast.AST,
+    aliases: Mapping[str, str],
+    strings: Mapping[str, str] | None = None,
+) -> str | None:
     if isinstance(node, ast.Name):
         return aliases.get(node.id, node.id)
     if isinstance(node, ast.Attribute):
-        base = _dotted(node.value, aliases)
+        base = _dotted(node.value, aliases, strings)
         return f"{base}.{node.attr}" if base else None
+    if isinstance(node, ast.Call):
+        caller = _dotted(node.func, aliases, strings)
+        if caller in {"__import__", "__import__.__call__", "importlib.import_module", "importlib.import_module.__call__"} and node.args:
+            return _constant_string(node.args[0], strings or {})
     return None
 
 
@@ -270,7 +315,7 @@ def verify_python_source(text: str, label: str, rules: Mapping[str, Any]) -> Non
             for target in targets:
                 if not isinstance(target, ast.Name) or value is None:
                     continue
-                dotted = _dotted(value, aliases)
+                dotted = _dotted(value, aliases, strings)
                 if dotted and aliases.get(target.id) != dotted:
                     aliases[target.id] = dotted
                     changed = True
@@ -283,10 +328,10 @@ def verify_python_source(text: str, label: str, rules: Mapping[str, Any]) -> Non
 
     for node in ast.walk(tree):
         if isinstance(node, ast.Call):
-            reference = _dotted(node.func, aliases)
+            reference = _dotted(node.func, aliases, strings)
             if reference in {"eval", "exec", "compile"}:
                 raise BoundaryViolation(f"Dynamic code execution fails closed: {label}:{node.lineno}")
-            if reference in {"__import__", "importlib.import_module"}:
+            if reference in {"__import__", "__import__.__call__", "importlib.import_module", "importlib.import_module.__call__"}:
                 if not node.args:
                     raise BoundaryViolation(f"Unverifiable dynamic import: {label}:{node.lineno}")
                 target = _constant_string(node.args[0], strings)
@@ -306,10 +351,13 @@ def verify_python_source(text: str, label: str, rules: Mapping[str, Any]) -> Non
                     raise BoundaryViolation(f"Computed reflective attribute fails closed: {label}:{node.lineno}")
                 if attribute in {"getenv", "getenvb", "environ", "environb", "__dict__"}:
                     raise BoundaryViolation(f"Reflective environment capability {attribute}: {label}:{node.lineno}")
+                target = _dotted(node.args[0], aliases, strings)
+                if target == "__builtins__" or (target and target.startswith("__builtins__.")):
+                    raise BoundaryViolation(f"Reflective builtins access fails closed: {label}:{node.lineno}")
             if reference and any(reference == item or reference.startswith(item + ".") for item in forbidden_refs):
                 raise BoundaryViolation(f"Forbidden environment capability {reference}: {label}:{node.lineno}")
         if isinstance(node, (ast.Attribute, ast.Subscript)):
-            reference = _dotted(node, aliases)
+            reference = _dotted(node, aliases, strings)
             if reference and (
                 reference == "__builtins__"
                 or reference.startswith("__builtins__.")
@@ -319,9 +367,11 @@ def verify_python_source(text: str, label: str, rules: Mapping[str, Any]) -> Non
             if reference and any(reference == item or reference.startswith(item + ".") for item in forbidden_refs):
                 raise BoundaryViolation(f"Forbidden environment capability {reference}: {label}:{node.lineno}")
         if isinstance(node, ast.Subscript):
-            base = _dotted(node.value, aliases)
+            base = _dotted(node.value, aliases, strings)
             if base == "__builtins__":
                 raise BoundaryViolation(f"Reflective builtins capability fails closed: {label}:{node.lineno}")
+            if base and any(base == item or base.startswith(item + ".") for item in forbidden_refs):
+                raise BoundaryViolation(f"Forbidden environment capability {base}: {label}:{node.lineno}")
             if base and base.endswith(".__dict__"):
                 key = _constant_string(node.slice, strings)
                 if key is None or key in {"getenv", "getenvb", "environ", "environb", "__dict__"}:

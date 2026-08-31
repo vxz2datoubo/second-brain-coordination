@@ -11,6 +11,7 @@ from tools.verify_public_safe_boundary import (
     BoundaryViolation,
     CONFIG_PATH,
     _load_floor,
+    _load_rules,
     _require_floor,
     verify_browser_source,
     verify_python_source,
@@ -33,6 +34,7 @@ class PythonCapabilityFloorTests(unittest.TestCase):
             "prefix = 'http'\nname = prefix + 'x'\nm = __import__(name)\n",
             "name = input()\nm = __import__(name)\n",
             "import importlib\nname = 'httpx'\nm = importlib.import_module(name)\n",
+            "m = __import__.__call__('requests')\n",
         )
         for source in attacks:
             with self.subTest(source=source), self.assertRaises(BoundaryViolation):
@@ -50,6 +52,10 @@ class PythonCapabilityFloorTests(unittest.TestCase):
             "exec(\"import requests\")\n",
             "__builtins__['__import__']('socket')\n",
             "__builtins__.__import__('requests')\n",
+            "__import__('os').getenv('TOKEN')\n",
+            "module = __import__('os')\nmodule.environ['TOKEN']\n",
+            "getattr(__builtins__, '__import__')('requests')\n",
+            "from os import environ as env\nenv['TOKEN']\n",
         )
         for source in attacks:
             with self.subTest(source=source), self.assertRaises(BoundaryViolation):
@@ -115,6 +121,32 @@ class CanonicalPolicyAndTraversalTests(unittest.TestCase):
         shrunk["required_pull_request_paths"].remove("apps/web/**")
         with self.assertRaises(BoundaryViolation):
             _require_floor(shrunk, floor)
+
+    def test_config_cannot_claim_capability_class_while_shrinking_imports(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "rules.json"
+            shrunk = copy.deepcopy(RULES)
+            shrunk["forbidden_python_imports"].remove("socket")
+            path.write_text(json.dumps(shrunk), encoding="utf-8")
+            with self.assertRaises(BoundaryViolation):
+                _load_rules(path)
+
+    def test_rules_cannot_escape_repository_or_use_ambiguous_paths(self) -> None:
+        attacks = (
+            ("scan_roots", "../private"),
+            ("scan_roots", "C:/Users/Administrator"),
+            ("scan_roots", "apps\\web"),
+            ("required_pull_request_paths", "../**"),
+            ("scanned_suffixes", "py"),
+        )
+        for field, value in attacks:
+            with self.subTest(field=field, value=value), tempfile.TemporaryDirectory() as directory:
+                path = Path(directory) / "rules.json"
+                poisoned = copy.deepcopy(RULES)
+                poisoned[field].append(value)
+                path.write_text(json.dumps(poisoned), encoding="utf-8")
+                with self.assertRaises(BoundaryViolation):
+                    _load_rules(path)
 
     def test_fake_pull_request_block_outside_on_fails_closed(self) -> None:
         floor, _digest = _load_floor(ROOT, BASE)

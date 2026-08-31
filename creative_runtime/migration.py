@@ -27,6 +27,10 @@ LEGACY_SCHEMA = "CreativeSession/v1"
 CURRENT_SCHEMA = "CreativeSession/v2"
 _SLOT = re.compile(r"\A[A-Za-z0-9][A-Za-z0-9_-]{0,63}\Z")
 _REPARSE_ATTRIBUTE = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0)
+# msvcrt.locking uses a signed C long byte count. Locking the entire positive
+# range also covers appends beyond the current EOF; sessions at or above this
+# bound fail closed instead of leaving an unprotected tail.
+_WINDOWS_LOCK_SPAN = 0x7FFFFFFF
 
 
 class MigrationViolation(ValueError):
@@ -104,11 +108,13 @@ def _assert_within(workspace: Path, candidate: Path) -> None:
 
 def _acquire_lock(stream: BinaryIO, size: int) -> str:
     if os.name == "nt":
+        if size >= _WINDOWS_LOCK_SPAN:
+            raise MigrationViolation("Legacy source exceeds the Windows lockable confinement bound")
         try:
             import msvcrt
 
             stream.seek(0)
-            msvcrt.locking(stream.fileno(), msvcrt.LK_NBLCK, max(size, 1))
+            msvcrt.locking(stream.fileno(), msvcrt.LK_NBLCK, _WINDOWS_LOCK_SPAN)
             return "windows_byte_range"
         except (ImportError, OSError) as error:
             raise MigrationViolation("Could not acquire the Windows source lock") from error
@@ -127,7 +133,7 @@ def _release_lock(stream: BinaryIO, lock_kind: str, size: int) -> None:
             import msvcrt
 
             stream.seek(0)
-            msvcrt.locking(stream.fileno(), msvcrt.LK_UNLCK, max(size, 1))
+            msvcrt.locking(stream.fileno(), msvcrt.LK_UNLCK, _WINDOWS_LOCK_SPAN)
         elif lock_kind == "posix_flock":
             import fcntl
 
