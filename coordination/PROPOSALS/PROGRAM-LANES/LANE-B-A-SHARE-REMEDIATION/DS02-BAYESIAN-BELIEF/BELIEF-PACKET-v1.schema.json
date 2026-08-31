@@ -1,0 +1,193 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/second-brain/BeliefPacket-v1.schema.json",
+  "title": "BeliefPacket/v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "belief_id",
+    "identity",
+    "temporal_provenance",
+    "prior",
+    "evidence",
+    "update",
+    "ensemble",
+    "regime",
+    "predictive",
+    "diagnostics",
+    "numeric_integrity",
+    "authority_flags"
+  ],
+  "properties": {
+    "schema_version": {"const": "BeliefPacket/v1"},
+    "belief_id": {"type": "string", "minLength": 1},
+    "identity": {
+      "type": "object",
+      "required": ["target_id", "target_definition_version", "symbol_or_universe", "exchange", "board", "security_type", "forecast_horizon", "as_of_time", "knowledge_cutoff", "market_rule_version"],
+      "properties": {
+        "target_id": {"type": "string", "minLength": 1},
+        "target_definition_version": {"type": "string", "minLength": 1},
+        "symbol_or_universe": {"type": "string", "minLength": 1},
+        "exchange": {"enum": ["SSE", "SZSE", "BSE", "OTHER_EXPLICIT"]},
+        "board": {"type": "string", "minLength": 1},
+        "security_type": {"type": "string", "minLength": 1},
+        "forecast_horizon": {"enum": ["INTRADAY", "1D", "3D", "5D", "10D", "20D", "60D"]},
+        "as_of_time": {"type": "string", "minLength": 1},
+        "knowledge_cutoff": {"type": "string", "minLength": 1},
+        "market_rule_version": {"type": "string", "minLength": 1}
+      }
+    },
+    "temporal_provenance": {
+      "type": "object",
+      "required": ["event_time", "published_at", "available_at", "market_effective_at", "ingested_at"],
+      "properties": {
+        "event_time": {"type": ["string", "null"]},
+        "published_at": {"type": ["string", "null"]},
+        "available_at": {"type": "string", "minLength": 1},
+        "market_effective_at": {"type": ["string", "null"]},
+        "ingested_at": {"type": "string", "minLength": 1}
+      }
+    },
+    "prior": {
+      "type": "object",
+      "required": ["prior_id", "prior_version", "prior_family", "prior_parameters", "prior_training_window", "prior_regime_scope", "prior_effective_from", "prior_evidence_digest"],
+      "properties": {
+        "prior_id": {"type": "string", "minLength": 1},
+        "prior_version": {"type": "string", "minLength": 1},
+        "prior_family": {"enum": ["empirical_base_rate", "hierarchical", "weakly_informative", "regime_conditioned", "provenance_bound_expert"]},
+        "prior_parameters": {"type": "object"},
+        "prior_training_window": {"type": "string", "minLength": 1},
+        "prior_regime_scope": {"type": "array", "items": {"type": "string"}},
+        "prior_effective_from": {"type": "string", "minLength": 1},
+        "prior_evidence_digest": {"type": "string", "minLength": 1}
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["evidence_id", "evidence_type", "source_ref", "source_grade", "source_family_id", "independence_group_id", "feature_definition_version", "feature_value", "feature_unit", "feature_polarity", "likelihood_model_id", "likelihood_model_version", "valid_from", "valid_until", "data_snapshot_hash"],
+        "properties": {
+          "evidence_id": {"type": "string", "minLength": 1},
+          "evidence_type": {"type": "string", "minLength": 1},
+          "source_ref": {"type": "string", "minLength": 1},
+          "source_grade": {"type": "string", "minLength": 1},
+          "source_family_id": {"type": "string", "minLength": 1},
+          "independence_group_id": {"type": "string", "minLength": 1},
+          "feature_definition_version": {"type": "string", "minLength": 1},
+          "feature_value": {},
+          "feature_unit": {"type": "string", "minLength": 1},
+          "feature_polarity": {"type": "string", "minLength": 1},
+          "likelihood_model_id": {"type": "string", "minLength": 1},
+          "likelihood_model_version": {"type": "string", "minLength": 1},
+          "valid_from": {"type": "string", "minLength": 1},
+          "valid_until": {"type": ["string", "null"]},
+          "data_snapshot_hash": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "update": {
+      "type": "object",
+      "required": ["prior_probability", "prior_log_odds", "log_bayes_factor_by_evidence", "cumulative_log_bayes_factor", "posterior_probability", "posterior_log_odds", "posterior_family", "posterior_parameters", "unknown_mass"],
+      "properties": {
+        "prior_probability": {"type": "number", "minimum": 0, "maximum": 1},
+        "prior_log_odds": {"type": "number"},
+        "log_bayes_factor_by_evidence": {"type": "object", "additionalProperties": {"type": "number"}},
+        "cumulative_log_bayes_factor": {"type": "number"},
+        "posterior_probability": {"type": "number", "minimum": 0, "maximum": 1},
+        "posterior_log_odds": {"type": "number"},
+        "posterior_family": {"type": "string", "minLength": 1},
+        "posterior_parameters": {"type": "object"},
+        "unknown_mass": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "ensemble": {
+      "type": "object",
+      "required": ["forecast_models", "model_versions", "dependence_matrix_ref", "model_weights", "ensemble_method", "ensemble_version"],
+      "properties": {
+        "forecast_models": {"type": "array", "items": {"type": "string"}},
+        "model_versions": {"type": "array", "items": {"type": "string"}},
+        "dependence_matrix_ref": {"type": ["string", "null"]},
+        "model_weights": {"type": "array", "items": {"type": "number"}},
+        "ensemble_method": {"type": "string", "minLength": 1},
+        "ensemble_version": {"type": "string", "minLength": 1}
+      }
+    },
+    "regime": {
+      "type": "object",
+      "required": ["market_regime_posterior", "volatility_regime_posterior", "liquidity_regime_posterior", "policy_regime_posterior", "changepoint_probability", "validity_window", "regime_model_version"],
+      "properties": {
+        "market_regime_posterior": {"type": "object"},
+        "volatility_regime_posterior": {"type": "object"},
+        "liquidity_regime_posterior": {"type": "object"},
+        "policy_regime_posterior": {"type": "object"},
+        "changepoint_probability": {"type": "number", "minimum": 0, "maximum": 1},
+        "validity_window": {"type": "string", "minLength": 1},
+        "regime_model_version": {"type": "string", "minLength": 1}
+      }
+    },
+    "predictive": {
+      "type": "object",
+      "required": ["expected_value", "median", "p05", "p25", "p50", "p75", "p95", "probability_positive", "probability_below_loss_threshold", "predictive_distribution_ref"],
+      "properties": {
+        "expected_value": {"type": "number"},
+        "median": {"type": "number"},
+        "p05": {"type": "number"},
+        "p25": {"type": "number"},
+        "p50": {"type": "number"},
+        "p75": {"type": "number"},
+        "p95": {"type": "number"},
+        "probability_positive": {"type": "number", "minimum": 0, "maximum": 1},
+        "probability_below_loss_threshold": {"type": "number", "minimum": 0, "maximum": 1},
+        "predictive_distribution_ref": {"type": "string", "minLength": 1}
+      }
+    },
+    "diagnostics": {
+      "type": "object",
+      "required": ["inference_engine", "inference_engine_version", "code_commit_sha", "random_seed", "rhat_max", "ess_bulk_min", "ess_tail_min", "divergent_transition_count", "prior_predictive_status", "posterior_predictive_status", "simulation_based_calibration_status", "psis_loo_status", "pareto_k_max", "calibration_status", "calibration_model_version"],
+      "properties": {
+        "inference_engine": {"type": "string", "minLength": 1},
+        "inference_engine_version": {"type": "string", "minLength": 1},
+        "code_commit_sha": {"type": "string", "minLength": 7},
+        "random_seed": {"type": ["integer", "null"]},
+        "rhat_max": {"type": ["number", "null"]},
+        "ess_bulk_min": {"type": ["number", "null"]},
+        "ess_tail_min": {"type": ["number", "null"]},
+        "divergent_transition_count": {"type": ["integer", "null"], "minimum": 0},
+        "prior_predictive_status": {"type": "string", "minLength": 1},
+        "posterior_predictive_status": {"type": "string", "minLength": 1},
+        "simulation_based_calibration_status": {"type": "string", "minLength": 1},
+        "psis_loo_status": {"type": "string", "minLength": 1},
+        "pareto_k_max": {"type": ["number", "null"]},
+        "calibration_status": {"type": "string", "minLength": 1},
+        "calibration_model_version": {"type": "string", "minLength": 1}
+      }
+    },
+    "numeric_integrity": {
+      "type": "object",
+      "required": ["probability_serialization_decimal_places", "rounding_policy_version", "numeric_tolerance_registry_ref", "feature_polarity_registry_ref", "canonical_digest"],
+      "properties": {
+        "probability_serialization_decimal_places": {"const": 12},
+        "rounding_policy_version": {"type": "string", "minLength": 1},
+        "numeric_tolerance_registry_ref": {"type": "string", "minLength": 1},
+        "feature_polarity_registry_ref": {"type": "string", "minLength": 1},
+        "canonical_digest": {"type": "string", "minLength": 1}
+      }
+    },
+    "authority_flags": {
+      "type": "object",
+      "required": ["market_truth_authority", "event_truth_authority", "regime_truth_authority", "decision_authority", "risk_override_authority", "position_authority", "order_authority", "trade_authority"],
+      "properties": {
+        "market_truth_authority": {"const": false},
+        "event_truth_authority": {"const": false},
+        "regime_truth_authority": {"const": false},
+        "decision_authority": {"const": false},
+        "risk_override_authority": {"const": false},
+        "position_authority": {"const": false},
+        "order_authority": {"const": false},
+        "trade_authority": {"const": false}
+      },
+      "additionalProperties": false
+    }
+  }
+}
