@@ -101,7 +101,11 @@ def detect_mids_opportunity(
     explicit_spec_is_sufficient: bool = False,
     user_declined_for_slice: bool = False,
 ) -> Detection:
-    """Return a deterministic shadow classification: HIGH, MEDIUM, LOW, or SUPPRESSED."""
+    """Return a deterministic shadow classification: HIGH, MEDIUM, LOW, or SUPPRESSED.
+
+    The user never needs to mention MIDS. Semantic request structure and project-state
+    flags are sufficient to make the request eligible for detection.
+    """
     text = " ".join(str(request_text).casefold().split())
 
     if user_declined_for_slice or any(pattern in text for pattern in SUPPRESS_PATTERNS):
