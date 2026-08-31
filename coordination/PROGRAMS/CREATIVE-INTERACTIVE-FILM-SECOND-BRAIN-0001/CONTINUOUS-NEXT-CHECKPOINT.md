@@ -6,15 +6,17 @@ This is an executor checkpoint for the continuing implementation branch. It
 does **not** request GPT review, mark a candidate ready, accept a change, or
 authorize a merge/deployment/customer intake action.
 
-## Exact baseline and current head
+## Exact baseline and code checkpoint
 
 - parent audited continuous-build head: `a9a85bda200a7160fb244186e4c71c8c28b6463c`
 - continuing branch: `codex/creative-runtime-next`
-- current checkpoint head: `f30854a8ae52593a3c3b8910df98dd11ed858efc`
+- current code checkpoint head: `9dad166ab85c4037e79293a7bd34e6b443db2b8e`
 - implementation commits:
   - `38f6c92b29b9ec5a13a194150e069abfe8db36a9` — verified replay capsule
   - `f30854a8ae52593a3c3b8910df98dd11ed858efc` — fixed portable replay package
   - `ae305b12bfa9afaed0cc518bef8a1b8e7c769eeb` — exhaustive replay corpus
+  - `f6007632f126095b39a38a544044a85731e6e859` — portable exhaustive replay-corpus package
+  - `9dad166ab85c4037e79293a7bd34e6b443db2b8e` — immutable per-process corpus-build cache
 
 Rollback is Git-native: leave the preceding audited branch untouched, or
 select the preceding exact commit in a new review/implementation branch. Do
@@ -47,6 +49,35 @@ caller-authored `say` text, an unknown/non-canonical action label, a forged
 patch, an altered transition, an unregistered initial scenario, an invalid
 ledger, an incomplete route graph, or a failing director quality gate. It does
 not create a shadow/default session on failure.
+
+## Portable exhaustive replay-corpus package
+
+Every completed safe terminal route across all registered synthetic scenarios
+can now be exported as one fixed four-file package:
+
+1. `replay_corpus.json` — exact-head corpus containing all 38 source-bound
+   route capsules.
+2. `verified_replay_corpus_viewer.html` — local, read-only route index; it
+   can display a route but cannot calculate a state, accept a choice, persist
+   data, call a network/provider, or acquire story authority.
+3. `README.md` — offline opening and verification instructions.
+4. `replay_corpus_package_manifest.json` — exact member digests and the
+   source Git SHA.
+
+`python tools/build_replay_corpus_package.py --expected-head <SHA>
+--output-dir <new-directory>` refuses to overwrite a path and atomically writes
+the package. `python tools/verify_replay_corpus_package.py --expected-head
+<SHA> --package-dir <directory>` requires precisely the fixed members,
+rebuilds every route from the checked-out graph, checks all capsule/timeline/
+director contracts and compares the static viewer and guide bytes to the exact
+source. A changed route, missing scenario, forged transition, modified member
+or extra file fails closed.
+
+The GitHub offline workflow now includes a Python 3.13-only
+`synthetic-replay-corpus` job. It builds, verifies and retains the package for
+seven days under `creative-runtime-replay-corpus-<exact-SHA>`. This is a
+downloadable synthetic evidence artifact, not deployment, publication,
+customer intake, provider generation or an acceptance decision.
 
 ## Exhaustive replay corpus
 
@@ -109,6 +140,26 @@ compatibility promise, a supported-runtime change, or an explicitly approved
 release gate. At the measured 126-test size this avoids roughly 165 seconds of
 additional local compute for each otherwise identical full milestone run.
 
+At exact head `9dad166ab85c4037e79293a7bd34e6b443db2b8e`, the current 131-test
+Python 3.13 suite passed in **225.036 seconds**. Before the immutable
+per-process replay-corpus cache, the same evolving suite took 525.661 seconds
+for 130 tests because multiple test cases re-built the identical 38-route
+corpus independently. The cache stores only canonical JSON for one exact head
+inside one Python process, then returns fresh parsed objects; a caller cannot
+mutate later checks. Each command-line builder/verifier and clean clone remains
+a new process and performs its own full source reconstruction.
+
+The task-owned clean clone
+`F:\aidanao-worktrees\standalone-clones\second-brain-continuous-build-verify`
+checked out that exact head with a clean worktree and independently built then
+verified the package. Its verified corpus had 38 routes
+(`harbor_protocol: 14`, `legacy_archive: 6`, `night_signal: 12`,
+`three_scene: 6`), corpus ID `replay_corpus_5241b519ef39af8c410d`, corpus
+SHA-256 `66a9019c8f8cc072981f321a6f26ccbf7c6430f4d2b25c2ba150cc9ee8bc3f5e`,
+and manifest SHA-256
+`fd4899c00a5ffe0edcdc1e43b836bcf68265a787568ddd200228d23baeff4d52`.
+This is executor clean-reproduction evidence, not independent acceptance.
+
 ## Still deliberately out of scope
 
 - customer content, customer-vault reads, account/cookie/credential access;
@@ -121,7 +172,8 @@ additional local compute for each otherwise identical full milestone run.
 ## Next build frontier
 
 Continue the synthetic runtime without interrupting for micro-reviews. The
-highest-value adjacent work is to make a completed replay package useful in a
-larger multi-route regression corpus: deterministic named routes across every
-registered scenario, visible per-route director continuity evidence, and an
-exact-head index that can be verified without trusting a local workspace.
+highest-value adjacent work is now to make the verified corpus more useful for
+human review without weakening its read-only authority: deterministic
+route-level comparison summaries, explicit continuity deltas across alternate
+endings, and a source-bound review packet that still never exports customer
+sessions or lets the browser calculate story state.
