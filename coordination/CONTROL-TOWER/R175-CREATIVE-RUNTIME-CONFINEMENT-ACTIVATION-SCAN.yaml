@@ -1,0 +1,42 @@
+schema: CONTROL_TOWER_ACTIVATION_SCAN/v1
+project: CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001
+task_id: CODEX-R174-CAPABILITY-CONFINEMENT-REMEDIATION-R175
+route_epoch: 175
+source_issue: 528
+scan_result: PASS_PRE_SNAPSHOT
+observed_main_before_floor: 43edef98c22b75d29cf730e1623e99a705dec34a
+implementation_baseline: 740788a3847a402923bf2e89093d910eda0c89d0
+required_branch: codex/r175-capability-policy-confinement-remediation
+branch_absent_at_scan: true
+review_binding:
+  pr: 527
+  exact_head: bebc29e504fbed64aaa6db981e09b359b0c83b80
+  review: 5068638956
+  review_result: 5481082134
+  verdict: CHANGES_REQUIRED
+frozen_write_surfaces:
+  PR_527: FROZEN_NO_WRITE
+  PR_525: FROZEN_NO_WRITE
+  historical_frozen_prs: [493,495,502,506,508,511,513]
+collision_analysis:
+  CODEX_R174:
+    state: FROZEN_AFTER_T3_CHANGES_REQUIRED
+    concurrent_write: false
+  GPT_R172_ISSUE_515:
+    owner: GPT_ENGINEERING_WORKER
+    state: SEPARATE_GPT_OWNED_LANE
+    codex_architecture_claim: forbidden
+    r175_overlap: MINIMAL_ADJACENT_MIGRATION_PUBLICATION_ONLY
+    activation_rule: R172_MUST_FRESH_RECONCILE_R175_OUTCOME_BEFORE_ANY_SESSION_AUTHORITY_ACTIVATION
+  canonical_policy_floor:
+    owner: GPT_GITHUB_INTEGRATOR_GOVERNANCE
+    implementation_candidate_write: forbidden
+    overlap: READ_ONLY_DEPENDENCY
+single_writer_check: PASS
+codex_singleton_capacity: PASS_AFTER_R174_FREEZE
+required_windows_confinement_test: true
+required_policy_floor_enforcement: true
+required_source_identity_through_publish: true
+prewrite_snapshot_required: true
+execution_allowed_before_snapshot: false
+merge_authorized: false
