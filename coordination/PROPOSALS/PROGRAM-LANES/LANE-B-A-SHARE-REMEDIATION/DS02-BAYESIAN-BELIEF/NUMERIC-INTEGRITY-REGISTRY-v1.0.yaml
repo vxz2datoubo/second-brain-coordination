@@ -1,0 +1,47 @@
+schema_version: "1.0"
+registry_id: DS02-NUMERIC-INTEGRITY-v1
+probability:
+  internal_type: IEEE754_FLOAT64
+  canonical_serialization:
+    decimals: 12
+    rounding: ROUND_HALF_EVEN
+    scientific_notation: false
+  ui:
+    display_precision_is_authority: false
+    round_trip_from_display_forbidden: true
+  stable_update:
+    repeated_binary_evidence: LOG_ODDS_OR_LOG_PROBABILITY
+    direct_likelihood_product_discouraged: true
+    finite_probability_required: true
+time:
+  timestamps_timezone_explicit: true
+  point_in_time_gate: "available_at <= decision_time"
+  unknown_temporal_fields_may_not_be_backfilled_from_other_fields: true
+revision:
+  data_snapshot_hash_required: true
+  revised_data_requires_revision_lineage: true
+  historical_backtest_replacement_without_lineage: PIT_VIOLATION
+identity:
+  target_definition_version_required: true
+  feature_definition_version_required: true
+  feature_polarity_required: true
+  market_rule_version_required: true
+  market_rule_clause_state_version_required: true
+  cross_exchange_substitution: REVALIDATION_REQUIRED
+  rule_clause_activation_mismatch: REVALIDATION_REQUIRED
+retraction:
+  append_only: true
+  deletion_of_historical_update_forbidden: true
+  recompute_from_surviving_admitted_evidence: true
+  additive_log_bayes_factor_retraction_must_be_reversible: true
+tolerances:
+  analytic_reference_absolute_error: 1.0e-12
+  sequential_batch_absolute_error: 1.0e-12
+  serialization_round_trip_absolute_error: 5.0e-13
+forbidden_numeric_shortcuts:
+  - LLM_CONFIDENCE_AS_PROBABILITY
+  - UI_PERCENT_AS_CANONICAL_POSTERIOR
+  - HISTORICAL_WIN_RATE_AS_FULL_PREDICTIVE_DISTRIBUTION
+  - SAME_DISPLAY_LABEL_WITH_DIFFERENT_TARGET_DEFINITION
+  - SILENT_FEATURE_POLARITY_FLIP
+  - SILENT_RULE_ERA_POOLING
