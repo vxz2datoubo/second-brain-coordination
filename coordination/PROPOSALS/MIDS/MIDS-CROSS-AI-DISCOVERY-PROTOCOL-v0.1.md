@@ -12,6 +12,26 @@ MIDS = `Mixed-Initiative Discovery & Specification`（混合主动式共创发�
 
 MIDS 不是第二套 domain authority。共享层只定义 discovery protocol、question selection、provenance、handoff envelope 和跨 AI 可移植表达；各 domain 继续拥有自己的 canonical semantics。
 
+### 1.1 Implicit recall / forgetfulness requirement
+
+MIDS 的可用性不能依赖用户记住 `MIDS` 这个名字。
+
+当用户未来只表达诸如“我有个方向但不知道怎么落地”“很多想法说不成程序员规格”“不知道最终应该做成什么”“帮我一起推演/确认方向”这类语义时，如果问题具有真实设计空间、material unknown、重大 trade-off 或高返工风险，AI 应能够根据问题结构主动识别：这可能适合 MIDS。
+
+行为分级：
+
+- `HIGH`：简短提醒这类问题适合共创发现，并直接进入 1–3 个高信息价值问题 / materially distinct candidates；
+- `MEDIUM`：使用 `micro-MIDS`，只指出一个关键未知、问一个高价值问题或给一个非显然候选，不必总是说出 MIDS 名称；
+- `LOW`：普通回答，不打断；
+- `SUPPRESSED`：用户明确拒绝 MIDS/discovery 后，本 slice 不再重复提醒，除非出现 materially new uncertainty 或矛盾证据。
+
+简单事实查询、翻译、格式转换、已有充分规格的低风险执行不应触发。
+
+机器可读 detection policy：`MIDS-OPPORTUNITY-DETECTOR-v0.1.yaml`。
+Shadow implementation / regression：`shadow/mids_opportunity_detector.py`、`shadow/test_mids_opportunity_detector.py`。
+
+核心原则：**方法应该记住用户，而不是要求用户记住方法。**
+
 ## 2. Portable invocation levels
 
 ### 2.1 One-line trigger
@@ -170,7 +190,7 @@ MIDS 不是第二套 domain authority。共享层只定义 discovery protocol、
 - 其他 agent 提交 research findings、question candidates、blockers、counterarguments 和 implementation constraints；
 - Discovery Lead 去重、排序、翻译后再问我；
 - 不要让多个 agent 分别轰炸我；
-- Coding Agent 不得自行猜测战略需求；
+- Coding Agent 不得自行猜战略需求；
 - Reviewer 可以重新打开 discovery，但必须说明触发它的证据或失败。
 
 ### Quality checks
@@ -195,6 +215,9 @@ MIDS 不是第二套 domain authority。共享层只定义 discovery protocol、
 ### Canonical terms
 
 - **MIDS** — Mixed-Initiative Discovery & Specification — 混合主动式共创发现与规格化
+- **Implicit MIDS Recall** — MIDS 隐式唤起，即使用户忘记方法名，也根据需求语义主动识别适用机会
+- **MIDS Opportunity Detector** — MIDS 机会探测器，对请求进行 HIGH / MEDIUM / LOW / SUPPRESSED 分级
+- **Micro-MIDS** — 微型 MIDS，在中等机会中只做一两个高价值 discovery 动作，避免把所有任务变成长访谈
 - **Discovery Lead** — 负责和用户进行主要 discovery 对话、聚合其他 agent 问题候选的角色
 - **Epistemic Coverage Matrix** — 认知覆盖矩阵，用于区分显性知识、隐性知识、可发现选项、专家盲区和未知
 - **High-Information-Value Question** — 高信息价值问题，对关键决策、不确定性或下游依赖有显著影响的问题
@@ -221,45 +244,77 @@ MIDS 不是第二套 domain authority。共享层只定义 discovery protocol、
 - **AI Proposal Boundary** — 明确 AI 新想法只能作为 proposal/candidate，不能自动成为用户决定
 - **Authority Boundary** — discovery、spec、runtime、domain truth 等角色之间不可越权的边界
 - **Contradiction Leakage** — 已确认决定在后续过程被模型无意改写或重新引入的失败
-- **Novel Direction Acceptance** — AI 主动提出的新设计方向被用户认可并进入后续规格的比例
-- **Critical Unknown Discovery Rate** — 在实现前发现后来可能导致 blocker/返工的重要未知项比例
+- **Novel Direction Acceptance** — AI 主动提出的新方向被用户采纳并进入规格的比例
+- **Critical Unknown Discovery Rate** — 实现前发现后来可能造成 blocker/返工的重要未知项的比例
 
-## 5. Relationship to Second Brain
+## 5. Second Brain integration
 
-MIDS 应复用现有 Second Brain 的：
+MIDS 公共层应优先复用现有：
 
-- intake / signal capture
-- UNKNOWN semantics
-- provenance
-- correction / supersedes relations
-- Domain Learning Handoff boundary
-- Control Tower / independent review / canonicalization governance
+`Global Signal / Adaptive Intake / UNKNOWN / Domain Learning Handoff / Control Tower / provenance / correction semantics`。
 
-共享层可以拥有：
+推荐数据流：
 
-- portable invocation vocabulary
-- discovery session envelope
-- question selection semantics
-- provenance/status vocabulary
-- cross-agent question aggregation
-- domain handoff packet
-- generic shadow/replay eval framework
+`user input`
+→ `MIDS opportunity detection / semantic implicit recall`
+→ `if useful: Discovery Lead session`
+→ `Discovery Packet candidate`
+→ `Second Brain routing/provenance`
+→ `domain-owned interpretation`
+→ `domain spec / OPEN_DECISION / work item`
+→ `implementation`
+→ `independent evaluation`
+→ `learning / discovery reopen if evidence contradicts assumptions`
 
-共享层不得拥有：
+Second Brain 可以拥有：
 
-- AI Film 的导演/剧情/角色 canonical truth
-- AWRSE 的世界/能力/规则 canonical truth
-- 任意 domain 的最终专业解释或成熟度决定
+- cross-AI portable vocabulary；
+- implicit MIDS opportunity detector semantics；
+- generic Discovery Session / Packet envelope；
+- generic question-selection semantics；
+- generic provenance vocabulary；
+- agent question aggregation；
+- cross-domain routing；
+- shadow/replay eval framework。
+
+Second Brain 不可以拥有：
+
+- AI Film 剧情/角色/导演 canonical truth；
+- AWRSE 世界规则/能力规则 canonical truth；
+- domain-specific learning maturity authority；
+- generic writer 任意修改 domain canonical files 的权限。
 
 ## 6. Validation strategy
 
-先 `SHADOW`，后 `PILOT`，再 `CROSS-DOMAIN VALIDATION`，最后才考虑 general canonicalization。
+不要根据“感觉问得不错”验收。
 
-至少用两个差异明显的 domain 做 replay：
+阶段：
 
-1. 隐藏历史任务最终答案，只给当时早期用户输入和 canonical context；
-2. 让 MIDS 产生问题和候选方向；
-3. 对比它是否提前发现后来真实 review 中出现的重要 blocker、unknown、trade-off 或创意机会；
-4. 统计 question yield、redundancy、critical unknown discovery、novel option acceptance、post-spec rework 和 authority violations。
+`SHADOW → PILOT → CROSS-DOMAIN VALIDATION → GENERALIZE → INDEPENDENT REVIEW → CANONICALIZATION`。
 
-任何 AI inference 静默升级为 user-confirmed truth 都是 fail。
+Replay 方法：从已经完成的历史任务取早期模糊输入，隐藏最终 resolution，检查 MIDS 是否能在实现前发现后来真正成为 blocker、返工原因或关键创意机会的内容。
+
+核心指标：
+
+- useful decisions per question；
+- critical unknown discovery rate；
+- redundant question rate；
+- false-positive MIDS reminder rate；
+- novel direction acceptance；
+- user cognitive load；
+- interruption cost；
+- post-spec rework；
+- contradiction leakage；
+- provenance completeness；
+- domain authority violation = 0；
+- AI inference silently promoted to user truth = 0。
+
+## 7. Generalization rule
+
+不要因为 AI Film 一个 pilot 成功，就立刻把全部 schema 冻结成全球标准。
+
+推荐：
+
+`AI Film pilot → AWRSE second-domain validation → extract common semantics → Second Brain canonicalization candidate`。
+
+只有跨至少两个明显不同的 domain 仍然稳定的部分，才适合进入共享 protocol。
