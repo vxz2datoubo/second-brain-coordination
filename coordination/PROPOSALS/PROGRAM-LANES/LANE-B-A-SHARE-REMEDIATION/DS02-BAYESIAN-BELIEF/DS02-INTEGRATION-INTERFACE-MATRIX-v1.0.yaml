@@ -1,0 +1,174 @@
+schema_version: "1.0"
+interface_matrix_id: "DS02-BAYESIAN-INTEGRATION-MATRIX-0012B"
+source_issue: 519
+skill_ref: "BAYESIAN-BELIEF-UPDATE-FORECAST-FUSION-SKILL-0012B"
+boundary: "CONTRACT_ONLY / RESEARCH_ONLY / NO_TRADE"
+
+principles:
+  - "DS-02 is the BELIEVE/probability bus, not a second source-of-truth runtime for upstream observations."
+  - "Every producer retains semantic ownership of its evidence; DS-02 stores refs/versioned adapters, not copied authority."
+  - "Every downstream consumer receives BeliefPacket/v1 plus provenance; no consumer may reinterpret UI confidence as canonical probability."
+  - "No direct DS-02 to broker/order edge exists."
+
+producers:
+  W2:
+    role: "point-in-time market data and replay"
+    provides:
+      - market_observation_refs
+      - available_at
+      - market_calendar_version
+      - corporate_action_adjustment_version
+      - replay_snapshot_digest
+    retains_authority: MARKET_AND_REPLAY
+    ds02_may_mutate_upstream_truth: false
+
+  W5:
+    role: "event / policy / news evidence"
+    provides:
+      - event_evidence_refs
+      - source_grade
+      - source_family_id
+      - published_at
+      - available_at
+      - market_effective_at
+      - expectation_snapshot_ref
+      - surprise_vector_ref
+    retains_authority: EVENT_EVIDENCE
+    ds02_may_upgrade_rumor_to_fact: false
+
+  W13:
+    role: "participant/capital-flow context"
+    provides:
+      - flow_evidence_refs
+      - vendor_semantics_version
+      - feature_definition_version
+      - source_capability_ref
+    retains_authority: PARTICIPANT_FLOW_CONTEXT
+    ds02_may_infer_real_participant_identity_from_vendor_bucket: false
+
+  TECHNICAL_AND_MICROSTRUCTURE_SKILLS:
+    role: "versioned observable/derived market features"
+    provides:
+      - feature_id
+      - feature_definition_version
+      - feature_value
+      - unit
+      - polarity
+      - available_at
+      - data_snapshot_hash
+    examples: [VOLUME_PROFILE, VWAP, CVD_PROXY, CMF, LIQUIDITY, WYCKOFF_OBSERVABLES]
+    retains_authority: FEATURE_SEMANTICS_OWNER
+    ds02_may_merge_different_feature_versions: false
+
+  MULTI_AGENT_GAME_ENGINE:
+    role: "bounded forecast candidates and competitive explanations"
+    provides:
+      - agent_forecast_candidate
+      - model_version
+      - shared_training_data_group
+      - shared_feature_group
+      - shared_model_family
+      - provenance_refs
+    retains_authority: AGENT_SIMULATION
+    ds02_requirement: "dependence-aware forecast fusion; no independent-vote assumption"
+
+  DS11:
+    role: "regime, structural break and model-decay authority"
+    provides:
+      - market_regime_posterior
+      - volatility_regime_posterior
+      - liquidity_regime_posterior
+      - policy_regime_posterior
+      - changepoint_probability
+      - drift_evidence
+      - validity_window
+      - degrade_action
+    retains_authority: REGIME_CHANGE_MODEL_DECAY
+    ds02_may_create_second_regime_authority: false
+
+  EPISTEMIC_SKILL_0013:
+    role: "user knowledge-state / explanation-depth projection"
+    provides:
+      - cognitive_band
+      - comprehension_readiness
+      - explanation_bridge_refs
+      - freshness_status
+    retains_authority: EPISTEMIC_PROJECTION
+    ds02_may_create_second_user_profile: false
+
+consumers:
+  W7:
+    role: "risk"
+    consumes:
+      - BeliefPacket/v1
+      - predictive_distribution_ref
+      - unknown_mass
+      - regime validity
+    may_override_ds02_probability: false
+    may_apply_independent_risk_gates: true
+
+  W10:
+    role: "DecisionEpisode pre-decision freeze"
+    consumes:
+      - belief_id
+      - target_id
+      - posterior/predictive refs
+      - prior/evidence/model versions
+      - invalidation conditions
+    required_behavior: "freeze the ex-ante belief identity before outcome observation"
+
+  W11:
+    role: "portfolio/allocation consumer"
+    consumes:
+      - BeliefPacket/v1
+      - W7 risk constraints
+      - execution/cost context
+    rule: "probability alone cannot determine position size"
+
+  ISSUE_62_KELLY_THORP:
+    role: "downstream expected-value / robust capital-allocation research"
+    consumes:
+      - calibrated posterior predictive distribution
+      - payoff distribution
+      - costs
+      - dependence/correlation context
+      - calibration status
+    hard_gate: "uncalibrated or revalidation-required beliefs must be reduced/abstained according to downstream policy"
+
+  DS10:
+    role: "multiple-testing / research-overfitting audit"
+    consumes:
+      - experiment_family_id
+      - trial_ledger_ref
+      - selection procedure
+      - OOS metrics
+      - failed_trial_refs
+    rule: "DS-02 may not self-certify alpha after searching many priors/features/models"
+
+forbidden_edges:
+  - [DS02, BROKER]
+  - [DS02, LIVE_ORDER]
+  - [DS02, ACCOUNT_FUNDS]
+  - [DS02, W5_CANONICAL_EVENT_WRITE]
+  - [DS02, W2_CANONICAL_MARKET_WRITE]
+  - [DS02, DS11_CANONICAL_REGIME_WRITE]
+  - [DS02, EPISTEMIC_CANONICAL_PROFILE_WRITE]
+
+handoff_contract:
+  upstream_to_ds02_required:
+    - producer_id
+    - semantic_version
+    - point_in_time_availability
+    - provenance_ref
+    - independence/dependence metadata
+    - invalidation_conditions
+  ds02_to_downstream_required:
+    - belief_id
+    - target_definition_version
+    - market_rule_version
+    - posterior/predictive distribution
+    - unknown_mass
+    - calibration status
+    - regime validity
+    - provenance digest
+    - authority_flags_all_false
