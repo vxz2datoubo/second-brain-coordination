@@ -1,0 +1,145 @@
+schema_version: "1.1"
+scan_id: "R172-SINGLE-V2-AUTHORITY-ACTIVATION-SCAN"
+project: "SECOND_BRAIN"
+repository: "vxz2datoubo/second-brain-coordination"
+source_issue: 515
+task_id: "GPT-R171-SINGLE-V2-AUTHORITY-CLEAN-SUCCESSOR-R172"
+route_epoch: 172
+worker_slot_id: "GPT-WORKER-R172-SINGLE-V2-AUTHORITY-1"
+observed_main_before_reconciliation: "1a514fe839b1c47a14d7fad4a96e8c9fd2365338"
+observed_governance_head_before_reconciliation: "fcd00c82f97edb0db2d6f76fb22bd0748e4e8b8d"
+reconciliation_snapshot: 5470439948
+scan_result: "PASS_GOVERNANCE_RECONCILIATION_RESERVED_NON_EXECUTABLE_WITH_PIPELINE_WAITS"
+
+canonical_candidate_bindings:
+  route: "coordination/ROUTES/GPT-R171-SINGLE-V2-AUTHORITY-CLEAN-SUCCESSOR-R172.yaml"
+  task_brief: "coordination/TASK-BRIEFS/GPT-R171-SINGLE-V2-AUTHORITY-CLEAN-SUCCESSOR-R172.yaml"
+  work_claim: "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/SINGLE-V2-AUTHORITY-R172/WORK-CLAIM.yaml"
+  authorization_witness: "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/SINGLE-V2-AUTHORITY-R172/AUTHORIZATION-WITNESS.yaml"
+  source_selection_provenance: "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/SINGLE-V2-AUTHORITY-R172/SOURCE-SELECTION-PROVENANCE.yaml"
+  task_lease: "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/SINGLE-V2-AUTHORITY-R172/TASK-LEASE.yaml"
+  executor_reservation: "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/SINGLE-V2-AUTHORITY-R172/EXECUTOR-RESERVATION.yaml"
+  worker_registry: "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+  program_lanes: "coordination/ACTIVE-PROGRAM-LANES.yaml"
+  lane_work_claims: "coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml"
+  codex_registry: "coordination/ACTIVE-CODEX-TASK.yaml"
+
+branch_precondition:
+  implementation_branch: "gpt/r172-single-v2-authority"
+  observed_before_reconciliation: "ABSENT"
+  governance_branch: "gpt/r172-single-v2-authority-governance"
+  governance_branch_present: true
+  implementation_branch_creation_allowed_now: false
+  implementation_branch_creation_gate: "AFTER_GOVERNANCE_MERGE_PLUS_ISSUE_515_EFFECTIVE_SPEC_SNAPSHOT_PLUS_RESERVED_TO_ACTIVE_TRANSITION"
+
+capacity_scan:
+  gpt_parallel_routes_allowed: true
+  gpt_active_slots_max: 2
+  r168_slot:
+    id: "GPT-WORKER-R168-CANONICAL-CI-STATE-ISOLATION-1"
+    pipeline_state: "WAITING_CANONICALIZATION_ACCEPTED_HEAD_EXECUTION_FROZEN"
+    exact_head: "f58d63f4ea1db935de8005ffb710f50394ce6062"
+    execution_allowed: false
+    independent_review: 5061226434
+    ready_transport_incident: 5470432141
+  r166_slot:
+    id: "GPT-WORKER-R166-W5-EVENT-COVERAGE-2"
+    pipeline_state: "WAITING_INDEPENDENT_REVIEW_EXECUTION_FROZEN"
+    exact_head: "cc982f33ad87601a0327e595125272ea4954cdce"
+    execution_allowed: false
+    review_request: 5470409826
+  r172_slot:
+    id: "GPT-WORKER-R172-SINGLE-V2-AUTHORITY-1"
+    activation_state: "RESERVED"
+    execution_allowed: false
+  active_execution_slot_count: 0
+  reserved_nonexecuting_slot_count: 1
+  pipeline_waiting_nonexecuting_slot_count: 2
+  capacity_result: "PASS_ZERO_ACTIVE_ONE_RESERVED"
+  codex_active_execution_routes: 0
+  codex_r171_frozen: true
+
+lane_scan:
+  lane_a:
+    claim_state: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
+    pipeline_state: "R168_ACCEPTED_WAITING_CANONICALIZATION"
+    active_writer: false
+  lane_b:
+    claim_state: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
+    pipeline_state: "R166_WAITING_INDEPENDENT_REVIEW"
+    active_writer: false
+  lane_c:
+    claim_state: "RESERVED_IMPLEMENTATION_NON_EXECUTABLE"
+    task: "GPT-R171-SINGLE-V2-AUTHORITY-CLEAN-SUCCESSOR-R172"
+    owner: "GPT_ENGINEERING_WORKER"
+    active_writer: false
+  lane_count: 3
+  program_lane_limit: 3
+  result: "PASS"
+
+parallel_execution_scan:
+  active_mutable_writer_count: 0
+  r172_reserved_future_surface:
+    - ".github/workflows/r172-single-v2-authority.yml"
+    - "creative_runtime/ledger.py"
+    - "creative_runtime/session_v2.py"
+    - "apps/cli/creativectl.py"
+    - "tests/test_r172_single_v2_authority.py"
+    - "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/SINGLE-V2-AUTHORITY-R172/AI_HANDOFF.yaml"
+  current_write_collision: false
+  overlap_class: "O0_NO_ACTIVE_CONCURRENT_WRITER"
+  same_canonical_object_writers_max: 1
+  nested_parallelism: "FORBIDDEN"
+
+provenance_scan:
+  r171_code_route:
+    task: "CODEX-R170-V2-CONTINUATION-DURABILITY-R171"
+    status: "FROZEN_NO_ACTIVE_CODEX_EXECUTION"
+    execution_allowed: false
+    correction_comment: 5469016549
+    frozen_pr: 513
+    frozen_evidence_head: "9e9321c2c3cc187061e1be1b3c44f741f5a7bba5"
+    implementation_reuse_allowed: false
+  r166:
+    status: "WAITING_INDEPENDENT_REVIEW_EXECUTION_FROZEN"
+    exact_head: "cc982f33ad87601a0327e595125272ea4954cdce"
+    handoff: 5470408857
+    review_request: 5470409826
+    exact_head_ci_run: 33327321346
+  r168:
+    status: "ACCEPTED_WAITING_CANONICALIZATION_EXECUTION_FROZEN"
+    exact_head: "f58d63f4ea1db935de8005ffb710f50394ce6062"
+    independent_review: 5061226434
+    review_result: 5469655950
+    canonicalization_handoff: 5470394737
+    ready_transport_incident: 5470432141
+
+trust_boundary_scan:
+  frozen_candidate_implementation_reuse_authorized: false
+  reservation_is_runtime_execution_authority: false
+  governance_merge_alone_authorizes_runtime_write: false
+  second_ledger_gateway_resolver_authority_authorized: false
+  network_provider_model_runtime_authorized: false
+  credential_account_access_authorized: false
+  production_deployment_release_authorized: false
+  w3_domain_truth_write_authorized: false
+  trading_broker_order_fund_authorized: false
+  self_review_authorized: false
+  self_accept_authorized: false
+  self_merge_authorized: false
+  history_rewrite_authorized: false
+
+required_next_gate:
+  action: "WAIT_FOR_R168_READY_AND_CANONICALIZATION_THEN_SYNCHRONIZE_GOVERNANCE_CANDIDATE_TO_FRESH_MAIN_AND_RUN_CANONICAL_COMPARATOR"
+  governance_pr_must_remain_no_runtime_implementation: true
+  current_old_absolute_ci_is_acceptance_authority: false
+  canonical_r168_comparator_required_before_governance_review: true
+  independent_review_required_after_successor_exact_head_proof: true
+  canonical_merge_required_before_issue_515_snapshot: true
+  issue_515_snapshot_required_after_merge: true
+  implementation_branch_must_remain_absent_through_snapshot: true
+  reserved_to_active_transition_required_after_snapshot_before_first_runtime_write: true
+  on_any_mismatch: "FAIL_CLOSED_NO_SUBSTANTIVE_WRITE"
+
+review_authority: "GPT_INDEPENDENT_REVIEWER"
+merge_authorized: false
