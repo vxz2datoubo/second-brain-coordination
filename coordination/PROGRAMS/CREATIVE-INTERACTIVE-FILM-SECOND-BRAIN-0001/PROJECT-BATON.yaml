@@ -12,6 +12,14 @@ updated_by: GPT
 stable_skill: coordination/SKILLS/CREATIVE-INTERACTIVE-FILM-MULTI-AGENT-RELAY-SKILL-v1.0.yaml
 human_entrypoint: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CONTINUE-HERE.md
 history_log: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/PROJECT-HANDOFF-LOG.md
+coordination_main_after_relay_install: cfda2649bd80b1314f7a3b984f940d133404d728
+relay_installation_scope:
+  - coordination/SKILLS/CREATIVE-INTERACTIVE-FILM-MULTI-AGENT-RELAY-SKILL-v1.0.yaml
+  - coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/PROJECT-BATON.yaml
+  - coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/PROJECT-HANDOFF-LOG.md
+  - coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CONTINUE-HERE.md
+  - AGENTS.md
+relay_installation_effect: "COORDINATION_ONLY / NO_CREATIVE_RUNTIME_OR_COMPARATOR_IMPLEMENTATION_CHANGE"
 
 baton:
   handoff_id: CIF-RELAY-0001
@@ -56,7 +64,12 @@ parallel_project_state:
     exact_head: 6a00939495ec7d8c974e5fbe8a8940a56dec3855
     independent_review: ACCEPT
     canonical_state: ACCEPTED_NOT_CANONICAL_AT_LAST_HANDOFF
-    rule: "R172 remains gated until fresh canonicalization and reservation activation evidence."
+    current_main_has_advanced_since_review: true
+    current_main_last_observed: cfda2649bd80b1314f7a3b984f940d133404d728
+    main_advance_scope: RELAY_GOVERNANCE_ONLY
+    rule: >-
+      ACCEPT remains bound to the exact reviewed head, but canonicalization must fresh reconcile the now-advanced main;
+      R172 remains gated until governed canonicalization and reservation activation evidence.
   GPT_R172:
     repository: vxz2datoubo/second-brain-coordination
     issue: 515
@@ -94,6 +107,7 @@ freshness:
   if_stale: UPDATE_FROM_HIGHER_AUTHORITY_EVIDENCE
   never_transfer_review_across_moved_head: true
   accepted_is_not_canonical: true
+  current_main_movement_requires_dependency_recheck: true
 
 single_writer_fences:
   - object: GPT_R172_SINGLE_SESSION_AUTHORITY
