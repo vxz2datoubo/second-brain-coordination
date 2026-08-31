@@ -188,8 +188,7 @@ class IntegrationStateIsolationTests(unittest.TestCase):
         right = "AssertionError: <Probe object at 0x123456>"
         self.assertNotEqual(normalize_failure_text(left), normalize_failure_text(right))
         self.assertNotEqual(
-            failure_fingerprint("FAIL", left),
-            failure_fingerprint("FAIL", right),
+            failure_fingerprint("FAIL", left), failure_fingerprint("FAIL", right),
         )
 
     def test_semantic_object_shaped_hex_values_remain_distinct(self):
@@ -222,8 +221,7 @@ class IntegrationStateIsolationTests(unittest.TestCase):
         right = "AssertionError: expected mask 0x10, got 0x40"
         self.assertNotEqual(normalize_failure_text(left), normalize_failure_text(right))
         self.assertNotEqual(
-            failure_fingerprint("FAIL", left),
-            failure_fingerprint("FAIL", right),
+            failure_fingerprint("FAIL", left), failure_fingerprint("FAIL", right),
         )
         before = snapshot([("t.mask", "FAIL", failure_fingerprint("FAIL", left))])
         after = snapshot([("t.mask", "FAIL", failure_fingerprint("FAIL", right))])
@@ -238,8 +236,7 @@ class IntegrationStateIsolationTests(unittest.TestCase):
         right = "AssertionError: policy violation at line 99"
         self.assertNotEqual(normalize_failure_text(left), normalize_failure_text(right))
         self.assertNotEqual(
-            failure_fingerprint("FAIL", left),
-            failure_fingerprint("FAIL", right),
+            failure_fingerprint("FAIL", left), failure_fingerprint("FAIL", right),
         )
 
     def test_non_repr_hex_is_not_treated_as_object_address(self):
@@ -258,6 +255,29 @@ class IntegrationStateIsolationTests(unittest.TestCase):
         before["state_digest"] = "0" * 64
         with self.assertRaisesRegex(RuntimeError, "STATE_DIGEST_MISMATCH"):
             compare_snapshots(before, after)
+
+    def test_recomputed_nonpass_null_fingerprint_fails_closed(self):
+        malformed = snapshot([("t.bad", "FAIL", None)])
+        with self.assertRaisesRegex(RuntimeError, "NONPASS_RESULT_INVALID_FINGERPRINT"):
+            compare_snapshots(malformed, deepcopy(malformed))
+
+    def test_recomputed_nonpass_short_or_nonhex_fingerprint_fails_closed(self):
+        for fingerprint in ("a" * 63, "g" * 64, "not-a-digest"):
+            with self.subTest(fingerprint=fingerprint):
+                malformed = snapshot([("t.bad", "ERROR", fingerprint)])
+                with self.assertRaisesRegex(RuntimeError, "NONPASS_RESULT_INVALID_FINGERPRINT"):
+                    compare_snapshots(malformed, deepcopy(malformed))
+
+    def test_recomputed_pass_with_nonnull_fingerprint_fails_closed(self):
+        malformed = snapshot([("t.pass", "PASS", "a" * 64)])
+        with self.assertRaisesRegex(RuntimeError, "PASS_RESULT_HAS_FAILURE_FINGERPRINT"):
+            compare_snapshots(malformed, deepcopy(malformed))
+
+    def test_valid_uppercase_nonpass_fingerprint_remains_accepted(self):
+        valid = snapshot([("t.fail", "FAIL", "A" * 64)])
+        receipt = compare_snapshots(valid, deepcopy(valid))
+        self.assertEqual(receipt["classification"], FINAL_PASS)
+        self.assertEqual(receipt["baseline_failures_preserved"][0]["test_id"], "t.fail")
 
     def test_receipt_is_deterministic_for_same_inputs(self):
         before = snapshot(
@@ -452,6 +472,17 @@ class IntegrationStateIsolationTests(unittest.TestCase):
                 tests,
                 baseline_commands=before,
                 integrated_commands=after,
+            )
+
+    def test_command_nonpass_null_fingerprint_remains_rejected(self):
+        tests = snapshot([("a", "PASS", None)])
+        malformed = command_snapshot([("CONTROL", 2, None)])
+        with self.assertRaisesRegex(RuntimeError, "FAIL_COMMAND_MISSING_FINGERPRINT"):
+            compare_snapshots(
+                tests,
+                tests,
+                baseline_commands=malformed,
+                integrated_commands=deepcopy(malformed),
             )
 
     def test_tampered_command_digest_fails_closed(self):
