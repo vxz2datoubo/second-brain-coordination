@@ -1,0 +1,59 @@
+schema: TASK_BRIEF/v1
+task_id: CODEX-R174-CAPABILITY-CONFINEMENT-REMEDIATION-R175
+route_epoch: 175
+project: CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001
+source_issue: PENDING_NEW_R175_ISSUE
+parent_issue: 526
+executor: CODEX
+reviewer: GPT_INDEPENDENT_REVIEWER
+implementation_baseline: 740788a3847a402923bf2e89093d910eda0c89d0
+required_branch: codex/r175-capability-policy-confinement-remediation
+root_goal: >-
+  Close all five terminal R174 P1s in one bounded adjacent lifecycle slice while preserving prior closures and preventing candidate-controlled policy shrink.
+required_scope:
+  python_capability_gate:
+    - fail closed for nonliteral/computed dynamic __import__ and importlib.import_module targets that could resolve forbidden modules
+    - handle bounded constant expressions and reject unresolved dynamic target when forbidden capability cannot be proven absent
+    - reject reflective environment access including getattr, __dict__, alias and equivalent access to getenv/environ
+  browser_capability_gate:
+    - normalize or conservatively reject URL/CSS/JS before capability classification
+    - cover alias/bracket network APIs, computed import, SVG feImage/active href, backslash URLs, protocol-relative, CSS escapes and supported control/escape forms
+    - add deterministic adversarial fixtures for each class
+  policy_floor:
+    - mechanically enforce canonical policy floor coordination/GOVERNANCE/CREATIVE-RUNTIME-PUBLIC-SAFE-POLICY-FLOOR-v1.yaml
+    - candidate config/workflow may widen but cannot jointly shrink floor roots/suffixes/triggers/capability classes
+    - candidate must not modify policy floor
+  migration_publication:
+    - bind immutable source identity through final publication using descriptor/lock/identity or equivalent protocol
+    - any race after final revalidation but before publish must fail and leave no new v2 target
+    - preserve preexisting target without removal/overwrite
+  filesystem_confinement:
+    - verify workspace/save/staging/target and every ancestor remain within intended workspace and are non-symlink/non-junction/non-reparse where supported
+    - Windows-aware tests for junction/reparse/link ancestry required
+    - fail closed on unsupported/ambiguous confinement evidence when safety cannot be established
+carry_forward:
+  - no rg optional-scanner false PASS
+  - strict JSON and duplicate-key rejection
+  - exact-head receipt
+  - direct alias/from-import and literal dynamic import coverage
+  - unilateral config/workflow drift rejection
+  - descendant symlink walk
+  - create-only target semantics
+  - replay/lifecycle/package tamper regressions
+  - offline-only generation and pending-human-review knowledge boundary
+  - no second Ledger/Gateway/Resolver/Authority
+closeout:
+  - Python 3.11 and 3.13 where repository-supported, plus Windows-aware test job or equivalent supported Windows runner
+  - full creative lifecycle/package suite and focused adversarial suite
+  - exact-head CI and machine receipts
+  - durable CODEX handoff
+  - freeze exact head
+  - new REVIEW_REQUEST/v1 on Issue #453
+  - stop for uninvolved T3
+field_semantics:
+  canonical_governance_main: final canonical main after R175 governance activation
+  snapshot_base: exact canonical main bound when EFFECTIVE_SPEC_SNAPSHOT/v1 is posted before branch creation
+  implementation_baseline: exact current-main commit containing the canonical policy floor from which the clean implementation branch is created
+no_second_user_start: true
+self_review: forbidden
+self_merge: forbidden
