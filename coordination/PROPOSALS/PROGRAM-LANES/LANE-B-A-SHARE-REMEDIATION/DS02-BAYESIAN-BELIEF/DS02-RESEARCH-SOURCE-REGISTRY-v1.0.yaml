@@ -1,0 +1,177 @@
+schema_version: "1.0"
+registry_id: "DS02-BAYESIAN-RESEARCH-SOURCE-REGISTRY-0012B"
+source_issue: 519
+skill_ref: "BAYESIAN-BELIEF-UPDATE-FORECAST-FUSION-SKILL-0012B"
+boundary: "PUBLIC_RESEARCH_REFERENCE_ONLY / RESEARCH_ONLY / NO_TRADE"
+retrieved_or_revalidated_at: "2026-08-31"
+
+rules:
+  - "External sources support design claims; they do not become market truth or trading authority."
+  - "Every source must state supported_claims and not_supported_claims."
+  - "A-share rule sources must preserve publication date, effective date and supersession semantics."
+  - "Statistical diagnostics are model/path dependent; source examples do not authorize universal hard thresholds unless separately governed."
+  - "A finance application mentioned by a paper does not prove A-share alpha."
+
+sources:
+  - source_id: PYMC-PRIOR-POSTERIOR-PREDICTIVE
+    source_grade: A1_PRIMARY_PROJECT_DOCS
+    title: "Prior and Posterior Predictive Checks"
+    publisher: "PyMC"
+    url: "https://www.pymc.io/projects/docs/en/stable/learn/core_notebooks/posterior_predictive.html"
+    source_version_or_snapshot: "PyMC stable docs observed 2026-08-31"
+    supported_claims:
+      - "Prior predictive checks are part of Bayesian workflow and can expose implausible assumptions before fitting."
+      - "Posterior predictive checks compare model-generated data with observed structure and are useful for model validation/criticism."
+    not_supported_claims:
+      - "Passing predictive checks proves causal correctness."
+      - "PyMC defaults are automatically appropriate for A-share forecasting."
+    ds02_consequence:
+      - "V5 must preserve prior_predictive_status and posterior_predictive_status."
+
+  - source_id: STAN-REFERENCE-MANUAL
+    source_grade: A1_PRIMARY_PROJECT_DOCS
+    title: "Stan Reference Manual"
+    publisher: "Stan Development Team"
+    url: "https://mc-stan.org/docs/reference-manual/"
+    source_version_or_snapshot: "Stan Reference Manual 2.39 observed 2026-08-31"
+    supported_claims:
+      - "Bayesian posterior computation requires explicit inference and posterior-analysis diagnostics."
+      - "Reproducibility and sampling diagnostics are first-class engineering concerns."
+    not_supported_claims:
+      - "Any one inference engine is required for DS-02."
+      - "Sampler convergence proves the predictive model is useful."
+    ds02_consequence:
+      - "BeliefPacket diagnostics must bind inference_engine and inference_engine_version."
+
+  - source_id: STAN-RHAT-ESS
+    source_grade: A1_PRIMARY_PROJECT_DOCS
+    title: "Convergence and efficiency diagnostics for Markov Chains"
+    publisher: "Stan / RStan"
+    url: "https://mc-stan.org/rstan/reference/Rhat.html"
+    source_version_or_snapshot: "observed 2026-08-31"
+    supported_claims:
+      - "R-hat compares between-chain and within-chain behavior and is a convergence diagnostic."
+      - "Bulk ESS and tail ESS measure sampling efficiency in central and tail regions."
+    not_supported_claims:
+      - "A single universal threshold is sufficient for every DS-02 model."
+      - "Good R-hat/ESS implies correct model specification."
+    ds02_consequence:
+      - "V4 records rhat_max, ess_bulk_min and ess_tail_min for MCMC paths."
+
+  - source_id: ARVIZ-PSIS-LOO
+    source_grade: A1_PRIMARY_PROJECT_DOCS
+    title: "arviz_stats.loo"
+    publisher: "ArviZ"
+    url: "https://python.arviz.org/projects/stats/en/stable/api/generated/arviz_stats.loo.html"
+    source_version_or_snapshot: "ArviZ stats stable docs observed 2026-08-31"
+    supported_claims:
+      - "PSIS-LOO estimates expected log pointwise predictive density and exposes Pareto-k diagnostics."
+    not_supported_claims:
+      - "PSIS-LOO alone determines deployment readiness."
+      - "LOO estimates are immune to nonstationarity or regime change."
+    ds02_consequence:
+      - "V5/V6 may record psis_loo_status and pareto_k_max when applicable."
+
+  - source_id: TALTS-SBC-2018
+    source_grade: A2_PEER_REVIEWED_OR_AUTHOR_PREPRINT
+    title: "Validating Bayesian Inference Algorithms with Simulation-Based Calibration"
+    authors: ["Sean Talts", "Michael Betancourt", "Daniel Simpson", "Aki Vehtari", "Andrew Gelman"]
+    url: "https://arxiv.org/abs/1804.06788"
+    publication_year: 2018
+    supported_claims:
+      - "Simulation-based calibration can detect inaccurate Bayesian computation and implementation inconsistencies using known generative truth."
+    not_supported_claims:
+      - "SBC validates real-world A-share data-generating assumptions."
+    ds02_consequence:
+      - "V3 uses synthetic known-parameter worlds to validate inference implementation."
+
+  - source_id: ADAMS-MACKAY-BOCPD
+    source_grade: A2_CLASSIC_RESEARCH
+    title: "Bayesian Online Changepoint Detection"
+    authors: ["Ryan Prescott Adams", "David J. C. MacKay"]
+    url: "https://arxiv.org/abs/0710.3742"
+    publication_year: 2007
+    supported_claims:
+      - "Online Bayesian changepoint inference can maintain a posterior over run length/time since the latest changepoint."
+      - "The method is applicable to time-series settings including finance."
+    not_supported_claims:
+      - "Every statistical changepoint has a unique economic interpretation."
+      - "BOCPD as published is automatically optimal for A-shares."
+    ds02_consequence:
+      - "DS-02 consumes DS-11 changepoint/regime evidence and can invalidate stale likelihoods."
+
+  - source_id: GNEITING-RAFTERY-2007
+    source_grade: A2_PEER_REVIEWED
+    title: "Strictly Proper Scoring Rules, Prediction, and Estimation"
+    authors: ["Tilmann Gneiting", "Adrian E. Raftery"]
+    url: "https://sites.stat.washington.edu/people/raftery/Research/PDF/Gneiting2007jasa.pdf"
+    publication_year: 2007
+    supported_claims:
+      - "Proper scoring rules provide principled evaluation of probabilistic forecasts."
+      - "Brier/quadratic and logarithmic scores are proper scoring-rule families for probability forecasts."
+    not_supported_claims:
+      - "A better score automatically implies higher after-cost trading returns."
+    ds02_consequence:
+      - "V6 includes Brier and log score; economic increment remains separately tested in V7."
+
+  - source_id: SSE-TRADING-RULES-2026
+    source_grade: A1_OFFICIAL_PRIMARY
+    title: "上海证券交易所交易规则（2026年修订）"
+    publisher: "上海证券交易所"
+    url: "https://www.sse.com.cn/lawandrules/sselawsrules2025/stocks/exchange/c/c_20260424_10816482.shtml"
+    publication_date: "2026-04-24"
+    effective_date: "2026-07-06"
+    status: CURRENT_EFFECTIVE
+    supersedes: "上海证券交易所交易规则（2023年修订）"
+    supported_claims:
+      - "The 2026 revision became effective 2026-07-06 and superseded the 2023 revision."
+      - "After-hours fixed-price trading applies to A-shares and ETFs under the revised rule."
+    not_supported_claims:
+      - "All historical observations before 2026-07-06 are directly exchangeable with observations after the rule change."
+    ds02_consequence:
+      - "market_rule_version is mandatory and rule transition can trigger REVALIDATION_REQUIRED."
+
+  - source_id: SZSE-TRADING-RULES-2026
+    source_grade: A1_OFFICIAL_PRIMARY
+    title: "深圳证券交易所交易规则（2026年修订）"
+    publisher: "深圳证券交易所"
+    url: "https://www.szse.cn/lawrules/rule/trade/current/t20260424_620190.html"
+    publication_date: "2026-04-24"
+    effective_date: "2026-07-06"
+    status: CURRENT_EFFECTIVE
+    supersedes: "深圳证券交易所交易规则（2023年修订）"
+    supported_claims:
+      - "The 2026 revision became effective 2026-07-06 and superseded the 2023 revision."
+    not_supported_claims:
+      - "A Shenzhen rule snapshot can be substituted for Shanghai or Beijing instruments."
+    ds02_consequence:
+      - "Belief identity binds exchange/board/security_type and rule version."
+
+  - source_id: BSE-TRADING-RULES-2026
+    source_grade: A1_OFFICIAL_PRIMARY
+    title: "北京证券交易所交易规则"
+    publisher: "北京证券交易所"
+    url: "https://www.bse.cn/jygl_list/200028217.html"
+    publication_date: "2026-04-24"
+    effective_date: "2026-07-06"
+    status: CURRENT_EFFECTIVE_WITH_DEFERRED_CLAUSES
+    supported_claims:
+      - "The revised BSE trading rules generally became effective 2026-07-06."
+      - "Some specified clauses have deferred implementation timing, so effective rule state is not reducible to one global date flag."
+    not_supported_claims:
+      - "All BSE clauses became active simultaneously on 2026-07-06."
+    ds02_consequence:
+      - "Rule snapshots require clause-level applicability/unknown handling where implementation is deferred."
+
+source_quality_policy:
+  preferred_order:
+    - A1_OFFICIAL_PRIMARY
+    - A1_PRIMARY_PROJECT_DOCS
+    - A2_PEER_REVIEWED
+    - A2_CLASSIC_RESEARCH
+    - A2_PEER_REVIEWED_OR_AUTHOR_PREPRINT
+  fail_closed_conditions:
+    - "rule source missing effective_date for time-dependent backtest"
+    - "source URL/version cannot be resolved for a material model assumption"
+    - "claim scope exceeds what the cited source supports"
+    - "external source is treated as direct A-share alpha evidence without local validation"
