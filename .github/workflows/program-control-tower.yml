@@ -67,6 +67,42 @@ jobs:
           )
           print('R168_PROVENANCE_SAFE_NORMALIZATION_PASS')
           PY
+      - name: Attack candidate remote-ref namespace
+        working-directory: coordination/CONTROL-TOWER
+        run: |
+          python - <<'PY'
+          from integration_state_isolation import IsolationError, _remote_ref
+
+          accepted = {
+              'feature/fork-safe': 'refs/heads/feature/fork-safe',
+              'refs/heads/feature/fork-safe': 'refs/heads/feature/fork-safe',
+              'refs/pull/517/head': 'refs/pull/517/head',
+              'refs/pull/1/head': 'refs/pull/1/head',
+          }
+          for supplied, expected in accepted.items():
+              assert _remote_ref(supplied) == expected, (supplied, _remote_ref(supplied))
+
+          rejected = (
+              '',
+              'refs/tags/v1.0',
+              'refs/pull/517/merge',
+              'refs/pull/not-a-number/head',
+              'refs/pull/0/head',
+              'refs/notes/security',
+              'bad..branch',
+              'bad@{branch',
+              'bad//branch',
+              '-candidate',
+          )
+          for supplied in rejected:
+              try:
+                  _remote_ref(supplied)
+              except IsolationError:
+                  pass
+              else:
+                  raise AssertionError(f'candidate ref unexpectedly accepted: {supplied!r}')
+          print('R168_FORK_SAFE_REMOTE_REF_NAMESPACE_PASS')
+          PY
       - name: Run CI-isolation focused regressions absolutely
         working-directory: coordination/CONTROL-TOWER
         run: python -m unittest discover -s tests -p 'test_integration_state_isolation.py' -v
@@ -74,11 +110,15 @@ jobs:
         if: ${{ github.event_name == 'pull_request' }}
         working-directory: coordination/CONTROL-TOWER
         env:
-          CANDIDATE_BRANCH: ${{ github.head_ref }}
+          CANDIDATE_REF: refs/pull/${{ github.event.pull_request.number }}/head
+          EXPECTED_CANDIDATE_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
+          REMOTE_CANDIDATE_SHA="$(git ls-remote origin "$CANDIDATE_REF" | awk 'NR == 1 {print $1}')"
+          test -n "$REMOTE_CANDIDATE_SHA"
+          test "$REMOTE_CANDIDATE_SHA" = "$EXPECTED_CANDIDATE_SHA"
           python integration_state_isolation.py proof \
             --repo-root ../.. \
-            --candidate-branch "$CANDIDATE_BRANCH" \
+            --candidate-branch "$CANDIDATE_REF" \
             --test-dir coordination/CONTROL-TOWER/tests \
             --output /tmp/control-tower-integration-state-receipt.json
           python -m json.tool /tmp/control-tower-integration-state-receipt.json
