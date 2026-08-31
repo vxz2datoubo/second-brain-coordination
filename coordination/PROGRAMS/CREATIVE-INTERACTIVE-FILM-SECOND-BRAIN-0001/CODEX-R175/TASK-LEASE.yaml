@@ -5,13 +5,14 @@ route_epoch: 175
 source_issue: 528
 executor: CODEX
 worker_slot_id: CODEX-R175-CREATIVE-RUNTIME-CONFINEMENT-1
-lease_state: RESERVED_PENDING_PREWRITE_SNAPSHOT
+lease_state: ACTIVE
 implementation_baseline: 740788a3847a402923bf2e89093d910eda0c89d0
+snapshot_base: 40166aea147f3797768a2369f55e87346f3e3c52
 branch: codex/r175-capability-policy-confinement-remediation
-execution_allowed: false
+branch_head_at_activation: 740788a3847a402923bf2e89093d910eda0c89d0
+effective_spec_snapshot_ref: issuecomment-5483140274
+execution_allowed: true
 second_user_start_command_required: false
-release_condition: >-
-  Prewrite snapshot is posted on Issue #528 while branch is absent, snapshot binds exact snapshot_base and implementation_baseline, then branch is created from exact implementation_baseline and readback verifies exact head.
 stop_conditions:
   - exact_head_frozen_for_independent_review
   - hard_boundary_or_role_conflict
