@@ -1,5 +1,10 @@
-schema_version: "1.0"
+schema_version: "1.1"
 pack_id: DS02-ADVERSARIAL-EVALS-v1
+execution_contract:
+  every_case_must_execute: true
+  label_presence_only_is_not_evidence: true
+  verifier: belief_contract.py
+  proposal_only_phase1: true
 analytic_oracles:
   - id: ORACLE-BETA-BINOMIAL-01
     prior: {alpha: 2.0, beta: 3.0}
@@ -16,27 +21,123 @@ analytic_oracles:
     retract_index: 1
     invariant: result_after_retraction_equals_recompute_without_retracted_factor
 cases:
-  - {id: ADV-01, attack: ten media repost one official announcement, expected: DEPENDENCE_COLLAPSE_REQUIRED}
-  - {id: ADV-02, attack: four agents use the same L2 feed and shared feature engineering, expected: NOT_CONDITIONALLY_INDEPENDENT}
-  - {id: ADV-03, attack: LLM text says 90 percent confident without calibration history, expected: ABSTAIN}
-  - {id: ADV-04, attack: four successes in five observations tries to mint extreme posterior, expected: SHRINKAGE_OR_PRIOR_REQUIRED}
-  - {id: ADV-05, attack: evidence available after decision_time enters historical replay, expected: PIT_VIOLATION}
-  - {id: ADV-06, attack: restated financial data silently replaces original historical snapshot, expected: PIT_VIOLATION}
-  - {id: ADV-07, attack: caller directly supplies posterior_probability as authority metadata, expected: CALLER_POSTERIOR_NOT_AUTHORITY}
-  - {id: ADV-08, attack: target display name unchanged while target formula version changes, expected: TARGET_VERSION_MISMATCH}
-  - {id: ADV-09, attack: bullish polarity changes under same feature version, expected: FEATURE_VERSION_MISMATCH}
-  - {id: ADV-10, attack: SSE likelihood is applied to SZSE without an explicit validated bridge, expected: REVALIDATION_REQUIRED}
-  - {id: ADV-11, attack: BSE rule document is correct but referenced clause is still deferred, expected: REVALIDATION_REQUIRED}
-  - {id: ADV-12, attack: evidence is retracted after publication, expected: APPEND_INVALIDATION_AND_RECOMPUTE}
-  - {id: ADV-13, attack: no validated likelihood exists for a novel phenomenon, expected: UNKNOWN_OR_ABSTAIN}
-  - {id: ADV-14, attack: posterior probability is high but predictive downside is severe, expected: NO_ACTION_AUTHORITY}
-  - {id: ADV-15, attack: missing forecast horizon, expected: SCHEMA_REJECT}
-  - {id: ADV-16, attack: probability above one, expected: SCHEMA_REJECT}
-  - {id: ADV-17, attack: UI 68 percent is fed back as canonical probability, expected: UI_NOT_AUTHORITY}
-  - {id: ADV-18, attack: sequential update differs from batch under valid conjugate assumptions, expected: ANALYTIC_INCONSISTENCY}
-  - {id: ADV-19, attack: invalidated dependence group is counted again under a new display label, expected: ANCESTRY_DEDUP_REQUIRED}
-  - {id: ADV-20, attack: BeliefPacket is sent directly to order route, expected: FORBIDDEN_EDGE}
-  - {id: ADV-21, attack: event rumor is upgraded to W5 canonical fact by DS-02, expected: FORBIDDEN_WRITEBACK}
-  - {id: ADV-22, attack: participant bucket is converted into named real actor without W13 authority, expected: FORBIDDEN_WRITEBACK}
-  - {id: ADV-23, attack: DS-02 generates its own regime label that overrides DS-11, expected: FORBIDDEN_WRITEBACK}
-  - {id: ADV-24, attack: historical posterior record is deleted to make retraction disappear, expected: APPEND_ONLY_VIOLATION}
+  - id: ADV-01
+    attack: ten media repost one official announcement
+    fixture: REPOST_ANCESTRY
+    expected_classification: REVALIDATION_REQUIRED
+    expected_code: DEPENDENCE_COLLAPSE_REQUIRED
+  - id: ADV-02
+    attack: four agents use the same L2 feed and shared feature engineering
+    fixture: SHARED_FEED_FEATURE
+    expected_classification: REVALIDATION_REQUIRED
+    expected_code: DEPENDENCE_COLLAPSE_REQUIRED
+  - id: ADV-03
+    attack: LLM text says 90 percent confident without calibration history
+    fixture: CALIBRATION_FAIL
+    expected_classification: REVALIDATION_REQUIRED
+    expected_code: CALIBRATION_REQUIRED
+  - id: ADV-04
+    attack: four successes in five observations tries to mint extreme posterior
+    fixture: POSTERIOR_INCONSISTENT
+    expected_classification: REJECTED
+    expected_code: POSTERIOR_MATH_INCONSISTENT
+  - id: ADV-05
+    attack: evidence available after decision_time enters historical replay
+    fixture: FUTURE_EVIDENCE
+    expected_classification: REVALIDATION_REQUIRED
+    expected_code: PIT_VIOLATION
+  - id: ADV-06
+    attack: restated financial data silently replaces original historical snapshot
+    fixture: REVISED_WITHOUT_LINEAGE
+    expected_classification: REJECTED
+    expected_code: SCHEMA_REJECT
+  - id: ADV-07
+    attack: caller directly supplies posterior_probability as authority metadata
+    fixture: POSTERIOR_INCONSISTENT
+    expected_classification: REJECTED
+    expected_code: POSTERIOR_MATH_INCONSISTENT
+  - id: ADV-08
+    attack: target display name unchanged while target formula version changes
+    fixture: MISSING_TARGET_VERSION
+    expected_classification: REJECTED
+    expected_code: SCHEMA_REJECT
+  - id: ADV-09
+    attack: bullish polarity changes under same feature version
+    fixture: INVALID_FEATURE_VERSION
+    expected_classification: REJECTED
+    expected_code: SCHEMA_REJECT
+  - id: ADV-10
+    attack: SSE likelihood is applied to SZSE without an explicit validated bridge
+    fixture: CROSS_EXCHANGE_RULE
+    expected_classification: REJECTED
+    expected_code: SCHEMA_REJECT
+  - id: ADV-11
+    attack: BSE rule document is correct but referenced clause is still deferred
+    fixture: BSE_DEFERRED_CLAUSE
+    expected_classification: REVALIDATION_REQUIRED
+    expected_code: RULE_CLAUSE_DEFERRED
+  - id: ADV-12
+    attack: evidence is retracted after publication
+    fixture: RETRACTION_RECOMPUTE
+    expected_classification: PASS_PROPOSAL_ONLY
+    expected_code: APPEND_INVALIDATION_AND_RECOMPUTE
+  - id: ADV-13
+    attack: no validated likelihood exists for a novel phenomenon
+    fixture: UNKNOWN_EVIDENCE_ABSTAIN
+    expected_classification: PASS_PROPOSAL_ONLY
+    expected_code: UNKNOWN_OR_ABSTAIN
+  - id: ADV-14
+    attack: posterior probability is high but predictive downside is severe
+    fixture: HIGH_POSTERIOR_NO_ACTION
+    expected_classification: PASS_PROPOSAL_ONLY
+    expected_code: NO_ACTION_AUTHORITY
+  - id: ADV-15
+    attack: missing forecast horizon
+    fixture: MISSING_HORIZON
+    expected_classification: REJECTED
+    expected_code: SCHEMA_REJECT
+  - id: ADV-16
+    attack: probability above one
+    fixture: PROBABILITY_ABOVE_ONE
+    expected_classification: REJECTED
+    expected_code: SCHEMA_REJECT
+  - id: ADV-17
+    attack: UI 68 percent is fed back as canonical probability
+    fixture: UI_AUTHORITY_TRUE
+    expected_classification: REJECTED
+    expected_code: SCHEMA_REJECT
+  - id: ADV-18
+    attack: sequential update differs from batch under valid conjugate assumptions
+    fixture: SEQUENTIAL_BATCH_MISMATCH
+    expected_classification: REJECTED
+    expected_code: ANALYTIC_INCONSISTENCY
+  - id: ADV-19
+    attack: invalidated dependence group is counted again under a new display label
+    fixture: RELABELED_ANCESTRY
+    expected_classification: REVALIDATION_REQUIRED
+    expected_code: DEPENDENCE_COLLAPSE_REQUIRED
+  - id: ADV-20
+    attack: BeliefPacket is sent directly to order route
+    fixture: ORDER_AUTHORITY_TRUE
+    expected_classification: REJECTED
+    expected_code: SCHEMA_REJECT
+  - id: ADV-21
+    attack: event rumor is upgraded to W5 canonical fact by DS-02
+    fixture: EVENT_AUTHORITY_TRUE
+    expected_classification: REJECTED
+    expected_code: SCHEMA_REJECT
+  - id: ADV-22
+    attack: participant bucket is converted into named real actor without W13 authority
+    fixture: MARKET_TRUTH_AUTHORITY_TRUE
+    expected_classification: REJECTED
+    expected_code: SCHEMA_REJECT
+  - id: ADV-23
+    attack: DS-02 generates its own regime label that overrides DS-11
+    fixture: REGIME_AUTHORITY_TRUE
+    expected_classification: REJECTED
+    expected_code: SCHEMA_REJECT
+  - id: ADV-24
+    attack: historical posterior record is deleted to make retraction disappear
+    fixture: DELETE_RETRACTION_HISTORY
+    expected_classification: REJECTED
+    expected_code: APPEND_ONLY_VIOLATION
