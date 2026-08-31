@@ -6,7 +6,11 @@ import sys
 import tempfile
 import unittest
 
-from tools.verify_creative_executor_checkpoint import run_clean_reproduction
+from tools.verify_creative_executor_checkpoint import (
+    ReproductionViolation,
+    _receipt_destination,
+    run_clean_reproduction,
+)
 
 
 class ExecutorCheckpointTests(unittest.TestCase):
@@ -103,6 +107,26 @@ class ExecutorCheckpointTests(unittest.TestCase):
                 command_plan=[],
             )
             self.assertEqual(mismatch["failure_stage"], "PRE_REMOTE_IDENTITY")
+
+    def test_receipt_destination_cannot_escape_or_follow_link(self) -> None:
+        with tempfile.TemporaryDirectory() as directory, tempfile.TemporaryDirectory() as outside:
+            repo = Path(directory)
+            self._repo(repo)
+            head = subprocess.run(
+                ["git", "rev-parse", "HEAD"], cwd=repo, check=True,
+                stdout=subprocess.PIPE, text=True,
+            ).stdout.strip()
+            destination = _receipt_destination(repo, Path(".creative-evidence/receipt.json"), head)
+            self.assertEqual(destination, repo / ".creative-evidence" / "receipt.json")
+            with self.assertRaises(ReproductionViolation):
+                _receipt_destination(repo, Path(outside) / "escaped.json", head)
+            (repo / ".creative-evidence").rmdir()
+            try:
+                (repo / ".creative-evidence").symlink_to(Path(outside), target_is_directory=True)
+            except (OSError, NotImplementedError) as error:
+                self.skipTest(f"symlink unavailable: {error}")
+            with self.assertRaises(ReproductionViolation):
+                _receipt_destination(repo, None, head)
 
 
 if __name__ == "__main__":

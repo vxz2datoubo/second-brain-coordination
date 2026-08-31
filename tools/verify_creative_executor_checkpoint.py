@@ -10,8 +10,10 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
+import stat
 import subprocess
 import sys
 import time
@@ -22,6 +24,8 @@ SCHEMA = "CreativeExecutorCleanReproductionReceipt/v1"
 _HEX40 = re.compile(r"\A[0-9a-f]{40}\Z")
 _EXECUTOR_AGENTS = frozenset({"CODEX", "WORKBUDDY"})
 _REMOTE_REF = re.compile(r"\Arefs/remotes/origin/[A-Za-z0-9][A-Za-z0-9._/-]*\Z")
+_REPARSE = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0)
+_RECEIPT_NAME = re.compile(r"\A[A-Za-z0-9][A-Za-z0-9._-]{0,127}\.json\Z")
 
 
 class ReproductionViolation(ValueError):
@@ -102,6 +106,41 @@ def _sha256(payload: bytes) -> str:
     return hashlib.sha256(payload).hexdigest()
 
 
+def _prepare_evidence_directory(repo: Path) -> Path:
+    evidence = repo / ".creative-evidence"
+    if evidence.exists() or evidence.is_symlink():
+        details = evidence.lstat()
+        if (
+            stat.S_ISLNK(details.st_mode)
+            or not stat.S_ISDIR(details.st_mode)
+            or (_REPARSE and getattr(details, "st_file_attributes", 0) & _REPARSE)
+        ):
+            raise ReproductionViolation(".creative-evidence must be a local non-link directory")
+    else:
+        evidence.mkdir(parents=False)
+    return evidence
+
+
+def _receipt_destination(repo: Path, requested: Path | None, expected_head: str) -> Path:
+    evidence = _prepare_evidence_directory(repo)
+    if requested is None:
+        destination = evidence / f"executor-clean-{expected_head}.json"
+    else:
+        destination = requested if requested.is_absolute() else repo / requested
+        destination = Path(os.path.abspath(os.fspath(destination)))
+    if destination.parent != evidence or not _RECEIPT_NAME.fullmatch(destination.name):
+        raise ReproductionViolation("Receipt must be one canonical JSON file directly under .creative-evidence")
+    if destination.exists() or destination.is_symlink():
+        details = destination.lstat()
+        if (
+            stat.S_ISLNK(details.st_mode)
+            or not stat.S_ISREG(details.st_mode)
+            or (_REPARSE and getattr(details, "st_file_attributes", 0) & _REPARSE)
+        ):
+            raise ReproductionViolation("Existing receipt destination must be a local regular file")
+    return destination
+
+
 def run_clean_reproduction(
     repo: Path,
     *,
@@ -132,6 +171,7 @@ def run_clean_reproduction(
         raise ReproductionViolation("timeout_seconds must be between 1 and 3600")
     if not repo.is_dir() or (repo / ".git").is_symlink():
         raise ReproductionViolation("repo must be a local non-link Git working directory")
+    _prepare_evidence_directory(repo)
 
     receipt: dict[str, object] = {
         "schema": SCHEMA,
@@ -189,6 +229,7 @@ def run_clean_reproduction(
     receipt["commands"] = results
     receipt["actual_head_after"] = _git_text(repo, "rev-parse", "HEAD")
     dirty_after = _git_text(repo, "status", "--porcelain", "--untracked-files=all")
+    _prepare_evidence_directory(repo)
     receipt["dirty_path_count_after"] = len(dirty_after.splitlines()) if dirty_after else 0
     if (
         len(results) == len(plan)
@@ -225,10 +266,7 @@ def main(argv: Iterable[str] | None = None) -> int:
             timeout_seconds=args.timeout_seconds,
         )
         rendered = json.dumps(receipt, ensure_ascii=False, sort_keys=True, indent=2) + "\n"
-        destination = args.receipt or (
-            args.repo / ".creative-evidence" / f"executor-clean-{args.expected_head}.json"
-        )
-        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination = _receipt_destination(args.repo.resolve(), args.receipt, args.expected_head)
         destination.write_text(rendered, encoding="utf-8")
         sys.stdout.write(rendered)
         return 0 if receipt["status"] == "PASS" else 2
