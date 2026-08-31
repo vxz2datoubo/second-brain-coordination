@@ -67,7 +67,7 @@ def positive_packet():
             "knowledge_cutoff": "2026-08-30T01:00:00+08:00",
             "market_rule_version": "SSE_TRADING_RULES_2026",
             "market_rule_clause_state_version": "SSE_RULE_STATE_2026-07-06_ACTIVE",
-            "rule_clause_ids": ["SSE_CORE_TRADING"]
+            "rule_clause_ids": ["SSE_CORE_TRADING"],
         },
         "temporal_provenance": {"decision_time": "2026-08-30T01:00:00+08:00"},
         "prior": {
@@ -77,11 +77,11 @@ def positive_packet():
             "parameters": {"alpha": 2.0, "beta": 3.0},
             "training_window": {
                 "start": "2020-01-01T00:00:00+08:00",
-                "end": "2025-12-31T23:59:59+08:00"
+                "end": "2025-12-31T23:59:59+08:00",
             },
             "regime_scope": "ALL_REGIMES_REFERENCE_ONLY",
             "effective_from": "2026-01-01T00:00:00+08:00",
-            "evidence_digest": "deadbeef0001"
+            "evidence_digest": "deadbeef0001",
         },
         "evidence": [{
             "evidence_id": "ev-1",
@@ -96,47 +96,47 @@ def positive_packet():
                 "shared_training_data_group_ids": [],
                 "shared_model_lineage_ids": [],
                 "dependence_authority_state": "UNAVAILABLE_PHASE1",
-                "independence_status": "UNVERIFIED"
+                "independence_status": "UNVERIFIED",
             },
             "revision_provenance": {
                 "revision_id": "rev-original-1",
                 "is_revised": False,
-                "supersedes_snapshot_hashes": []
+                "supersedes_snapshot_hashes": [],
             },
             "available_at": "2026-08-29T20:00:00+08:00",
             "data_snapshot_hash": "cafebabe0001",
             "feature_definition_version": "event-surprise-v1",
-            "polarity": "NON_DIRECTIONAL",
+            "polarity": "POSITIVE",
             "likelihood_model_id": "likelihood-1",
             "likelihood_model_version": "v1",
-            "status": "ADMITTED"
+            "status": "ADMITTED",
         }],
         "update": {
             "prior_probability": 0.4,
             "cumulative_log_bayes_factor": log_bf,
             "posterior_probability": expected_posterior(0.4, log_bf),
             "unknown_mass": 0.1,
-            "belief_state": "PROPOSAL"
+            "belief_state": "PROPOSAL",
         },
         "shrinkage": {
             "effective_sample_size": 100.0,
             "hierarchy_level": "SECURITY",
             "hierarchical_prior_id": "market-industry-security-hierarchy",
             "hierarchical_prior_version": "v1",
-            "status": "APPLIED"
+            "status": "APPLIED",
         },
         "validation": {
             "authority_state": "UNAVAILABLE_PHASE1",
             "packet_status": "UNVALIDATED_PROPOSAL",
             "validated_computation_receipt": None,
-            "canonical_belief_authorized": False
+            "canonical_belief_authorized": False,
         },
         "predictive": {
             "expected_value": 0.001,
             "quantiles": {"p05": -0.03, "p25": -0.01, "p50": 0.001, "p75": 0.012, "p95": 0.04},
             "probability_positive": 0.52,
             "probability_below_loss_threshold": 0.08,
-            "predictive_distribution_ref": "artifact://predictive/001"
+            "predictive_distribution_ref": "artifact://predictive/001",
         },
         "diagnostics": {
             "engine": "analytic-reference",
@@ -148,15 +148,15 @@ def positive_packet():
             "ess_tail_min": None,
             "divergences": None,
             "pareto_k_max": None,
-            "calibration_status": "NOT_RUN",
+            "calibration_status": "PASS",
             "prior_predictive_status": "NOT_RUN",
-            "posterior_predictive_status": "NOT_RUN"
+            "posterior_predictive_status": "NOT_RUN",
         },
         "numeric_integrity": {
             "probability_serialization_decimals": 12,
             "rounding_mode": "ROUND_HALF_EVEN",
             "ui_precision_is_authority": False,
-            "canonical_digest": "0" * 64
+            "canonical_digest": "0" * 64,
         },
         "authority": {
             "market_truth_authority": False,
@@ -167,8 +167,8 @@ def positive_packet():
             "risk_override_authority": False,
             "position_authority": False,
             "order_authority": False,
-            "trade_authority": False
-        }
+            "trade_authority": False,
+        },
     }
 
 
@@ -192,6 +192,17 @@ def _second_evidence(packet, *, source_instance="src-second-2"):
     return row
 
 
+def _set_verified_update(packet, *, prior_probability=None, log_bf=None):
+    if log_bf is None:
+        log_bf = math.log(1.5)
+    if prior_probability is not None:
+        packet["update"]["prior_probability"] = prior_probability
+    packet["update"]["cumulative_log_bayes_factor"] = log_bf
+    packet["update"]["posterior_probability"] = expected_posterior(
+        packet["update"]["prior_probability"], log_bf
+    )
+
+
 def execute_fixture(name):
     packet = positive_packet()
 
@@ -199,6 +210,8 @@ def execute_fixture(name):
         second = _second_evidence(packet, source_instance="src-repost-2")
         second["dependence_provenance"]["ancestry_refs"] = ["src-official-1"]
         packet["evidence"].append(second)
+        packet["update"]["cumulative_log_bayes_factor"] = math.log(1.5) * 2
+        packet["update"]["posterior_probability"] = expected_posterior(0.4, math.log(1.5) * 2)
         receipt = validate(packet)
         return receipt["classification"], "DEPENDENCE_COLLAPSE_REQUIRED" if "DEPENDENCE_COLLAPSE_REQUIRED" in receipt["codes"] else "MISSING"
 
@@ -211,6 +224,8 @@ def execute_fixture(name):
         second["dependence_provenance"]["shared_training_data_group_ids"] = ["train-shared"]
         second["dependence_provenance"]["shared_model_lineage_ids"] = ["model-shared"]
         packet["evidence"].append(second)
+        packet["update"]["cumulative_log_bayes_factor"] = math.log(1.5) * 2
+        packet["update"]["posterior_probability"] = expected_posterior(0.4, math.log(1.5) * 2)
         receipt = validate(packet)
         return receipt["classification"], "DEPENDENCE_COLLAPSE_REQUIRED" if "DEPENDENCE_COLLAPSE_REQUIRED" in receipt["codes"] else "MISSING"
 
@@ -220,9 +235,9 @@ def execute_fixture(name):
         return receipt["classification"], "CALIBRATION_REQUIRED" if "CALIBRATION_REQUIRED" in receipt["codes"] else "MISSING"
 
     if name == "SMALL_SAMPLE_EXTREME_POSTERIOR":
-        target = 0.95
-        packet["update"]["cumulative_log_bayes_factor"] = logit(target) - logit(packet["update"]["prior_probability"])
-        packet["update"]["posterior_probability"] = target
+        log_bf = math.log(1.5)
+        prior = logistic(logit(0.95) - log_bf)
+        _set_verified_update(packet, prior_probability=prior, log_bf=log_bf)
         packet["shrinkage"]["effective_sample_size"] = 5.0
         packet["shrinkage"]["status"] = "REVALIDATION_REQUIRED"
         receipt = validate(packet)
@@ -299,7 +314,7 @@ def execute_fixture(name):
             "board": "BSE",
             "market_rule_version": "BSE_TRADING_RULES_2026",
             "market_rule_clause_state_version": "BSE_RULE_STATE_2026-07-06_PARTIAL_DEFERRED",
-            "rule_clause_ids": ["BSE_2026_DEFERRED_CLAUSE_SENTINEL"]
+            "rule_clause_ids": ["BSE_2026_DEFERRED_CLAUSE_SENTINEL"],
         })
         receipt = validate(packet)
         return receipt["classification"], "RULE_CLAUSE_DEFERRED" if "RULE_CLAUSE_DEFERRED" in receipt["codes"] else "MISSING"
@@ -308,11 +323,11 @@ def execute_fixture(name):
         packet["update"]["cumulative_log_bayes_factor"] = 0.0
         packet["update"]["posterior_probability"] = packet["update"]["prior_probability"]
         packet["update"]["belief_state"] = "ABSTAIN"
+        packet["diagnostics"]["calibration_status"] = "NOT_RUN"
         receipt = validate(packet)
         return receipt["classification"], "UNKNOWN_OR_ABSTAIN"
     elif name == "HIGH_POSTERIOR_NO_ACTION":
-        packet["update"]["cumulative_log_bayes_factor"] = 4.0
-        packet["update"]["posterior_probability"] = expected_posterior(0.4, 4.0)
+        _set_verified_update(packet, prior_probability=0.90, log_bf=math.log(1.5))
         packet["predictive"]["probability_below_loss_threshold"] = 0.45
         receipt = validate(packet)
         assert not receipt["trade_authorized"]
@@ -378,6 +393,7 @@ class TestMachineContract(unittest.TestCase):
         jsonschema.Draft202012Validator(SCHEMA, format_checker=jsonschema.FormatChecker()).validate(packet)
         receipt = validate_packet(packet, schema=SCHEMA, numeric_registry=NUMERIC)
         self.assertEqual(receipt["classification"], "PASS_PROPOSAL_ONLY")
+        self.assertEqual(receipt["effective_belief_state"], "PROPOSAL")
         self.assertTrue(receipt["proposal_only"])
         self.assertFalse(receipt["canonical_belief_authorized"])
         self.assertFalse(receipt["trade_authorized"])
@@ -401,18 +417,57 @@ class TestMachineContract(unittest.TestCase):
         self.assertEqual(receipt["classification"], "REJECTED")
         self.assertIn("POSTERIOR_MATH_INCONSISTENT", receipt["codes"])
 
+    def test_registered_model_derives_nonzero_contribution(self):
+        receipt = validate(positive_packet())
+        self.assertEqual(receipt["classification"], "PASS_PROPOSAL_ONLY")
+
+    def test_unregistered_model_nonzero_likelihood_cannot_pass(self):
+        packet = positive_packet()
+        packet["evidence"][0]["likelihood_model_id"] = "unregistered-likelihood-model"
+        packet["diagnostics"]["calibration_status"] = "NOT_RUN"
+        receipt = validate(packet)
+        self.assertEqual(receipt["classification"], "REVALIDATION_REQUIRED")
+        self.assertIn("LIKELIHOOD_UNVERIFIED", receipt["codes"])
+        self.assertEqual(receipt["effective_belief_state"], "REVALIDATION_REQUIRED")
+
+    def test_not_run_calibration_with_nonzero_registered_bf_revalidates(self):
+        packet = positive_packet()
+        packet["diagnostics"]["calibration_status"] = "NOT_RUN"
+        receipt = validate(packet)
+        self.assertEqual(receipt["classification"], "REVALIDATION_REQUIRED")
+        self.assertIn("CALIBRATION_REQUIRED", receipt["codes"])
+
+    def test_cumulative_log_bf_must_equal_registry_derived_sum(self):
+        packet = positive_packet()
+        packet["update"]["cumulative_log_bayes_factor"] = 0.5
+        packet["update"]["posterior_probability"] = expected_posterior(0.4, 0.5)
+        receipt = validate(packet)
+        self.assertEqual(receipt["classification"], "REJECTED")
+        self.assertIn("LIKELIHOOD_CUMULATIVE_MISMATCH", receipt["codes"])
+
+    def test_unknown_rule_clause_fails_closed(self):
+        packet = positive_packet()
+        packet["identity"]["rule_clause_ids"] = ["SSE_FAKE_UNREGISTERED_CLAUSE"]
+        receipt = validate(packet)
+        self.assertEqual(receipt["classification"], "REVALIDATION_REQUIRED")
+        self.assertIn("RULE_CLAUSE_UNKNOWN", receipt["codes"])
+
     def test_caller_independence_label_cannot_hide_ancestry(self):
         packet = positive_packet()
         second = _second_evidence(packet)
         second["dependence_provenance"]["candidate_independence_group_id"] = "totally-new-label"
         second["dependence_provenance"]["ancestry_refs"] = ["src-official-1"]
         packet["evidence"].append(second)
+        packet["update"]["cumulative_log_bayes_factor"] = math.log(1.5) * 2
+        packet["update"]["posterior_probability"] = expected_posterior(0.4, math.log(1.5) * 2)
         receipt = validate(packet)
         self.assertIn("DEPENDENCE_COLLAPSE_REQUIRED", receipt["codes"])
 
     def test_unverified_multi_source_independence_is_not_authority(self):
         packet = positive_packet()
         packet["evidence"].append(_second_evidence(packet))
+        packet["update"]["cumulative_log_bayes_factor"] = math.log(1.5) * 2
+        packet["update"]["posterior_probability"] = expected_posterior(0.4, math.log(1.5) * 2)
         receipt = validate(packet)
         self.assertEqual(receipt["classification"], "REVALIDATION_REQUIRED")
         self.assertIn("INDEPENDENCE_UNVERIFIED", receipt["codes"])
@@ -432,16 +487,13 @@ class TestMachineContract(unittest.TestCase):
         self.assertEqual(code, "RULE_CLAUSE_DEFERRED")
 
     def test_ex_post_prior_is_rejected(self):
-        classification, code = execute_fixture("PRIOR_EFFECTIVE_AFTER_CUTOFF")
-        self.assertEqual((classification, code), ("REJECTED", "PRIOR_NOT_EX_ANTE"))
+        self.assertEqual(execute_fixture("PRIOR_EFFECTIVE_AFTER_CUTOFF"), ("REJECTED", "PRIOR_NOT_EX_ANTE"))
 
     def test_post_cutoff_predecision_evidence_revalidates(self):
-        classification, code = execute_fixture("EVIDENCE_AFTER_KNOWLEDGE_CUTOFF")
-        self.assertEqual((classification, code), ("REVALIDATION_REQUIRED", "KNOWLEDGE_CUTOFF_VIOLATION"))
+        self.assertEqual(execute_fixture("EVIDENCE_AFTER_KNOWLEDGE_CUTOFF"), ("REVALIDATION_REQUIRED", "KNOWLEDGE_CUTOFF_VIOLATION"))
 
     def test_tiny_sample_extreme_posterior_requires_shrinkage(self):
-        classification, code = execute_fixture("SMALL_SAMPLE_EXTREME_POSTERIOR")
-        self.assertEqual((classification, code), ("REVALIDATION_REQUIRED", "SMALL_SAMPLE_SHRINKAGE_REQUIRED"))
+        self.assertEqual(execute_fixture("SMALL_SAMPLE_EXTREME_POSTERIOR"), ("REVALIDATION_REQUIRED", "SMALL_SAMPLE_SHRINKAGE_REQUIRED"))
 
     def test_canonical_digest_binds_packet_content(self):
         packet = rebind_digest(positive_packet())

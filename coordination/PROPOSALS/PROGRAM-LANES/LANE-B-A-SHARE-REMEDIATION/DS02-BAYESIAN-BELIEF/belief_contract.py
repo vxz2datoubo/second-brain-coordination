@@ -16,6 +16,7 @@ REJECT = "REJECTED"
 
 RULE_MISMATCH = "RULE_BINDING_MISMATCH"
 RULE_DEFERRED = "RULE_CLAUSE_DEFERRED"
+RULE_UNKNOWN = "RULE_CLAUSE_UNKNOWN"
 PIT_VIOLATION = "PIT_VIOLATION"
 KNOWLEDGE_CUTOFF_VIOLATION = "KNOWLEDGE_CUTOFF_VIOLATION"
 TEMPORAL_ORDER_INVALID = "TEMPORAL_ORDER_INVALID"
@@ -23,6 +24,8 @@ PRIOR_NOT_EX_ANTE = "PRIOR_NOT_EX_ANTE"
 REVISION_LINEAGE_MISSING = "REVISION_LINEAGE_MISSING"
 DEPENDENCE_COLLISION = "DEPENDENCE_COLLAPSE_REQUIRED"
 INDEPENDENCE_UNVERIFIED = "INDEPENDENCE_UNVERIFIED"
+LIKELIHOOD_UNVERIFIED = "LIKELIHOOD_UNVERIFIED"
+LIKELIHOOD_CUMULATIVE_MISMATCH = "LIKELIHOOD_CUMULATIVE_MISMATCH"
 POSTERIOR_INCONSISTENT = "POSTERIOR_MATH_INCONSISTENT"
 SMALL_SAMPLE_SHRINKAGE_REQUIRED = "SMALL_SAMPLE_SHRINKAGE_REQUIRED"
 CANONICAL_DIGEST_MISMATCH = "CANONICAL_DIGEST_MISMATCH"
@@ -93,9 +96,19 @@ def _rule_binding_codes(identity: Mapping[str, Any], registry: Mapping[str, Any]
             break
     if matched is None:
         return [RULE_MISMATCH]
-    requested_clauses = set(identity.get("rule_clause_ids") or [])
-    deferred = set(matched.get("deferred_clause_ids") or [])
-    return [RULE_DEFERRED] if requested_clauses & deferred else []
+
+    requested_clauses = set(map(str, identity.get("rule_clause_ids") or []))
+    known = set(map(str, matched.get("known_clause_ids") or []))
+    active = set(map(str, matched.get("active_clause_ids") or []))
+    deferred = set(map(str, matched.get("deferred_clause_ids") or []))
+    codes: list[str] = []
+    if requested_clauses - known:
+        codes.append(RULE_UNKNOWN)
+    if requested_clauses & deferred:
+        codes.append(RULE_DEFERRED)
+    if (requested_clauses & known) - active - deferred:
+        codes.append(RULE_MISMATCH)
+    return codes
 
 
 def _temporal_codes(packet: Mapping[str, Any]) -> list[str]:
@@ -178,6 +191,83 @@ def _dependence_codes(evidence: Sequence[Mapping[str, Any]]) -> list[str]:
     return codes
 
 
+def _registered_likelihood_model(
+    evidence: Mapping[str, Any], registry: Mapping[str, Any]
+) -> Mapping[str, Any] | None:
+    models = registry.get("likelihood_verification", {}).get("registered_models", [])
+    for row in models:
+        if (
+            row.get("likelihood_model_id") == evidence.get("likelihood_model_id")
+            and row.get("likelihood_model_version") == evidence.get("likelihood_model_version")
+            and evidence.get("feature_definition_version")
+            in set(row.get("allowed_feature_definition_versions") or [])
+        ):
+            return row
+    return None
+
+
+def _likelihood_codes(
+    packet: Mapping[str, Any],
+    registry: Mapping[str, Any],
+    tolerance: float,
+) -> list[str]:
+    codes: list[str] = []
+    evidence_rows = packet.get("evidence", [])
+    admitted = [row for row in evidence_rows if row.get("status") == "ADMITTED"]
+    unknown = [row for row in evidence_rows if row.get("status") == "UNKNOWN"]
+    derived_total = 0.0
+    all_admitted_verified = True
+    any_verified_nonzero = False
+
+    for row in admitted:
+        model = _registered_likelihood_model(row, registry)
+        if model is None or model.get("status") != "REGISTERED_PHASE1_CONTRACT_MODEL":
+            all_admitted_verified = False
+            codes.append(LIKELIHOOD_UNVERIFIED)
+            continue
+
+        by_polarity = model.get("log_bayes_factor_by_polarity", {})
+        polarity = row.get("polarity")
+        if polarity not in by_polarity:
+            all_admitted_verified = False
+            codes.append(LIKELIHOOD_UNVERIFIED)
+            continue
+
+        contribution = float(by_polarity[polarity])
+        derived_total += contribution
+        any_verified_nonzero = any_verified_nonzero or not math.isclose(
+            contribution, 0.0, rel_tol=0.0, abs_tol=float(tolerance)
+        )
+
+    declared_total = float(packet["update"]["cumulative_log_bayes_factor"])
+    if all_admitted_verified:
+        if not math.isclose(
+            derived_total, declared_total, rel_tol=0.0, abs_tol=float(tolerance)
+        ):
+            codes.append(LIKELIHOOD_CUMULATIVE_MISMATCH)
+    else:
+        codes.append(LIKELIHOOD_UNVERIFIED)
+
+    if unknown:
+        requested_state = packet["update"]["belief_state"]
+        if requested_state not in {"UNKNOWN", "ABSTAIN", "REVALIDATION_REQUIRED"}:
+            codes.append(LIKELIHOOD_UNVERIFIED)
+        if not admitted and not math.isclose(
+            declared_total, 0.0, rel_tol=0.0, abs_tol=float(tolerance)
+        ):
+            codes.append(LIKELIHOOD_UNVERIFIED)
+
+    if not admitted and not unknown and not math.isclose(
+        declared_total, 0.0, rel_tol=0.0, abs_tol=float(tolerance)
+    ):
+        codes.append(LIKELIHOOD_CUMULATIVE_MISMATCH)
+
+    if any_verified_nonzero and packet.get("diagnostics", {}).get("calibration_status") != "PASS":
+        codes.append(CALIBRATION_REQUIRED)
+
+    return codes
+
+
 def _posterior_codes(packet: Mapping[str, Any], tolerance: float) -> list[str]:
     validation = packet.get("validation", {})
     update = packet.get("update", {})
@@ -238,15 +328,17 @@ def validate_packet(
             "codes": codes,
             "schema_error_count": len(schema_errors),
             "proposal_only": True,
+            "effective_belief_state": "REJECTED",
             "canonical_belief_authorized": False,
             "trade_authorized": False,
         }
 
+    tolerance = float(numeric_registry["tolerances"]["analytic_reference_absolute_error"])
     codes.extend(_rule_binding_codes(packet["identity"], numeric_registry))
     codes.extend(_temporal_codes(packet))
     codes.extend(_prior_codes(packet))
     codes.extend(_dependence_codes(packet.get("evidence", [])))
-    tolerance = float(numeric_registry["tolerances"]["analytic_reference_absolute_error"])
+    codes.extend(_likelihood_codes(packet, numeric_registry, tolerance))
     codes.extend(_posterior_codes(packet, tolerance))
     codes.extend(_shrinkage_codes(packet, numeric_registry))
     codes.extend(_digest_codes(packet))
@@ -258,23 +350,34 @@ def validate_packet(
         codes.append(CALIBRATION_REQUIRED)
 
     codes = sorted(set(codes))
-    if any(
-        code in codes
-        for code in (
-            SCHEMA_REJECT,
-            POSTERIOR_INCONSISTENT,
-            VALIDATED_AUTHORITY_FORBIDDEN,
-            FORBIDDEN_AUTHORITY,
-            TEMPORAL_ORDER_INVALID,
-            PRIOR_NOT_EX_ANTE,
-            CANONICAL_DIGEST_MISMATCH,
-        )
-    ):
+    reject_codes = {
+        SCHEMA_REJECT,
+        POSTERIOR_INCONSISTENT,
+        VALIDATED_AUTHORITY_FORBIDDEN,
+        FORBIDDEN_AUTHORITY,
+        TEMPORAL_ORDER_INVALID,
+        PRIOR_NOT_EX_ANTE,
+        CANONICAL_DIGEST_MISMATCH,
+        LIKELIHOOD_CUMULATIVE_MISMATCH,
+    }
+    if any(code in reject_codes for code in codes):
         classification = REJECT
     elif codes:
         classification = REVALIDATE
     else:
         classification = PASS
+
+    if classification == REJECT:
+        effective_belief_state = "REJECTED"
+    elif LIKELIHOOD_UNVERIFIED in codes or CALIBRATION_REQUIRED in codes:
+        requested = packet["update"]["belief_state"]
+        effective_belief_state = (
+            requested if requested in {"UNKNOWN", "ABSTAIN"} else "REVALIDATION_REQUIRED"
+        )
+    elif classification == REVALIDATE:
+        effective_belief_state = "REVALIDATION_REQUIRED"
+    else:
+        effective_belief_state = packet["update"]["belief_state"]
 
     return {
         "schema": VALIDATION_SCHEMA,
@@ -282,6 +385,7 @@ def validate_packet(
         "codes": codes,
         "schema_error_count": 0,
         "proposal_only": True,
+        "effective_belief_state": effective_belief_state,
         "canonical_belief_authorized": False,
         "trade_authorized": False,
     }
