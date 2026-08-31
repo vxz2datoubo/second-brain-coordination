@@ -8,6 +8,8 @@ on:
       - "apps/web/**"
       - "tests/test_creative*.py"
       - "tools/verify_creative_runtime.py"
+      - "tools/verify_public_safe_boundary.py"
+      - "tools/public_safe_boundary_rules.json"
       - "tools/build_experience_demo.py"
       - "tools/build_experience_package.py"
       - "tools/build_experience_library_package.py"
@@ -75,18 +77,9 @@ jobs:
         run: python tools/rehearse_creative_operations.py --session-count 8 > "$REHEARSAL_PATH"
 
       - name: Verify public-safe runtime boundary
-        shell: bash
-        run: |
-          set -euo pipefail
-          if rg -n --glob '*.py' '(requests\.|urllib\.request|httpx|openai|anthropic|os\.environ)' creative_runtime apps/cli tools; then
-            echo "Unexpected network or credential boundary in offline runtime"
-            exit 2
-          fi
-          if rg -n --glob '*.html' '(fetch\(|XMLHttpRequest|WebSocket|navigator\.sendBeacon|https?://|<script[^>]+src=)' apps/web; then
-            echo "Unexpected remote boundary in static experience player"
-            exit 2
-          fi
-          echo "CREATIVE_RUNTIME_PUBLIC_SAFE_BOUNDARY=PASS"
+        env:
+          PUBLIC_SAFE_RECEIPT_PATH: ${{ runner.temp }}/creative-runtime-public-safe-boundary-python-3.13.json
+        run: python tools/verify_public_safe_boundary.py --root . --config tools/public_safe_boundary_rules.json > "$PUBLIC_SAFE_RECEIPT_PATH"
 
       - name: Upload exact-head runtime evidence
         uses: actions/upload-artifact@v4
@@ -95,6 +88,7 @@ jobs:
           path: |
             ${{ runner.temp }}/creative-runtime-verification-python-3.13.json
             ${{ runner.temp }}/creative-runtime-operations-rehearsal-python-3.13.json
+            ${{ runner.temp }}/creative-runtime-public-safe-boundary-python-3.13.json
           if-no-files-found: error
           retention-days: 7
 

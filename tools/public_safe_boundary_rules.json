@@ -1,0 +1,32 @@
+{
+  "schema": "CreativeRuntimePublicSafeBoundaryConfig/v1",
+  "surfaces": [
+    {
+      "name": "python_runtime",
+      "roots": ["creative_runtime", "apps/cli", "tools"],
+      "extensions": [".py"],
+      "forbidden_patterns": [
+        {"id": "PY_REQUESTS", "regex": "\\brequests\\s*\\."},
+        {"id": "PY_URLLIB_REQUEST", "regex": "\\burllib\\s*\\.\\s*request\\b"},
+        {"id": "PY_HTTPX", "regex": "\\bhttpx\\b"},
+        {"id": "PY_OPENAI", "regex": "\\bopenai\\b"},
+        {"id": "PY_ANTHROPIC", "regex": "\\banthropic\\b"},
+        {"id": "PY_OS_ENVIRON", "regex": "\\bos\\s*\\.\\s*environ\\b"},
+        {"id": "PY_OS_GETENV", "regex": "\\bos\\s*\\.\\s*getenv\\s*\\("}
+      ]
+    },
+    {
+      "name": "static_web",
+      "roots": ["apps/web"],
+      "extensions": [".html"],
+      "forbidden_patterns": [
+        {"id": "WEB_FETCH", "regex": "\\bfetch\\s*\\("},
+        {"id": "WEB_XMLHTTPREQUEST", "regex": "\\bXMLHttpRequest\\b"},
+        {"id": "WEB_WEBSOCKET", "regex": "\\bWebSocket\\b"},
+        {"id": "WEB_SEND_BEACON", "regex": "navigator\\s*\\.\\s*sendBeacon\\b"},
+        {"id": "WEB_REMOTE_URL", "regex": "https?://"},
+        {"id": "WEB_REMOTE_SCRIPT", "regex": "<script[^>]+src\\s*="}
+      ]
+    }
+  ]
+}
