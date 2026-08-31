@@ -32,6 +32,7 @@ today.
 | Verified client projection | `InteractiveFrame/v1` and exhaustive `VerifiedInteractiveScenarioCatalog/v1` | a static player can navigate only source-bound, graph-covered choices | a browser has story authority or can accept customer data |
 | Downloadable synthetic demos | Actions uploads one four-file package each for `night_signal` and `harbor_protocol`, named `creative-runtime-synthetic-experience-<scenario>-<SHA>` | GitHub produced scenario-specific frame/catalogue artifacts bound to the exact commit | public release, deployment, live media, or a signed production attestation |
 | Exhaustive replay evidence | Actions builds one `creative-runtime-replay-corpus-<SHA>` package with every completed route, a static route index and a fixed manifest | a clean checkout can rebuild every route/capsule/timeline/director contract and compare all package bytes to one exact commit | a browser can calculate a story, a corpus includes customer sessions, or any result is a product acceptance |
+| Branch-review evidence | The same package carries `CreativeSyntheticReplayReviewBoard/v1`, with every genuine choice point and exact terminal state deltas for each legal option | a reviewer can inspect alternative endings without trusting prose or a local session; any changed delta fails exact reconstruction | the review board chooses a preferred ending, scores artistic quality, or grants product approval |
 
 The workflow is intentionally read-only and has `contents: read`. It cannot
 publish, deploy, use an account, upload a secret, or call a paid generator.
