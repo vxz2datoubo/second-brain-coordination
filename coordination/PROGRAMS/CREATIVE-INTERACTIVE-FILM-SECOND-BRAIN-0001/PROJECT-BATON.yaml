@@ -7,91 +7,62 @@ project_names:
   - Creative Interactive Film + Second Brain
 status: ACTIVE_RELAY
 updated_by: GPT_GITHUB_INTEGRATOR
-
 stable_skill: coordination/SKILLS/CREATIVE-INTERACTIVE-FILM-MULTI-AGENT-RELAY-SKILL-v1.0.yaml
 human_entrypoint: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CONTINUE-HERE.md
 history_log: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/PROJECT-HANDOFF-LOG.md
-current_main_rule: "Never trust a SHA copied into the baton as current main; fresh-fetch remote main before execution."
-
+current_main_rule: "Fresh-fetch remote main before execution; baton is navigation, not authority."
 baton:
-  handoff_id: CIF-RELAY-R173-T3
-  from_agent: CODEX
-  current_holder: GPT_INDEPENDENT_REVIEWER
-  next_preferred_after_holder: GPT_GITHUB_INTEGRATOR
-  relay_mode: EXACT_HEAD_REVIEW_THEN_GOVERNED_ROUTE
+  handoff_id: CIF-RELAY-R174-PREWRITE
+  from_agent: GPT_INDEPENDENT_REVIEWER
+  current_holder: GPT_GITHUB_INTEGRATOR
+  next_preferred_after_holder: CODEX
+  relay_mode: TERMINAL_REVIEW_TO_CLEAN_REMEDIATION
   user_second_start_command_required: false
-
 current_mission:
   summary: >-
-    R173 CODEX implementation is frozen at PR #525 exact head
-    2cdacaa5e516d2d938838629ffc965105d364917. The only current action is one genuinely
-    independent T3 terminal verdict. GPT_GITHUB_INTEGRATOR must not perform the technical review.
-  coordination_repo: vxz2datoubo/second-brain-coordination
-  active_issue: 524
-  active_issue_url: https://github.com/vxz2datoubo/second-brain-coordination/issues/524
-  draft_pr: 525
-  working_branch: codex/creative-runtime-next
-  frozen_exact_head: 2cdacaa5e516d2d938838629ffc965105d364917
-  engineering_handoff_ref: issuecomment-5480237705
-  review_request_ref: issuecomment-5480244352
-  review_queue_issue: 453
-  review_status: ACTIVE_REVIEW_PENDING_TERMINAL_RESULT
-  codex_execution_allowed: false
-  frozen_head_must_not_move: true
-  next_action: >-
-    GPT_INDEPENDENT_REVIEWER publishes an exact-head terminal PR review and matching REVIEW_RESULT/v1.
-    If CHANGES_REQUIRED, integrator publishes a new clean CODEX remediation Issue/route/claim/lease/reservation/Control Tower/pre-write snapshot and never edits PR #525.
-    If ACCEPT, integrator fresh-reconciles main drift and merge authority, performs governed canonicalization only if authorized, then publishes the next non-overlapping high-value CODEX vertical slice.
-
+    R173 PR #525 exact head 2cdacaa5e516d2d938838629ffc965105d364917 is frozen after independent T3 CHANGES_REQUIRED.
+    Integrator is publishing clean CODEX R174 remediation from canonical main. No writes may begin until Issue #526 pre-write snapshot and exact branch-parent verification open the gate.
+  active_issue: 526
+  parent_issue: 524
+  frozen_pr: 525
+  frozen_head: 2cdacaa5e516d2d938838629ffc965105d364917
+  terminal_review: pullrequestreview-5068184475
+  terminal_result: issuecomment-5480524987
+  route_epoch: 174
+  task_id: CODEX-R173-PUBLIC-SAFE-MIGRATION-REMEDIATION-R174
+  implementation_baseline: c8cbf8d8f3086f0c96daa877c608ed5db9b4a775
+  working_branch: codex/r174-public-safe-migration-remediation
+  execution_allowed: false
+  next_action: POST_ISSUE_526_EFFECTIVE_SPEC_SNAPSHOT_THEN_CREATE_BRANCH_FROM_EXACT_BASELINE_AND_ACTIVATE_CODEX
 parallel_project_state:
   GPT_R172:
-    repository: vxz2datoubo/second-brain-coordination
     issue: 515
-    intended_owner: GPT_ENGINEERING_WORKER
+    owner: GPT_ENGINEERING_WORKER
+    state: RESERVED_NOT_ACTIVE_RUNTIME
     surface: SINGLE_MIGRATED_V2_SESSION_AUTHORITY
-    state: RESERVED_SEPARATE_SINGLE_WRITER_LANE
-    codex_write: FORBIDDEN
+    r174_overlap: MINIMAL_MIGRATION_PUBLICATION_RACE_CLOSURE_ONLY
+    rule: R172_MUST_FRESH_RECONCILE_R174_OUTCOME_BEFORE_ANY_LATER_ACTIVATION
   CODEX_R173:
     issue: 524
     pr: 525
-    exact_head: 2cdacaa5e516d2d938838629ffc965105d364917
-    state: FROZEN_AWAITING_INDEPENDENT_T3
-    executor: CODEX
-    reviewer: GPT_INDEPENDENT_REVIEWER
-
-read_order_for_any_agent:
-  - coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/PROJECT-BATON.yaml
-  - coordination/SKILLS/CREATIVE-INTERACTIVE-FILM-MULTI-AGENT-RELAY-SKILL-v1.0.yaml
-  - coordination/ACTIVE-CODEX-TASK.yaml
-  - Issue #524 and all current comments
-  - PR #525 exact head/reviews/CI
-  - Issue #453 matching exact-head REVIEW_REQUEST/REVIEW_RESULT
-
-freshness:
-  this_file_is_navigation_not_execution_authority: true
-  must_reconcile_before_work: true
-  if_stale: UPDATE_FROM_HIGHER_AUTHORITY_EVIDENCE
-  never_transfer_review_across_moved_head: true
-  accepted_is_not_canonical: true
-  current_main_must_always_be_fetched_live: true
-
+    head: 2cdacaa5e516d2d938838629ffc965105d364917
+    state: FROZEN_CHANGES_REQUIRED
+  CODEX_R174:
+    issue: 526
+    branch: codex/r174-public-safe-migration-remediation
+    state: GOVERNED_PREWRITE_GATE_CLOSED
 single_writer_fences:
-  - object: GPT_R172_SINGLE_SESSION_AUTHORITY
-    writer: GPT_ENGINEERING_WORKER_WHEN_ACTIVATED
-    codex_write: FORBIDDEN_WITHOUT_NEW_ROUTE
-  - object: CODEX_CREATIVE_RUNTIME_PRODUCT_EVAL_LINE
-    writer: CODEX_ONLY_WHEN_NEW_ACTIVE_ROUTE_IS_READY
-    current_write_state: FROZEN_PENDING_T3
-    gpt_integrator_write: GOVERNANCE_ONLY
   - object: PR_525_EXACT_HEAD
-    writer: NONE_WHILE_UNDER_REVIEW
-    rule: HEAD_MOVEMENT_REQUIRES_NEW_REVIEW_TICKET_AND_IS_NOT_REMEDIATION_AUTHORIZED
-
+    writer: NONE
+    rule: FROZEN_NO_MUTATION_IMPORT_REUSE
+  - object: GPT_R172_SINGLE_SESSION_AUTHORITY
+    writer: GPT_ENGINEERING_WORKER_WHEN_FUTURE_ACTIVATED
+    codex_write: ONLY_MINIMUM_R174_MIGRATION_PUBLICATION_BUGFIX_WHILE_R172_NOT_ACTIVE
+  - object: CODEX_R174_REMEDIATION
+    writer: CODEX_AFTER_ACTIVE_ROUTE_GATE_OPEN
 hard_boundaries:
   - NO_SELF_REVIEW
   - NO_SELF_MERGE
-  - NO_PR525_MUTATION_WHILE_UNDER_REVIEW
-  - NO_FROZEN_HISTORICAL_PR_MUTATION
+  - NO_FROZEN_PR_MUTATION_OR_IMPLEMENTATION_REUSE
   - NO_SECOND_LEDGER_GATEWAY_RESOLVER_AUTHORITY
-  - NO_CHAT_MEMORY_AS_EXECUTION_AUTHORITY
-  - NO_LOCAL_ONLY_HANDOFF_WITHOUT_DURABLE_GITHUB_CHECKPOINT
+  - NO_NETWORK_PROVIDER_CREDENTIAL_DEPLOYMENT_CUSTOMER_DATA_TRADING_CANONICAL_KNOWLEDGE
