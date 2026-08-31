@@ -1,0 +1,36 @@
+schema_version: "174.0"
+task_id: CODEX-R173-PUBLIC-SAFE-MIGRATION-REMEDIATION-R174
+route_epoch: 174
+source_issue: 526
+executor: CODEX
+worker_slot_id: CODEX-R174-CREATIVE-RUNTIME-REMEDIATION-1
+objective: >-
+  Cleanly reimplement the R173 public-safe verifier closure from canonical main and close all terminal T3 blockers:
+  Python alias/from-import capability detection, browser protocol-relative remote loads, config-root/workflow-trigger congruence,
+  nested symlink fail-closed traversal, and migrate_legacy_session final-source-revalidation-before-publication with no shadow v2 on race failure.
+implementation_baseline: c8cbf8d8f3086f0c96daa877c608ed5db9b4a775
+required_branch: codex/r174-public-safe-migration-remediation
+review_binding:
+  pr: 525
+  head: 2cdacaa5e516d2d938838629ffc965105d364917
+  review: pullrequestreview-5068184475
+  result: issuecomment-5480524987
+  verdict: CHANGES_REQUIRED
+required_tests:
+  - alias_and_from_import_network_and_environment_capability_attacks
+  - protocol_relative_html_remote_load_attacks
+  - config_roots_equal_pr_trigger_coverage_meta_regression
+  - nested_file_and_directory_symlink_fail_closed
+  - migration_toctou_mutation_before_publish_leaves_no_v2_target
+  - preexisting_target_is_never_removed_by_failed_attempt
+  - retained_creative_runtime_lifecycle_package_and_tamper_suite
+ci:
+  workflow: .github/workflows/creative-runtime-offline.yml
+  exact_head_required: true
+  executor_evidence_only: true
+review:
+  queue_issue: 453
+  reviewer: GPT_INDEPENDENT_REVIEWER
+  depth: T3
+  new_review_request_required: true
+closeout_signal: R174_CODEX_PUBLIC_SAFE_MIGRATION_REMEDIATION_READY_FOR_INDEPENDENT_T3
