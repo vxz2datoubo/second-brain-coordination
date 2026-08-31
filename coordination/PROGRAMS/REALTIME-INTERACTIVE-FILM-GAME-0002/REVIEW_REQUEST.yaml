@@ -1,0 +1,21 @@
+schema: REVIEW_REQUEST/v1
+task_id: REALTIME-INTERACTIVE-FILM-GAME-0002
+route_epoch: 161
+status: ready_for_independent_review
+requested_reviewer: GPT_INDEPENDENT_REVIEWER
+integrator: GPT_GITHUB_INTEGRATOR
+self_review_forbidden: true
+self_merge_forbidden: true
+implementation_checkpoint_sha: bdde8fb2f36159eaccba4fa78ec10d70528cfdc8
+review_target_ref: origin/codex/realtime-interactive-film-game-0002
+draft_pr: 493
+draft_pr_url: https://github.com/vxz2datoubo/second-brain-coordination/pull/493
+scope: "S07-S10 implementation, tested in a clean detached worktree at bdde8fb2; metadata-only handoff commits may follow and must be resolved by ref at review start."
+review_commands:
+  - "python -m unittest discover -s tests -p 'test_creative_s*.py' -v"
+  - "python -m unittest discover -s tests -p 'test_interactive_s*.py' -v"
+  - "git diff --check 027642a231e214f8649b273f44de65c82a4901f9...HEAD"
+required_review_findings:
+  - "Record exact reviewed SHA and command outputs."
+  - "Verify no external source, credential, provider, paid-generation, deployment, trade, or canonical-knowledge path was added."
+  - "Confirm no self-review/self-accept/self-merge assertion has been made."

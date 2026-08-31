@@ -1,0 +1,34 @@
+schema: AI_Handoff/v1
+task_id: REALTIME-INTERACTIVE-FILM-GAME-0002
+route_epoch: 161
+source_agent: CODEX
+target_agent: GPT_GITHUB_INTEGRATOR
+reviewer: GPT_INDEPENDENT_REVIEWER
+executor_status: ready_for_independent_review
+base_sha: 027642a231e214f8649b273f44de65c82a4901f9
+implementation_checkpoint_sha: bdde8fb2f36159eaccba4fa78ec10d70528cfdc8
+review_target_ref: origin/codex/realtime-interactive-film-game-0002
+review_target_resolution_rule: "Resolve the ref at review start and record the exact SHA; the code checkpoint verified in a clean worktree is bdde8fb2f36159eaccba4fa78ec10d70528cfdc8."
+draft_pr: 493
+draft_pr_url: https://github.com/vxz2datoubo/second-brain-coordination/pull/493
+completed_slices:
+  - S07_MANIFEST_SCENE_GRAPH_AND_SAVE_SLOTS
+  - S08_REALTIME_INTERACTIVE_PRESENTATION
+  - S09_MULTI_BEAT_DIRECTOR_CONTINUITY
+  - S10_OFFLINE_DEMO_REVIEW_PACKAGE
+current_slice: NONE_PENDING_INDEPENDENT_REVIEW
+changed_contracts:
+  - "SceneManifest/v1"
+  - "CreativeSession/v2"
+  - "CreativeSession/v1->v2 registered migration"
+tests:
+  - command: "python -m unittest discover -s tests -p 'test_creative_s*.py' -v"
+    result: "22 passed in clean detached worktree at bdde8fb2"
+  - command: "python -m unittest discover -s tests -p 'test_interactive_s*.py' -v"
+    result: "11 passed in clean detached worktree at bdde8fb2"
+known_risks:
+  - "Predecessor v1 sessions with a state absent from the manifest are intentionally rejected after migration."
+  - "All executor verification is independent-review pending; CODEX did not self-accept, self-review, or self-merge."
+provenance_summary: "All new scene text is synthetic; only GitHub-tracked predecessor runtime code was reused."
+rollback: "Preserve this branch and create a clean successor commit; do not rebase, amend, force-push, or rewrite history."
+next_action: "GPT independently resolve review_target_ref, reproduce RUNBOOK commands from a clean clone, record its exact reviewed SHA on Draft PR #493, and decide whether to merge through Issue #453."
