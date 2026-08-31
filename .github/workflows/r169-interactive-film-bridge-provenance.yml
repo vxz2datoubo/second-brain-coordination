@@ -1,0 +1,41 @@
+name: R169 interactive-film bridge provenance
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/r169-interactive-film-bridge-provenance.yml"
+      - "apps/cli/**"
+      - "creative_runtime/**"
+      - "tests/**"
+      - "coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/BRIDGE-PROVENANCE-R169/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-head:
+    name: Python ${{ matrix.python-version }} exact R169 head
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - name: Assert the checked out object is the requested head
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Run baseline and bridge-provenance tests
+        run: python -m unittest discover -s tests -v
+      - name: Check whitespace and permitted delivery surface
+        run: |
+          git diff --check HEAD^ HEAD
+          git diff --name-only HEAD^ HEAD | grep -E '^(creative_runtime/|apps/cli/|tests/|\.github/workflows/r169-interactive-film-bridge-provenance\.yml$|coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/BRIDGE-PROVENANCE-R169/)'

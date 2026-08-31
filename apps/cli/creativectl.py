@@ -21,6 +21,8 @@ if str(ROOT) not in sys.path:
 from creative_runtime.contracts import PlayerAction, StoryState, canonical_json
 from creative_runtime.ledger import CreativeLedger, LedgerViolation
 from creative_runtime.knowledge import KnowledgeBridgeViolation, KnowledgeReviewBridge
+from creative_runtime.saves import SaveStore
+from creative_runtime.scene_graph import legal_actions
 
 
 SCHEMA = "CreativeSession/v1"
@@ -120,6 +122,31 @@ def _view(ledger: CreativeLedger) -> dict[str, Any]:
         for action_id, option in beat["options"].items()
     ]
     return {"status": "ready", "state": state.to_dict(), "text": beat["text"], "options": options}
+
+
+def terminal_loop(workspace: Path) -> dict[str, Any]:
+    """Open the secure v2 terminal session without shadowing a legacy save.
+
+    This narrow entry point is intentionally separate from the preserved S02
+    fixture helpers above.  If ``session.json`` exists, ``SaveStore.load``
+    migrates or fails before any default v2 file can be created.
+    """
+    store = SaveStore(workspace)
+    try:
+        session = store.load()
+        status = "resumed"
+    except LedgerViolation as error:
+        if store.legacy_path.exists() or store.save_path.exists():
+            raise error
+        session = store.create()
+        status = "initialized"
+    state = session.state()
+    return {
+        "status": status,
+        "state": state.to_dict(),
+        "legal_actions": list(legal_actions(state)),
+        "save": str(store.save_path),
+    }
 
 
 def initialize(workspace: Path) -> dict[str, Any]:

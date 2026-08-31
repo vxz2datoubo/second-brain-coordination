@@ -1,0 +1,24 @@
+schema: "AI_HANDOFF/v1"
+task_id: "CODEX-R167-BRIDGE-PROVENANCE-REMEDIATION-R169"
+route_epoch: 169
+source_agent: "CODEX"
+target_agent: "GPT_INDEPENDENT_REVIEWER"
+reviewer: "UNASSIGNED"
+executor_status: "EXECUTOR_VERIFIED_ONLY"
+base_sha: "9246e07bff0ed0f194d646cfb901783ed1dbe919"
+head_sha: "202c09760e4039de2dd09a9567b6b6b97128f654"
+changed_contracts:
+  - "A legacy-migrated ledger must have exactly the deterministic migration_bridge position/event-id set reconstructed from its source receipt."
+  - "A bridge that is merely hash-valid or payload-valid is insufficient."
+  - "All saved-session consumers validate before emitting state."
+tests:
+  - "python -m unittest discover -s tests -v"
+  - "git diff --check"
+known_risks:
+  - "CI is observable executor evidence only; it is not independent acceptance."
+next_action: "Push exact head, wait for dual-Python CI, publish handoff, then request an independent exact-head review on Issue #453."
+frozen_references:
+  - "PR #493"
+  - "PR #495"
+  - "PR #502"
+  - "PR #506"
