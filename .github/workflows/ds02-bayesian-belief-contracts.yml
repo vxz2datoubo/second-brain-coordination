@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
-          fetch-depth: 2
+          fetch-depth: 0
 
       - name: Verify exact-head provenance
         shell: bash
@@ -96,16 +96,25 @@ jobs:
           print('DS02_AUTHORITY_BOUNDARY_PASS')
           PY
 
+      - name: Resolve immutable branch-scope merge base
+        id: scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_REF="${{ github.event.pull_request.base.ref || 'main' }}"
+          git fetch --no-tags origin "$BASE_REF"
+          MERGE_BASE="$(git merge-base "origin/$BASE_REF" HEAD)"
+          test -n "$MERGE_BASE"
+          echo "base_ref=$BASE_REF" >> "$GITHUB_OUTPUT"
+          echo "merge_base=$MERGE_BASE" >> "$GITHUB_OUTPUT"
+          echo "DS02_SCOPE_BASE_REF=$BASE_REF"
+          echo "DS02_SCOPE_MERGE_BASE=$MERGE_BASE"
+
       - name: Verify exact additive scope
         shell: bash
         run: |
           set -euo pipefail
-          BASE="${{ github.event.pull_request.base.sha || '' }}"
-          if [ -n "$BASE" ]; then
-            git fetch --no-tags --depth=1 origin "$BASE"
-          else
-            BASE="HEAD~10"
-          fi
+          BASE="${{ steps.scope.outputs.merge_base }}"
           mapfile -t CHANGED < <(git diff --name-only "$BASE" HEAD | sort)
           printf '%s\n' "${CHANGED[@]}"
           cat > /tmp/ds02-allowed.txt <<'EOF'
@@ -118,6 +127,7 @@ jobs:
           coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DS02-BAYESIAN-BELIEF/DS02-RESEARCH-SOURCE-REGISTRY-v1.0.yaml
           coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DS02-BAYESIAN-BELIEF/NUMERIC-INTEGRITY-REGISTRY-v1.0.yaml
           coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DS02-BAYESIAN-BELIEF/tests/test_ds02_bayesian_contract.py
+          coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DS02-BAYESIAN-BELIEF/tests/test_ds02_integration_boundaries.py
           coordination/SKILLS/BAYESIAN-BELIEF-UPDATE-FORECAST-FUSION-SKILL-v1.0.yaml
           EOF
           sort -o /tmp/ds02-allowed.txt /tmp/ds02-allowed.txt
@@ -129,10 +139,5 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          BASE="${{ github.event.pull_request.base.sha || '' }}"
-          if [ -n "$BASE" ]; then
-            git fetch --no-tags --depth=1 origin "$BASE"
-            git diff --check "$BASE" HEAD
-          else
-            git diff --check HEAD^ HEAD
-          fi
+          BASE="${{ steps.scope.outputs.merge_base }}"
+          git diff --check "$BASE" HEAD
