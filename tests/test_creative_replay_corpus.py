@@ -65,6 +65,13 @@ class CreativeReplayCorpusTests(unittest.TestCase):
         with self.assertRaisesRegex(ReplayCorpusViolation, "complete registered scenario set"):
             verify_verified_synthetic_replay_corpus(self._head(), missing_scenario)
 
+    def test_cached_build_payload_cannot_be_mutated_by_a_caller(self) -> None:
+        mutated = build_verified_synthetic_replay_corpus(self._head()).to_dict()
+        mutated["entries"][0]["capsule"]["timeline_hash"] = "forged"
+        fresh = build_verified_synthetic_replay_corpus(self._head()).to_dict()
+        self.assertNotEqual(mutated["entries"][0]["capsule"]["timeline_hash"], fresh["entries"][0]["capsule"]["timeline_hash"])
+        self.assertEqual(fresh, self.corpus)
+
     def test_file_builder_and_verifier_refuse_overwrite_and_exact_head_drift(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "replay-corpus.json"

@@ -10,7 +10,9 @@ rebuild the story, director and sequence contracts independently.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import lru_cache
 import hashlib
+import json
 from typing import Any, Mapping
 
 from .continuity import graph_for_initial_state
@@ -95,10 +97,9 @@ def _entry_for(scenario: str, route: Any, initial_state: Any) -> dict[str, Any]:
     }
 
 
-def build_verified_synthetic_replay_corpus(head_sha: str) -> VerifiedSyntheticReplayCorpus:
+def _build_verified_synthetic_replay_corpus_uncached(head: str) -> VerifiedSyntheticReplayCorpus:
     """Build every bounded terminal route through production replay contracts."""
 
-    head = _require_head(head_sha)
     entries: list[Mapping[str, Any]] = []
     for scenario in SYNTHETIC_REPLAY_CORPUS_SCENARIOS:
         report = coverage_for_scenario(scenario)
@@ -116,6 +117,28 @@ def build_verified_synthetic_replay_corpus(head_sha: str) -> VerifiedSyntheticRe
     }
     corpus_id = "replay_corpus_" + hashlib.sha256(canonical_json(material).encode("utf-8")).hexdigest()[:20]
     return VerifiedSyntheticReplayCorpus(corpus_id=corpus_id, head_sha=head, entries=ordered)
+
+
+@lru_cache(maxsize=4)
+def _canonical_corpus_json_for_head(head: str) -> str:
+    """Compute one immutable corpus source per exact head in this Python process.
+
+    This is a local performance cache only. A command-line build or verifier
+    starts a new process and therefore still performs its own complete source
+    reconstruction. Returning canonical JSON rather than a cached mutable
+    object prevents a caller from poisoning later in-process verifications.
+    """
+
+    return canonical_json(_build_verified_synthetic_replay_corpus_uncached(head).to_dict())
+
+
+def build_verified_synthetic_replay_corpus(head_sha: str) -> VerifiedSyntheticReplayCorpus:
+    """Return a fresh object rebuilt from the immutable per-head cache payload."""
+
+    head = _require_head(head_sha)
+    payload = json.loads(_canonical_corpus_json_for_head(head))
+    entries = tuple(payload["entries"])
+    return VerifiedSyntheticReplayCorpus(corpus_id=payload["corpus_id"], head_sha=head, entries=entries)
 
 
 def verify_verified_synthetic_replay_corpus(head_sha: str, corpus: Mapping[str, Any]) -> VerifiedSyntheticReplayCorpus:
