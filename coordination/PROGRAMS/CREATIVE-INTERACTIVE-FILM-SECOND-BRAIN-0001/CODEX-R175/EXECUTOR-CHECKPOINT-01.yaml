@@ -1,0 +1,68 @@
+schema: ExecutorCleanReproductionCheckpoint/v1
+agent_id: CODEX
+project_id: CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001
+task_id: CODEX-R174-CAPABILITY-CONFINEMENT-REMEDIATION-R175
+route_epoch: 175
+status: EXECUTOR_VERIFIED_ONLY
+independent_acceptance: false
+
+identity:
+  canonical_governance_main_at_release: 326b782253a22b667d8b8f211fbba55ca8a9b8e0
+  snapshot_base: 40166aea147f3797768a2369f55e87346f3e3c52
+  implementation_baseline: 740788a3847a402923bf2e89093d910eda0c89d0
+  verified_implementation_head: 6d6a2d2c3b967b5e5222352f5927291439049e6e
+  remote_branch: codex/r175-capability-policy-confinement-remediation
+  clean_clone: F:/aidanao-worktrees/standalone-clones/second-brain-r175-verify
+
+implemented_closures:
+  - computed and nonliteral Python import resolution or fail-closed rejection
+  - reflective builtins and environment-read rejection including alias and import-result forms
+  - normalized browser URL CSS JS SVG and computed-global capability rejection
+  - candidate config and workflow bound to immutable canonical policy floor
+  - canonical repository-relative rule paths with no absolute or parent escape
+  - source descriptor identity and supported-range Windows lock held through create-only publication
+  - failed publication race removes only the target created by that attempt
+  - workspace save staging target full ancestry rejects link junction mount or reparse indirection
+  - source and existing target hard-link ambiguity rejected
+
+clean_reproduction:
+  operating_system: Windows
+  python_runtime: local_supported_runtime
+  commands:
+    - python -m unittest discover -s tests -p test_creative_*.py
+    - python tools/verify_public_safe_boundary.py --repo . --policy-floor-ref 740788a3847a402923bf2e89093d910eda0c89d0 --expected-head 6d6a2d2c3b967b5e5222352f5927291439049e6e
+    - python tools/verify_r175_scope.py --head 6d6a2d2c3b967b5e5222352f5927291439049e6e
+    - git diff --check 740788a3847a402923bf2e89093d910eda0c89d0...6d6a2d2c3b967b5e5222352f5927291439049e6e
+  results:
+    creative_tests: 48_PASS
+    expected_platform_skip: 1_POSIX_ONLY_CONCURRENT_MUTATION_ON_WINDOWS
+    windows_junction_regression: PASS
+    windows_append_beyond_eof_lock_regression: PASS
+    immutable_policy_floor_verifier: PASS
+    scanned_source_files: 12
+    changed_path_scope: 12_FILES_PASS
+    diff_check: PASS
+
+research:
+  ledger: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/RESEARCH-LEDGER.md
+  source_quality: MICROSOFT_PRIMARY_DOCUMENTATION
+
+process:
+  executor_internal_validation_name: EXECUTOR_CLEAN_REPRODUCTION
+  final_cross_module_validation_owner: GPT_INDEPENDENT_REVIEWER_AFTER_USER_SYNC_OR_CLOSEOUT
+  direct_executor_to_gpt_activation: forbidden_without_new_explicit_user_instruction
+  routing_override: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/USER-REVIEW-ROUTING-OVERRIDE.md
+
+known_limits:
+  - network shares and custom third-party filesystem filters are not claimed supported
+  - memory-mapped writers are not prevented by Windows byte-range locks; post-publication identity and byte checks remain mandatory
+  - this checkpoint is not an independent review or merge authorization
+
+rollback:
+  type: GIT_NATIVE
+  instruction: revert the R175 commits; never rewrite shared history
+
+next_action: >-
+  Preserve the executable branch as a safe GitHub checkpoint. Continue only under the current user long-round rule
+  and written R175 scope; on user 收尾 or 同步, build one whole-stage review package and let the user manually
+  activate GPT final cross-module validation.
