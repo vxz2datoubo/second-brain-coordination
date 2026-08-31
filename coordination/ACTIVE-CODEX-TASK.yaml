@@ -1,72 +1,71 @@
-schema_version: "171.0"
+schema_version: "173.0"
 repository: vxz2datoubo/second-brain-coordination
 target_agent: CODEX
-active_issue: 512
-task_id: CODEX-R170-V2-CONTINUATION-DURABILITY-R171
-parent_task_id: REALTIME-INTERACTIVE-FILM-GAME-0002
-route_epoch: 171
-mode: clean_nonretroactive_review_remediation
-mode_label: R171 migrated-v2 continuation durability with immutable legacy source
-status: ACTIVE_GOVERNED_PREWRITE
+active_issue: 524
+task_id: CODEX-CREATIVE-RUNTIME-PUBLIC-SAFE-CLOSEOUT-R173
+parent_task_id: CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001
+route_epoch: 173
+mode: controlled_engineering_remediation_and_closeout
+mode_label: Creative runtime public-safe fail-closed remediation and exact-head closeout
+status: READY
 execution_allowed: true
 automatic_resume_within_task: true
 second_user_start_command_required: false
 merge_authorized: false
 runtime_code_change_allowed: true
-active_executor: CODEX-R171-INTERACTIVE-FILM-V2-CONTINUATION-1
-canonical_route: coordination/ROUTES/CODEX-R170-V2-CONTINUATION-DURABILITY-R171.yaml
-canonical_contract: coordination/TASK-BRIEFS/CODEX-R170-V2-CONTINUATION-DURABILITY-R171.yaml
-implementation_baseline: 5574ebf4287691aed3f5789e895bb5c55451f209
-implementation_branch: codex/r171-r170-v2-continuation-durability
+active_executor: CODEX-R173-CREATIVE-RUNTIME-NEXT-1
+canonical_route: coordination/ROUTES/CODEX-CREATIVE-RUNTIME-PUBLIC-SAFE-CLOSEOUT-R173.yaml
+canonical_contract: coordination/TASK-BRIEFS/CODEX-CREATIVE-RUNTIME-PUBLIC-SAFE-CLOSEOUT-R173.yaml
+implementation_baseline: 2f12aba6dae4a83038fef1f3d5e737944bd9ce1f
+implementation_branch: codex/creative-runtime-next
 activation:
-  issue: 512
-  parent_issue: 509
-  blocking_review: 5059784113
-  review_result: 5466332157
-  reviewed_head: 8ce9cbfccf95afebf44726dc61a09572f9f1eabf
-  prior_r170_p1_closed: P1_CALLER_REWRITABLE_MIGRATION_RECEIPT_CAN_REBIND_HISTORY
-  sole_blocker: P1_CANONICAL_CONTINUED_PLAY_MUTATES_BOUND_LEGACY_SOURCE_AND_INVALIDATES_MIGRATED_V2
-  release_decision: PROCEED_R171_CLEAN_REMEDIATION_FREEZE_PR511
-predecessor_r170:
-  issue: 509
-  pr: 511
-  reviewed_head: 8ce9cbfccf95afebf44726dc61a09572f9f1eabf
-  status: FROZEN_AFTER_INDEPENDENT_CHANGES_REQUIRED
-  execution_allowed: false
-  implementation_asset_reuse_allowed: false
+  issue: 524
+  predecessor_audit_issue: 518
+  predecessor_audit_verdict: BLOCKED
+  confirmed_blocker: AUDIT_EVIDENCE_P1_PUBLIC_SAFE_BOUNDARY_FALSE_PASS
+  release_decision: PROCEED_R173_CODEX_CONTROLLED_REMEDIATION
 lease:
-  worker_slot_id: CODEX-R171-INTERACTIVE-FILM-V2-CONTINUATION-1
-  task_lease: coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/V2-CONTINUATION-R171/TASK-LEASE.yaml
-  work_claim: coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/V2-CONTINUATION-R171/WORK-CLAIM.yaml
-  executor_reservation: coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/V2-CONTINUATION-R171/EXECUTOR-RESERVATION.yaml
-  control_tower_scan: coordination/CONTROL-TOWER/R171-INTERACTIVE-FILM-V2-CONTINUATION-ACTIVATION-SCAN.yaml
-  substantive_write_gate: CLOSED_UNTIL_ISSUE_512_EFFECTIVE_SPEC_SNAPSHOT_AND_BRANCH_PARENT_VERIFY
+  worker_slot_id: CODEX-R173-CREATIVE-RUNTIME-NEXT-1
+  task_lease: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R173/TASK-LEASE.yaml
+  work_claim: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R173/WORK-CLAIM.yaml
+  executor_reservation: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R173/EXECUTOR-RESERVATION.yaml
+  authorization_witness: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R173/AUTHORIZATION-WITNESS.yaml
+  source_provenance: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R173/SOURCE-SELECTION-PROVENANCE.yaml
+  control_tower_scan: coordination/CONTROL-TOWER/R173-CREATIVE-RUNTIME-ACTIVATION-SCAN.yaml
+  substantive_write_gate: OPEN_AFTER_ISSUE_524_EFFECTIVE_SPEC_SNAPSHOT
+execution_protocols:
+  AMED: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R173/AMED.yaml
+  PMA_BIG: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R173/PMA-BIG.yaml
+  WPDCR: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R173/WPDCR.yaml
+  PDER: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R173/PDER.yaml
 allowed_write_paths:
+  - .github/workflows/creative-runtime-offline.yml
   - creative_runtime/**
   - apps/cli/**
+  - apps/web/**
+  - tools/**
   - tests/**
-  - coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/V2-CONTINUATION-R171/**
-  - .github/workflows/r171-interactive-film-v2-continuation.yml
+  - coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R173/**
   - .gitignore
 hard_locks:
-  - NO_PR511_PR508_PR506_PR502_PR495_PR493_WRITE_READY_MERGE_IMPORT_REUSE
-  - NO_RETROACTIVE_AUTHORIZATION
+  - NO_R171_OR_PR513_REVIVAL_OR_REUSE
+  - NO_PR493_PR495_PR502_PR506_PR508_PR511_PR513_MUTATION_IMPORT_REUSE
+  - NO_GPT_R172_ISSUE515_WRITE_OR_AUTHORITY_CLAIM
   - NO_NETWORK_PROVIDER_MODEL_RUNTIME
-  - NO_CREDENTIAL_TOKEN_ACCOUNT_INTROSPECTION
-  - NO_EXTERNAL_PAID_GENERATION
-  - NO_DEPLOY_PUBLIC_RELEASE_PRODUCTION
-  - NO_TRADE_BROKER_ACCOUNT_ORDER_FUND
-  - NO_CANONICAL_W3_KNOWLEDGE_WRITE
+  - NO_CREDENTIAL_OR_ACCOUNT_INTROSPECTION
+  - NO_DEPLOYMENT_PUBLIC_RELEASE
+  - NO_CUSTOMER_DATA_REAL_MEDIA_INTAKE
+  - NO_TRADE_BROKER_ORDER_FUNDS
+  - NO_CANONICAL_W3_DOMAIN_TRUTH_WRITE
   - NO_SECOND_LEDGER_GATEWAY_RESOLVER_AUTHORITY
   - NO_SELF_REVIEW_SELF_ACCEPT_SELF_MERGE
-  - NO_REBASE_RESET_FORCE_PUSH_AMEND_HISTORY_REWRITE
+  - NO_FORCE_PUSH_REBASE_RESET_AMEND_HISTORY_REWRITE
 review_gate:
   queue_issue: 453
   independent_reviewer: GPT_INDEPENDENT_REVIEWER
+  review_depth: T3
   exact_head_review_required: true
-  canonical_snapshot_fields_required: [effective_spec_snapshot_id, effective_spec_snapshot_ref, canonical_base, exact_head]
+  executor_ci_is_evidence_only: true
   real_engineering_handoff_ref_required: true
-  python_3_11_and_3_13_required: true
-  new_review_request_required: true
-completion_signal: R171_CODEX_V2_CONTINUATION_DURABILITY_READY_FOR_INDEPENDENT_REVIEW
-next_command: READ_ISSUE_512_EFFECTIVE_SPEC_SNAPSHOT_THEN_EXECUTE_ONE_SHOT_TASK
+completion_signal: R173_CODEX_CREATIVE_RUNTIME_READY_FOR_INDEPENDENT_T3_AUDIT
+next_command: READ_ISSUE_524_EFFECTIVE_SPEC_SNAPSHOT_CLAIM_AND_EXECUTE_WITHOUT_SECOND_USER_START
