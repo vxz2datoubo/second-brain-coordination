@@ -4,23 +4,34 @@
   "title": "BeliefPacket/v1",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema", "identity", "temporal_provenance", "prior", "evidence", "update", "predictive", "diagnostics", "numeric_integrity", "authority"],
+  "required": ["schema", "identity", "temporal_provenance", "prior", "evidence", "update", "validation", "predictive", "diagnostics", "numeric_integrity", "authority"],
   "properties": {
     "schema": {"const": "BeliefPacket/v1"},
     "identity": {
-      "type": "object", "additionalProperties": false,
-      "required": ["belief_id", "target_id", "target_definition_version", "symbol_or_universe", "forecast_horizon", "as_of_time", "knowledge_cutoff", "market_rule_version", "market_rule_clause_state_version"],
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["belief_id", "target_id", "target_definition_version", "scope_type", "symbol_or_universe", "exchange", "board", "security_type", "forecast_horizon", "as_of_time", "knowledge_cutoff", "market_rule_version", "market_rule_clause_state_version", "rule_clause_ids"],
       "properties": {
         "belief_id": {"type": "string", "minLength": 1},
         "target_id": {"type": "string", "minLength": 1},
         "target_definition_version": {"type": "string", "minLength": 1},
-        "symbol_or_universe": {"type": "string", "minLength": 1},
+        "scope_type": {"const": "SINGLE_SECURITY"},
+        "symbol_or_universe": {"type": "string", "pattern": "^[0-9]{6}$"},
+        "exchange": {"enum": ["SSE", "SZSE", "BSE"]},
+        "board": {"enum": ["MAIN", "STAR", "CHINEXT", "BSE"]},
+        "security_type": {"const": "A_SHARE_STOCK"},
         "forecast_horizon": {"enum": ["INTRADAY", "1D", "3D", "5D", "10D", "20D", "60D"]},
         "as_of_time": {"type": "string", "format": "date-time"},
         "knowledge_cutoff": {"type": "string", "format": "date-time"},
-        "market_rule_version": {"type": "string", "minLength": 1},
-        "market_rule_clause_state_version": {"type": "string", "minLength": 1}
-      }
+        "market_rule_version": {"enum": ["SSE_TRADING_RULES_2026", "SZSE_TRADING_RULES_2026", "BSE_TRADING_RULES_2026"]},
+        "market_rule_clause_state_version": {"enum": ["SSE_RULE_STATE_2026-07-06_ACTIVE", "SZSE_RULE_STATE_2026-07-06_ACTIVE", "BSE_RULE_STATE_2026-07-06_PARTIAL_DEFERRED"]},
+        "rule_clause_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true}
+      },
+      "allOf": [
+        {"if": {"properties": {"exchange": {"const": "SSE"}}, "required": ["exchange"]}, "then": {"properties": {"board": {"enum": ["MAIN", "STAR"]}, "market_rule_version": {"const": "SSE_TRADING_RULES_2026"}, "market_rule_clause_state_version": {"const": "SSE_RULE_STATE_2026-07-06_ACTIVE"}}}},
+        {"if": {"properties": {"exchange": {"const": "SZSE"}}, "required": ["exchange"]}, "then": {"properties": {"board": {"enum": ["MAIN", "CHINEXT"]}, "market_rule_version": {"const": "SZSE_TRADING_RULES_2026"}, "market_rule_clause_state_version": {"const": "SZSE_RULE_STATE_2026-07-06_ACTIVE"}}}},
+        {"if": {"properties": {"exchange": {"const": "BSE"}}, "required": ["exchange"]}, "then": {"properties": {"board": {"const": "BSE"}, "market_rule_version": {"const": "BSE_TRADING_RULES_2026"}, "market_rule_clause_state_version": {"const": "BSE_RULE_STATE_2026-07-06_PARTIAL_DEFERRED"}}}}
+      ]
     },
     "temporal_provenance": {
       "type": "object", "additionalProperties": false,
@@ -44,12 +55,38 @@
       "type": "array",
       "items": {
         "type": "object", "additionalProperties": false,
-        "required": ["evidence_id", "source_ref", "source_family_id", "independence_group_id", "available_at", "data_snapshot_hash", "feature_definition_version", "polarity", "likelihood_model_id", "likelihood_model_version", "status"],
+        "required": ["evidence_id", "source_ref", "dependence_provenance", "revision_provenance", "available_at", "data_snapshot_hash", "feature_definition_version", "polarity", "likelihood_model_id", "likelihood_model_version", "status"],
         "properties": {
           "evidence_id": {"type": "string", "minLength": 1},
           "source_ref": {"type": "string", "minLength": 1},
-          "source_family_id": {"type": "string", "minLength": 1},
-          "independence_group_id": {"type": "string", "minLength": 1},
+          "dependence_provenance": {
+            "type": "object", "additionalProperties": false,
+            "required": ["source_instance_id", "source_family_id", "candidate_independence_group_id", "ancestry_refs", "shared_feed_group_ids", "shared_feature_group_ids", "shared_training_data_group_ids", "shared_model_lineage_ids", "dependence_authority_state", "independence_status"],
+            "properties": {
+              "source_instance_id": {"type": "string", "minLength": 1},
+              "source_family_id": {"type": "string", "minLength": 1},
+              "candidate_independence_group_id": {"type": ["string", "null"], "minLength": 1},
+              "ancestry_refs": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+              "shared_feed_group_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+              "shared_feature_group_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+              "shared_training_data_group_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+              "shared_model_lineage_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+              "dependence_authority_state": {"const": "UNAVAILABLE_PHASE1"},
+              "independence_status": {"const": "UNVERIFIED"}
+            }
+          },
+          "revision_provenance": {
+            "type": "object", "additionalProperties": false,
+            "required": ["revision_id", "is_revised", "supersedes_snapshot_hashes"],
+            "properties": {
+              "revision_id": {"type": "string", "minLength": 1},
+              "is_revised": {"type": "boolean"},
+              "supersedes_snapshot_hashes": {"type": "array", "items": {"type": "string", "minLength": 8}, "uniqueItems": true}
+            },
+            "allOf": [
+              {"if": {"properties": {"is_revised": {"const": true}}, "required": ["is_revised"]}, "then": {"properties": {"supersedes_snapshot_hashes": {"minItems": 1}}}}
+            ]
+          },
           "available_at": {"type": "string", "format": "date-time"},
           "data_snapshot_hash": {"type": "string", "minLength": 8},
           "feature_definition_version": {"type": "string", "minLength": 1},
@@ -68,7 +105,17 @@
         "cumulative_log_bayes_factor": {"type": "number"},
         "posterior_probability": {"type": "number", "minimum": 0, "maximum": 1},
         "unknown_mass": {"type": "number", "minimum": 0, "maximum": 1},
-        "belief_state": {"enum": ["VALID", "UNKNOWN", "ABSTAIN", "REVALIDATION_REQUIRED"]}
+        "belief_state": {"enum": ["PROPOSAL", "UNKNOWN", "ABSTAIN", "REVALIDATION_REQUIRED"]}
+      }
+    },
+    "validation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["authority_state", "packet_status", "validated_computation_receipt", "canonical_belief_authorized"],
+      "properties": {
+        "authority_state": {"const": "UNAVAILABLE_PHASE1"},
+        "packet_status": {"const": "UNVALIDATED_PROPOSAL"},
+        "validated_computation_receipt": {"type": "null"},
+        "canonical_belief_authorized": {"const": false}
       }
     },
     "predictive": {
