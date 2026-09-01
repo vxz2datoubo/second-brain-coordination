@@ -76,22 +76,25 @@ def validate_mapping(
     metrics: dict[str, Any],
     research: dict[str, Any],
     lineage: dict[str, Any],
+    evaluation: dict[str, Any],
 ) -> list[str]:
     expected_schemas = {
         "system": "InteractiveCinematicSystemMap/v1",
         "metrics": "InteractiveCinematicMetricRegistry/v1",
         "research": "InteractiveCinematicResearchLedger/v1",
         "lineage": "InteractiveCinematicCandidateLineage/v1",
+        "evaluation": "CreativeExperienceEvaluationProtocol/v1",
     }
     observed = {
         "system": system_map.get("schema"),
         "metrics": metrics.get("schema"),
         "research": research.get("schema"),
         "lineage": lineage.get("schema"),
+        "evaluation": evaluation.get("schema"),
     }
     if observed != expected_schemas:
         raise MappingValidationError(f"schema mismatch: {observed}")
-    _public_safe([system_map, metrics, research, lineage])
+    _public_safe([system_map, metrics, research, lineage, evaluation])
 
     sources = _unique(_require(research, "sources", "research"), "source_id", "sources")
     for source_id, source in sources.items():
@@ -145,7 +148,11 @@ def validate_mapping(
         raise MappingValidationError(f"system_map.layers must be exactly {sorted(LAYERS)}")
     cards = _unique(_require(system_map, "cards", "system_map"), "card_id", "cards")
     populated_layers: set[str] = set()
-    combined_source_usage = json.dumps(system_map, ensure_ascii=False) + json.dumps(metrics, ensure_ascii=False)
+    combined_source_usage = (
+        json.dumps(system_map, ensure_ascii=False)
+        + json.dumps(metrics, ensure_ascii=False)
+        + json.dumps(evaluation, ensure_ascii=False)
+    )
     for card_id, card in cards.items():
         layer = _require(card, "layer", card_id)
         if layer not in LAYERS:
@@ -180,6 +187,76 @@ def validate_mapping(
     if unused_sources:
         raise MappingValidationError(f"research sources lack architecture integration references: {unused_sources}")
 
+    principles = _require(evaluation, "principles", "evaluation")
+    if principles.get("correctness_and_experience") != "SEPARATE_DECISION_LAYERS":
+        raise MappingValidationError("evaluation must separate correctness and experience")
+    if principles.get("composite_score") != "FORBIDDEN":
+        raise MappingValidationError("evaluation must forbid a composite quality score")
+    if principles.get("machine_proxy") != "MAY_DIAGNOSE_BUT_NEVER_REPLACE_HUMAN_EXPERIENCE":
+        raise MappingValidationError("machine diagnostics cannot replace human experience")
+
+    hard_gates = _unique(_require(evaluation, "hard_gates", "evaluation"), "gate_id", "hard_gates")
+    for gate_id, gate in hard_gates.items():
+        metric_id = _require(gate, "metric_id", gate_id)
+        metric = metric_records.get(metric_id)
+        if metric is None:
+            raise MappingValidationError(f"{gate_id} references unknown metric {metric_id}")
+        if metric.get("hard_gate") is not True:
+            raise MappingValidationError(f"{gate_id} must reference a hard-gate metric")
+        for field in ("stage", "owner", "failure_action"):
+            value = _require(gate, field, gate_id)
+            if not isinstance(value, str) or not value.strip():
+                raise MappingValidationError(f"{gate_id}.{field} must be non-empty")
+
+    dimensions = _unique(
+        _require(evaluation, "human_dimensions", "evaluation"),
+        "dimension_id",
+        "human_dimensions",
+    )
+    for dimension_id, dimension in dimensions.items():
+        for field in ("name", "question", "artifact_scope", "owner"):
+            value = _require(dimension, field, dimension_id)
+            if not isinstance(value, str) or not value.strip():
+                raise MappingValidationError(f"{dimension_id}.{field} must be non-empty")
+        metric_id = _require(dimension, "metric_id", dimension_id)
+        if metric_id not in metric_records:
+            raise MappingValidationError(f"{dimension_id} references unknown metric {metric_id}")
+        source_ids = _string_list(_require(dimension, "source_ids", dimension_id), f"{dimension_id}.source_ids")
+        missing_sources = [source_id for source_id in source_ids if source_id not in sources]
+        if missing_sources:
+            raise MappingValidationError(f"{dimension_id} references unknown sources: {missing_sources}")
+
+    rubric = _require(evaluation, "rubric_contract", "evaluation")
+    if rubric.get("status") != "CANDIDATE_UNCALIBRATED_NOT_A_RELEASE_GATE":
+        raise MappingValidationError("uncalibrated rubric cannot be a release gate")
+    for field in ("baseline", "dimension_targets", "minimum_raters", "minimum_sessions", "agreement_threshold"):
+        if _require(rubric, field, "rubric_contract") is not None:
+            raise MappingValidationError(f"uncalibrated rubric cannot invent {field}")
+    scale = _require(rubric, "response_scale", "rubric_contract")
+    if (
+        not isinstance(scale, dict)
+        or not isinstance(scale.get("min"), int)
+        or not isinstance(scale.get("max"), int)
+        or scale["min"] >= scale["max"]
+    ):
+        raise MappingValidationError("rubric response scale must have ordered integer bounds")
+    forbidden = _string_list(_require(rubric, "forbidden", "rubric_contract"), "rubric_contract.forbidden")
+    if not any("overall quality score" in item for item in forbidden):
+        raise MappingValidationError("rubric must explicitly forbid an overall quality score")
+
+    cycles = _unique(_require(evaluation, "evaluation_cycles", "evaluation"), "cycle_id", "evaluation_cycles")
+    for cycle_id, cycle in cycles.items():
+        for field in ("cadence", "method", "owner"):
+            value = _require(cycle, field, cycle_id)
+            if not isinstance(value, str) or not value.strip():
+                raise MappingValidationError(f"{cycle_id}.{field} must be non-empty")
+        _string_list(_require(cycle, "artifacts", cycle_id), f"{cycle_id}.artifacts")
+
+    bridge = _require(evaluation, "second_brain_bridge", "evaluation")
+    if bridge.get("promotion") != "HUMAN_REVIEW_REQUIRED":
+        raise MappingValidationError("creative evaluation cannot auto-promote second-brain knowledge")
+    _string_list(_require(bridge, "required_links", "second_brain_bridge"), "second_brain_bridge.required_links")
+
     candidates = _unique(_require(lineage, "candidates", "lineage"), "candidate_id", "candidates")
     for candidate_id, candidate in candidates.items():
         head = _require(candidate, "exact_head", candidate_id)
@@ -204,6 +281,9 @@ def validate_mapping(
         "metric_semantics_and_unknowns_valid",
         "four_layers_complete",
         "card_metric_and_drift_refs_valid",
+        "correctness_and_human_experience_separated",
+        "creative_rubric_unknowns_fail_closed",
+        "evaluation_cycles_and_second_brain_bridge_valid",
         "candidate_lineage_exact_and_noncanonical",
     ]
 
@@ -224,6 +304,7 @@ def main() -> int:
             _load(program / "NUMERIC-ANCHOR-AND-DRIFT-REGISTRY.yaml"),
             _load(program / "RESEARCH-SOURCE-LEDGER.yaml"),
             _load(program / "CANDIDATE-LINEAGE-AND-INTEGRATION-MAP.yaml"),
+            _load(program / "CREATIVE-EXPERIENCE-EVALUATION-PROTOCOL.yaml"),
         )
     except MappingValidationError as exc:
         print(json.dumps({"status": "FAIL", "error": str(exc)}, ensure_ascii=False))

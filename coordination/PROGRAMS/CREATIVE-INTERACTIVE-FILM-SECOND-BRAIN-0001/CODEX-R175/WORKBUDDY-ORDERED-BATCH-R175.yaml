@@ -130,7 +130,7 @@
       "acceptance_commands": [
         "python -m unittest discover -s tests/workbuddy/director_matrix -p test_*.py"
       ],
-      "outcome": "Add a synthetic-only matrix proving every currently registered reachable story state either compiles a deterministic director input or produces an explicit missing-asset report; measure coverage without changing the director contract or oracle.",
+      "outcome": "Add a synthetic-only matrix proving every currently registered reachable story state either compiles a deterministic director input or produces an explicit missing-asset report; also report choice-foresight, key-character-intention and prefix-valid-knowledge coverage from existing contracts without changing the director, narrative or evaluation oracle.",
       "architecture_change": false,
       "acceptance_oracle_change": false,
       "receipt_ref": null
@@ -151,6 +151,26 @@
         "python -m unittest discover -s tests/workbuddy/operator_dry_run -p test_*.py"
       ],
       "outcome": "Add a fully offline synthetic operator dry run for intake, duplicate input, resume, replay, failure recovery and handoff receipts; do not add platform access, private media, credentials or provider calls.",
+      "architecture_change": false,
+      "acceptance_oracle_change": false,
+      "receipt_ref": null
+    },
+    {
+      "item_id": "WB-S4",
+      "owner": "WORKBUDDY",
+      "kind": "SIMPLE_IMPLEMENTATION",
+      "status": "PLANNED",
+      "complexity": "D1",
+      "depends_on": ["WB-S3"],
+      "write_paths": [
+        "tests/workbuddy/evaluation_evidence/**",
+        "tools/workbuddy/evaluation_evidence/**",
+        "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/EVALUATION-EVIDENCE/**"
+      ],
+      "acceptance_commands": [
+        "python -m unittest discover -s tests/workbuddy/evaluation_evidence -p test_*.py"
+      ],
+      "outcome": "Build a synthetic-only evaluation-evidence packet generator and validator that requires exact artifact, rubric, population, rater-class and evidence-hash bindings; reject composite scores, invented thresholds and automatic second-brain promotion; do not collect real ratings or change the rubric.",
       "architecture_change": false,
       "acceptance_oracle_change": false,
       "receipt_ref": null

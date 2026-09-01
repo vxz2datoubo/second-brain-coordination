@@ -49,3 +49,15 @@ improvement.
 
 Human quality metrics remain `UNKNOWN` until a versioned rubric, rater protocol,
 minimum sample, aggregation rule, and disagreement handling are approved.
+
+The candidate 1–5 response shape in
+`CREATIVE-EXPERIENCE-EVALUATION-PROTOCOL.yaml` stabilizes storage only. It does
+not create a baseline, passing target, minimum sample, reliability threshold,
+or permission to compare populations. Report player-experience, film-immersion,
+suspense, character, emotion, pacing, and replay dimensions separately.
+
+Machine diagnostics can be fixed at 100% when they express an invariant, such
+as exact replay, prefix-valid character knowledge, complete key-action intent
+traces, and approved choices with distinct foreseeable consequence classes.
+Human feelings cannot be fixed at 100%; calibrate them on an approved artifact
+and audience corpus, then version every later threshold.

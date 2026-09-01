@@ -16,6 +16,30 @@ revalidation trigger in `RESEARCH-SOURCE-LEDGER.yaml`.
 - **Player modelling:** inferred preferences are uncertain and temporal. Use
   them to rank eligible content candidates; never silently promote them to
   canonical scripts, identity, content boundaries, or knowledge.
+- **Character intentionality:** causal order is not motivational coherence.
+  Bind each key action to the actor's goal, belief prefix, expected benefit,
+  cost, alternatives, and consequence. Let characters fail or conflict when
+  that is coherent; do not make them irrational only to satisfy the author.
+- **Suspense diagnostics:** model a threatened negative outcome and the
+  protagonist's known avoidance routes and perceived feasibility. Treat this
+  as a diagnostic to compare with human tension reports, not as one mandatory
+  dramatic curve or an automatic artistic score.
+
+## Player and film experience
+
+- **Player experience:** preserve functional and psychosocial dimensions. A
+  validated instrument may connect mechanics to autonomy, competence,
+  relatedness, meaning, curiosity, feedback, mastery, and immersion, but its
+  wording, population, language, and aggregation must remain versioned.
+- **Rapid measurement:** a short instrument can reduce production-cycle cost,
+  but construct reliability varies. Use it for directional iteration, not as a
+  drop-in substitute for full stage evidence.
+- **Film immersion:** captivation, comprehension, transportation, and
+  real-world dissociation are distinct from interactive agency. Measure only
+  on completed audiovisual artifacts after story and continuity hard gates.
+- **Motivational needs:** design rewards and relationships to support autonomy,
+  competence, and relatedness. Points, praise, or unlocks are not evidence that
+  these needs were satisfied.
 
 ## Directing and media
 
@@ -44,6 +68,9 @@ revalidation trigger in `RESEARCH-SOURCE-LEDGER.yaml`.
 - **AI risk measurement:** record metrics, uncertainty, population/window,
   owner, feedback channel, and review cadence. Unknown or hard-to-measure risk
   stays explicit instead of receiving a decorative composite score.
+- **Human evidence:** bind every rating to an exact artifact, rubric revision,
+  population, rater class, and evidence hash. Preserve disagreement and never
+  auto-promote a rating into formal creative knowledge.
 
 ## Provider and platform boundary
 

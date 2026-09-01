@@ -1,0 +1,181 @@
+{
+  "schema": "CreativeExperienceEvaluationProtocol/v1",
+  "program_id": "INTERACTIVE-CINEMATIC-PLATFORM-0001",
+  "authority": "CANDIDATE_PROTOCOL_NOT_A_RELEASE_GATE",
+  "observed_at": "2026-09-01",
+  "contains_private_data": false,
+  "contains_credentials": false,
+  "principles": {
+    "correctness_and_experience": "SEPARATE_DECISION_LAYERS",
+    "composite_score": "FORBIDDEN",
+    "machine_proxy": "MAY_DIAGNOSE_BUT_NEVER_REPLACE_HUMAN_EXPERIENCE",
+    "unknown_threshold": "REMAIN_UNKNOWN_UNTIL_VERSIONED_PILOT",
+    "failed_hard_gate": "BLOCKS_PROGRESSION_REGARDLESS_OF_ARTISTIC_RATINGS",
+    "low_artistic_dimension": "CREATES_TRACEABLE_IMPROVEMENT_CANDIDATE_NOT_HISTORY_REWRITE"
+  },
+  "hard_gates": [
+    {
+      "gate_id": "HG-REPLAY-TRUTH",
+      "metric_id": "M-REPLAY-DETERMINISM-v1",
+      "stage": "EVERY_EVENT_PREFIX",
+      "owner": "CODEX",
+      "failure_action": "block state publication and rebuild only from the last verified prefix"
+    },
+    {
+      "gate_id": "HG-DURABLE-CHOICE",
+      "metric_id": "M-CHOICE-DURABLE-DIFFERENCE-COVERAGE-v1",
+      "stage": "EVERY_APPROVED_PRIMARY_CHOICE",
+      "owner": "CODEX",
+      "failure_action": "reject decorative choice or redesign its durable consequence"
+    },
+    {
+      "gate_id": "HG-FORESEEABLE-CHOICE",
+      "metric_id": "M-CHOICE-FORESIGHT-COVERAGE-v1",
+      "stage": "EVERY_APPROVED_PRIMARY_CHOICE",
+      "owner": "CODEX_AND_CONTENT_OWNER",
+      "failure_action": "rewrite option framing or consequence class without exposing spoilers"
+    },
+    {
+      "gate_id": "HG-CHARACTER-INTENTION",
+      "metric_id": "M-CHARACTER-INTENTIONALITY-COVERAGE-v1",
+      "stage": "EVERY_KEY_CHARACTER_ACTION",
+      "owner": "CODEX_AND_CONTENT_OWNER",
+      "failure_action": "reject unmotivated action or record the missing goal belief and cost justification"
+    },
+    {
+      "gate_id": "HG-CHARACTER-KNOWLEDGE",
+      "metric_id": "M-CHARACTER-KNOWLEDGE-CONSISTENCY-v1",
+      "stage": "EVERY_DIALOGUE_AND_ACTION_PROPOSAL",
+      "owner": "CODEX",
+      "failure_action": "reject proposal that uses facts unavailable to the character at that event prefix"
+    },
+    {
+      "gate_id": "HG-DIRECTOR-INPUT",
+      "metric_id": "M-REACHABLE-STATE-DIRECTOR-COMPILABILITY-v1",
+      "stage": "EVERY_REACHABLE_APPROVED_STATE",
+      "owner": "CODEX",
+      "failure_action": "block media request and emit an explicit missing-asset or quality report"
+    },
+    {
+      "gate_id": "HG-PRIVATE-ASSET-ISOLATION",
+      "metric_id": "M-CROSS-CAMPAIGN-PRIVATE-ASSET-REUSE-v1",
+      "stage": "EVERY_PRIVATE_MEDIA_REFERENCE",
+      "owner": "WORKBUDDY",
+      "failure_action": "block task and require corrected campaign consent and revision binding"
+    }
+  ],
+  "human_dimensions": [
+    {
+      "dimension_id": "HX-AGENCY",
+      "name": "perceived agency",
+      "question": "Did the player understand that their choice could create a materially different situation and later see that difference?",
+      "metric_id": "M-PLAYER-EXPERIENCE-VECTOR-v1",
+      "source_ids": ["R-AAAI-MEANINGFUL-CHOICES-2014", "R-PXI-2020"],
+      "artifact_scope": "choice and delayed consequence pair",
+      "owner": "GAME_DESIGN_AND_GAMES_USER_RESEARCH"
+    },
+    {
+      "dimension_id": "HX-NEED-SUPPORT",
+      "name": "autonomy competence and relatedness",
+      "question": "Did the experience support meaningful self-direction, an understandable challenge and emotionally credible relationships?",
+      "metric_id": "M-PLAYER-EXPERIENCE-VECTOR-v1",
+      "source_ids": ["R-SDT-GAME-MOTIVATION-2006", "R-PXI-2020"],
+      "artifact_scope": "scene chapter and complete session",
+      "owner": "GAME_DESIGN_AND_GAMES_USER_RESEARCH"
+    },
+    {
+      "dimension_id": "HX-MEANING-CURIOSITY-FEEDBACK",
+      "name": "meaning curiosity and progress feedback",
+      "question": "Did the player discover something worth caring about and receive legible progress or consequence feedback?",
+      "metric_id": "M-PLAYER-EXPERIENCE-VECTOR-v1",
+      "source_ids": ["R-PXI-2020", "R-MINIPXI-2022"],
+      "artifact_scope": "turn scene and chapter",
+      "owner": "GAME_DESIGN_AND_NARRATIVE_DESIGN"
+    },
+    {
+      "dimension_id": "HX-CHARACTER-BELIEVABILITY",
+      "name": "character intentionality and distinctness",
+      "question": "Could a reviewer explain what each major character wanted believed risked and chose without relying on the author's hidden plan?",
+      "metric_id": "M-HUMAN-CINEMATIC-QUALITY-v1",
+      "source_ids": ["R-ICAPS-NARRATIVE-PLANNING-2023", "R-AAAI-PARETO-NPC-2025"],
+      "artifact_scope": "key action scene and character arc",
+      "owner": "NARRATIVE_DESIGN_AND_CHARACTER_DIRECTION"
+    },
+    {
+      "dimension_id": "HX-SUSPENSE",
+      "name": "suspense and threat pressure",
+      "question": "Did the audience perceive a meaningful negative possibility and a difficult but intelligible route for the protagonist to avoid it?",
+      "metric_id": "M-SUSPENSE-HUMAN-ALIGNMENT-v1",
+      "source_ids": ["R-AAAI-DRAMATIS-2014"],
+      "artifact_scope": "scene sequence and chapter arc",
+      "owner": "NARRATIVE_DESIGN_AND_HUMAN_REVIEW"
+    },
+    {
+      "dimension_id": "HX-EMOTIONAL-PAYOFF",
+      "name": "emotional setup and payoff",
+      "question": "Was the emotional change earned by prior actions relationships and costs rather than asserted only in dialogue?",
+      "metric_id": "M-HUMAN-CINEMATIC-QUALITY-v1",
+      "source_ids": ["R-NIST-AI-RMF-MEASURE"],
+      "artifact_scope": "scene chapter and ending",
+      "owner": "NARRATIVE_DESIGN_AND_HUMAN_REVIEW"
+    },
+    {
+      "dimension_id": "HX-PACING",
+      "name": "pacing and escalation",
+      "question": "Did information pressure action and recovery vary with purpose rather than repeat at one intensity?",
+      "metric_id": "M-HUMAN-CINEMATIC-QUALITY-v1",
+      "source_ids": ["R-AAAI-SEARCH-DRAMA-MANAGEMENT-2005", "R-AAAI-DRAMATIS-2014"],
+      "artifact_scope": "scene chapter and season",
+      "owner": "NARRATIVE_DESIGN_AND_EDITING"
+    },
+    {
+      "dimension_id": "HX-FILM-IMMERSION",
+      "name": "captivation comprehension transportation and dissociation",
+      "question": "Did the segment hold attention remain understandable transport the viewer and reduce awareness of the viewing context?",
+      "metric_id": "M-FILM-IMMERSION-VECTOR-v1",
+      "source_ids": ["R-FILM-IEQ-2019"],
+      "artifact_scope": "completed audiovisual scene or chapter",
+      "owner": "DIRECTING_EDITING_SOUND_AND_GAMES_USER_RESEARCH"
+    },
+    {
+      "dimension_id": "HX-REPLAY-DESIRE",
+      "name": "desire to continue or replay",
+      "question": "Would the player voluntarily continue or revisit a materially different path and why?",
+      "metric_id": "M-PLAYER-EXPERIENCE-VECTOR-v1",
+      "source_ids": ["R-SDT-GAME-MOTIVATION-2006", "R-MINIPXI-2022"],
+      "artifact_scope": "chapter and complete session",
+      "owner": "PRODUCT_AND_GAMES_USER_RESEARCH"
+    }
+  ],
+  "rubric_contract": {
+    "rubric_revision": "CREATIVE-EXPERIENCE-RUBRIC-CANDIDATE-v1",
+    "status": "CANDIDATE_UNCALIBRATED_NOT_A_RELEASE_GATE",
+    "response_scale": {"min": 1, "max": 5, "anchors": "REQUIRES_HUMAN_LANGUAGE_VALIDATION"},
+    "baseline": null,
+    "dimension_targets": null,
+    "minimum_raters": null,
+    "minimum_sessions": null,
+    "agreement_threshold": null,
+    "aggregation": "REPORT_EACH_DIMENSION_WITH_SAMPLE_POPULATION_WINDOW_AND_DISAGREEMENT",
+    "forbidden": [
+      "single weighted overall quality score",
+      "machine-generated rating presented as human judgment",
+      "threshold copied across script style language or audience populations",
+      "silent wording scale population or aggregation revision"
+    ]
+  },
+  "evaluation_cycles": [
+    {"cycle_id": "EC-TURN", "cadence": "every accepted turn", "method": "deterministic gates", "artifacts": ["event prefix", "state hash", "choice consequence"], "owner": "CODEX"},
+    {"cycle_id": "EC-SEGMENT", "cadence": "every director/media candidate", "method": "continuity and audiovisual task review", "artifacts": ["DirectorBrief", "ShotBundle", "quality report"], "owner": "CODEX_AND_FUTURE_MEDIA_TEAM"},
+    {"cycle_id": "EC-SCENE", "cadence": "each reviewable scene revision", "method": "expert vector plus open finding", "artifacts": ["scene prefixes", "character intent trace", "dimension ratings"], "owner": "NARRATIVE_DIRECTING_GAME_DESIGN"},
+    {"cycle_id": "EC-CHAPTER", "cadence": "each chapter milestone", "method": "synthetic coverage plus consented pilot vector", "artifacts": ["choice coverage", "arc report", "PXI or approved short form"], "owner": "PRODUCT_AND_GAMES_USER_RESEARCH"},
+    {"cycle_id": "EC-SEASON", "cadence": "each season candidate", "method": "blind comparative panel after protocol approval", "artifacts": ["full route corpus", "Film IEQ", "qualitative rationales"], "owner": "USER_AND_INDEPENDENT_HUMAN_REVIEWERS"},
+    {"cycle_id": "EC-RELEASE", "cadence": "each exact release head", "method": "clean reproduction plus independent cross-module review", "artifacts": ["exact head", "machine receipts", "human evidence vector", "open risks"], "owner": "GPT_INDEPENDENT_REVIEWER_AFTER_USER_TRIGGER"}
+  ],
+  "second_brain_bridge": {
+    "input": "CreativeKnowledgeCandidate/v1",
+    "required_links": ["script revision", "campaign or synthetic corpus", "scene or segment", "rubric revision", "dimension", "rater class", "evidence hash"],
+    "promotion": "HUMAN_REVIEW_REQUIRED",
+    "prohibited": "No rating or generated result may rewrite historical story facts or automatically change a formal skill."
+  }
+}

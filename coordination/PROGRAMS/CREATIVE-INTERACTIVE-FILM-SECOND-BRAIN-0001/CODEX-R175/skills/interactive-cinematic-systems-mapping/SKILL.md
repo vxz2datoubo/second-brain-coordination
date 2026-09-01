@@ -68,6 +68,10 @@ decisions, interfaces, and falsifiable consequences.
   when planning how writing, game systems, directing, art, sound, operations,
   privacy, evaluation, and the second brain exchange work across production
   cycles.
+- Read [references/creative-quality-evaluation.md](references/creative-quality-evaluation.md)
+  when judging meaningful choice, character motivation, suspense, emotional
+  payoff, player experience, cinematic immersion, or when defining a human
+  evaluation cycle. Keep correctness gates and artistic dimensions separate.
 
 ## Project machine sources
 
@@ -77,6 +81,7 @@ The task-local candidate registries are:
 - `NUMERIC-ANCHOR-AND-DRIFT-REGISTRY.yaml`
 - `RESEARCH-SOURCE-LEDGER.yaml`
 - `CANDIDATE-LINEAGE-AND-INTEGRATION-MAP.yaml`
+- `CREATIVE-EXPERIENCE-EVALUATION-PROTOCOL.yaml`
 
 Validate them with `python tools/validate_interactive_cinematic_mapping.py`.
 The validator checks structure and reference integrity; it does not grant

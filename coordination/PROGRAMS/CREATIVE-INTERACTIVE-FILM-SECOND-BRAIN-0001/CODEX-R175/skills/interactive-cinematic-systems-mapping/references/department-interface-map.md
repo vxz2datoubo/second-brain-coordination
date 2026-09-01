@@ -18,7 +18,7 @@ acceptance gate, and rejection owner.
 | Media generation / editorial | segment jobs, results, assembly and export | shot bundle, asset refs, audio plan, budget gate | `MediaResult`, timeline and provenance | idempotency, quality report, source binding, human approval |
 | Platform operations | manual/Douyin intake, dedup, wait queue, operator notification | platform events and user authorization | normalized intake and capability receipt | permission, source ID, privacy, retry and fallback |
 | Privacy / rights / safety | consent, retention, age/content, license and publication rules | proposed intake/assets/scripts/exports | approvals, denials and expiration events | explicit human authority; no inference from model output |
-| Evaluation / QA | deterministic corpus, robustness matrices, human rubric | exact candidates and approved evaluation protocol | hashed receipts and findings | exact head, population/window, no oracle co-edit |
+| Evaluation / QA | deterministic corpus, robustness matrices, human rubric, games-user-research protocol | exact candidates and approved evaluation protocol | hard-gate receipts, dimension vectors, disagreement and findings | exact head/artifact, rubric, population/window, no oracle co-edit |
 | Second brain | candidate lessons and correction lineage | source artifacts, user feedback, review decisions | reviewable skill/knowledge candidates | provenance and human review; no automatic canonical promotion |
 | Local infrastructure | private store, runtime environment, backup and recovery facts | approved deployment plan and secrets manager | environment/capability evidence | separate authorization; never publish private bytes to GitHub |
 
@@ -29,12 +29,12 @@ the earlier source of record.
 
 | Clock | Trigger | Mandatory closure |
 | --- | --- | --- |
-| turn | one player input | normalized intent, accepted/rejected result, event/state hash, visible feedback |
+| turn | one player input | normalized intent, accepted/rejected result, event/state hash, choice foresight/consequence, visible feedback |
 | segment | one 4-15 second candidate | director/asset/continuity checks, media receipt, provenance, next-choice bridge |
-| scene | scene entry or exit | spatial state, cast knowledge, injuries/props, quest/relationship consequences |
-| chapter | chapter terminal beat | objective resolution, unresolved threads, reward/cost, recovery point |
-| season | ending | ending path, relationship/quest closure, replayable ledger, candidate learning packet |
-| release | exact Git candidate | full tests, scope/privacy/network scans, clean reproduction, rollback and independent review |
+| scene | scene entry or exit | spatial state, cast knowledge, injuries/props, quest/relationship consequences, key-character intent trace, expert dimension findings |
+| chapter | chapter terminal beat | objective resolution, unresolved threads, reward/cost, recovery point, approved player-experience vector when piloting |
+| season | ending | ending path, relationship/quest closure, replayable ledger, blind comparative human vector, candidate learning packet |
+| release | exact Git candidate | full tests, scope/privacy/network scans, clean reproduction, dimension-level human evidence, rollback and independent review |
 | operations review | approved cadence after pilot | privacy/rights incidents, cost/latency/storage, user feedback, drift and improvement decisions |
 
 ## Change propagation
@@ -49,6 +49,9 @@ the earlier source of record.
    metric revision; dashboards do not silently reinterpret old values.
 5. A human correction creates a candidate correction linked to its source and
    affected artifacts; formal rules change only after review.
+6. A rubric wording, scale, language, population, artifact scope, aggregation,
+   or decision-rule change creates a new evaluation revision; old ratings are
+   not silently normalized into the new protocol.
 
 ## Conflict rule
 
