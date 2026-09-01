@@ -12,12 +12,15 @@ unknowns:
     owner: FUTURE_CLOSEOUT_FLOW
     close_condition: exact-head CI succeeds after a user-authorized review-ready PR is created
   - id: R175-U02-WORKBUDDY-REPRODUCTION
-    state: NOT_AUTHORIZED
-    reason: canonical ACTIVE-WORKBUDDY-TASK execution_allowed is false
-    impact: no separate WorkBuddy environment finding exists
-    unaffected: Codex exact-head clean-clone evidence
-    owner: GPT_GITHUB_INTEGRATOR_AFTER_USER_DIRECTION
-    close_condition: fresh WorkBuddy route then WORKBUDDY executor receipt for the same exact head
+    state: AUTHORIZED_OLDER_CHECKPOINT_NOT_STARTED
+    reason: >-
+      canonical ACTIVE-WORKBUDDY-TASK Issue 532 is READY and execution_allowed true, but it is immutably
+      bound to checkpoint 7d8ac1fdaf724bed75c8da3e1dbdf4212e108133 and no newer WorkBuddy branch commit was observed
+    impact: no separate WorkBuddy environment finding exists for architecture checkpoint f49e90f872ba452d3fa870403f0d42f7f24a6add
+    unaffected: Codex exact-head clean-clone evidence and the non-overlapping active WorkBuddy batch
+    owner: WORKBUDDY_FOR_ISSUE_532_THEN_GPT_GITHUB_INTEGRATOR_FOR_A_FUTURE_CHECKPOINT_ROUTE
+    close_condition: >-
+      WorkBuddy completes Issue 532 and a later governed WorkBuddy route explicitly binds the newer architecture checkpoint
   - id: R175-U03-GPT-R172-SESSION-AUTHORITY
     state: REQUIRES_FRESH_RECONCILIATION
     reason: Issue 515 and PR 516 are a separate GPT-owned single-v2-session lane
@@ -39,6 +42,19 @@ unknowns:
     unaffected: GitHub checkpoint and executor verification
     owner: USER_MANUAL_ACTIVATION_THEN_GPT_INDEPENDENT_REVIEWER
     close_condition: exact-head REVIEW_RESULT is recorded after user activation
+  - id: R175-U06-PROJECT-BATON-STALE
+    state: STALE_NAVIGATION_HIGHER_AUTHORITY_RECONCILED
+    reason: >-
+      PROJECT-BATON.yaml still points to R174 Issue 526 while canonical ACTIVE-CODEX-TASK and Issue 528
+      authorize R175 and canonical ACTIVE-WORKBUDDY-TASK and Issue 532 authorize the parallel WorkBuddy batch
+    impact: a future agent that reads only the baton may attempt to follow a superseded mission
+    unaffected: >-
+      canonical main, ACTIVE routes, Issues, claims, leases, reservations and snapshots remain higher authority;
+      this Codex run fresh-reconciled them before writing
+    owner: GPT_GITHUB_INTEGRATOR
+    close_condition: >-
+      update PROJECT-BATON.yaml on canonical main to the current R175 Codex and WorkBuddy truth without
+      changing either executor's active route or immutable checkpoint
 
 none_claimed:
   credentials_read: false
