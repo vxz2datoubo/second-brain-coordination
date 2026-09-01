@@ -1,0 +1,71 @@
+{
+  "schema": "CodexWorkBuddyExecutionPolicy/v1",
+  "project_id": "CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001",
+  "authority": "PROCESS_POLICY_ONLY_DOES_NOT_GRANT_EXECUTION",
+  "objective": "Spend Codex on architecture and core implementation, and spend WorkBuddy on repeatable evidence, local environment truth and bounded low-risk work.",
+  "allocation": {
+    "CODEX": {
+      "preferred_work": [
+        "architecture and public contracts",
+        "story-state, migration and replay semantics",
+        "AI director compilation and hard quality gates",
+        "acceptance-oracle design",
+        "repair of findings that require core-runtime judgment"
+      ],
+      "allowed_complexity": ["D0", "D1", "D2", "D3"],
+      "reserved_decisions": [
+        "architecture_change",
+        "acceptance_oracle_change",
+        "persistent_authority_change",
+        "cross_module_contract_change"
+      ]
+    },
+    "WORKBUDDY": {
+      "preferred_work": [
+        "clean exact-head reproduction",
+        "Windows and local-environment verification",
+        "recovery, concurrency, storage, tamper and soak matrices",
+        "operator-runbook reproduction",
+        "simple isolated tools and fixtures explicitly listed in a governed batch"
+      ],
+      "implementation_complexity_ceiling": "D1",
+      "may_continue_without_user_message": "ONLY_THROUGH_ORDERED_ITEMS_IN_ONE_EXECUTABLE_ROUTE",
+      "must_return_to_codex_when": [
+        "the published batch is complete",
+        "a blocking finding is produced",
+        "architecture or acceptance-oracle change is required",
+        "the next item touches a Codex-retained surface",
+        "route, lease, snapshot or exact-head identity no longer matches"
+      ]
+    }
+  },
+  "verification_taxonomy": {
+    "CLEAN_REPRODUCTION": "Re-run the declared commands from a clean standalone clone locked to one pushed SHA.",
+    "ADVERSARIAL_MATRIX": "Exercise malformed, reordered, duplicated, truncated or conflicting inputs against declared invariants.",
+    "RECOVERY_MATRIX": "Exercise interruption, partial write, resume, replay and rollback behavior without production data.",
+    "CONCURRENCY_MATRIX": "Exercise duplicate submissions, competing readers and declared single-writer constraints.",
+    "STORAGE_MATRIX": "Exercise many campaigns, slots, snapshots, deduplication and bounded growth with synthetic data.",
+    "SOAK_TEST": "Repeat deterministic offline flows long enough to reveal leaks or nondeterministic drift.",
+    "ENVIRONMENT_PROBE": "Verify paths, supported runtime, filesystem behavior and operator commands on the local host.",
+    "SIMPLE_IMPLEMENTATION": "Implement one D0/D1 task in WorkBuddy-owned paths without changing architecture or acceptance oracles."
+  },
+  "cost_rules": [
+    "Do not run a Python version matrix unless the canonical task or CI contract requires it.",
+    "Do not ask GPT to review routine checkpoints; reserve GPT for user-triggered stage closeout.",
+    "A WorkBuddy failure receipt is more valuable than a patched-on-the-fly false pass.",
+    "Use synthetic fixtures and hashes; never copy real customer media, comments, credentials or provider responses.",
+    "A result may be EXECUTOR_CLEAN_REPRODUCTION but never independent acceptance."
+  ],
+  "closeout": {
+    "user_trigger_phrases": ["同步", "收尾", "做交接"],
+    "required_inputs": [
+      "Codex implementation exact heads",
+      "WorkBuddy reproduction and robustness receipts",
+      "open findings and ownership",
+      "contract and architecture changes",
+      "rollback instructions",
+      "one proposed next stage"
+    ],
+    "gpt_role": "One consolidated cross-module review after the user trigger; not routine executor verification."
+  }
+}

@@ -48,6 +48,21 @@ Codex 在接近额度边界前必须：
 
 只要仍在同一 route 的有序范围内，`automatic_resume_within_task` 可以为 `true`。发现架构变化、验收标准变化、与 Codex 写入面重叠、凭证/真实数据/外部付费服务或未列明的新模块时必须停止。
 
+任务分配、成本优先级和验证种类的唯一候选策略见
+`CODEX-WORKBUDDY-EXECUTION-POLICY.yaml`。正式 WorkBuddy route 应复制并绑定
+`WORKBUDDY-ORDERED-BATCH-TEMPLATE.yaml`，再用下列命令逐项选择下一工作：
+
+```powershell
+python tools/evaluate_creative_executor_batch.py <BOUND-WORKBUDDY-BATCH.yaml>
+```
+
+输出 `READY` 时只领取 `ready_items` 中的唯一项目；输出 `RUNNING` 时只完成当前项目；
+输出 `RETURN_TO_CODEX` 时停止新增工作并发布返回包；输出 `BLOCKED` 时禁止自行绕过。
+这个工具不能发布 route，也不能授予执行、review 或 merge 权。
+
+所谓“攻击测试”仅指对离线合成输入做鲁棒性验证，包括重复、乱序、截断、篡改、
+并发、恢复和存储增长；不扫描外部系统、不碰账号、不尝试绕过权限，也不使用真实用户数据。
+
 ## 结果回传
 
 WorkBuddy 的 PASS 叫：
