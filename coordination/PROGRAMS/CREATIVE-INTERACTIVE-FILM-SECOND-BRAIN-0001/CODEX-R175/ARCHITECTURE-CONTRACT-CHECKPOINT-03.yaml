@@ -1,0 +1,87 @@
+schema: InteractiveCinematicArchitectureCheckpoint/v1
+agent_id: CODEX
+project_id: CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001
+checkpoint_id: CODEX-R175-ARCHITECTURE-CONTRACTS-003
+status: EXECUTOR_CLEAN_REPRODUCED_NOT_INDEPENDENTLY_ACCEPTED
+implementation_branch: codex/r175-capability-policy-confinement-remediation
+implementation_baseline: 740788a3847a402923bf2e89093d910eda0c89d0
+implementation_exact_head: f49e90f872ba452d3fa870403f0d42f7f24a6add
+
+outcome:
+  summary: >-
+    Establish a machine-validated contract architecture for the realtime interactive film platform
+    without taking GPT R172 campaign-session authority or WorkBuddy R175 reserved write surfaces.
+  modules: 8
+  contracts: 19
+  cross_contract_relations: 7
+  capability_maturity_changes:
+    from: MAPPED
+    to: CONTRACTED
+    capabilities:
+      - CAP-SCRIPT-PACKAGE-REGISTRY
+      - CAP-PLAYER-CAMPAIGN
+      - CAP-DRAMA-MANAGEMENT
+      - CAP-DIRECTOR-V2
+      - CAP-ASSET-CONTINUITY
+      - CAP-MEDIA-PROVENANCE
+      - CAP-PLATFORM-INTAKE
+      - CAP-OBSERVABILITY
+
+contract_boundaries:
+  - GitHub stores contracts, hashes, IDs and approval states; it stores no private player media or credentials.
+  - A contracted interface does not grant runtime, session, provider, review or merge authority.
+  - Narrative model proposals cannot become story truth without deterministic validation.
+  - Style changes cannot modify narrative truth or historical consequences.
+  - PlayerCampaign/v1 remains implementation-blocked pending GPT R172 authority reconciliation.
+  - External media and platform adapters remain blocked pending explicit user approval and local private configuration.
+
+changed_artifacts:
+  - coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/PLATFORM-CONTRACT-CATALOG.yaml
+  - coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/SYSTEM-CAPABILITY-DEPENDENCY-MAP.yaml
+  - tools/validate_interactive_cinematic_mapping.py
+  - tests/test_interactive_cinematic_mapping.py
+
+verification:
+  clean_clone: F:/aidanao-worktrees/standalone-clones/second-brain-continuous-build-verify
+  exact_head_readback: f49e90f872ba452d3fa870403f0d42f7f24a6add
+  results:
+    creative_regression: PASS_105_TESTS_1_PLATFORM_SPECIFIC_SKIP
+    architecture_contract_tests: PASS_23_OF_23
+    architecture_validator: PASS_14_CHECKS
+    public_safe_boundary: PASS
+    r175_scope: PASS_65_FILES_FROM_BASELINE
+    git_diff_check: PASS
+  verification_class: EXECUTOR_CLEAN_REPRODUCTION
+  independent_acceptance: false
+
+parallel_execution_reconciliation:
+  workbuddy_issue: 532
+  workbuddy_status: READY_EXECUTION_ALLOWED
+  workbuddy_branch: workbuddy/r175-ordered-batch-execution
+  workbuddy_observed_head: 7d8ac1fdaf724bed75c8da3e1dbdf4212e108133
+  workbuddy_first_execution_commit_observed: false
+  rule: >-
+    Do not redirect or preempt the active WorkBuddy batch. It remains bound to its immutable older
+    checkpoint and its exclusive tools/workbuddy, tests/workbuddy and WORKBUDDY-R175 evidence subtrees.
+
+known_limits:
+  - The catalog is a candidate architecture contract, not a runtime implementation.
+  - ScriptPackage registry, DirectorBrief/v2 and drama manager still require a future governed implementation release.
+  - PlayerCampaign implementation is intentionally not started because GPT R172 retains the overlapping session-authority lane.
+  - No real Douyin, provider, photo, media, credential, deployment or customer-data operation was performed.
+
+rollback:
+  method: REVERT_NORMAL_COMMITS_ONLY
+  implementation_commit: f49e90f872ba452d3fa870403f0d42f7f24a6add
+  history_rewrite_forbidden: true
+
+next_recommended_slice:
+  codex: >-
+    After a fresh governed A1 release, implement ScriptPackage/v1 immutable registry and two approved
+    synthetic fixtures first; do not implement PlayerCampaign authority until GPT R172 is reconciled.
+  workbuddy: >-
+    Continue the currently released Issue #532 fixed batch on checkpoint 7d8ac1f and return its package
+    to Codex; do not claim this newer architecture checkpoint was verified.
+  gpt: >-
+    No intermediate review is requested. On user sync or closeout, reconcile R172, the WorkBuddy return,
+    and this exact architecture checkpoint before releasing the next implementation slice.
