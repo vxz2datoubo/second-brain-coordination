@@ -1,21 +1,28 @@
 {
   "schema": "CreativeExecutorRelayPackage/v1",
-  "package_id": "CIF-R175-CODEX-TO-WORKBUDDY-PREP-001",
+  "package_id": "CIF-R175-CODEX-TO-WORKBUDDY-PREP-002",
   "project_id": "CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001",
   "created_by": "CODEX",
   "source": {
     "agent": "CODEX",
     "branch": "codex/r175-capability-policy-confinement-remediation",
-    "checkpoint_remote_ref": "refs/remotes/origin/codex/checkpoint-r175-quota-f6d173f",
+    "checkpoint_remote_ref": "refs/remotes/origin/codex/checkpoint-r175-relay-a3f8b8b",
     "baseline": "740788a3847a402923bf2e89093d910eda0c89d0",
-    "exact_head": "f6d173f086c59bca92114787084311a3610fe022",
+    "exact_head": "a3f8b8bb8df06be4c42b39adc4b05301fbc16a1c",
     "pushed": true,
     "worktree_clean_at_checkpoint": true,
     "write_surfaces": [
       "creative_runtime/**",
       "apps/cli/**",
       "apps/web/**",
-      "tools/**",
+      "tools/audit_creative_relay_readiness.py",
+      "tools/create_creative_quota_checkpoint.py",
+      "tools/evaluate_creative_executor_batch.py",
+      "tools/validate_creative_executor_relay.py",
+      "tools/validate_creative_workbuddy_return.py",
+      "tools/verify_creative_executor_checkpoint.py",
+      "tools/verify_public_safe_boundary.py",
+      "tools/verify_r175_scope.py",
       "tests/test_creative_*.py",
       "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/**"
     ]
@@ -37,13 +44,15 @@
     "proposed_branch": "workbuddy/interactive-cinematic-r175-verification",
     "write_surfaces_after_future_route": [
       ".creative-evidence/**",
-      "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/**"
+      "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/**",
+      "tests/workbuddy/**",
+      "tools/workbuddy/**"
     ]
   },
   "relay_state": "BLOCKED_PENDING_TARGET_ROUTE",
   "verification_plan": {
     "commands": [
-      "python tools/verify_creative_executor_checkpoint.py --agent-id WORKBUDDY --expected-head f6d173f086c59bca92114787084311a3610fe022 --remote-ref refs/remotes/origin/codex/checkpoint-r175-quota-f6d173f --baseline 740788a3847a402923bf2e89093d910eda0c89d0 --policy-floor-ref 740788a3847a402923bf2e89093d910eda0c89d0"
+      "python tools/verify_creative_executor_checkpoint.py --agent-id WORKBUDDY --expected-head a3f8b8bb8df06be4c42b39adc4b05301fbc16a1c --remote-ref refs/remotes/origin/codex/checkpoint-r175-relay-a3f8b8b --baseline 740788a3847a402923bf2e89093d910eda0c89d0 --policy-floor-ref 740788a3847a402923bf2e89093d910eda0c89d0"
     ],
     "attack_classes": [
       "computed Python capability bypass",
