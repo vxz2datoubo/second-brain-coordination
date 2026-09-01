@@ -5,6 +5,7 @@
   "requested_executor": "WORKBUDDY",
   "requested_mode": "EXACT_HEAD_VERIFICATION_AND_BOUNDED_SIMPLE_TASK_QUEUE",
   "execution_policy_ref": "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/CODEX-WORKBUDDY-EXECUTION-POLICY.yaml",
+  "coordination_baton_ref": "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/EXECUTOR-COORDINATION-BATON.yaml",
   "ordered_batch_template_ref": "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/WORKBUDDY-ORDERED-BATCH-TEMPLATE.yaml",
   "source_issue": 528,
   "source_branch": "codex/r175-capability-policy-confinement-remediation",
@@ -36,9 +37,27 @@
       "id": "WB-S1",
       "outcome": "Add storage scaling and repeated init/resume/replay probes only if explicitly retained in the released route.",
       "write_paths": [
-        "tests/workbuddy/**",
-        "tools/workbuddy/**",
-        "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/**"
+        "tests/workbuddy/campaign_benchmark/**",
+        "tools/workbuddy/campaign_benchmark/**",
+        "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/MEASUREMENTS/**"
+      ]
+    },
+    {
+      "id": "WB-S2",
+      "outcome": "Build a synthetic reachable-state to director-input/missing-asset coverage matrix without changing core contracts.",
+      "write_paths": [
+        "tests/workbuddy/director_matrix/**",
+        "tools/workbuddy/director_matrix/**",
+        "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/DIRECTOR-MATRIX/**"
+      ]
+    },
+    {
+      "id": "WB-S3",
+      "outcome": "Build a synthetic offline operator lifecycle dry run and hashed receipts without platform or private-data access.",
+      "write_paths": [
+        "tests/workbuddy/operator_dry_run/**",
+        "tools/workbuddy/operator_dry_run/**",
+        "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/OPERATOR-DRY-RUN/**"
       ]
     }
   ],

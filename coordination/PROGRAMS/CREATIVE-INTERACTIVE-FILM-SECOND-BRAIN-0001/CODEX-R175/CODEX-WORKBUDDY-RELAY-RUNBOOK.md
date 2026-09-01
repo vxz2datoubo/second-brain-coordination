@@ -8,6 +8,17 @@
 
 正常施工时无需操作。Codex 在安全里程碑推送普通提交；WorkBuddy 只验证已推送的精确 SHA。
 
+双方共同入口为 `EXECUTOR-COORDINATION-BATON.yaml`。任何一方开工前都应先运行：
+
+```powershell
+python tools/coordinate_creative_executors.py `
+  --baton coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/EXECUTOR-COORDINATION-BATON.yaml `
+  --event AUTO
+```
+
+它会同时给出 `codex_action`、`workbuddy_action` 和唯一下一步。它只读取 GitHub 权威状态，
+不能自己发布 route、领取任务、验收或合并。
+
 当 Codex 额度不足、且 GitHub 上已经出现新的可执行 WorkBuddy route 后，用户只需对 WorkBuddy 说：
 
 ```text
@@ -59,6 +70,21 @@ python tools/evaluate_creative_executor_batch.py <BOUND-WORKBUDDY-BATCH.yaml>
 输出 `READY` 时只领取 `ready_items` 中的唯一项目；输出 `RUNNING` 时只完成当前项目；
 输出 `RETURN_TO_CODEX` 时停止新增工作并发布返回包；输出 `BLOCKED` 时禁止自行绕过。
 这个工具不能发布 route，也不能授予执行、review 或 merge 权。
+
+Codex 和 WorkBuddy 不必完全串行。WorkBuddy 可以对一个冻结的 Codex checkpoint 做只读验证，
+同时 Codex 在不重叠的核心表面继续前进。WorkBuddy 的阻断发现只冻结受影响表面；未受影响的
+Codex 切片可以继续。只有 `IMPLEMENTATION_BATON` 交出的写入面必须保持单写者。
+
+额度边界使用：
+
+```powershell
+python tools/coordinate_creative_executors.py `
+  --baton coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/EXECUTOR-COORDINATION-BATON.yaml `
+  --event CODEX_QUOTA_LOW
+```
+
+WorkBuddy 完成整个有序批次后使用 `--event WORKBUDDY_BATCH_COMPLETE`；用户说“同步”或
+“收尾”时使用 `--event USER_SYNC`，一次性汇总双方证据，不在日常循环中骚扰 GPT。
 
 所谓“攻击测试”仅指对离线合成输入做鲁棒性验证，包括重复、乱序、截断、篡改、
 并发、恢复和存储增长；不扫描外部系统、不碰账号、不尝试绕过权限，也不使用真实用户数据。

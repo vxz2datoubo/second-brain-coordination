@@ -1,0 +1,103 @@
+{
+  "schema": "CreativeExecutorCoordinationBaton/v1",
+  "project_id": "CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001",
+  "authority": "NAVIGATION_ONLY_CANONICAL_ACTIVE_ROUTES_WIN",
+  "operating_model": "CODEX_CORE_CONTINUOUS_WORKBUDDY_VERIFY_AND_BOUNDED_CONTINUE",
+  "source_checkpoint": {
+    "branch": "codex/r175-capability-policy-confinement-remediation",
+    "exact_head": "7d8ac1fdaf724bed75c8da3e1dbdf4212e108133",
+    "checkpoint_remote_ref": "refs/remotes/origin/codex/checkpoint-r175-mapping-7d8ac1f",
+    "baseline": "740788a3847a402923bf2e89093d910eda0c89d0"
+  },
+  "canonical_inputs": {
+    "codex_active": "coordination/ACTIVE-CODEX-TASK.yaml",
+    "workbuddy_active": "coordination/ACTIVE-WORKBUDDY-TASK.yaml",
+    "relay_package": "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/EXECUTOR-RELAY-QUEUE.yaml",
+    "ordered_batch": "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/WORKBUDDY-ORDERED-BATCH-R175.yaml",
+    "route_release_request": "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/WORKBUDDY-ROUTE-RELEASE-REQUEST.yaml",
+    "return_template": "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/WORKBUDDY-RETURN-PACKAGE-TEMPLATE.yaml"
+  },
+  "lanes": {
+    "CODEX_CORE": {
+      "purpose": "Architecture, stable contracts, core runtime, complex failure semantics and acceptance oracles.",
+      "write_surfaces": [
+        "creative_runtime/**",
+        "apps/cli/**",
+        "apps/web/**",
+        "tools/coordinate_creative_executors.py",
+        "tools/audit_creative_relay_readiness.py",
+        "tools/create_creative_quota_checkpoint.py",
+        "tools/evaluate_creative_executor_batch.py",
+        "tools/validate_creative_executor_relay.py",
+        "tools/validate_creative_workbuddy_return.py",
+        "tools/verify_creative_executor_checkpoint.py",
+        "tools/validate_interactive_cinematic_mapping.py",
+        "tools/verify_public_safe_boundary.py",
+        "tools/verify_r175_scope.py",
+        "tests/test_creative_executor_coordination.py",
+        "tests/test_creative_executor_batch.py",
+        "tests/test_creative_executor_relay.py",
+        "tests/test_creative_relay_readiness.py",
+        "tests/test_creative_workbuddy_return.py",
+        "tests/test_creative_quota_checkpoint.py",
+        "tests/test_creative_executor_checkpoint.py",
+        "tests/test_interactive_cinematic_mapping.py",
+        "tests/test_creative_public_safe_boundary.py",
+        "tests/test_creative_migration_confinement.py",
+        "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/**"
+      ],
+      "complexity": ["D0", "D1", "D2", "D3"]
+    },
+    "WORKBUDDY_VERIFICATION": {
+      "purpose": "Read-only exact-head clean reproduction, adversarial, recovery, concurrency, storage, soak and environment matrices.",
+      "write_surfaces": [],
+      "receipt_semantics": "EXECUTOR_CLEAN_REPRODUCTION_NOT_INDEPENDENT_ACCEPTANCE"
+    },
+    "WORKBUDDY_SIMPLE": {
+      "purpose": "Pre-authorized synthetic probes, fixtures, reports and local environment adapters that do not alter core contracts.",
+      "write_surfaces": [
+        "tests/workbuddy/**",
+        "tools/workbuddy/**",
+        "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/**"
+      ],
+      "complexity_ceiling": "D1",
+      "may_open_new_progress": true,
+      "condition": "Only the next ordered item in one fresh executable WorkBuddy route."
+    }
+  },
+  "parallelism": {
+    "allowed": true,
+    "rule": "WorkBuddy may verify an immutable Codex checkpoint while Codex advances a non-overlapping future core head.",
+    "single_writer": "Only one executor may write any formal object or overlapping path surface.",
+    "finding_behavior": "A blocking WorkBuddy finding freezes only the affected surface; unrelated Codex work may continue."
+  },
+  "events": {
+    "AUTO": "Read both canonical ACTIVE routes and continue every executable non-overlapping lane.",
+    "CODEX_QUOTA_LOW": "Codex pushes an immutable checkpoint; WorkBuddy consumes the bound ordered queue if its route is ready.",
+    "WORKBUDDY_BATCH_COMPLETE": "WorkBuddy pushes its branch and return package; Codex validates before reuse.",
+    "USER_SYNC": "Freeze both lanes and prepare one consolidated stage handoff.",
+    "USER_STOP": "Both executors stop after safe pushed checkpoints and claim no new work."
+  },
+  "current_observed_state": {
+    "codex": "READY_ON_CANONICAL_R175",
+    "workbuddy": "PAUSED_EXECUTION_NOT_ALLOWED",
+    "phase": "CODEX_RUNNING_WORKBUDDY_BLOCKED",
+    "unique_gap": "A GitHub integrator must publish and bind one fresh executable WorkBuddy route before WorkBuddy can claim the queue."
+  },
+  "user_short_commands": {
+    "continue": "继续实时互动电影游戏项目",
+    "quota_handoff": "Codex额度不足，WorkBuddy接力实时互动电影游戏项目",
+    "sync": "同步实时互动电影游戏项目",
+    "closeout": "收尾实时互动电影游戏项目",
+    "stop": "停止实时互动电影游戏项目"
+  },
+  "hard_stops": [
+    "missing or stale canonical route, claim, lease, reservation or snapshot",
+    "source checkpoint identity drift",
+    "overlapping writer surfaces",
+    "architecture, stable contract, persistent authority or acceptance-oracle change requested from WorkBuddy",
+    "credentials, real user data, external paid generation, deployment, trading or canonical knowledge access",
+    "force push, rebase, amend, reset or history rewrite"
+  ],
+  "final_acceptance": "USER_TRIGGERED_GPT_CROSS_MODULE_REVIEW"
+}
