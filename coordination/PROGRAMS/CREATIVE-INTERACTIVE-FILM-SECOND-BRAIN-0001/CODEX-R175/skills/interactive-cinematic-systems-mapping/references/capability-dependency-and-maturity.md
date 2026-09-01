@@ -62,4 +62,3 @@ Stage gates are dependency summaries, not deadlines and not authority. A stage
 may exit only when every required capability has the stated evidence. If an
 external provider, private asset, real player or production environment is
 involved, a new approval gate is required even if the offline stage is green.
-
