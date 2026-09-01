@@ -28,6 +28,12 @@ MATURITY_LEVELS = {
     "PILOT_VALIDATED": 5,
     "PRODUCTION_APPROVED": 6,
 }
+CONTRACT_STATUSES = {
+    "CONTRACTED_CANDIDATE",
+    "CONTRACTED_CANDIDATE_AUTHORITY_RESERVED",
+    "CONTRACTED_IMPLEMENTED_NONCANONICAL",
+}
+CONTRACT_REJECTION_RE = re.compile(r"^[A-Z][A-Z0-9_]+$")
 
 
 class MappingValidationError(ValueError):
@@ -113,6 +119,7 @@ def validate_mapping(
     lineage: dict[str, Any],
     evaluation: dict[str, Any],
     capability_map: dict[str, Any],
+    contract_catalog: dict[str, Any],
 ) -> list[str]:
     expected_schemas = {
         "system": "InteractiveCinematicSystemMap/v1",
@@ -121,6 +128,7 @@ def validate_mapping(
         "lineage": "InteractiveCinematicCandidateLineage/v1",
         "evaluation": "CreativeExperienceEvaluationProtocol/v1",
         "capabilities": "InteractiveCinematicCapabilityDependencyMap/v1",
+        "contracts": "InteractiveCinematicContractCatalog/v1",
     }
     observed = {
         "system": system_map.get("schema"),
@@ -129,10 +137,112 @@ def validate_mapping(
         "lineage": lineage.get("schema"),
         "evaluation": evaluation.get("schema"),
         "capabilities": capability_map.get("schema"),
+        "contracts": contract_catalog.get("schema"),
     }
     if observed != expected_schemas:
         raise MappingValidationError(f"schema mismatch: {observed}")
-    _public_safe([system_map, metrics, research, lineage, evaluation, capability_map])
+    _public_safe([system_map, metrics, research, lineage, evaluation, capability_map, contract_catalog])
+
+    contract_rules = _require(contract_catalog, "rules", "contract_catalog")
+    for rule in (
+        "github_contains_contracts_not_private_payloads",
+        "contract_acceptance_does_not_grant_implementation_authority",
+        "model_proposal_never_becomes_story_truth_without_validation",
+        "style_change_never_changes_narrative_truth",
+        "downstream_output_never_rewrites_upstream_history",
+        "unknown_or_mismatched_revision_fails_closed",
+    ):
+        if contract_rules.get(rule) is not True:
+            raise MappingValidationError(f"contract rule must remain true: {rule}")
+
+    modules = _unique(_require(contract_catalog, "modules", "contract_catalog"), "module_id", "modules")
+    for module_id, module in modules.items():
+        for field in ("source_of_record", "codex_role", "workbuddy_role", "gpt_role"):
+            value = _require(module, field, module_id)
+            if not isinstance(value, str) or not value.strip():
+                raise MappingValidationError(f"{module_id}.{field} must be non-empty")
+
+    contracts = _unique(
+        _require(contract_catalog, "contracts", "contract_catalog"),
+        "contract_id",
+        "contracts",
+    )
+    for contract_id, contract in contracts.items():
+        module_id = _require(contract, "module_id", contract_id)
+        if module_id not in modules:
+            raise MappingValidationError(f"{contract_id} references unknown module {module_id}")
+        status = _require(contract, "status", contract_id)
+        if status not in CONTRACT_STATUSES:
+            raise MappingValidationError(f"unsupported contract status: {contract_id}:{status}")
+        for field in (
+            "producer", "owner", "rejection_behavior", "compatibility", "implementation_authority",
+        ):
+            value = _require(contract, field, contract_id)
+            if not isinstance(value, str) or not value.strip():
+                raise MappingValidationError(f"{contract_id}.{field} must be non-empty")
+        _string_list(_require(contract, "consumers", contract_id), f"{contract_id}.consumers")
+        required_fields = _string_list(
+            _require(contract, "required_fields", contract_id), f"{contract_id}.required_fields"
+        )
+        identity_fields = _string_list(
+            _require(contract, "identity_fields", contract_id), f"{contract_id}.identity_fields"
+        )
+        immutable_fields = _string_list(
+            _require(contract, "immutable_fields", contract_id), f"{contract_id}.immutable_fields"
+        )
+        for label, values in (
+            ("required_fields", required_fields),
+            ("identity_fields", identity_fields),
+            ("immutable_fields", immutable_fields),
+        ):
+            if len(values) != len(set(values)):
+                raise MappingValidationError(f"{contract_id}.{label} contains duplicates")
+        missing_identity = sorted(set(identity_fields) - set(required_fields))
+        missing_immutable = sorted(set(immutable_fields) - set(required_fields))
+        if missing_identity:
+            raise MappingValidationError(f"{contract_id} identity fields are not required: {missing_identity}")
+        if missing_immutable:
+            raise MappingValidationError(f"{contract_id} immutable fields are not required: {missing_immutable}")
+        _string_list(
+            _require(contract, "prohibited_payloads", contract_id),
+            f"{contract_id}.prohibited_payloads",
+        )
+        rejection_codes = _string_list(
+            _require(contract, "rejection_codes", contract_id), f"{contract_id}.rejection_codes"
+        )
+        if len(rejection_codes) != len(set(rejection_codes)):
+            raise MappingValidationError(f"{contract_id}.rejection_codes contains duplicates")
+        invalid_codes = [code for code in rejection_codes if not CONTRACT_REJECTION_RE.fullmatch(code)]
+        if invalid_codes:
+            raise MappingValidationError(f"{contract_id} has invalid rejection codes: {invalid_codes}")
+
+    relations = _unique(
+        _require(contract_catalog, "relations", "contract_catalog"),
+        "relation_id",
+        "relations",
+    )
+    for relation_id, relation in relations.items():
+        source_id = _require(relation, "from_contract", relation_id)
+        target_id = _require(relation, "to_contract", relation_id)
+        if source_id not in contracts or target_id not in contracts:
+            raise MappingValidationError(f"{relation_id} references an unknown contract")
+        source_fields = _string_list(
+            _require(relation, "from_fields", relation_id), f"{relation_id}.from_fields"
+        )
+        target_fields = _string_list(
+            _require(relation, "to_fields", relation_id), f"{relation_id}.to_fields"
+        )
+        if len(source_fields) != len(target_fields):
+            raise MappingValidationError(f"{relation_id} field bindings must have equal length")
+        unknown_source = sorted(set(source_fields) - set(contracts[source_id]["required_fields"]))
+        unknown_target = sorted(set(target_fields) - set(contracts[target_id]["required_fields"]))
+        if unknown_source or unknown_target:
+            raise MappingValidationError(
+                f"{relation_id} binds unknown fields: source={unknown_source}, target={unknown_target}"
+            )
+        invariant = _require(relation, "invariant", relation_id)
+        if not isinstance(invariant, str) or not invariant.strip():
+            raise MappingValidationError(f"{relation_id}.invariant must be non-empty")
 
     sources = _unique(_require(research, "sources", "research"), "source_id", "sources")
     for source_id, source in sources.items():
@@ -371,6 +481,14 @@ def validate_mapping(
         bindings = _string_list(_require(interface, "required_bindings", interface_id), f"{interface_id}.required_bindings")
         if len(bindings) != len(set(bindings)):
             raise MappingValidationError(f"{interface_id} contains duplicate required bindings")
+        contract_id = interface["contract"]
+        if contract_id not in contracts:
+            raise MappingValidationError(f"{interface_id} references uncatalogued contract {contract_id}")
+        missing_bindings = sorted(set(bindings) - set(contracts[contract_id]["required_fields"]))
+        if missing_bindings:
+            raise MappingValidationError(
+                f"{interface_id} bindings are absent from {contract_id}: {missing_bindings}"
+            )
 
     stages = _unique(_require(capability_map, "stage_gates", "capability_map"), "stage_id", "stage_gates")
     if set(stages) != {"A0", "A1", "A2", "A3", "A4", "A5"}:
@@ -413,6 +531,8 @@ def validate_mapping(
         "creative_rubric_unknowns_fail_closed",
         "evaluation_cycles_and_second_brain_bridge_valid",
         "capability_maturity_and_dependency_graph_valid",
+        "contract_catalog_ownership_identity_and_rejections_valid",
+        "cross_contract_relations_and_interface_bindings_valid",
         "department_interfaces_and_stage_gates_valid",
         "candidate_lineage_exact_and_noncanonical",
     ]
@@ -436,6 +556,7 @@ def main() -> int:
             _load(program / "CANDIDATE-LINEAGE-AND-INTEGRATION-MAP.yaml"),
             _load(program / "CREATIVE-EXPERIENCE-EVALUATION-PROTOCOL.yaml"),
             _load(program / "SYSTEM-CAPABILITY-DEPENDENCY-MAP.yaml"),
+            _load(program / "PLATFORM-CONTRACT-CATALOG.yaml"),
         )
     except MappingValidationError as exc:
         print(json.dumps({"status": "FAIL", "error": str(exc)}, ensure_ascii=False))
