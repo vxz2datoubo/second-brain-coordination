@@ -13,9 +13,9 @@ route_epoch: 175
 mode: "ordered_bounded_batch"
 mode_label: "R175 WorkBuddy immutable-checkpoint ordered batch"
 status: "READY"
-execution_allowed: false
-active: false
-blocked_by: "POST_SNAPSHOT_BRANCH_AND_READBACK_REQUIRED"
+execution_allowed: true
+active: true
+blocked_by: null
 automatic_resume: true
 automatic_resume_within_task: true
 automatic_resume_within_batch: true
@@ -61,7 +61,7 @@ hard_boundaries:
   - "NO_FORCE_PUSH_REBASE_RESET_AMEND_HISTORY_REWRITE"
 
 read_behavior:
-  on_read_task: "READBACK_REQUIRED_DO_NOT_EXECUTE_YET"
-after_read: "STOP_UNTIL_ACTIVATION_COMMIT"
+  on_read_task: "CLAIM_VALID_LEASE_AND_EXECUTE_IMMEDIATELY"
+after_read: "BEGIN_WB_V1_AND_CONTINUE_FIXED_BATCH_WITHOUT_SECOND_USER_COMMAND"
 updated_by: "GPT_GITHUB_INTEGRATOR"
-updated_at: "2026-09-01T16:11:05-05:00"
+updated_at: "2026-09-01T16:20:00-05:00"
