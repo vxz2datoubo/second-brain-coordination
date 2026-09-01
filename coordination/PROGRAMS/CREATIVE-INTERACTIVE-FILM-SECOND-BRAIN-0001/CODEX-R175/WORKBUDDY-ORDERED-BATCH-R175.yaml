@@ -5,8 +5,8 @@
   "authority": "PREPARED_BATCH_BLOCKED_UNTIL_CANONICAL_WORKBUDDY_ROUTE",
   "source_checkpoint": {
     "branch": "codex/r175-capability-policy-confinement-remediation",
-    "exact_head": "a3f8b8bb8df06be4c42b39adc4b05301fbc16a1c",
-    "checkpoint_remote_ref": "refs/remotes/origin/codex/checkpoint-r175-relay-a3f8b8b"
+    "exact_head": "7d8ac1fdaf724bed75c8da3e1dbdf4212e108133",
+    "checkpoint_remote_ref": "refs/remotes/origin/codex/checkpoint-r175-mapping-7d8ac1f"
   },
   "route_authority": {
     "execution_allowed": false,
@@ -23,9 +23,11 @@
     "apps/cli/**",
     "apps/web/**",
     "tools/evaluate_creative_executor_batch.py",
+    "tools/validate_interactive_cinematic_mapping.py",
     "tools/validate_creative_executor_relay.py",
     "tools/validate_creative_workbuddy_return.py",
     "tests/test_creative_executor_batch.py",
+    "tests/test_interactive_cinematic_mapping.py",
     "tests/test_creative_executor_relay.py",
     "tests/test_creative_workbuddy_return.py",
     "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/**"
@@ -41,7 +43,7 @@
       "depends_on": [],
       "write_paths": [],
       "acceptance_commands": [
-        "python tools/verify_creative_executor_checkpoint.py --agent-id WORKBUDDY --expected-head a3f8b8bb8df06be4c42b39adc4b05301fbc16a1c --remote-ref refs/remotes/origin/codex/checkpoint-r175-relay-a3f8b8b --baseline 740788a3847a402923bf2e89093d910eda0c89d0 --policy-floor-ref 740788a3847a402923bf2e89093d910eda0c89d0"
+        "python tools/verify_creative_executor_checkpoint.py --agent-id WORKBUDDY --expected-head 7d8ac1fdaf724bed75c8da3e1dbdf4212e108133 --remote-ref refs/remotes/origin/codex/checkpoint-r175-mapping-7d8ac1f --baseline 740788a3847a402923bf2e89093d910eda0c89d0 --policy-floor-ref 740788a3847a402923bf2e89093d910eda0c89d0"
       ],
       "architecture_change": false,
       "acceptance_oracle_change": false,
@@ -71,7 +73,8 @@
       "depends_on": ["WB-V2"],
       "write_paths": [],
       "acceptance_commands": [
-        "python -m unittest tests.test_creative_public_safe_boundary tests.test_creative_migration_confinement tests.test_creative_executor_batch"
+        "python tools/validate_interactive_cinematic_mapping.py",
+        "python -m unittest tests.test_interactive_cinematic_mapping tests.test_creative_public_safe_boundary tests.test_creative_migration_confinement tests.test_creative_executor_batch"
       ],
       "architecture_change": false,
       "acceptance_oracle_change": false,
@@ -107,7 +110,7 @@
       "acceptance_commands": [
         "python -m unittest discover -s tests/workbuddy -p test_*.py"
       ],
-      "outcome": "Add a synthetic-only repeated init/resume/replay and multi-campaign storage-growth probe, plus hashed receipts; do not change core runtime or existing acceptance tests.",
+      "outcome": "Add a synthetic-only repeated init/resume/replay and multi-campaign storage-growth probe implementing the discovery plan for M-CAMPAIGN-REPLAY-P95-v1 and M-STORAGE-BYTES-PER-CAMPAIGN-HOUR-v1, plus hashed receipts; do not change core runtime, metric formulas or existing acceptance tests.",
       "architecture_change": false,
       "acceptance_oracle_change": false,
       "receipt_ref": null
