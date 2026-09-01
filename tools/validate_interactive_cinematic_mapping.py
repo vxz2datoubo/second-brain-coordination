@@ -19,6 +19,15 @@ SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 LAYERS = {"explicit_known", "implicit_known", "explainable_unknown", "opaque_unknown"}
 EVIDENCE_TIERS = {"E0_RECORDED", "E1_DETERMINISTIC", "E2_CLEAN_REPRODUCED", "E3_INDEPENDENTLY_ATTESTED"}
 METRIC_STATUSES = {"FIXED_CONTRACT", "EXTERNAL_VERSIONED_CONSTRAINT", "MEASURED", "UNKNOWN_REQUIRES_MEASUREMENT"}
+MATURITY_LEVELS = {
+    "ABSENT": 0,
+    "MAPPED": 1,
+    "CONTRACTED": 2,
+    "IMPLEMENTED_OFFLINE": 3,
+    "REPRODUCED_CLEAN": 4,
+    "PILOT_VALIDATED": 5,
+    "PRODUCTION_APPROVED": 6,
+}
 
 
 class MappingValidationError(ValueError):
@@ -71,12 +80,39 @@ def _public_safe(payloads: list[dict[str, Any]]) -> None:
             raise MappingValidationError("candidate must explicitly contain no credentials")
 
 
+def _assert_acyclic_capabilities(capabilities: dict[str, dict[str, Any]]) -> None:
+    visiting: set[str] = set()
+    visited: set[str] = set()
+
+    def visit(capability_id: str) -> None:
+        if capability_id in visiting:
+            raise MappingValidationError(f"capability dependency cycle contains {capability_id}")
+        if capability_id in visited:
+            return
+        visiting.add(capability_id)
+        dependencies = _string_list(
+            _require(capabilities[capability_id], "depends_on", capability_id),
+            f"{capability_id}.depends_on",
+            allow_empty=True,
+        )
+        for dependency in dependencies:
+            if dependency not in capabilities:
+                raise MappingValidationError(f"{capability_id} references unknown capability {dependency}")
+            visit(dependency)
+        visiting.remove(capability_id)
+        visited.add(capability_id)
+
+    for capability_id in capabilities:
+        visit(capability_id)
+
+
 def validate_mapping(
     system_map: dict[str, Any],
     metrics: dict[str, Any],
     research: dict[str, Any],
     lineage: dict[str, Any],
     evaluation: dict[str, Any],
+    capability_map: dict[str, Any],
 ) -> list[str]:
     expected_schemas = {
         "system": "InteractiveCinematicSystemMap/v1",
@@ -84,6 +120,7 @@ def validate_mapping(
         "research": "InteractiveCinematicResearchLedger/v1",
         "lineage": "InteractiveCinematicCandidateLineage/v1",
         "evaluation": "CreativeExperienceEvaluationProtocol/v1",
+        "capabilities": "InteractiveCinematicCapabilityDependencyMap/v1",
     }
     observed = {
         "system": system_map.get("schema"),
@@ -91,10 +128,11 @@ def validate_mapping(
         "research": research.get("schema"),
         "lineage": lineage.get("schema"),
         "evaluation": evaluation.get("schema"),
+        "capabilities": capability_map.get("schema"),
     }
     if observed != expected_schemas:
         raise MappingValidationError(f"schema mismatch: {observed}")
-    _public_safe([system_map, metrics, research, lineage, evaluation])
+    _public_safe([system_map, metrics, research, lineage, evaluation, capability_map])
 
     sources = _unique(_require(research, "sources", "research"), "source_id", "sources")
     for source_id, source in sources.items():
@@ -152,6 +190,7 @@ def validate_mapping(
         json.dumps(system_map, ensure_ascii=False)
         + json.dumps(metrics, ensure_ascii=False)
         + json.dumps(evaluation, ensure_ascii=False)
+        + json.dumps(capability_map, ensure_ascii=False)
     )
     for card_id, card in cards.items():
         layer = _require(card, "layer", card_id)
@@ -257,6 +296,95 @@ def validate_mapping(
         raise MappingValidationError("creative evaluation cannot auto-promote second-brain knowledge")
     _string_list(_require(bridge, "required_links", "second_brain_bridge"), "second_brain_bridge.required_links")
 
+    maturity_records = _require(capability_map, "maturity_model", "capability_map")
+    if not isinstance(maturity_records, list) or len(maturity_records) != len(MATURITY_LEVELS):
+        raise MappingValidationError("capability maturity model must define every ordered level")
+    observed_maturity = {
+        _require(record, "name", "maturity_model"): _require(record, "level", "maturity_model")
+        for record in maturity_records
+    }
+    if observed_maturity != MATURITY_LEVELS:
+        raise MappingValidationError("capability maturity levels or order drifted")
+    for record in maturity_records:
+        proof = _require(record, "proof", f"maturity:{record.get('name')}")
+        if not isinstance(proof, str) or not proof.strip():
+            raise MappingValidationError("every maturity level requires explicit proof")
+
+    rules = _require(capability_map, "rules", "capability_map")
+    for rule in (
+        "no_maturity_by_intent",
+        "downstream_cannot_rewrite_upstream_truth",
+        "contract_validation_is_not_semantic_validation",
+        "provenance_is_not_quality_judgment",
+        "unknown_measurement_is_not_zero",
+        "external_capability_requires_fresh_observation",
+    ):
+        if rules.get(rule) is not True:
+            raise MappingValidationError(f"capability rule must remain true: {rule}")
+
+    capabilities = _unique(
+        _require(capability_map, "capabilities", "capability_map"),
+        "capability_id",
+        "capabilities",
+    )
+    _assert_acyclic_capabilities(capabilities)
+    for capability_id, capability in capabilities.items():
+        maturity = _require(capability, "maturity", capability_id)
+        if maturity not in MATURITY_LEVELS:
+            raise MappingValidationError(f"unsupported capability maturity: {capability_id}:{maturity}")
+        for field in ("name", "owner", "failure_action", "next_upgrade_condition"):
+            value = _require(capability, field, capability_id)
+            if not isinstance(value, str) or not value.strip():
+                raise MappingValidationError(f"{capability_id}.{field} must be non-empty")
+        _string_list(_require(capability, "consumers", capability_id), f"{capability_id}.consumers")
+        _string_list(_require(capability, "contract_refs", capability_id), f"{capability_id}.contract_refs")
+        implementation_refs = _string_list(
+            _require(capability, "implementation_refs", capability_id),
+            f"{capability_id}.implementation_refs",
+            allow_empty=True,
+        )
+        test_refs = _string_list(
+            _require(capability, "test_refs", capability_id),
+            f"{capability_id}.test_refs",
+            allow_empty=True,
+        )
+        if MATURITY_LEVELS[maturity] >= MATURITY_LEVELS["IMPLEMENTED_OFFLINE"]:
+            if not implementation_refs or not test_refs:
+                raise MappingValidationError(
+                    f"implemented capability {capability_id} requires implementation and test evidence"
+                )
+        metric_ids = _string_list(_require(capability, "metric_ids", capability_id), f"{capability_id}.metric_ids")
+        unknown_metrics = [metric_id for metric_id in metric_ids if metric_id not in metric_records]
+        if unknown_metrics:
+            raise MappingValidationError(f"{capability_id} references unknown metrics: {unknown_metrics}")
+        source_ids = _string_list(_require(capability, "source_ids", capability_id), f"{capability_id}.source_ids")
+        unknown_sources = [source_id for source_id in source_ids if source_id not in sources]
+        if unknown_sources:
+            raise MappingValidationError(f"{capability_id} references unknown sources: {unknown_sources}")
+
+    interfaces = _unique(_require(capability_map, "interfaces", "capability_map"), "interface_id", "interfaces")
+    for interface_id, interface in interfaces.items():
+        for field in ("producer", "consumer", "contract", "rejection_owner", "rejection_behavior"):
+            value = _require(interface, field, interface_id)
+            if not isinstance(value, str) or not value.strip():
+                raise MappingValidationError(f"{interface_id}.{field} must be non-empty")
+        bindings = _string_list(_require(interface, "required_bindings", interface_id), f"{interface_id}.required_bindings")
+        if len(bindings) != len(set(bindings)):
+            raise MappingValidationError(f"{interface_id} contains duplicate required bindings")
+
+    stages = _unique(_require(capability_map, "stage_gates", "capability_map"), "stage_id", "stage_gates")
+    if set(stages) != {"A0", "A1", "A2", "A3", "A4", "A5"}:
+        raise MappingValidationError("stage gates must cover exactly A0 through A5")
+    for stage_id, stage in stages.items():
+        for field in ("name", "exit_evidence"):
+            value = _require(stage, field, stage_id)
+            if not isinstance(value, str) or not value.strip():
+                raise MappingValidationError(f"{stage_id}.{field} must be non-empty")
+        required = _string_list(_require(stage, "required_capabilities", stage_id), f"{stage_id}.required_capabilities")
+        missing = [capability_id for capability_id in required if capability_id not in capabilities]
+        if missing:
+            raise MappingValidationError(f"{stage_id} references unknown capabilities: {missing}")
+
     candidates = _unique(_require(lineage, "candidates", "lineage"), "candidate_id", "candidates")
     for candidate_id, candidate in candidates.items():
         head = _require(candidate, "exact_head", candidate_id)
@@ -284,6 +412,8 @@ def validate_mapping(
         "correctness_and_human_experience_separated",
         "creative_rubric_unknowns_fail_closed",
         "evaluation_cycles_and_second_brain_bridge_valid",
+        "capability_maturity_and_dependency_graph_valid",
+        "department_interfaces_and_stage_gates_valid",
         "candidate_lineage_exact_and_noncanonical",
     ]
 
@@ -305,6 +435,7 @@ def main() -> int:
             _load(program / "RESEARCH-SOURCE-LEDGER.yaml"),
             _load(program / "CANDIDATE-LINEAGE-AND-INTEGRATION-MAP.yaml"),
             _load(program / "CREATIVE-EXPERIENCE-EVALUATION-PROTOCOL.yaml"),
+            _load(program / "SYSTEM-CAPABILITY-DEPENDENCY-MAP.yaml"),
         )
     except MappingValidationError as exc:
         print(json.dumps({"status": "FAIL", "error": str(exc)}, ensure_ascii=False))

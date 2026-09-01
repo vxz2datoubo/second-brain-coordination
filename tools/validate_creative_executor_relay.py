@@ -14,6 +14,7 @@ AGENT_PREFIX = {"CODEX": "codex/", "WORKBUDDY": "workbuddy/"}
 ALLOWED_STATES = {
     "CODEX_CHECKPOINT_READY",
     "BLOCKED_PENDING_TARGET_ROUTE",
+    "BLOCKED_CURRENT_TARGET_ROUTE_BINDS_DIFFERENT_CHECKPOINT",
     "WORKBUDDY_ROUTE_READY",
     "WORKBUDDY_RUNNING",
     "WORKBUDDY_RESULT_READY",
@@ -111,7 +112,15 @@ def validate_package(payload: dict[str, Any]) -> list[str]:
         missing = [name for name in authority_refs if not route.get(name)]
         if missing:
             raise RelayValidationError("executable target route lacks: " + ", ".join(missing))
-        if state not in {"WORKBUDDY_ROUTE_READY", "WORKBUDDY_RUNNING", "WORKBUDDY_RESULT_READY"}:
+        bound_source = route.get("bound_source_exact_head")
+        if bound_source is not None and (
+            not isinstance(bound_source, str) or not SHA_RE.fullmatch(bound_source)
+        ):
+            raise RelayValidationError("target bound_source_exact_head must be a lowercase 40-character SHA")
+        if bound_source is not None and bound_source != source["exact_head"]:
+            if state != "BLOCKED_CURRENT_TARGET_ROUTE_BINDS_DIFFERENT_CHECKPOINT":
+                raise RelayValidationError("target route checkpoint mismatch must fail closed")
+        elif state not in {"WORKBUDDY_ROUTE_READY", "WORKBUDDY_RUNNING", "WORKBUDDY_RESULT_READY"}:
             raise RelayValidationError("executable target route conflicts with relay_state")
     elif state != "BLOCKED_PENDING_TARGET_ROUTE":
         raise RelayValidationError("non-executable target must fail closed in BLOCKED_PENDING_TARGET_ROUTE")
@@ -145,7 +154,11 @@ def validate_package(payload: dict[str, Any]) -> list[str]:
         "dedicated_checkpoint_ref_valid",
         "checkpoint_pushed_and_clean",
         "single_writer_surfaces_disjoint",
-        "target_authority_fail_closed" if not executable else "target_authority_complete",
+        (
+            "target_checkpoint_mismatch_fail_closed"
+            if state == "BLOCKED_CURRENT_TARGET_ROUTE_BINDS_DIFFERENT_CHECKPOINT"
+            else "target_authority_fail_closed" if not executable else "target_authority_complete"
+        ),
         "verification_command_identity_bound",
         "receipt_semantics_safe",
     ]

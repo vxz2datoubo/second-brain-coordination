@@ -33,15 +33,16 @@
     "agent": "WORKBUDDY",
     "requested_mode": "VERIFICATION_THEN_SEPARATELY_ROUTED_SIMPLE_WORK",
     "route_authority": {
-      "status": "PAUSED_COMPUTE_UNAVAILABLE",
-      "execution_allowed": false,
-      "task_id": null,
-      "active_issue": null,
-      "route_epoch": null,
-      "route_ref": null,
-      "claim_ref": null,
-      "lease_ref": null,
-      "snapshot_ref": null
+      "status": "READY_FOR_DIFFERENT_IMMUTABLE_CHECKPOINT",
+      "execution_allowed": true,
+      "task_id": "WORKBUDDY-R175-ORDERED-BATCH",
+      "active_issue": 532,
+      "route_epoch": 175,
+      "route_ref": "coordination/ROUTES/WORKBUDDY-R175-ORDERED-BATCH.yaml",
+      "claim_ref": "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/WORK-CLAIM.yaml",
+      "lease_ref": "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/TASK-LEASE.yaml",
+      "snapshot_ref": "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/PREWRITE-RECONCILIATION-SNAPSHOT.yaml",
+      "bound_source_exact_head": "7d8ac1fdaf724bed75c8da3e1dbdf4212e108133"
     },
     "proposed_branch": "workbuddy/interactive-cinematic-r175-verification",
     "write_surfaces_after_future_route": [
@@ -51,7 +52,7 @@
       "tools/workbuddy/**"
     ]
   },
-  "relay_state": "BLOCKED_PENDING_TARGET_ROUTE",
+  "relay_state": "BLOCKED_CURRENT_TARGET_ROUTE_BINDS_DIFFERENT_CHECKPOINT",
   "verification_plan": {
     "commands": [
       "python tools/verify_creative_executor_checkpoint.py --agent-id WORKBUDDY --expected-head a8fe190fa114fd91096ee349893ba84c2cadf26a --remote-ref refs/remotes/origin/codex/checkpoint-r175-creative-eval-a8fe190 --baseline 740788a3847a402923bf2e89093d910eda0c89d0 --policy-floor-ref 740788a3847a402923bf2e89093d910eda0c89d0"
@@ -78,5 +79,5 @@
     "BLOCKED": "Record the missing capability or authority and the exact condition that closes it.",
     "codex_resume_rule": "Codex resumes from GitHub evidence only and does not assume WorkBuddy chat or local state."
   },
-  "unique_next_action": "A GitHub integrator must publish a fresh WorkBuddy task/route/claim/lease/snapshot and change execution_allowed to true before WorkBuddy runs this package."
+  "unique_next_action": "WorkBuddy completes Issue 532 against 7d8ac1fdaf724bed75c8da3e1dbdf4212e108133 and returns to Codex; only then may a future integrator release this newer checkpoint and WB-S4 without preempting the active batch."
 }

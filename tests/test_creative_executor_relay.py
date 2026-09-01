@@ -27,9 +27,9 @@ class ExecutorRelayValidationTests(unittest.TestCase):
     def setUp(self) -> None:
         self.payload = json.loads(PACKAGE_PATH.read_text(encoding="utf-8"))
 
-    def test_current_package_is_safely_blocked_until_workbuddy_route(self) -> None:
+    def test_current_package_is_safely_blocked_from_different_checkpoint_route(self) -> None:
         checks = MODULE.validate_package(self.payload)
-        self.assertIn("target_authority_fail_closed", checks)
+        self.assertIn("target_checkpoint_mismatch_fail_closed", checks)
         self.assertIn("dedicated_checkpoint_ref_valid", checks)
 
     def test_moving_implementation_branch_cannot_be_checkpoint_ref(self) -> None:
@@ -42,6 +42,7 @@ class ExecutorRelayValidationTests(unittest.TestCase):
 
     def test_baton_or_chat_cannot_replace_route_authority(self) -> None:
         candidate = copy.deepcopy(self.payload)
+        candidate["target"]["route_authority"]["execution_allowed"] = False
         candidate["relay_state"] = "WORKBUDDY_ROUTE_READY"
         with self.assertRaisesRegex(MODULE.RelayValidationError, "must fail closed"):
             MODULE.validate_package(candidate)
@@ -49,8 +50,9 @@ class ExecutorRelayValidationTests(unittest.TestCase):
     def test_executable_route_requires_all_binding_references(self) -> None:
         candidate = copy.deepcopy(self.payload)
         candidate["relay_state"] = "WORKBUDDY_ROUTE_READY"
-        candidate["target"]["route_authority"]["execution_allowed"] = True
-        candidate["target"]["route_authority"]["route_ref"] = "coordination/ROUTES/example.yaml"
+        route = candidate["target"]["route_authority"]
+        route["bound_source_exact_head"] = candidate["source"]["exact_head"]
+        route["claim_ref"] = None
         with self.assertRaisesRegex(MODULE.RelayValidationError, "claim_ref"):
             MODULE.validate_package(candidate)
 
@@ -67,9 +69,16 @@ class ExecutorRelayValidationTests(unittest.TestCase):
             claim_ref="coordination/PROGRAMS/example/WORK-CLAIM.yaml",
             lease_ref="coordination/PROGRAMS/example/TASK-LEASE.yaml",
             snapshot_ref="issuecomment-1",
+            bound_source_exact_head=candidate["source"]["exact_head"],
         )
         checks = MODULE.validate_package(candidate)
         self.assertIn("target_authority_complete", checks)
+
+    def test_active_route_for_an_older_checkpoint_cannot_consume_new_package(self) -> None:
+        candidate = copy.deepcopy(self.payload)
+        candidate["relay_state"] = "WORKBUDDY_ROUTE_READY"
+        with self.assertRaisesRegex(MODULE.RelayValidationError, "checkpoint mismatch must fail closed"):
+            MODULE.validate_package(candidate)
 
     def test_overlapping_write_surface_is_rejected(self) -> None:
         candidate = copy.deepcopy(self.payload)

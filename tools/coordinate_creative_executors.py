@@ -68,6 +68,23 @@ def parse_top_level_scalars(text: str) -> dict[str, Any]:
     return result
 
 
+def parse_nested_scalars(text: str, section: str) -> dict[str, Any]:
+    """Parse one two-space-indented scalar mapping from canonical YAML."""
+
+    lines: list[str] = []
+    in_section = False
+    for line in text.splitlines():
+        if not in_section:
+            if line.rstrip() == f"{section}:":
+                in_section = True
+            continue
+        if line and not line[0].isspace():
+            break
+        if line.startswith("  ") and not line.startswith("    "):
+            lines.append(line[2:])
+    return parse_top_level_scalars("\n".join(lines))
+
+
 def _required(mapping: dict[str, Any], key: str, where: str) -> Any:
     if key not in mapping:
         raise CoordinationError(f"{where}.{key} is required")
@@ -161,6 +178,12 @@ def coordinate(
         )
     codex_ready = _route_ready(codex_active, "CODEX")
     workbuddy_ready = _route_ready(workbuddy_active, "WORKBUDDY")
+    workbuddy_bound_head = workbuddy_active.get("bound_source_exact_head")
+    workbuddy_checkpoint_matches = (
+        workbuddy_ready
+        and isinstance(workbuddy_bound_head, str)
+        and workbuddy_bound_head == checkpoint["exact_head"]
+    )
 
     if event == "USER_STOP":
         phase = "PAUSED_BY_USER"
@@ -178,24 +201,46 @@ def coordinate(
         workbuddy_action = "PUSH_CLEAN_BRANCH_AND_RETURN_EXACT_HEAD_PACKAGE"
         next_action = "RUN_RETURN_VALIDATOR_AND_SELECT_CODEX_REPAIR_OR_NEXT_SLICE"
     elif event == "CODEX_QUOTA_LOW":
-        phase = "WORKBUDDY_ROUTE_READY" if workbuddy_ready else "BLOCKED_PENDING_WORKBUDDY_ROUTE"
+        phase = (
+            "WORKBUDDY_ROUTE_READY"
+            if workbuddy_checkpoint_matches
+            else "WORKBUDDY_RUNNING_DIFFERENT_CHECKPOINT"
+            if workbuddy_ready
+            else "BLOCKED_PENDING_WORKBUDDY_ROUTE"
+        )
         codex_action = "CREATE_PUSHED_IMMUTABLE_QUOTA_CHECKPOINT_THEN_STOP"
         workbuddy_action = (
             "CLAIM_ONLY_THE_FIRST_READY_ORDERED_BATCH_ITEM"
+            if workbuddy_checkpoint_matches
+            else "CONTINUE_ONLY_ITS_ALREADY_BOUND_DIFFERENT_CHECKPOINT_BATCH"
             if workbuddy_ready
             else "DO_NOT_EXECUTE_CANONICAL_ROUTE_IS_NOT_READY"
         )
         next_action = (
             "WORKBUDDY_RUNS_VERIFICATION_THEN_PREAUTHORIZED_D0_D1_QUEUE"
+            if workbuddy_checkpoint_matches
+            else "PUSH_CODEX_CHECKPOINT_AND_WAIT_FOR_CURRENT_WORKBUDDY_RETURN_BEFORE_NEW_ROUTE"
             if workbuddy_ready
             else "GITHUB_INTEGRATOR_PUBLISHES_ONE_FRESH_BOUND_WORKBUDDY_ROUTE"
         )
     else:
         if codex_ready and workbuddy_ready:
-            phase = "PARALLEL_NON_OVERLAPPING_EXECUTION"
+            phase = (
+                "PARALLEL_NON_OVERLAPPING_EXECUTION"
+                if workbuddy_checkpoint_matches
+                else "PARALLEL_NON_OVERLAPPING_DIFFERENT_CHECKPOINT_EXECUTION"
+            )
             codex_action = "CONTINUE_CORE_LANE_AND_PUBLISH_MILESTONE_CHECKPOINTS"
-            workbuddy_action = "VERIFY_FROZEN_HEAD_THEN_CONTINUE_ORDERED_D0_D1_ITEMS"
-            next_action = "BOTH_EXECUTORS_CONTINUE_ONLY_WITHIN_DISJOINT_LANES"
+            workbuddy_action = (
+                "VERIFY_FROZEN_HEAD_THEN_CONTINUE_ORDERED_D0_D1_ITEMS"
+                if workbuddy_checkpoint_matches
+                else "CONTINUE_ONLY_ITS_ALREADY_BOUND_DIFFERENT_CHECKPOINT_BATCH"
+            )
+            next_action = (
+                "BOTH_EXECUTORS_CONTINUE_ONLY_WITHIN_DISJOINT_LANES"
+                if workbuddy_checkpoint_matches
+                else "DO_NOT_REDIRECT_ACTIVE_WORKBUDDY_TO_NEW_CODEX_CHECKPOINT"
+            )
         elif codex_ready:
             phase = "CODEX_RUNNING_WORKBUDDY_BLOCKED"
             codex_action = "CONTINUE_CORE_LANE_AND_KEEP_SAFE_PUSHED_CHECKPOINTS"
@@ -228,6 +273,8 @@ def coordinate(
             "workbuddy_ready": workbuddy_ready,
             "codex_task_id": codex_active.get("task_id"),
             "workbuddy_task_id": workbuddy_active.get("task_id"),
+            "workbuddy_bound_source_exact_head": workbuddy_bound_head,
+            "workbuddy_checkpoint_matches_baton": workbuddy_checkpoint_matches,
         },
         "codex_action": codex_action,
         "workbuddy_action": workbuddy_action,
@@ -247,9 +294,11 @@ def coordinate_from_repository(*, repo: Path, main_ref: str, baton_path: Path, e
     codex_active = parse_top_level_scalars(
         _git(repo, "show", f"{main_ref}:coordination/ACTIVE-CODEX-TASK.yaml")
     )
-    workbuddy_active = parse_top_level_scalars(
-        _git(repo, "show", f"{main_ref}:coordination/ACTIVE-WORKBUDDY-TASK.yaml")
-    )
+    workbuddy_text = _git(repo, "show", f"{main_ref}:coordination/ACTIVE-WORKBUDDY-TASK.yaml")
+    workbuddy_active = parse_top_level_scalars(workbuddy_text)
+    workbuddy_active["bound_source_exact_head"] = parse_nested_scalars(
+        workbuddy_text, "source_checkpoint"
+    ).get("exact_head")
     canonical_main = _git(repo, "rev-parse", main_ref)
     checkpoint_ref = payload.get("source_checkpoint", {}).get("checkpoint_remote_ref", "")
     observed_checkpoint_head = _git(repo, "rev-parse", checkpoint_ref)

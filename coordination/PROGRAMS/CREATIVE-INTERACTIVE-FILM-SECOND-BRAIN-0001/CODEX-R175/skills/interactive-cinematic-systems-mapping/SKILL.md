@@ -72,6 +72,11 @@ decisions, interfaces, and falsifiable consequences.
   when judging meaningful choice, character motivation, suspense, emotional
   payoff, player experience, cinematic immersion, or when defining a human
   evaluation cycle. Keep correctness gates and artistic dimensions separate.
+- Read [references/capability-dependency-and-maturity.md](references/capability-dependency-and-maturity.md)
+  before claiming a feature exists, choosing the next implementation slice,
+  assigning a department, introducing a standard, or moving between A0-A5.
+  Trace dependencies and distinguish mapped, contracted, implemented,
+  clean-reproduced, pilot-validated and production-approved evidence.
 
 ## Project machine sources
 
@@ -82,6 +87,7 @@ The task-local candidate registries are:
 - `RESEARCH-SOURCE-LEDGER.yaml`
 - `CANDIDATE-LINEAGE-AND-INTEGRATION-MAP.yaml`
 - `CREATIVE-EXPERIENCE-EVALUATION-PROTOCOL.yaml`
+- `SYSTEM-CAPABILITY-DEPENDENCY-MAP.yaml`
 
 Validate them with `python tools/validate_interactive_cinematic_mapping.py`.
 The validator checks structure and reference integrity; it does not grant

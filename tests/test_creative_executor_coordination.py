@@ -18,7 +18,7 @@ HEAD = "a" * 40
 
 
 def active(agent: str, *, ready: bool) -> dict:
-    return {
+    payload = {
         "target_agent": agent,
         "task_id": f"{agent}-TASK" if ready else f"{agent}-PAUSED",
         "active_issue": 100 if ready else 99,
@@ -26,6 +26,9 @@ def active(agent: str, *, ready: bool) -> dict:
         "status": "READY" if ready else "PAUSED_COMPUTE_UNAVAILABLE",
         "execution_allowed": ready,
     }
+    if agent == "WORKBUDDY" and ready:
+        payload["bound_source_exact_head"] = HEAD
+    return payload
 
 
 def baton() -> dict:
@@ -70,6 +73,25 @@ class CreativeExecutorCoordinationTests(unittest.TestCase):
         self.assertEqual(result["phase"], "PARALLEL_NON_OVERLAPPING_EXECUTION")
         self.assertIn("CORE_LANE", result["codex_action"])
         self.assertIn("FROZEN_HEAD", result["workbuddy_action"])
+
+    def test_ready_workbuddy_bound_to_older_checkpoint_is_not_redirected(self) -> None:
+        workbuddy = active("WORKBUDDY", ready=True)
+        workbuddy["bound_source_exact_head"] = "d" * 40
+        result = MODULE.coordinate(
+            baton(),
+            codex_active=active("CODEX", ready=True),
+            workbuddy_active=workbuddy,
+            canonical_main="b" * 40,
+            observed_checkpoint_head=HEAD,
+        )
+        self.assertEqual(result["phase"], "PARALLEL_NON_OVERLAPPING_DIFFERENT_CHECKPOINT_EXECUTION")
+        self.assertFalse(result["authority"]["workbuddy_checkpoint_matches_baton"])
+        self.assertIn("ALREADY_BOUND_DIFFERENT_CHECKPOINT", result["workbuddy_action"])
+
+    def test_nested_checkpoint_identity_is_parsed_from_active_projection(self) -> None:
+        text = "status: READY\nsource_checkpoint:\n  exact_head: '" + HEAD + "'\n  baseline: '" + ("b" * 40) + "'\nnext: value\n"
+        parsed = MODULE.parse_nested_scalars(text, "source_checkpoint")
+        self.assertEqual(parsed["exact_head"], HEAD)
 
     def test_quota_low_hands_to_ready_workbuddy(self) -> None:
         result = self.decide(workbuddy=True, event="CODEX_QUOTA_LOW")

@@ -4,6 +4,12 @@ Departments exchange versioned artifacts, not ambiguous chat summaries. Every
 handoff names the source artifact/hash, approved revision, writer, consumer,
 acceptance gate, and rejection owner.
 
+The machine-readable source for capability maturity, prerequisites and the
+critical producer/consumer handoffs is
+`SYSTEM-CAPABILITY-DEPENDENCY-MAP.yaml`. A department must not schedule a
+downstream capability as executable when any prerequisite is only `MAPPED` or
+`CONTRACTED`.
+
 ## Department interfaces
 
 | Department | Owns | Consumes | Publishes | Gate before downstream use |

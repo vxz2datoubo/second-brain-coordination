@@ -59,6 +59,15 @@ revalidation trigger in `RESEARCH-SOURCE-LEDGER.yaml`.
 
 ## Runtime and evidence
 
+- **Standards roles:** JSON Schema checks structural contracts; CloudEvents
+  normalizes event envelopes; W3C PROV records lineage; C2PA records media
+  ingredients and claims; OpenTelemetry defines metric-stream semantics. None
+  substitutes for story truth, human quality judgment, rights, consent or
+  execution authority.
+- **Architecture precedents:** ink shows an authoring-to-compiled-runtime
+  boundary, while virtual actors are one possible many-campaign isolation
+  model. Treat both as options. Do not create a dependency until repository
+  constraints, measured load and recovery evidence justify it.
 - **Event sourcing:** the append-only player stream is the source of record;
   snapshots and review boards are rebuildable projections. Snapshot cadence is
   measured from replay cost and storage cost, not guessed once for all users.
