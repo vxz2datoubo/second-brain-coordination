@@ -1,0 +1,35 @@
+schema: "TaskLease/v1"
+project: "CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001"
+repository: "vxz2datoubo/second-brain-coordination"
+task_id: "WORKBUDDY-R175-ORDERED-BATCH"
+route_epoch: 175
+source_issue: 528
+active_issue: 532
+agent_type: "WORKBUDDY"
+implementation_branch: "workbuddy/r175-ordered-batch-execution"
+pull_request: null
+lease_state: "RESERVED_PRE_READBACK"
+execution_allowed: false
+substantive_write_allowed: false
+source_checkpoint: "7d8ac1fdaf724bed75c8da3e1dbdf4212e108133"
+checkpoint_remote_ref: "refs/remotes/origin/codex/checkpoint-r175-mapping-7d8ac1f"
+exclusive_write_surface:
+  - "tests/workbuddy/**"
+  - "tools/workbuddy/**"
+  - "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/**"
+concurrency:
+  codex_r175_active: true
+  codex_may_continue_non_overlapping_core_work: true
+  same_surface_second_writer_forbidden: true
+  overlap_disposition: "FAIL_CLOSED_AND_RETURN_FINDING_TO_CODEX"
+freshness:
+  route: "coordination/ROUTES/WORKBUDDY-R175-ORDERED-BATCH.yaml"
+  work_claim: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/WORK-CLAIM.yaml"
+  executor_reservation: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/EXECUTOR-RESERVATION.yaml"
+  prewrite_snapshot: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/PREWRITE-RECONCILIATION-SNAPSHOT.yaml"
+  executable_batch: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/EXECUTABLE-BATCH.json"
+  active_task: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+  mismatch_action: "LEASE_INVALID_FAIL_CLOSED"
+review_authority: false
+merge_authority: false
+lease_expiry: "ON_BATCH_RETURN_BLOCKING_FINDING_OR_GOVERNANCE_SUPERSESSION"

@@ -1,0 +1,87 @@
+schema_version: "1.0"
+route_id: "WORKBUDDY-R175-ORDERED-BATCH"
+repository: "vxz2datoubo/second-brain-coordination"
+project: "CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001"
+target_agent: "WORKBUDDY"
+task_id: "WORKBUDDY-R175-ORDERED-BATCH"
+route_epoch: 175
+source_issue: 528
+active_issue: 532
+status: "READY"
+execution_allowed: false
+release_state: "STAGED_PENDING_READBACK"
+automatic_resume_within_task: true
+automatic_resume_within_batch: true
+second_user_start_command_required: false
+direct_main_write: false
+merge_authorized: false
+review_authority: false
+acceptance_authority: false
+
+source_checkpoint:
+  source_branch: "codex/r175-capability-policy-confinement-remediation"
+  checkpoint_remote_ref: "refs/remotes/origin/codex/checkpoint-r175-mapping-7d8ac1f"
+  exact_head: "7d8ac1fdaf724bed75c8da3e1dbdf4212e108133"
+  baseline: "740788a3847a402923bf2e89093d910eda0c89d0"
+  immutable: true
+
+governance_sources:
+  route_release_request: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/WORKBUDDY-ROUTE-RELEASE-REQUEST.yaml"
+  coordination_baton: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/EXECUTOR-COORDINATION-BATON.yaml"
+  execution_policy: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/CODEX-WORKBUDDY-EXECUTION-POLICY.yaml"
+  prepared_batch: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/WORKBUDDY-ORDERED-BATCH-R175.yaml"
+  return_template: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/WORKBUDDY-RETURN-PACKAGE-TEMPLATE.yaml"
+
+execution:
+  implementation_branch: "workbuddy/r175-ordered-batch-execution"
+  executable_batch: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/EXECUTABLE-BATCH.json"
+  fixed_order: ["WB-V1", "WB-V2", "WB-V3", "WB-V4", "WB-S1", "WB-S2", "WB-S3"]
+  reorder_allowed: false
+  skip_allowed: false
+  parallelize_items: false
+  intermediate_codex_audit_required: false
+  continue_after_item_pass: true
+  blocking_finding_action: "STOP_AFFECTED_BATCH_AND_RETURN_TO_CODEX"
+  batch_complete_action: "PUBLISH_RETURN_PACKAGE_AND_HAND_BATON_TO_CODEX"
+
+write_ownership:
+  workbuddy_exclusive:
+    - "tests/workbuddy/**"
+    - "tools/workbuddy/**"
+    - "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/**"
+  verification_items_write_nothing: ["WB-V1", "WB-V2", "WB-V3", "WB-V4"]
+  codex_retained:
+    - "creative_runtime/**"
+    - "apps/cli/**"
+    - "apps/web/**"
+    - "tools/evaluate_creative_executor_batch.py"
+    - "tools/validate_interactive_cinematic_mapping.py"
+    - "tools/validate_creative_executor_relay.py"
+    - "tools/validate_creative_workbuddy_return.py"
+    - "tests/test_creative_executor_batch.py"
+    - "tests/test_interactive_cinematic_mapping.py"
+    - "tests/test_creative_executor_relay.py"
+    - "tests/test_creative_workbuddy_return.py"
+    - "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/**"
+  overlap_rule: "WORKBUDDY_RESERVED_SUBTREES_ARE_SINGLE_WRITER; ANY ACTUAL CROSS_AGENT_WRITE_REQUEST_FAILS_CLOSED"
+
+bindings:
+  work_claim: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/WORK-CLAIM.yaml"
+  task_lease: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/TASK-LEASE.yaml"
+  executor_reservation: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/EXECUTOR-RESERVATION.yaml"
+  prewrite_snapshot: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/PREWRITE-RECONCILIATION-SNAPSHOT.yaml"
+  active_task: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+
+hard_stops:
+  - "source checkpoint identity drift"
+  - "route, claim, lease, reservation or snapshot mismatch"
+  - "any unlisted write path is required"
+  - "architecture, stable contract, persistent authority or acceptance-oracle change is required"
+  - "actual overlapping writer activity on a WorkBuddy-reserved subtree"
+  - "credentials, real user/customer data, external paid generation, deployment, trading or canonical knowledge access"
+  - "force push, rebase, amend, reset or history rewrite"
+
+return_target: "CODEX"
+final_review: "GPT_ONLY_AFTER_USER_SAYS_SYNC_OR_CLOSEOUT"
+completion_signal: "WORKBUDDY_R175_ORDERED_BATCH_COMPLETE_RETURN_TO_CODEX"
+next_command_when_active: "READ_LATEST_ROUTE_CLAIM_VALID_LEASE_AND_EXECUTE_IMMEDIATELY"

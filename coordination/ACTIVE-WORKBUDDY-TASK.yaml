@@ -1,67 +1,67 @@
-schema_version: "4.4"
+schema_version: "4.5"
 router_protocol: "coordination/WORKBUDDY-TASK-ROUTER.md"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "WORKBUDDY"
 trigger_phrases: ["读取任务", "执行任务", "开始任务"]
 
-active_issue: 89
-pull_request: 97
-task_id: "WORKBUDDY-PAUSED-COMPUTE-UNAVAILABLE-UNTIL-AFTER-2026-07-28"
-mode: "paused"
-mode_label: "【WorkBuddy状态：暂停】算力不可用，任务已移交Codex"
-mode_reason: >-
-  用户确认WorkBuddy在2026-07-28之后才可能恢复算力。为避免空转、旧租约继续执行或重复提交，
-  WorkBuddy当前执行权限关闭，PR #97冻结，剩余H1验证器任务已移交Codex PR #99。
-status: "PAUSED_COMPUTE_UNAVAILABLE"
+active_issue: 532
+source_issue: 528
+pull_request: null
+task_id: "WORKBUDDY-R175-ORDERED-BATCH"
+route_epoch: 175
+mode: "ordered_bounded_batch"
+mode_label: "R175 WorkBuddy immutable-checkpoint ordered batch"
+status: "READY"
 execution_allowed: false
-blocked_by: "COMPUTE_UNAVAILABLE_UNTIL_AFTER_2026-07-28"
-resume_not_before: "2026-07-29T00:00:00+08:00"
-automatic_resume: false
-resume_requires_explicit_gpt_release: true
-parent_program: 31
-source_issue: 89
-frozen_branch: "workbuddy/qclaw-p1-cleanroom-h1-final-verification-0023-h1-e12"
-frozen_head: "8a899a3e6c244d4bb9dcf8dbf0cd559c500107fd"
-last_tested_head: "b31041e7b1376fa4dbdc4d960886d5c993ebf7f9"
-superseded_pull_request: 91
-handoff_to_agent: "CODEX"
-handoff_pull_request: 99
-handoff_branch: "codex/qclaw-p1-h1-verifier-takeover-e9"
-handoff_task_id: "CODEX-PR99-R1-WORKBUDDY-H1-VERIFIER-TAKEOVER-MACHINE-EVIDENCE-CLOSURE"
-direct_main_write: false
-auto_merge: false
+active: false
+blocked_by: "POST_SNAPSHOT_BRANCH_AND_READBACK_REQUIRED"
+automatic_resume: true
+automatic_resume_within_task: true
+automatic_resume_within_batch: true
+second_user_start_command_required: false
 
-route_epoch: 15
-route_issued_at: "2026-07-26T04:49:00+08:00"
-completion_signal: null
-supersedes:
-  - "WORKBUDDY-PR97-R3-EXACT-LEASE-STRICT-UTF8-SELF-SCAN-AND-MACHINE-RECEIPT-CLOSURE@route_epoch:14"
+canonical_route: "coordination/ROUTES/WORKBUDDY-R175-ORDERED-BATCH.yaml"
+task_brief: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/WORKBUDDY-ORDERED-BATCH-R175.yaml"
+work_claim: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/WORK-CLAIM.yaml"
+task_lease: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/TASK-LEASE.yaml"
+executor_reservation: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/EXECUTOR-RESERVATION.yaml"
+prewrite_snapshot: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/PREWRITE-RECONCILIATION-SNAPSHOT.yaml"
+executable_batch: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/EXECUTABLE-BATCH.json"
+coordination_baton: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/EXECUTOR-COORDINATION-BATON.yaml"
+release_request: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/WORKBUDDY-ROUTE-RELEASE-REQUEST.yaml"
+execution_policy: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/CODEX-WORKBUDDY-EXECUTION-POLICY.yaml"
 
-review_disposition:
-  classification: "WORKBUDDY_R3_IMPLEMENTATION_PRESERVED_AGENT_PAUSED_AND_REMAINDER_TRANSFERRED_TO_CODEX"
-  accepted_facts:
-    - "PR #97 R3 uses the exact fresh five-file H1 package and exact Epoch 14 identity."
-    - "Binary extraction, strict UTF-8 child decode, verifier self-scan, exact fifteen-file checks and separate child/top exits exist."
-    - "The frozen PR #97 head is 8a899a3e6c244d4bb9dcf8dbf0cd559c500107fd."
-  unresolved_facts_transferred_to_codex:
-    - "Literal command evidence and complete stdout/stderr SHA-256 remain incomplete."
-    - "Controlled TimeoutExpired/UnicodeDecodeError/OSError handling and independent receipt-head reproduction remain to be verified."
-    - "Concrete final GPT-accepted external anchor remains pending."
+source_checkpoint:
+  branch: "codex/r175-capability-policy-confinement-remediation"
+  checkpoint_remote_ref: "refs/remotes/origin/codex/checkpoint-r175-mapping-7d8ac1f"
+  exact_head: "7d8ac1fdaf724bed75c8da3e1dbdf4212e108133"
+  baseline: "740788a3847a402923bf2e89093d910eda0c89d0"
+implementation_branch: "workbuddy/r175-ordered-batch-execution"
+
+fixed_order: ["WB-V1", "WB-V2", "WB-V3", "WB-V4", "WB-S1", "WB-S2", "WB-S3"]
+continue_without_user_message: true
+intermediate_codex_audit_required: false
+return_target: "CODEX"
+return_package_template: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/WORKBUDDY-RETURN-PACKAGE-TEMPLATE.yaml"
+completion_signal: "WORKBUDDY_R175_ORDERED_BATCH_COMPLETE_RETURN_TO_CODEX"
+
+authorized_paths:
+  - "tests/workbuddy/**"
+  - "tools/workbuddy/**"
+  - "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/**"
+hard_boundaries:
+  - "NO_ARCHITECTURE_CHANGE"
+  - "NO_ACCEPTANCE_ORACLE_CHANGE"
+  - "NO_CODEX_RETAINED_SURFACE_WRITE"
+  - "NO_REORDER_SKIP_OR_PARALLELIZE_BATCH_ITEMS"
+  - "NO_INTERMEDIATE_REVIEW_AUTHORITY"
+  - "NO_SELF_MERGE"
+  - "NO_CREDENTIAL_REAL_DATA_EXTERNAL_PAID_GENERATION_DEPLOYMENT_TRADE_CANONICAL_KNOWLEDGE"
+  - "NO_FORCE_PUSH_REBASE_RESET_AMEND_HISTORY_REWRITE"
 
 read_behavior:
-  on_read_task: "REPORT_PAUSED_DO_NOT_EXECUTE"
-  required_message: >-
-    WorkBuddy is paused because compute is unavailable. execution_allowed is false. Do not edit PR #97, PR #91, H0 or any branch.
-    The remaining task is owned by Codex PR #99. Wait for a separate GPT release after 2026-07-28.
-
-forbidden:
-  - "No task claim, code edit, commit, push, PR creation or external completion claim while execution_allowed is false."
-  - "No changes to PR #97, PR #91, 0023-H0, PR #99 or main."
-  - "No automatic resume on or after the date; explicit GPT release is mandatory."
-  - "No Issue #92, source activation, labels, replay, backtest, account, order or trade action."
-
-after_read: "STOP_AND_WAIT"
-boundary: "PAUSED / NO_EXECUTION / NO_TRADE"
-updated_by: "GPT"
-updated_at: "2026-07-26T04:49:00+08:00"
+  on_read_task: "READBACK_REQUIRED_DO_NOT_EXECUTE_YET"
+after_read: "STOP_UNTIL_ACTIVATION_COMMIT"
+updated_by: "GPT_GITHUB_INTEGRATOR"
+updated_at: "2026-09-01T16:11:05-05:00"

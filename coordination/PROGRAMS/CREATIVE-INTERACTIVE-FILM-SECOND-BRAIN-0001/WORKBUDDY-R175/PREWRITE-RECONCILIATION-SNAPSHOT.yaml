@@ -1,0 +1,49 @@
+schema: "WorkBuddyPrewriteReconciliationSnapshot/v1"
+snapshot_id: "WORKBUDDY-R175-PREWRITE-SNAPSHOT-001"
+project: "CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001"
+repository: "vxz2datoubo/second-brain-coordination"
+created_by: "GPT_GITHUB_INTEGRATOR"
+created_at: "2026-09-01T16:11:05-05:00"
+canonical_main_before_release: "326b782253a22b667d8b8f211fbba55ca8a9b8e0"
+source_issue: 528
+active_issue: 532
+task_id: "WORKBUDDY-R175-ORDERED-BATCH"
+route_epoch: 175
+source_checkpoint:
+  ordinary_codex_branch_observed_head: "a7c9773ce5e59d622adf8bcd74d3f0d2872b295c"
+  immutable_checkpoint_ref: "refs/remotes/origin/codex/checkpoint-r175-mapping-7d8ac1f"
+  immutable_checkpoint_exact_head: "7d8ac1fdaf724bed75c8da3e1dbdf4212e108133"
+  baseline: "740788a3847a402923bf2e89093d910eda0c89d0"
+  identity_status: "PASS_IMMUTABLE_CHECKPOINT_INTACT"
+prior_workbuddy_route:
+  route_epoch: 15
+  status: "PAUSED_COMPUTE_UNAVAILABLE"
+  execution_allowed: false
+  superseded_by_this_release: true
+current_codex_route:
+  route_epoch: 175
+  source_issue: 528
+  status: "READY"
+  execution_allowed: true
+concurrency_reconciliation:
+  prepared_batch_codex_retained_surfaces_used_as_r175_partition: true
+  workbuddy_reserved_subtrees:
+    - "tests/workbuddy/**"
+    - "tools/workbuddy/**"
+    - "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/**"
+  legacy_codex_route_contains_broad_tools_and_tests_globs: true
+  release_rule: "NEW_WORKBUDDY_RESERVATION_EXCLUSIVELY_OWNS_THE_LISTED_SUBTREES; ANY ACTUAL_CODEX_WRITE_ATTEMPT_THERE_IS_A_HARD_STOP"
+  architecture_or_acceptance_change: false
+ordered_batch:
+  prepared_ref: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/WORKBUDDY-ORDERED-BATCH-R175.yaml"
+  executable_ref: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/EXECUTABLE-BATCH.json"
+  fixed_order: ["WB-V1", "WB-V2", "WB-V3", "WB-V4", "WB-S1", "WB-S2", "WB-S3"]
+  order_changed: false
+  acceptance_commands_changed: false
+  architecture_changed: false
+activation_gate:
+  snapshot_precedes_workbuddy_branch: true
+  execution_allowed_now: false
+  requires_post_branch_fresh_readback: true
+  activation_commit_required: true
+return_target: "CODEX"

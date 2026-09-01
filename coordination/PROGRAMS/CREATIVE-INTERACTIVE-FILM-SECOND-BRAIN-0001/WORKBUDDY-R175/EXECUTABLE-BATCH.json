@@ -1,0 +1,170 @@
+{
+  "schema": "CreativeExecutorWorkBatch/v1",
+  "batch_id": "CIF-R175-WORKBUDDY-BATCH-001",
+  "project_id": "CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001",
+  "authority": "CANONICAL_BOUND_BATCH_STAGED_PENDING_READBACK",
+  "source_checkpoint": {
+    "branch": "codex/r175-capability-policy-confinement-remediation",
+    "exact_head": "7d8ac1fdaf724bed75c8da3e1dbdf4212e108133",
+    "checkpoint_remote_ref": "refs/remotes/origin/codex/checkpoint-r175-mapping-7d8ac1f"
+  },
+  "route_authority": {
+    "execution_allowed": false,
+    "task_id": "WORKBUDDY-R175-ORDERED-BATCH",
+    "active_issue": 532,
+    "route_epoch": 175,
+    "route_ref": "coordination/ROUTES/WORKBUDDY-R175-ORDERED-BATCH.yaml",
+    "claim_ref": "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/WORK-CLAIM.yaml",
+    "lease_ref": "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/TASK-LEASE.yaml",
+    "snapshot_ref": "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/PREWRITE-RECONCILIATION-SNAPSHOT.yaml"
+  },
+  "codex_retained_write_surfaces": [
+    "creative_runtime/**",
+    "apps/cli/**",
+    "apps/web/**",
+    "tools/evaluate_creative_executor_batch.py",
+    "tools/validate_interactive_cinematic_mapping.py",
+    "tools/validate_creative_executor_relay.py",
+    "tools/validate_creative_workbuddy_return.py",
+    "tests/test_creative_executor_batch.py",
+    "tests/test_interactive_cinematic_mapping.py",
+    "tests/test_creative_executor_relay.py",
+    "tests/test_creative_workbuddy_return.py",
+    "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/**"
+  ],
+  "automatic_resume_within_batch": true,
+  "items": [
+    {
+      "item_id": "WB-V1",
+      "owner": "WORKBUDDY",
+      "kind": "CLEAN_REPRODUCTION",
+      "status": "PLANNED",
+      "complexity": "D1",
+      "depends_on": [],
+      "write_paths": [],
+      "acceptance_commands": [
+        "python tools/verify_creative_executor_checkpoint.py --agent-id WORKBUDDY --expected-head 7d8ac1fdaf724bed75c8da3e1dbdf4212e108133 --remote-ref refs/remotes/origin/codex/checkpoint-r175-mapping-7d8ac1f --baseline 740788a3847a402923bf2e89093d910eda0c89d0 --policy-floor-ref 740788a3847a402923bf2e89093d910eda0c89d0"
+      ],
+      "architecture_change": false,
+      "acceptance_oracle_change": false,
+      "receipt_ref": null
+    },
+    {
+      "item_id": "WB-V2",
+      "owner": "WORKBUDDY",
+      "kind": "RECOVERY_MATRIX",
+      "status": "PLANNED",
+      "complexity": "D1",
+      "depends_on": ["WB-V1"],
+      "write_paths": [],
+      "acceptance_commands": [
+        "python -m unittest tests.test_creative_migration_confinement tests.test_creative_s02_cli tests.test_creative_executor_checkpoint"
+      ],
+      "architecture_change": false,
+      "acceptance_oracle_change": false,
+      "receipt_ref": null
+    },
+    {
+      "item_id": "WB-V3",
+      "owner": "WORKBUDDY",
+      "kind": "ADVERSARIAL_MATRIX",
+      "status": "PLANNED",
+      "complexity": "D1",
+      "depends_on": ["WB-V2"],
+      "write_paths": [],
+      "acceptance_commands": [
+        "python tools/validate_interactive_cinematic_mapping.py",
+        "python -m unittest tests.test_interactive_cinematic_mapping tests.test_creative_public_safe_boundary tests.test_creative_migration_confinement tests.test_creative_executor_batch"
+      ],
+      "architecture_change": false,
+      "acceptance_oracle_change": false,
+      "receipt_ref": null
+    },
+    {
+      "item_id": "WB-V4",
+      "owner": "WORKBUDDY",
+      "kind": "ENVIRONMENT_PROBE",
+      "status": "PLANNED",
+      "complexity": "D1",
+      "depends_on": ["WB-V3"],
+      "write_paths": [],
+      "acceptance_commands": [
+        "python -m unittest tests.test_creative_quota_checkpoint tests.test_creative_relay_readiness tests.test_creative_workbuddy_return"
+      ],
+      "architecture_change": false,
+      "acceptance_oracle_change": false,
+      "receipt_ref": null
+    },
+    {
+      "item_id": "WB-S1",
+      "owner": "WORKBUDDY",
+      "kind": "SIMPLE_IMPLEMENTATION",
+      "status": "PLANNED",
+      "complexity": "D1",
+      "depends_on": ["WB-V4"],
+      "write_paths": [
+        "tests/workbuddy/campaign_benchmark/**",
+        "tools/workbuddy/campaign_benchmark/**",
+        "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/MEASUREMENTS/**"
+      ],
+      "acceptance_commands": [
+        "python -m unittest discover -s tests/workbuddy/campaign_benchmark -p test_*.py"
+      ],
+      "outcome": "Add a synthetic-only repeated init/resume/replay and multi-campaign storage-growth probe implementing the discovery plan for M-CAMPAIGN-REPLAY-P95-v1 and M-STORAGE-BYTES-PER-CAMPAIGN-HOUR-v1, plus hashed receipts; do not change core runtime, metric formulas or existing acceptance tests.",
+      "architecture_change": false,
+      "acceptance_oracle_change": false,
+      "receipt_ref": null
+    },
+    {
+      "item_id": "WB-S2",
+      "owner": "WORKBUDDY",
+      "kind": "SIMPLE_IMPLEMENTATION",
+      "status": "PLANNED",
+      "complexity": "D1",
+      "depends_on": ["WB-S1"],
+      "write_paths": [
+        "tests/workbuddy/director_matrix/**",
+        "tools/workbuddy/director_matrix/**",
+        "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/DIRECTOR-MATRIX/**"
+      ],
+      "acceptance_commands": [
+        "python -m unittest discover -s tests/workbuddy/director_matrix -p test_*.py"
+      ],
+      "outcome": "Add a synthetic-only matrix proving every currently registered reachable story state either compiles a deterministic director input or produces an explicit missing-asset report; measure coverage without changing the director contract or oracle.",
+      "architecture_change": false,
+      "acceptance_oracle_change": false,
+      "receipt_ref": null
+    },
+    {
+      "item_id": "WB-S3",
+      "owner": "WORKBUDDY",
+      "kind": "SIMPLE_IMPLEMENTATION",
+      "status": "PLANNED",
+      "complexity": "D1",
+      "depends_on": ["WB-S2"],
+      "write_paths": [
+        "tests/workbuddy/operator_dry_run/**",
+        "tools/workbuddy/operator_dry_run/**",
+        "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/OPERATOR-DRY-RUN/**"
+      ],
+      "acceptance_commands": [
+        "python -m unittest discover -s tests/workbuddy/operator_dry_run -p test_*.py"
+      ],
+      "outcome": "Add a fully offline synthetic operator dry run for intake, duplicate input, resume, replay, failure recovery and handoff receipts; do not add platform access, private media, credentials or provider calls.",
+      "architecture_change": false,
+      "acceptance_oracle_change": false,
+      "receipt_ref": null
+    }
+  ],
+  "stop_conditions": [
+    "canonical WorkBuddy route is absent or disabled",
+    "source checkpoint or route identity drifts",
+    "a blocking finding is produced",
+    "an unlisted write path is needed",
+    "architecture, contract, persistent authority or acceptance-oracle change is needed",
+    "credential, real-user-data, external paid generation, deployment, trading or canonical knowledge access is encountered"
+  ],
+  "return_package_required": true,
+  "return_target": "CODEX",
+  "final_review_trigger": "USER_EXPLICITLY_SAYS_SYNC_OR_CLOSEOUT"
+}

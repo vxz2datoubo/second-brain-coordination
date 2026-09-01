@@ -1,0 +1,34 @@
+schema: "ExecutorReservation/v1"
+project: "CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001"
+repository: "vxz2datoubo/second-brain-coordination"
+task_id: "WORKBUDDY-R175-ORDERED-BATCH"
+route_epoch: 175
+source_issue: 528
+active_issue: 532
+executor_agent_type: "WORKBUDDY"
+executor_role: "BOUNDED_EXECUTOR"
+reservation_state: "RESERVED_PRE_READBACK"
+implementation_branch: "workbuddy/r175-ordered-batch-execution"
+branch_must_not_exist_before_snapshot: true
+pull_request: null
+
+reservation_scope:
+  - "tests/workbuddy/**"
+  - "tools/workbuddy/**"
+  - "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/**"
+reservation_exclusions:
+  - "creative_runtime/**"
+  - "apps/cli/**"
+  - "apps/web/**"
+  - "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/**"
+  - "architecture, stable contracts, persistent authority and acceptance-oracle surfaces"
+activation_requires:
+  - "snapshot published before branch creation"
+  - "branch created exactly from immutable checkpoint"
+  - "fresh readback of route, claim, lease, reservation, active task, snapshot and executable batch"
+  - "all identities match route_epoch 175, issue 532 and exact checkpoint 7d8ac1fdaf724bed75c8da3e1dbdf4212e108133"
+reservation_effect:
+  execution_identity_reserved: true
+  substantive_write_authorized_now: false
+  review_authority: false
+  merge_authority: false
