@@ -1,0 +1,127 @@
+{
+  "schema": "CreativeExecutorWorkBatch/v1",
+  "batch_id": "CIF-R175-WORKBUDDY-BATCH-001",
+  "project_id": "CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001",
+  "authority": "PREPARED_BATCH_BLOCKED_UNTIL_CANONICAL_WORKBUDDY_ROUTE",
+  "source_checkpoint": {
+    "branch": "codex/r175-capability-policy-confinement-remediation",
+    "exact_head": "a3f8b8bb8df06be4c42b39adc4b05301fbc16a1c",
+    "checkpoint_remote_ref": "refs/remotes/origin/codex/checkpoint-r175-relay-a3f8b8b"
+  },
+  "route_authority": {
+    "execution_allowed": false,
+    "task_id": null,
+    "active_issue": null,
+    "route_epoch": null,
+    "route_ref": null,
+    "claim_ref": null,
+    "lease_ref": null,
+    "snapshot_ref": null
+  },
+  "codex_retained_write_surfaces": [
+    "creative_runtime/**",
+    "apps/cli/**",
+    "apps/web/**",
+    "tools/evaluate_creative_executor_batch.py",
+    "tools/validate_creative_executor_relay.py",
+    "tools/validate_creative_workbuddy_return.py",
+    "tests/test_creative_executor_batch.py",
+    "tests/test_creative_executor_relay.py",
+    "tests/test_creative_workbuddy_return.py",
+    "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/**"
+  ],
+  "automatic_resume_within_batch": true,
+  "items": [
+    {
+      "item_id": "WB-V1",
+      "owner": "WORKBUDDY",
+      "kind": "CLEAN_REPRODUCTION",
+      "status": "PLANNED",
+      "complexity": "D1",
+      "depends_on": [],
+      "write_paths": [],
+      "acceptance_commands": [
+        "python tools/verify_creative_executor_checkpoint.py --agent-id WORKBUDDY --expected-head a3f8b8bb8df06be4c42b39adc4b05301fbc16a1c --remote-ref refs/remotes/origin/codex/checkpoint-r175-relay-a3f8b8b --baseline 740788a3847a402923bf2e89093d910eda0c89d0 --policy-floor-ref 740788a3847a402923bf2e89093d910eda0c89d0"
+      ],
+      "architecture_change": false,
+      "acceptance_oracle_change": false,
+      "receipt_ref": null
+    },
+    {
+      "item_id": "WB-V2",
+      "owner": "WORKBUDDY",
+      "kind": "RECOVERY_MATRIX",
+      "status": "PLANNED",
+      "complexity": "D1",
+      "depends_on": ["WB-V1"],
+      "write_paths": [],
+      "acceptance_commands": [
+        "python -m unittest tests.test_creative_migration_confinement tests.test_creative_s02_cli tests.test_creative_executor_checkpoint"
+      ],
+      "architecture_change": false,
+      "acceptance_oracle_change": false,
+      "receipt_ref": null
+    },
+    {
+      "item_id": "WB-V3",
+      "owner": "WORKBUDDY",
+      "kind": "ADVERSARIAL_MATRIX",
+      "status": "PLANNED",
+      "complexity": "D1",
+      "depends_on": ["WB-V2"],
+      "write_paths": [],
+      "acceptance_commands": [
+        "python -m unittest tests.test_creative_public_safe_boundary tests.test_creative_migration_confinement tests.test_creative_executor_batch"
+      ],
+      "architecture_change": false,
+      "acceptance_oracle_change": false,
+      "receipt_ref": null
+    },
+    {
+      "item_id": "WB-V4",
+      "owner": "WORKBUDDY",
+      "kind": "ENVIRONMENT_PROBE",
+      "status": "PLANNED",
+      "complexity": "D1",
+      "depends_on": ["WB-V3"],
+      "write_paths": [],
+      "acceptance_commands": [
+        "python -m unittest tests.test_creative_quota_checkpoint tests.test_creative_relay_readiness tests.test_creative_workbuddy_return"
+      ],
+      "architecture_change": false,
+      "acceptance_oracle_change": false,
+      "receipt_ref": null
+    },
+    {
+      "item_id": "WB-S1",
+      "owner": "WORKBUDDY",
+      "kind": "SIMPLE_IMPLEMENTATION",
+      "status": "PLANNED",
+      "complexity": "D1",
+      "depends_on": ["WB-V4"],
+      "write_paths": [
+        "tests/workbuddy/**",
+        "tools/workbuddy/**",
+        "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/**"
+      ],
+      "acceptance_commands": [
+        "python -m unittest discover -s tests/workbuddy -p test_*.py"
+      ],
+      "outcome": "Add a synthetic-only repeated init/resume/replay and multi-campaign storage-growth probe, plus hashed receipts; do not change core runtime or existing acceptance tests.",
+      "architecture_change": false,
+      "acceptance_oracle_change": false,
+      "receipt_ref": null
+    }
+  ],
+  "stop_conditions": [
+    "canonical WorkBuddy route is absent or disabled",
+    "source checkpoint or route identity drifts",
+    "a blocking finding is produced",
+    "an unlisted write path is needed",
+    "architecture, contract, persistent authority or acceptance-oracle change is needed",
+    "credential, real-user-data, external paid generation, deployment, trading or canonical knowledge access is encountered"
+  ],
+  "return_package_required": true,
+  "return_target": "CODEX",
+  "final_review_trigger": "USER_EXPLICITLY_SAYS_SYNC_OR_CLOSEOUT"
+}
