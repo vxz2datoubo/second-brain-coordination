@@ -1,1 +1,33 @@
-{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://second-brain.local/schemas/LockboxAccessReceipt-v1.json","title":"LockboxAccessReceipt/v1","type":"object","additionalProperties":false,"required":["schema","access_id","lockbox_id","opened_at","candidate_id","candidate_digest","purpose","result_digest","selection_consumed_after","dataset_artifact_ref","dataset_artifact_blob_sha","code_artifact_ref","code_artifact_blob_sha","parameter_artifact_ref","parameter_artifact_blob_sha","cost_artifact_ref","cost_artifact_blob_sha","rule_artifact_ref","rule_artifact_blob_sha","rule_snapshot_id","accessor_claim_ref","accessor_claim_blob_sha","authorization_witness_ref","authorization_witness_blob_sha","accessor_id","task_id","configuration_frozen_at","configuration_digest","subsequent_action"],"properties":{"schema":{"const":"LockboxAccessReceipt/v1"},"access_id":{"type":"string","minLength":1},"lockbox_id":{"type":"string","minLength":1},"opened_at":{"type":"string","format":"date-time"},"candidate_id":{"type":"string","minLength":1},"candidate_digest":{"type":"string","pattern":"^[0-9a-f]{64}$"},"purpose":{"enum":["FINAL_EVAL","TUNING","FEATURE_ENGINEERING","PROMPT_OPTIMIZATION","MODEL_SELECTION","PARAMETER_SELECTION","RESELECTION","DIAGNOSTIC"]},"result_digest":{"type":"string","pattern":"^[0-9a-f]{64}$"},"selection_consumed_after":{"type":"boolean"},"subsequent_action":{"type":["string","null"],"minLength":1},"dataset_artifact_ref":{"type":["string","null"],"minLength":1},"code_artifact_ref":{"type":["string","null"],"minLength":1},"parameter_artifact_ref":{"type":["string","null"],"minLength":1},"cost_artifact_ref":{"type":["string","null"],"minLength":1},"rule_artifact_ref":{"type":["string","null"],"minLength":1},"rule_snapshot_id":{"type":["string","null"],"minLength":1},"accessor_claim_ref":{"type":["string","null"],"minLength":1},"authorization_witness_ref":{"type":["string","null"],"minLength":1},"accessor_id":{"type":["string","null"],"minLength":1},"task_id":{"type":["string","null"],"minLength":1},"dataset_artifact_blob_sha":{"type":["string","null"],"pattern":"^[0-9a-f]{40}$"},"code_artifact_blob_sha":{"type":["string","null"],"pattern":"^[0-9a-f]{40}$"},"parameter_artifact_blob_sha":{"type":["string","null"],"pattern":"^[0-9a-f]{40}$"},"cost_artifact_blob_sha":{"type":["string","null"],"pattern":"^[0-9a-f]{40}$"},"rule_artifact_blob_sha":{"type":["string","null"],"pattern":"^[0-9a-f]{40}$"},"accessor_claim_blob_sha":{"type":["string","null"],"pattern":"^[0-9a-f]{40}$"},"authorization_witness_blob_sha":{"type":["string","null"],"pattern":"^[0-9a-f]{40}$"},"configuration_frozen_at":{"type":["string","null"],"format":"date-time"},"configuration_digest":{"type":["string","null"],"pattern":"^[0-9a-f]{64}$"}}}
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://second-brain.local/schemas/LockboxAccessReceipt-v1.json",
+  "title": "LockboxAccessReceipt/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "access_id", "lockbox_id", "opened_at", "candidate_id", "candidate_digest", "purpose",
+    "result_digest", "selection_consumed_after", "task_id", "accessor_id", "code_digest", "parameter_digest",
+    "cost_model_digest", "rule_snapshot_digest", "dataset_snapshot_digest", "frozen_configuration_digest",
+    "subsequent_action"
+  ],
+  "properties": {
+    "schema": {"const": "LockboxAccessReceipt/v1"},
+    "access_id": {"type": "string", "minLength": 1},
+    "lockbox_id": {"type": "string", "minLength": 1},
+    "opened_at": {"type": "string", "format": "date-time"},
+    "candidate_id": {"type": "string", "minLength": 1},
+    "candidate_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "purpose": {"enum": ["FINAL_EVAL", "TUNING", "FEATURE_ENGINEERING", "PROMPT_OPTIMIZATION", "MODEL_SELECTION", "PARAMETER_SELECTION", "RESELECTION", "DIAGNOSTIC"]},
+    "result_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "selection_consumed_after": {"type": "boolean"},
+    "task_id": {"type": "string", "minLength": 1},
+    "accessor_id": {"type": "string", "minLength": 1},
+    "code_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "parameter_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "cost_model_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "rule_snapshot_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "dataset_snapshot_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "frozen_configuration_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "subsequent_action": {"type": ["string", "null"], "minLength": 1}
+  }
+}
