@@ -5,7 +5,7 @@ issue: 542
 route_epoch: 180
 base_sha: 607fe934be3b098c32e31cd257de8b462cd20ccd
 implementation_checkpoint_sha: a1c92009c7863a8e22e158c5ec36b6e4d055bf69
-result: SUCCESS_CLEAN
+result: SUCCESS_WITH_FINDINGS
 delivered:
   - immutable DirectorBeatPlan/v1 and DirectorOutcomePreview/v1
   - deterministic compile inspect list and option-preview facade
@@ -16,8 +16,11 @@ verification:
   clean_clone_reproduction: PASS_87
   scope_verdict: PASS
   diff_check: PASS
+  dedicated_exact_head_ci_run_33588784621: PASS
+  inherited_r179_workflow_run_33588784578: EXPECTED_STACKED_SCOPE_CONFLICT
 authority_created:
   player_or_session: false
   narrative_state_or_campaign_reducer: false
   director_or_media_job: false
   provider_or_network: false
+finding: The inherited R179 workflow compares the stacked R180 head to the R179 base and correctly rejects R180 files under its older allowlist; R180's dedicated exact-head workflow passes and R180 is forbidden from editing the inherited workflow.
