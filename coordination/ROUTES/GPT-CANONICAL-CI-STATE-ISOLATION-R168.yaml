@@ -1,9 +1,10 @@
-schema_version: "1.0"
+schema_version: "1.1"
 route_id: "GPT-CANONICAL-CI-STATE-ISOLATION-R168"
 repository: "vxz2datoubo/second-brain-coordination"
-status: "ACTIVE_GOVERNED_PREWRITE"
-execution_allowed: true
-runtime_code_change_allowed: true
+status: "CLOSED_HISTORY_ONLY_CANONICALIZED"
+execution_allowed: false
+runtime_code_change_allowed: false
+automatic_resume: false
 merge_authorized: false
 self_review_forbidden: true
 self_accept_forbidden: true
@@ -14,97 +15,58 @@ binding:
   route_epoch: 168
   source_issue: 496
   implementation_branch: "gpt/canonical-ci-state-isolation-r168"
-  pull_request: null
-  pull_request_state: "TO_CREATE_AFTER_EFFECTIVE_SPEC_SNAPSHOT_AND_FIRST_SUBSTANTIVE_COMMIT"
+  pull_request: 517
+  pull_request_state: "MERGED_CANONICAL"
+  accepted_exact_head: "6a00939495ec7d8c974e5fbe8a8940a56dec3855"
+  canonical_merge: "7c77e303a124f1debfb52f497eccd1db3f9f7cb4"
   worker_slot_id: "GPT-WORKER-R168-CANONICAL-CI-STATE-ISOLATION-1"
   task_brief: "coordination/TASK-BRIEFS/GPT-CANONICAL-CI-STATE-ISOLATION-R168.yaml"
   work_claim: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/WORK-CLAIM.yaml"
+  review_queue_issue: 453
+  review_result: "issuecomment-5478588001"
+  independent_review: "pullrequestreview-5066628944"
+
+post_merge_release:
+  release_kind: "ENGINEERING_EXECUTION_AND_CURRENT_ROUTE_AUTHORITY"
+  future_candidate_write_authorized: false
+  review_authorized: false
+  merge_authorized: false
+  domain_write_authorized: false
+  w3_write_authorized: false
+  trading_authorized: false
+  production_authorized: false
+  closeout_receipt: "coordination/CONTROL-TOWER/R168-CANONICAL-CI-STATE-ISOLATION-CLOSEOUT.yaml"
+  worker_registry: "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+  program_lanes: "coordination/ACTIVE-PROGRAM-LANES.yaml"
+  reason: >-
+    The independently ACCEPTED R168 implementation was merged canonically. This route now records historical execution identity only;
+    it grants no present or future engineering execution. Any successor requires a new governed route, claim, witness, lease,
+    reservation, worker-slot activation and EFFECTIVE_SPEC_SNAPSHOT/v1.
+
+historical_write_scope:
+  - ".github/workflows/program-control-tower.yml"
+  - "coordination/CONTROL-TOWER/integration_state_isolation.py"
+  - "coordination/CONTROL-TOWER/integration_state_isolation.schema.json"
+  - "coordination/CONTROL-TOWER/tests/test_integration_state_isolation.py"
+
+historical_execution_provenance:
+  prior_status: "ACTIVE_GOVERNED_PREWRITE"
+  prior_execution_allowed: true
+  prior_runtime_code_change_allowed: true
+  activation_scan: "coordination/CONTROL-TOWER/R168-CANONICAL-CI-STATE-ISOLATION-ACTIVATION-SCAN.yaml"
   authorization_witness: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/AUTHORIZATION-WITNESS.yaml"
   source_selection_provenance: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/SOURCE-SELECTION-PROVENANCE.yaml"
   task_lease: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/TASK-LEASE.yaml"
   executor_reservation: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/EXECUTOR-RESERVATION.yaml"
-  activation_scan: "coordination/CONTROL-TOWER/R168-CANONICAL-CI-STATE-ISOLATION-ACTIVATION-SCAN.yaml"
-  review_queue_issue: 453
-
-executor:
-  agent_type: "GPT_ENGINEERING_WORKER"
-  executor_role: "GPT_ENGINEERING_WORKER"
-  model_id: "GPT-5.6 Sol"
-  worker_slot_id: "GPT-WORKER-R168-CANONICAL-CI-STATE-ISOLATION-1"
-  independent_reviewer: "GPT_INDEPENDENT_REVIEWER"
-
-mission:
-  goal: >-
-    Turn Issue #496's preflight design into one canonical reusable fail-closed integration-state comparator so active canonical
-    worker state can remain visibly non-green without unrelated candidates being falsely blamed, while preserving absolute focused
-    candidate gates and every existing Control Tower safety invariant.
-  success_requires:
-    - "same retained suite is measured on pinned current main and clean committed integrated candidate"
-    - "baseline PASS to FAIL/ERROR is CANDIDATE_INTRODUCED_FAILURE"
-    - "baseline FAIL/ERROR with identical normalized fingerprint remains BASELINE_CURRENT_MAIN_FAILURE"
-    - "baseline FAIL/ERROR to different fingerprint is CANDIDATE_MODIFIED_BASELINE_FAILURE"
-    - "baseline FAIL/ERROR to PASS is CANDIDATE_BASELINE_IMPROVEMENT"
-    - "missing baseline IDs, duplicate IDs, collection drift, dirty state, main/head drift or unresolved refs are TEST_ENVIRONMENT_INVALID"
-    - "candidate-only tests must PASS absolutely"
-    - "receipt binds repository, SHAs, trees, parents, runtime, ID/fingerprint digests and classifications"
-    - "all emitted review/merge/release/domain/trading authority flags remain false"
-    - "existing Control Tower test semantics are not skipped, xfailed or weakened"
-
-write_scope:
-  allowed:
-    - ".github/workflows/program-control-tower.yml"
-    - "coordination/CONTROL-TOWER/integration_state_isolation.py"
-    - "coordination/CONTROL-TOWER/integration_state_isolation.schema.json"
-    - "coordination/CONTROL-TOWER/tests/test_integration_state_isolation.py"
-  all_other_runtime_paths: "READ_ONLY"
-  task_local_governance_paths: "READ_ONLY_AFTER_SNAPSHOT"
-
-source_fence:
-  issue_496_comments:
-    - "issuecomment-5464741389"
-    - "issuecomment-5464766131"
-  pr_485: "REFERENCE_ONLY_LIVENESS_BLOCKED_BY_CI_STATE_CONFLATION"
-  pr_487: "REFERENCE_ONLY_BOUNDED_COMPARATOR_EVIDENCE"
-  pr_504: "REFERENCE_ONLY_R166_INTEGRATION_COMPARATOR_EVIDENCE"
-  implementation_rule: "REDERIVE_CANONICAL_HELPER_FROM_ISSUE_496_CONTRACT_NO_PR_COMMIT_IMPORT"
-
-concurrency:
-  active_gpt_r166: "GPT-W5-EVENT-COVERAGE-CLEAN-SUCCESSOR-R166"
-  active_codex_r167: "CODEX-R165-REVIEW-BLOCKER-REMEDIATION-R167"
-  overlap_class_r166: "O1_READ_ONLY_COEXISTENCE_CONTROL_TOWER_READ_BY_R166"
-  overlap_class_r167: "O1_READ_ONLY_COEXISTENCE_CONTROL_TOWER_READ_ONLY"
-  same_canonical_object_writers_max: 1
-  nested_parallelism: "FORBIDDEN"
-
-substantive_write_gate:
-  state: "CLOSED_UNTIL_ISSUE_496_EFFECTIVE_SPEC_SNAPSHOT"
-  requires:
-    - "this exact canonical R168 route and task brief"
-    - "matching Work Claim, Authorization Witness, Task Lease and Executor Reservation"
-    - "canonical second active GPT worker slot"
-    - "Lane A projection bound to R168"
-    - "fresh R168 Control Tower activation scan"
-    - "Issue #496 EFFECTIVE_SPEC_SNAPSHOT/v1 published after all bindings"
-    - "declared branch absent before snapshot"
-  mismatch_action: "FAIL_CLOSED_NO_SUBSTANTIVE_WRITE"
+  semantics: "HISTORICAL_EVIDENCE_ONLY / CANNOT_REACTIVATE_CURRENT_AUTHORITY"
 
 hard_locks:
-  - "NO_TEST_SKIP_XFAIL_BLANKET_IGNORE"
-  - "NO_BASELINE_FAILURE_TO_PASS_LAUNDERING"
-  - "NO_SECOND_REVIEW_OR_MERGE_AUTHORITY"
-  - "NO_CREDENTIAL_SECRET_ACCOUNT_ACCESS"
-  - "NO_NETWORK_PROVIDER_RUNTIME"
-  - "NO_PRODUCTION_DEPLOYMENT_PUBLIC_RELEASE"
-  - "NO_W3_OR_DOMAIN_TRUTH_WRITE"
-  - "NO_TRADE_ACCOUNT_ORDER_FUND_ACCESS"
+  - "NO_FURTHER_R168_ENGINEERING_WRITE"
+  - "NO_REACTIVATION_FROM_HISTORICAL_ROUTE_CLAIM_LEASE_WITNESS_RESERVATION"
+  - "NO_REVIEW_OR_MERGE_AUTHORITY_FROM_THIS_ROUTE"
+  - "NO_W3_DOMAIN_TRADING_PRODUCTION_CREDENTIAL_AUTHORITY"
   - "NO_SELF_REVIEW_SELF_ACCEPT_SELF_MERGE"
   - "NO_FORCE_PUSH_REBASE_AMEND_RESET_HISTORY_REWRITE"
 
-review_gate:
-  queue_issue: 453
-  exact_head_review_required: true
-  python_matrix: ["3.11", "3.13"]
-  green_ci_is_acceptance_authority: false
-
-completion_signal: "R168_CANONICAL_CI_STATE_ISOLATION_READY_FOR_INDEPENDENT_REVIEW"
-next_command: "PUBLISH_REGISTRY_BINDINGS_SCAN_AND_ISSUE_496_PREWRITE_SNAPSHOT"
+completion_signal: "R168_CANONICALIZED_ENGINEERING_EXECUTION_RELEASED"
+next_command: "SUCCESSOR_REQUIRES_FRESH_GOVERNED_ROUTE_AND_PREWRITE_SNAPSHOT"
