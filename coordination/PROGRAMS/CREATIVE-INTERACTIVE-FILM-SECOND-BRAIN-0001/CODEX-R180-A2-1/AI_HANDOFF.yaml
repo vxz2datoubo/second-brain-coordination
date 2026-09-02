@@ -1,0 +1,24 @@
+schema: AI_HANDOFF/v1
+source_agent: CODEX
+target_agent: GPT_INDEPENDENT_REVIEWER_AFTER_DEPENDENCY_GATE
+reviewer: UNASSIGNED
+executor_status: EXECUTOR_VERIFIED_ONLY
+task_id: CODEX-A2-1-DIRECTOR-BEAT-PLAN-R180
+issue: 542
+base_sha: 607fe934be3b098c32e31cd257de8b462cd20ccd
+implementation_checkpoint_sha: a1c92009c7863a8e22e158c5ec36b6e4d055bf69
+final_exact_head_binding: ISSUE_542_AND_FUTURE_DRAFT_PR_AFTER_EVIDENCE_COMMIT
+changed_contracts:
+  - DirectorBeatPlan/v1
+  - DirectorOutcomePreview/v1
+tests:
+  executor_full_regression: PASS_87
+  executor_clean_clone_reproduction: PASS_87
+  scope_and_diff: PASS
+known_risks:
+  - R180 is stacked on unaccepted R176 through R179 engineering candidates.
+  - Plans describe content addresses and previews, not live player progress.
+  - ShotBundle and media task compilation remain future separately governed work.
+  - The inherited R179 scope workflow fails on stacked R180 files; dedicated R180 exact-head CI passes. Resolving cross-layer CI requires a separate governance-owned workflow change because R180 cannot modify the R179 workflow.
+rollback: Close the stacked Draft PR and delete only the R180 branch after preserving evidence.
+next_action: Create stacked Draft PR, observe exact-head CI, freeze, and request the next non-overlapping Codex architecture slice without independent review.
