@@ -6,7 +6,37 @@ from decimal import Decimal, InvalidOperation, ROUND_HALF_EVEN
 from enum import Enum
 import hashlib
 import json
+from types import MappingProxyType
 from typing import Any, Mapping, Sequence
+
+
+MARKET_SEMANTIC_FIELD_SCHEMA_DIGEST_V1 = "c765ea43c6c147462b34771e29162de777d2ce9ba7d904bda675ea3b06673ae7"
+PROVIDER_CAPABILITY_SCHEMA_DIGEST_V1 = "33dc4bf5683bb62720b23c90e2dc3864f43a232f3e0b5f415cf4dc34b8377851"
+
+# This is the governed semantic identity registry for the bounded R182 v1 slice.
+# A caller may reconstruct an identical record, but cannot change its meaning and
+# recompute a fresh digest to create a new governed identity. New/changed bindings
+# require a governed code/fixture change plus independent review.
+GOVERNED_SEMANTIC_DIGESTS_V1 = MappingProxyType({
+    ("TDXQUANT_OFFICIAL_DOC", "OFFICIAL_DOC_CURRENT_AT_2026_09_01", "Price", "TDXQUANT.TICK.PRICE.DOCREF.V1"):
+        "9420f0afd10e8b5601ab2922afdc93b64c4f6fb2ccf0d26ecc99a7b4c5d317b8",
+    ("TDXQUANT_OFFICIAL_DOC", "OFFICIAL_DOC_CURRENT_AT_2026_09_01", "Volume", "TDXQUANT.TICK.VOLUME.DOCREF.V1"):
+        "118d70ff087c16c2b544f10f20c837838f454264e2d8fbf1fc12370c07e6c459",
+    ("TDXQUANT_OFFICIAL_DOC", "OFFICIAL_DOC_CURRENT_AT_2026_09_01", "BSFlag", "TDXQUANT.TICK.BSFLAG.DOCREF.V1"):
+        "1df9c6f136a35ba092a1ba2177037ca4c20867bae0723ea42fb4160f21b20634",
+    ("TDXQUANT_OFFICIAL_DOC", "OFFICIAL_DOC_CURRENT_AT_2026_09_01", "Time", "TDXQUANT.TICK.TIME.DOCREF.V1"):
+        "6f905f1c9259207095ae728997e2218d6f703ec1aa3f0a7682d70d8e465dbd5b",
+})
+
+_SEMANTIC_IDENTITY_FIELDS = (
+    "semantic_field_id", "semantic_version", "source_system", "source_version",
+    "source_field_name", "canonical_field_ref", "primitive_type", "unit_kind",
+    "unit_symbol", "unit_scale", "fixed_scale", "tick_size", "tick_size_ref",
+    "rounding_policy", "price_semantic", "time_semantic", "adjustment_state",
+    "source_enum_map", "allowed_missing_states", "canonical_persistable",
+    "valid_from", "valid_until", "source_ref", "evidence_ref", "schema_digest",
+    "observed_at",
+)
 
 
 class SemanticValidationError(ValueError):
@@ -121,6 +151,37 @@ def _parse_timestamp(value: str, path: str) -> datetime:
     return parsed
 
 
+def _require_digest(value: str, *, path: str) -> str:
+    if not isinstance(value, str) or len(value) != 64:
+        raise SemanticValidationError("DIGEST_REQUIRED", path)
+    try:
+        int(value, 16)
+    except ValueError as exc:
+        raise SemanticValidationError("DIGEST_INVALID", path) from exc
+    if value.lower() != value:
+        raise SemanticValidationError("DIGEST_NOT_CANONICAL_LOWERCASE", path)
+    return value
+
+
+def _jsonable(value: Any) -> Any:
+    if isinstance(value, Decimal):
+        return format(value, "f")
+    if isinstance(value, Enum):
+        return value.value
+    if isinstance(value, Mapping):
+        return {str(k): _jsonable(v) for k, v in sorted(value.items(), key=lambda pair: str(pair[0]))}
+    if isinstance(value, (tuple, list)):
+        return [_jsonable(v) for v in value]
+    return value
+
+
+def semantic_identity_digest_from_mapping(values: Mapping[str, Any]) -> str:
+    """Integrity digest only. It is not authority until registry-bound."""
+    payload = {name: _jsonable(values.get(name)) for name in _SEMANTIC_IDENTITY_FIELDS}
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+    return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+
+
 @dataclass(frozen=True)
 class MarketSemanticFieldSpec:
     semantic_field_id: str
@@ -145,8 +206,12 @@ class MarketSemanticFieldSpec:
     canonical_persistable: bool = True
     valid_from: str | None = None
     valid_until: str | None = None
+    source_ref: str = ""
     evidence_ref: str = ""
-    last_verified_at: str | None = None
+    schema_digest: str = ""
+    semantic_digest: str = ""
+    observed_at: str = ""
+    last_verified_at: str = ""
 
     def __post_init__(self) -> None:
         required = {
@@ -159,10 +224,18 @@ class MarketSemanticFieldSpec:
             "primitive_type": self.primitive_type,
             "unit_kind": self.unit_kind,
             "unit_symbol": self.unit_symbol,
+            "source_ref": self.source_ref,
+            "evidence_ref": self.evidence_ref,
         }
         for name, value in required.items():
             if not isinstance(value, str) or not value.strip():
                 raise SemanticValidationError("FIELD_IDENTITY_REQUIRED", f"/{name}")
+
+        if self.schema_digest != MARKET_SEMANTIC_FIELD_SCHEMA_DIGEST_V1:
+            raise SemanticValidationError("SCHEMA_DIGEST_MISMATCH", "/schema_digest")
+        _require_digest(self.semantic_digest, path="/semantic_digest")
+        _parse_timestamp(self.observed_at, "/observed_at")
+        _parse_timestamp(self.last_verified_at, "/last_verified_at")
 
         unit_scale = parse_fixed_decimal(self.unit_scale, path="/unit_scale")
         fixed_scale = _parse_optional_decimal(self.fixed_scale, "/fixed_scale")
@@ -189,7 +262,7 @@ class MarketSemanticFieldSpec:
                 raise SemanticValidationError(
                     "CANONICAL_DIRECTION_INVALID", f"/source_enum_map/{raw}"
                 ) from exc
-        object.__setattr__(self, "source_enum_map", enum_map)
+        object.__setattr__(self, "source_enum_map", MappingProxyType(enum_map))
 
         missing_states: list[MissingState] = []
         for item in self.allowed_missing_states:
@@ -201,16 +274,57 @@ class MarketSemanticFieldSpec:
             raise SemanticValidationError("MISSING_STATES_EMPTY", "/allowed_missing_states")
         object.__setattr__(self, "allowed_missing_states", tuple(missing_states))
 
+        if self.price_semantic is not None and not isinstance(self.price_semantic, PriceSemantic):
+            object.__setattr__(self, "price_semantic", PriceSemantic(self.price_semantic))
+        if self.time_semantic is not None and not isinstance(self.time_semantic, TimeSemantic):
+            object.__setattr__(self, "time_semantic", TimeSemantic(self.time_semantic))
         if self.price_semantic == PriceSemantic.DISPLAY_PRICE and self.canonical_persistable:
             raise SemanticValidationError(
                 "DISPLAY_PRICE_CANNOT_BE_CANONICAL", "/canonical_persistable"
             )
         if self.price_semantic is not None and self.time_semantic is not None:
             raise SemanticValidationError("FIELD_ROLE_AMBIGUOUS", "/")
-        for path, value in (("/valid_from", self.valid_from), ("/valid_until", self.valid_until),
-                            ("/last_verified_at", self.last_verified_at)):
+        for path, value in (("/valid_from", self.valid_from), ("/valid_until", self.valid_until)):
             if value is not None:
                 _parse_timestamp(value, path)
+
+        actual_digest = semantic_digest(self)
+        if self.semantic_digest != actual_digest:
+            raise SemanticValidationError(
+                "SEMANTIC_DIGEST_CONTENT_MISMATCH", "/semantic_digest"
+            )
+
+
+def semantic_digest(spec: MarketSemanticFieldSpec) -> str:
+    payload = {name: getattr(spec, name) for name in _SEMANTIC_IDENTITY_FIELDS}
+    return semantic_identity_digest_from_mapping(payload)
+
+
+def semantic_registry_key(spec: MarketSemanticFieldSpec) -> tuple[str, str, str, str]:
+    return (
+        spec.source_system,
+        spec.source_version,
+        spec.source_field_name,
+        spec.semantic_field_id,
+    )
+
+
+def require_governed_semantic_spec(spec: MarketSemanticFieldSpec) -> MarketSemanticFieldSpec:
+    """Prove that the spec is the exact governed semantic identity for v1."""
+    expected = GOVERNED_SEMANTIC_DIGESTS_V1.get(semantic_registry_key(spec))
+    if expected is None:
+        raise SemanticValidationError(
+            "SEMANTIC_REGISTRY_BINDING_REQUIRED", "/semantic_registry"
+        )
+    if spec.semantic_digest != expected:
+        raise SemanticValidationError(
+            "SEMANTIC_REGISTRY_DIGEST_MISMATCH", "/semantic_digest"
+        )
+    if semantic_digest(spec) != expected:
+        raise SemanticValidationError(
+            "SEMANTIC_REGISTRY_CONTENT_MISMATCH", "/semantic_digest"
+        )
+    return spec
 
 
 @dataclass(frozen=True)
@@ -246,24 +360,16 @@ class ProviderCapabilityObservation:
         object.__setattr__(self, "evidence_class", evidence_class)
         _parse_timestamp(self.observed_at, "/observed_at")
 
+        # R182 is GitHub-only and is not a local runtime/entitlement observer.
+        # LOCAL_RUNTIME_VERIFIED is reserved in the taxonomy for a future separately
+        # governed external verifier/receipt contract. No caller-authored fields or
+        # string prefixes can mint that state here.
         if evidence_class == CapabilityEvidenceClass.LOCAL_RUNTIME_VERIFIED:
-            if not self.local_runtime_observed:
-                raise SemanticValidationError(
-                    "LOCAL_RUNTIME_EVIDENCE_REQUIRED", "/local_runtime_observed"
-                )
-            if not self.runtime_version:
-                raise SemanticValidationError(
-                    "LOCAL_RUNTIME_VERSION_REQUIRED", "/runtime_version"
-                )
-            if not self.observed_fields:
-                raise SemanticValidationError(
-                    "LOCAL_OBSERVED_FIELDS_REQUIRED", "/observed_fields"
-                )
-            if not any(ref.startswith("local:") for ref in self.evidence_refs):
-                raise SemanticValidationError(
-                    "LOCAL_EVIDENCE_REF_REQUIRED", "/evidence_refs"
-                )
-        elif evidence_class == CapabilityEvidenceClass.OFFICIAL_DOCUMENTED:
+            raise SemanticValidationError(
+                "EXTERNAL_LOCAL_RUNTIME_AUTHORITY_REQUIRED", "/evidence_class"
+            )
+
+        if evidence_class == CapabilityEvidenceClass.OFFICIAL_DOCUMENTED:
             if self.local_runtime_observed:
                 raise SemanticValidationError(
                     "DOCUMENTATION_OBSERVATION_CANNOT_CLAIM_LOCAL_RUNTIME",
@@ -280,6 +386,11 @@ class ProviderCapabilityObservation:
 
 
 def map_direction(raw_value: Any, spec: MarketSemanticFieldSpec) -> CanonicalDirection:
+    # Direction semantics are authority-bearing. The normal consuming path always
+    # proves registry identity before using the enum map.
+    require_governed_semantic_spec(spec)
+    if spec.primitive_type != "ENUM_STRING":
+        raise SemanticValidationError("DIRECTION_SPEC_TYPE_INVALID", "/primitive_type")
     if raw_value is None:
         raise SemanticValidationError("DIRECTION_MISSING", "/direction")
     raw = str(raw_value)
@@ -289,10 +400,19 @@ def map_direction(raw_value: Any, spec: MarketSemanticFieldSpec) -> CanonicalDir
 
 
 def assert_direction_contract(
-    spec: MarketSemanticFieldSpec, expected_map: Mapping[str, CanonicalDirection | str]
+    spec: MarketSemanticFieldSpec,
+    expected_map: Mapping[str, CanonicalDirection | str] | None = None,
 ) -> None:
+    # Retained compatibility helper. The caller-supplied expected map is never the
+    # authority: governed registry identity is checked first.
+    require_governed_semantic_spec(spec)
+    if expected_map is None:
+        return
     expected = {
-        str(key): (value.value if isinstance(value, CanonicalDirection) else CanonicalDirection(value).value)
+        str(key): (
+            value.value if isinstance(value, CanonicalDirection)
+            else CanonicalDirection(value).value
+        )
         for key, value in expected_map.items()
     }
     if dict(spec.source_enum_map) != expected:
@@ -330,6 +450,11 @@ def validate_tick_aligned(value: Any, spec: MarketSemanticFieldSpec) -> Decimal:
     return price
 
 
+def validate_governed_tick_aligned(value: Any, spec: MarketSemanticFieldSpec) -> Decimal:
+    require_governed_semantic_spec(spec)
+    return validate_tick_aligned(value, spec)
+
+
 @dataclass(frozen=True)
 class TickNormalization:
     original: Decimal
@@ -352,11 +477,7 @@ def normalize_to_tick(
 
 
 def explicit_unit_convert(
-    value: Any,
-    *,
-    from_unit: str,
-    to_unit: str,
-    factor: Any | None,
+    value: Any, *, from_unit: str, to_unit: str, factor: Any | None
 ) -> Decimal:
     if not from_unit or not to_unit:
         raise SemanticValidationError("UNIT_REQUIRED", "/unit")
@@ -371,24 +492,6 @@ def explicit_unit_convert(
     if conversion <= 0:
         raise SemanticValidationError("CONVERSION_FACTOR_MUST_BE_POSITIVE", "/factor")
     return amount * conversion
-
-
-def _jsonable(value: Any) -> Any:
-    if isinstance(value, Decimal):
-        return format(value, "f")
-    if isinstance(value, Enum):
-        return value.value
-    if isinstance(value, Mapping):
-        return {str(k): _jsonable(v) for k, v in sorted(value.items(), key=lambda pair: str(pair[0]))}
-    if isinstance(value, (tuple, list)):
-        return [_jsonable(v) for v in value]
-    return value
-
-
-def semantic_digest(spec: MarketSemanticFieldSpec) -> str:
-    payload = _jsonable(asdict(spec))
-    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
-    return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
 
 def capability_digest(observation: ProviderCapabilityObservation) -> str:
@@ -416,9 +519,16 @@ def append_capability_observation(
 def require_capability(
     observation: ProviderCapabilityObservation, *, require_local_runtime: bool
 ) -> ProviderCapabilityObservation:
-    if require_local_runtime and observation.evidence_class != CapabilityEvidenceClass.LOCAL_RUNTIME_VERIFIED:
+    if require_local_runtime:
+        # v1 cannot create LOCAL_RUNTIME_VERIFIED at all. This branch remains
+        # explicit so callers cannot confuse documentation/unverified evidence
+        # with a local capability.
+        if observation.evidence_class != CapabilityEvidenceClass.LOCAL_RUNTIME_VERIFIED:
+            raise SemanticValidationError(
+                "LOCAL_RUNTIME_CAPABILITY_NOT_VERIFIED", "/evidence_class"
+            )
         raise SemanticValidationError(
-            "LOCAL_RUNTIME_CAPABILITY_NOT_VERIFIED", "/evidence_class"
+            "EXTERNAL_LOCAL_RUNTIME_AUTHORITY_REQUIRED", "/evidence_class"
         )
     return observation
 
@@ -437,6 +547,9 @@ def detect_field_drift(
         or old.primitive_type != new.primitive_type
         or old.price_semantic != new.price_semantic
         or old.canonical_persistable != new.canonical_persistable
+        or old.source_ref != new.source_ref
+        or old.schema_digest != new.schema_digest
+        or old.semantic_digest != new.semantic_digest
     ):
         drift.add(DriftKind.SEMANTIC_DRIFT)
     if (
