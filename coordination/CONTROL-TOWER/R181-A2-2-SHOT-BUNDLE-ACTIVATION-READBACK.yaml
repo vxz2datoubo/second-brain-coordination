@@ -1,0 +1,32 @@
+schema: CONTROL_TOWER_ACTIVATION_READBACK/v1
+scan_id: R181-A2-2-SHOT-BUNDLE-ACTIVATION-READBACK
+route_epoch: 181
+source_issue: 548
+result: PASS_ACTIVATION_READBACK
+snapshot:
+  id: SECOND-BRAIN-R181-ISSUE548-SNAPSHOT-001
+  ref: issuecomment-5504242567
+  base: cd2ce8d880747e34358ceb25826397b1b3709942
+branch:
+  name: codex/r181-a2-2-shot-bundle-static-compiler
+  created_after_snapshot: true
+  expected_head: 330745146be7726c42c517623a6feb5a8eaf5eb0
+  observed_head: 330745146be7726c42c517623a6feb5a8eaf5eb0
+  matches: true
+technical_chain:
+  r180_implementation_head: dd9c85b42224573468bb1fcdefbb30b104dd222d
+  ci_correction_head: 330745146be7726c42c517623a6feb5a8eaf5eb0
+  correction_parent_matches_r180: true
+  acceptance_inherited: false
+  canonicality_inherited: false
+parallel_fences:
+  GPT_R172_ISSUE_515: NO_OVERLAP_NO_CODEX_WRITE
+  WORKBUDDY_ISSUE_532: NO_OVERLAP_NO_PREEMPTION
+ci_layer_invariant:
+  r179_frozen_delta_workflow_success: 33589460674
+  r180_frozen_delta_workflow_success: 33589460604
+  inherited_allowlist_widening: false
+activation_allowed_after:
+  - release_R180_route_claim_lease_reservation
+  - bind_R181_route_claim_lease_reservation_to_snapshot_and_branch
+  - switch_ACTIVE_CODEX_and_PROJECT_BATON
