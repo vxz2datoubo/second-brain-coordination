@@ -23,43 +23,69 @@ canonicalization:
     - "d392fcad80014ca5f65a860baf45c2eec0b15629"
     - "6a00939495ec7d8c974e5fbe8a8940a56dec3855"
   expected_head_lock_used: true
-  implementation_paths:
-    - ".github/workflows/program-control-tower.yml"
-    - "coordination/CONTROL-TOWER/integration_state_isolation.py"
-    - "coordination/CONTROL-TOWER/integration_state_isolation.schema.json"
-    - "coordination/CONTROL-TOWER/tests/test_integration_state_isolation.py"
 
 closeout_branch:
   branch: "gpt/r168-post-merge-closeout"
   original_base: "7c77e303a124f1debfb52f497eccd1db3f9f7cb4"
   fresh_main_reconciled_during_closeout: "09b95ad8e4b8b540791be68aceafb0baba21cbcb"
-  purpose: "CURRENT_AUTHORITY_RELEASE_WITH_HISTORICAL_BINDINGS_PRESERVED"
+  purpose: "CURRENT_AUTHORITY_RELEASE_PLUS_WORKER_REGISTRY_VALIDATOR_NORMALIZATION"
+
+validator_contract_reconciliation:
+  trigger: "R168 comparator / Codex P1 on PR #545"
+  canonical_validator: "coordination/CONTROL-TOWER/worker_slots.py"
+  required_registry_schema: "1.0"
+  allowed_activation_states: [ACTIVE, RESERVED, RELEASED]
+  allowed_terminal_closure_state: RELEASED
+  corrections:
+    r163: "unsupported FROZEN/superseded state labels -> RELEASED/RELEASED; execution remains false"
+    r164: "unsupported FROZEN/superseded state labels -> RELEASED/RELEASED; execution remains false"
+    r166: "already RELEASED; unchanged in authority"
+    r168: "canonicalized implementation -> RELEASED/RELEASED; execution false"
+    r182: "engineering complete/frozen on PR #551 -> RELEASED/RELEASED; execution false"
+  rule: >-
+    State-label normalization does not rewrite implementation provenance. RELEASED is the validator-supported terminal authority state;
+    task/PR/review/history remains in provenance fields and Git history. No unsupported historical label may masquerade as a current
+    execution state.
 
 fresh_concurrency_reconciliation:
-  r168_before_closeout: "ACTIVE_GPT_WORKER_SLOT"
-  r182_preserved: "GPT-WORKER-R182-W2-MARKET-SEMANTICS-1"
-  r181_preserved: "CODEX-A2-2-SHOT-BUNDLE-R181"
+  r181_preserved: "CODEX-A2-2-SHOT-BUNDLE-R181 / separate agent execution"
   r166_preserved: "INDEPENDENTLY_ACCEPTED_EXECUTION_RELEASED_AWAITING_CANONICALIZATION"
-  no_r181_r182_runtime_or_task_local_file_modified: true
+  r168_preserved: "CANONICALIZED_HISTORY_EXECUTION_RELEASED"
+  r182_engineering_completion:
+    issue: 550
+    pr: 551
+    exact_head: "c436df7d99f2ee66915e436ee1629835aad14bad"
+    dedicated_ci: 33592468996
+    engineering_handoff: 5505798658
+    independent_review_ticket: 5505800859
+    disposition: "ENGINEERING_FROZEN_EXECUTION_RELEASED_AWAITING_INDEPENDENT_REVIEW"
+  no_r181_runtime_or_task_local_file_modified: true
+  no_r182_runtime_or_task_local_file_modified_by_this_closeout: true
 
 current_authority_release:
-  worker_slot_id: "GPT-WORKER-R168-CANONICAL-CI-STATE-ISOLATION-1"
-  worker_registry_transition: "ACTIVE/PREWRITE_RESERVED -> RELEASED"
-  activation_state_after_closeout: "RELEASED"
-  closure_state_after_closeout: "RELEASED"
-  execution_allowed_after_closeout: false
-  active_write_paths_after_closeout: []
-  resource_class_after_closeout: "FROZEN_NO_EXECUTION"
-  program_lane_a_projection_after_closeout: "R168_CANONICALIZED_RELEASED_NO_ACTIVE_IMPLEMENTATION"
-  current_lane_claim_already_canonical_closed: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
-  effective_execution_authority_after_closeout: false
-  authority_rule: >-
-    The current GPT worker registry is the slot/lease execution identity source and canonical worker semantics require
-    no_slot_no_execution. R168 is retained in worker_slots as immutable provenance but its activation_state and closure_state are
-    RELEASED with execution_allowed=false and no active write surface. Lane A's current work claim was already closed on canonical
-    main. Therefore historical pre-write Route/Claim/Lease/Witness artifacts cannot independently recreate current execution.
+  r168:
+    worker_slot_id: "GPT-WORKER-R168-CANONICAL-CI-STATE-ISOLATION-1"
+    activation_state_after_closeout: RELEASED
+    closure_state_after_closeout: RELEASED
+    execution_allowed_after_closeout: false
+    active_write_paths_after_closeout: []
+    resource_class_after_closeout: FROZEN_NO_EXECUTION
+    lane_projection: R168_CANONICALIZED_RELEASED_NO_ACTIVE_IMPLEMENTATION
+  r182:
+    worker_slot_id: "GPT-WORKER-R182-W2-MARKET-SEMANTICS-1"
+    activation_state_after_closeout: RELEASED
+    closure_state_after_closeout: RELEASED
+    execution_allowed_after_closeout: false
+    active_write_paths_after_closeout: []
+    resource_class_after_closeout: FROZEN_NO_EXECUTION
+    lane_projection: R182_ENGINEERING_FROZEN_WAITING_INDEPENDENT_REVIEW_NO_ACTIVE_IMPLEMENTATION
+  canonical_lane_claims:
+    lane_a: CLOSED_NO_ACTIVE_IMPLEMENTATION
+    lane_b: CLOSED_NO_ACTIVE_IMPLEMENTATION
+    lane_c: CLOSED_NO_ACTIVE_IMPLEMENTATION
+  effective_gpt_execution_authority_after_closeout: false
 
-historical_bindings_preserved_unchanged:
+historical_r168_bindings_preserved_unchanged:
   route: "coordination/ROUTES/GPT-CANONICAL-CI-STATE-ISOLATION-R168.yaml"
   work_claim: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/WORK-CLAIM.yaml"
   task_lease: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/TASK-LEASE.yaml"
@@ -84,7 +110,7 @@ non_authority:
 successor_capacity_effect:
   claims_new_worker_authority: false
   claims_new_task_authority: false
-  one_gpt_slot_becomes_eligible_for_fresh_governed_release_after_this_closeout_is_canonical: true
+  gpt_slots_eligible_for_fresh_governed_release_after_this_closeout_is_canonical: 2
   successor_requires:
     - "fresh canonical main"
     - "fresh active worker registry readback"
@@ -99,9 +125,10 @@ intended_successor_candidate:
 
 hard_locks:
   - "NO_R168_REOPEN"
+  - "NO_R182_POST_HANDOFF_WRITE_WITHOUT_REMEDIATION_RELEASE"
   - "NO_RETROACTIVE_SUCCESSOR_AUTHORITY"
-  - "NO_HISTORICAL_ROUTE_CLAIM_LEASE_WITNESS_REWRITE"
-  - "NO_R181_OR_R182_COLLATERAL_STATE_LOSS"
+  - "NO_HISTORICAL_R168_ROUTE_CLAIM_LEASE_WITNESS_REWRITE"
+  - "NO_R181_COLLATERAL_STATE_LOSS"
   - "NO_SELF_REVIEW_SELF_ACCEPT_SELF_MERGE"
   - "NO_W3_DOMAIN_TRADING_PRODUCTION_CREDENTIAL_AUTHORITY"
 
