@@ -12,6 +12,7 @@ from .contracts import (
     DirectorScriptSelection,
     DirectorBrief,
     DirectorBriefV2ContentSelection,
+    DirectorBriefV2CompiledContent,
     GenerationRequest,
     GenerationResult,
     PlayerAction,
@@ -44,6 +45,12 @@ from .script_catalog import (
     materialize_catalog,
     serialize_catalog,
 )
+from .director_v2 import (
+    DirectorBriefV2Violation,
+    MultiScriptDirectorCompiler,
+    compile_director_brief_v2,
+    inspect_director_brief_v2,
+)
 
 __all__ = [
     "CreativeArtifact",
@@ -52,6 +59,8 @@ __all__ = [
     "DirectorCompilation",
     "DirectorBrief",
     "DirectorBriefV2ContentSelection",
+    "DirectorBriefV2CompiledContent",
+    "DirectorBriefV2Violation",
     "DirectorScriptSelection",
     "GenerationRequest",
     "GenerationResult",
@@ -77,6 +86,7 @@ __all__ = [
     "StoryState",
     "StyleProfile",
     "PersistentScriptCatalog",
+    "MultiScriptDirectorCompiler",
     "SourceProvenance",
     "TaskGovernance",
     "canonical_json",
@@ -84,6 +94,7 @@ __all__ = [
     "approved_synthetic_script_packages",
     "build_script_package",
     "compile_director",
+    "compile_director_brief_v2",
     "create_artifact",
     "compute_package_hash",
     "parse_script_package_json",
@@ -91,6 +102,7 @@ __all__ = [
     "load_task_governance",
     "load_catalog",
     "materialize_catalog",
+    "inspect_director_brief_v2",
     "serialize_catalog",
     "style_profiles_v1",
 ]
