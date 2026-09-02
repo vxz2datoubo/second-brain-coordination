@@ -1,4 +1,4 @@
-schema_version: "1.0"
+schema_version: "1.1"
 scan_id: "R182-W2-MARKET-SEMANTIC-CAPABILITY-ACTIVATION-SCAN"
 project: "SECOND_BRAIN"
 repository: "vxz2datoubo/second-brain-coordination"
@@ -6,43 +6,45 @@ source_issue: 550
 task_id: "GPT-W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182"
 route_epoch: 182
 worker_slot_id: "GPT-WORKER-R182-W2-MARKET-SEMANTICS-1"
-observed_main_before_publication: "f565adfae71465e4d208a55c4ada3d343a7ab5b0"
-scan_result: "PASS_ATOMIC_GOVERNANCE_PUBLICATION_PRE_SNAPSHOT"
+historical_scan_result: "PASS_ATOMIC_GOVERNANCE_PUBLICATION_PRE_SNAPSHOT"
+current_scan_disposition: "TERMINAL_HISTORY_ONLY_NOT_REUSABLE"
 
-freshness_scan:
-  current_main: "f565adfae71465e4d208a55c4ada3d343a7ab5b0"
-  route_epoch_182_search: "ABSENT_BEFORE_PUBLICATION"
-  required_branch: "gpt/r182-w2-market-semantic-capability-gate"
+historical_freshness_scan:
+  observed_main_before_publication: "f565adfae71465e4d208a55c4ada3d343a7ab5b0"
   branch_observed_before_publication: "ABSENT"
   target_market_semantics_module_on_main: "ABSENT"
-  post_publication_snapshot_must_bind_final_governance_commit: true
 
-capacity_scan:
+canonical_completion:
+  accepted_exact_head: "fd66a90267faac1b3b6cb0dbe74824b070dac2e5"
+  independent_review: "pullrequestreview-5095449147"
+  review_result: "issuecomment-5516893526"
+  verdict: "ACCEPT"
+  premerge_main: "8589a5ffeee40108a82fc2ef6547c54b3e857436"
+  merge_commit: "a9669e31a9b59c72fff66d6d364c92d4eec51f49"
+  accepted_head_is_merge_parent: true
+  worker_closeout: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182/POST-MERGE-WORKER-CLOSEOUT.yaml"
+
+current_capacity_scan:
   gpt_active_slots_max: 2
-  r166_exact_head: "cc982f33ad87601a0327e595125272ea4954cdce"
-  r166_independent_review: "ACCEPT / issuecomment-5474215140"
-  r166_future_engineering_required: false
-  r166_execution_released_in_same_atomic_governance_commit: true
-  r168_slot_retained: true
-  r182_slot_added: true
-  active_or_reserved_gpt_slots_after_publication: 2
-  result: "PASS_AT_LIMIT"
+  r182_slot_retained: false
+  r182_slot_released: true
+  r183_review_wait_slot_occupied: true
+  free_gpt_slots_after_r182_closeout: 1
+  result: "PASS_ONE_GPT_SLOT_AVAILABLE"
 
-parallel_execution_scan:
-  r168_surface: "four Control Tower CI-isolation files"
-  r182_surface: "six additive W2 semantic/capability files"
+current_parallel_execution_scan:
+  r182_current_write_surface: []
+  r183_surface: "DS10 six-file candidate frozen for independent review"
   codex_r181_surface: "interactive-film ShotBundle task-local/creative runtime surfaces"
-  r168_r182_path_overlap: false
-  r181_r182_path_overlap: false
   same_canonical_object_writers_max: 1
   nested_parallelism: "FORBIDDEN"
   result: "O0_NO_MATERIAL_WRITE_OVERLAP"
 
 non_duplication_scan:
-  existing_r143_w2_rule_authority: "REUSE_READ_ONLY_FIRST_SLICE"
-  issue_457_epistemic_authority: "REUSE"
-  issue_63_skill_gap_compiler: "REUSE"
-  issue_519_522_probability_numeric_integrity: "DOWNSTREAM_REUSE_NO_DUPLICATE"
+  existing_r143_w2_rule_authority: "PRESERVED"
+  issue_457_epistemic_authority: "PRESERVED"
+  issue_63_skill_gap_compiler: "PRESERVED"
+  issue_519_522_probability_numeric_integrity: "PRESERVED"
   market_data_system_of_record_created: false
   second_rule_authority_created: false
   second_probability_authority_created: false
@@ -57,11 +59,12 @@ trust_boundary_scan:
   merge_authority_created: false
 
 required_next_gate:
-  action: "PUBLISH_EFFECTIVE_SPEC_SNAPSHOT_ON_ISSUE_550"
-  snapshot_must_bind_final_main_after_this_atomic_publication: true
-  branch_must_remain_absent_until_snapshot: true
-  substantive_write_allowed_before_snapshot: false
-  on_any_mismatch: "FAIL_CLOSED_RESCAN_AND_SUCCESSOR_SNAPSHOT"
+  action: "NONE_FOR_R182_HISTORY_ONLY"
+  execution_allowed: false
+  substantive_write_allowed: false
+  old_scan_reusable_for_successor: false
+  successor_requires_fresh_route_claim_witness_lease_reservation_scan_and_snapshot: true
+  on_any_reactivation_attempt: "FAIL_CLOSED"
 
 merge_authorized: false
-review_authority: "GPT_INDEPENDENT_REVIEWER_ONLY_AFTER_ENGINEERING_HANDOFF"
+review_authority: "HISTORICAL_GPT_INDEPENDENT_REVIEWER_AT_EXACT_HEAD"
