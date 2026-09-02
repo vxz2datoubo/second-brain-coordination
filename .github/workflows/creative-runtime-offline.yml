@@ -33,10 +33,10 @@ jobs:
           test "$actual" = "$expected"
       - name: Run offline creative regression
         run: python -m unittest discover -s tests -p "test_creative*.py" -v
-      - name: Verify R178 write scope
-        run: python tools/verify_r178_scope.py --base adbba1f36294f520007694ddc465fa35fe968309 --head HEAD
+      - name: Verify R179 write scope
+        run: python tools/verify_r179_scope.py --base a2ea1b35937f81a7f2b243cd063871d3250c8b6b --head HEAD
       - name: Check patch whitespace
-        run: git diff --check adbba1f36294f520007694ddc465fa35fe968309...HEAD
+        run: git diff --check a2ea1b35937f81a7f2b243cd063871d3250c8b6b...HEAD
       - name: Reject provider or credential capability imports
         shell: bash
         run: |

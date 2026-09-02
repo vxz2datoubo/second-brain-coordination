@@ -1,0 +1,23 @@
+schema: AI_HANDOFF/v1
+source_agent: CODEX
+target_agent: GPT_INDEPENDENT_REVIEWER_AFTER_DEPENDENCY_GATE
+reviewer: UNASSIGNED
+executor_status: EXECUTOR_VERIFIED_ONLY
+task_id: CODEX-A2-PRELUDE-STORYGRAPH-BIBLES-R179
+issue: 540
+base_sha: a2ea1b35937f81a7f2b243cd063871d3250c8b6b
+implementation_checkpoint_sha: af1b99f6fe404c255dc16dc0a6e4f0941f54917b
+final_exact_head_binding: ISSUE_540_AND_FUTURE_DRAFT_PR_AFTER_EVIDENCE_COMMIT
+changed_contracts:
+  - StaticStoryGraph/v1
+  - StoryBibleBundle/v1
+tests:
+  executor_full_regression: PASS_77
+  executor_clean_clone_reproduction: PASS_77
+  scope_and_diff: PASS
+known_risks:
+  - R179 is stacked on unaccepted and unmerged R176, R177 and R178 candidates.
+  - Consequences are authored static descriptors and do not yet mutate a PlayerCampaign.
+  - The flagship is a synthetic prelude, not a production-approved full season.
+rollback: Close the stacked Draft PR and delete only the R179 branch after preserving this evidence.
+next_action: Create a stacked Draft PR, observe exact-head CI, freeze it, then request the next non-overlapping Codex slice without independent review yet.

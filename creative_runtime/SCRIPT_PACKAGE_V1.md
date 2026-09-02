@@ -42,3 +42,16 @@ python -m unittest discover -s tests -p "test_creative*.py" -v
 python tools/verify_r176_scope.py --base 1502fb11f77cbe7b16f87ed6f0624a21cba303d8 --head HEAD
 git diff --check 1502fb11f77cbe7b16f87ed6f0624a21cba303d8...HEAD
 ```
+
+## Flagship authored prelude
+
+`synthetic_mist_harbor_echoes@1.0.0` is the first approved, entirely synthetic
+flagship prelude. It is fixed at three acts, six chapters and twelve ordered
+major choices. Each choice has two authored outcomes with a visible reward and
+cost, and changes at least one of clue, relationship, resource, risk, quest,
+scene, or ending. Its `StaticStoryGraph/v1` and `StoryBibleBundle/v1` are bound
+to the exact package hash; dangling edges, jumps, cycles, cross-script
+references, missing assets and non-adult principals fail closed.
+
+These are shared immutable content definitions only. They do not create or
+mutate player campaigns, session state, director jobs, media jobs, or knowledge.
