@@ -1,0 +1,42 @@
+schema_version: "1.0"
+fixture_id: "DS10-RESEARCH-INTEGRITY-P0A-SYNTHETIC-001"
+public_safe: true
+real_market_data: false
+authority:
+  w4_strategy_experiment_write: false
+  w7_validation_write: false
+  probability_write: false
+  trade_write: false
+cases:
+  complete_family:
+    experiment_family_ref: "w4:synthetic:complete"
+    expected_trial_digests:
+      t1: "1111111111111111111111111111111111111111111111111111111111111111"
+      t2: "2222222222222222222222222222222222222222222222222222222222222222"
+      t3: "3333333333333333333333333333333333333333333333333333333333333333"
+    trials:
+      - {trial_id: t1, immutable_digest: "1111111111111111111111111111111111111111111111111111111111111111", status: SUCCESS, selection_affecting: true, rerun_of: null}
+      - {trial_id: t2, immutable_digest: "2222222222222222222222222222222222222222222222222222222222222222", status: FAILURE, selection_affecting: true, rerun_of: null}
+      - {trial_id: t3, immutable_digest: "3333333333333333333333333333333333333333333333333333333333333333", status: ABORTED, selection_affecting: true, rerun_of: null}
+      - {trial_id: rerun-t2, immutable_digest: "2222222222222222222222222222222222222222222222222222222222222222", status: FAILURE, selection_affecting: false, rerun_of: t2}
+    expected_disposition: "ABSTAIN"
+    expected_reason: "P0A_CONTENT_CLEAR_BUT_CANONICAL_W4_AUTHORITY_BINDING_NOT_IMPLEMENTED"
+  trial_count_laundering_attempt:
+    declared_trial_count: 1
+    expected_trial_digests:
+      t1: "1111111111111111111111111111111111111111111111111111111111111111"
+      t2: "2222222222222222222222222222222222222222222222222222222222222222"
+      t3: "3333333333333333333333333333333333333333333333333333333333333333"
+    expected_finding: "DECLARED_TRIAL_COUNT_MISMATCH"
+    denominator_source: "W4_IMMUTABLE_TRIAL_IDENTITIES"
+  missing_loser:
+    omitted_trial_id: "t2"
+    expected_disposition: "REJECT_INCOMPLETE_TRIAL_HISTORY"
+  lockbox_prompt_contamination:
+    purpose: "PROMPT_OPTIMIZATION"
+    selection_consumed_after: true
+    expected_disposition: "REJECT_LOCKBOX_CONTAMINATION"
+  pit_rule_leakage:
+    rule_version: "FAIL"
+    example: "current rule snapshot applied to pre-effective historical replay"
+    expected_disposition: "REJECT_POINT_IN_TIME_LEAKAGE"
