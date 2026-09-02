@@ -1,0 +1,43 @@
+schema: TASK_BRIEF/v1
+task_id: CODEX-A2-1-DIRECTOR-BEAT-PLAN-R180
+route_epoch: 180
+source_issue: 542
+executor: CODEX
+project: CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001
+objective: >-
+  Implement a deterministic immutable DirectorBeatPlan/v1 pure compiler that joins freshly validated DirectorBrief/v2 compiled content with the R179 StaticStoryGraph/v1 and StoryBibleBundle/v1 for one explicit authored choice/scene selector. The selector is content addressing only, never player progress or persisted state.
+implementation_baseline: 607fe934be3b098c32e31cd257de8b462cd20ccd
+required_branch: codex/r180-a2-1-director-beat-plan-pure-compiler
+required_outputs:
+  - DirectorBeatPlan/v1 immutable contract with stable plan_id and plan_hash
+  - exact binding to script/revision/package/brief/graph/bible/style/choice/scene identities
+  - ordered directing beats for setup, dramatic question, character continuity, scene staging, option presentation, consequence preview and continuity-safe exit intent
+  - pure per-option outcome preview that records no player choice
+  - compile, inspect, list and option-preview read-only APIs
+  - fail-closed cross-script/hash/schema/style/scene/choice/option/continuity/asset validation
+  - full regression, negative tests, exact scope verifier, diff check, clean standalone clone and exact-head CI
+acceptance_conditions:
+  - all 12 flagship choices compile and inspect deterministically
+  - all 24 authored outcome previews compile and inspect deterministically
+  - approved styles may change presentation only and cannot mutate graph identity, legal options or consequence truth
+  - recompilation from source truth detects outer-hash recomputation substitution
+  - unknown/mismatched/tampered brief graph bible scene choice option asset or continuity input fails closed with no side effect
+  - zero writes or authorities for PlayerCampaign CreativeSession/v2 session ledger migration save slots NarrativeState campaign reducer director jobs media jobs provider WorkBuddy canonical knowledge
+  - full creative regression PASS
+  - R180 exact scope verifier PASS
+  - git diff --check PASS
+  - fresh task-owned standalone clone reproduces PASS
+  - exact-head GitHub Actions PASS
+  - Draft executor-evidence-only delivery; no review request Ready or merge
+boundaries:
+  GPT_R172_ISSUE_515: PLAYER_CAMPAIGN_CREATIVESESSION_V2_SESSION_LEDGER_MIGRATION_SAVE_SLOT_SINGLE_WRITER_UNTOUCHED
+  WORKBUDDY_ISSUE_532: ACTIVE_ORDERED_BATCH_UNTOUCHED
+  player_state_semantics: NO_READ_REQUIRED_NO_WRITE_ALLOWED
+  story_selector_semantics: EXPLICIT_STATELESS_CONTENT_ADDRESS_ONLY
+  director_job_media_job_authority: FORBIDDEN
+execution_environment:
+  fresh_task_owned_standalone_clone_required: true
+review:
+  independent_review_request_now: false
+  executor_ci_is_evidence_only: true
+  merge_authorized: false
