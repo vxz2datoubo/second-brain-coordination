@@ -1,0 +1,256 @@
+schema_version: "1.0"
+task_id: "CODEX-W12-D0-COMBINED-SKILL-GAP-AND-LOCAL-REALITY-AUDIT-0013B"
+as_of_remote_main: "64a42895e49b31f4aa1de62d6db54bf54d4a555a"
+evidence_classes:
+  - VERIFIED_FACT
+  - VERIFIED_LOCAL
+  - REPOSITORY_ONLY
+  - INHERITED_REPORT
+  - INFERENCE
+  - ACCESS_NOT_AVAILABLE
+  - UNKNOWN
+classifications:
+  - EXISTING_SKILL_SUBCAPABILITY
+  - CANDIDATE_INDEPENDENT_SKILL
+  - REFERENCE_ONLY
+  - REJECTED
+  - UNKNOWN_NEEDS_RESEARCH
+maturity_states:
+  - DISCOVERED
+  - MENTIONED
+  - MAPPED_TO_LIFECYCLE
+  - CANDIDATE_SKILL_REGISTERED
+  - RESEARCH_VALIDATED
+  - CONTRACTED
+  - IMPLEMENTED
+  - A_SHARE_BACKTESTED
+  - SHADOW_VALIDATED
+  - VALIDATED_RESEARCH_CAPABILITY
+capabilities:
+  - capability_id: "W10-W11-W12-CROSS-MODULE-BOUNDARY-V1"
+    classification: "REFERENCE_ONLY"
+    maturity: "CONTRACTED"
+    evidence_class: "VERIFIED_FACT"
+    owner: "GPT architecture decision"
+    evidence:
+      - "coordination/BLUEPRINTS/W10-W11-W12-CROSS-MODULE-BOUNDARY-AND-P0-REMEDIATION-v1.0.md"
+      - "main commit 64a42895e49b31f4aa1de62d6db54bf54d4a555a"
+    boundary: "Authoritative ownership and P0 contract decision; not runtime evidence."
+
+  - capability_id: "CANONICAL-MEMORY-PHASE3"
+    classification: "EXISTING_SKILL_SUBCAPABILITY"
+    maturity: "IMPLEMENTED"
+    evidence_class: "VERIFIED_FACT"
+    owner: "Issue 38 / PR 57 canonical runtime"
+    evidence:
+      - "PR 57 merged as 473d0ec15b28ac5e1b70db0b8a6a9ab17738161b"
+      - "Python package integrated_offline_memory with store, fusion, retrieval, snapshot and rollback tests"
+    boundary: "Sole candidate memory/runtime system of record; W12 may only emit candidate LearningPackets."
+
+  - capability_id: "FULL-KNOWLEDGE-GATEWAY-PHASE4"
+    classification: "EXISTING_SKILL_SUBCAPABILITY"
+    maturity: "IMPLEMENTED"
+    evidence_class: "VERIFIED_FACT"
+    owner: "Issue 38 / PR 58"
+    evidence:
+      - "PR 58 head 0dbdc4b15aebe8ed4fe8d7dbef611a2d4f08e6ed"
+      - "AnswerEvidenceBundle, feedback, revocation, local adapters and rebuild code and tests exist"
+      - "GitHub Actions Python 3.11 and 3.13 passed"
+    limitation: "Final independent 100+ QCLAW adversarial acceptance remains pending."
+    boundary: "Paused and preserved; not replaced by W12."
+
+  - capability_id: "QCLAW-KNOWLEDGE-ATOMIZATION-P0"
+    classification: "REFERENCE_ONLY"
+    maturity: "CONTRACTED"
+    evidence_class: "REPOSITORY_ONLY"
+    owner: "Issue 59 / PR 64 candidate"
+    evidence:
+      - "PR 64 head 60a420b2f47b9a96820d388289ea29fbca40aa43"
+      - "Schemas and architecture documents exist"
+    blockers:
+      - "Task identity and handoff SHA drift"
+      - "Relation schema has 30 types while taxonomy has 27"
+      - "No actual automated validation receipt"
+      - "Four quality gates skipped"
+    boundary: "May propose atoms and relations; cannot become another store or gateway."
+
+  - capability_id: "QCLAW-LONG-TERM-MEMORY-M0"
+    classification: "REJECTED"
+    maturity: "MAPPED_TO_LIFECYCLE"
+    evidence_class: "VERIFIED_FACT"
+    owner: "Issue 60 / PR 65 frozen candidate"
+    evidence:
+      - "PR 65 head c8f29e17679e47bd9ef3a26f642df37749871661"
+      - "Audit targets nonexistent lib/runtime/*.rb instead of current Python runtime"
+    rejection_reason: "Current non-duplication conclusion is invalid and proposed APIs overlap PR 57/58."
+    salvage: "Re-audit actual Python paths; retain only non-duplicative documentation after GPT review."
+
+  - capability_id: "TEMPORAL-EVIDENCE-INTELLIGENCE-PR8"
+    classification: "REFERENCE_ONLY"
+    maturity: "CONTRACTED"
+    evidence_class: "REPOSITORY_ONLY"
+    owner: "PR 8 parked"
+    evidence:
+      - "Event and Assessment JSON Schema plus temporal-evidence blueprints"
+    reuse: "Migrate multi-time, provenance and assessment semantics only after mapping to W2/W5/W10/W12."
+    forbidden: "Do not merge as a second event, probability or evidence authority."
+
+  - capability_id: "QCLAW-OFFLINE-SYNC-PR34"
+    classification: "REFERENCE_ONLY"
+    maturity: "MAPPED_TO_LIFECYCLE"
+    evidence_class: "INHERITED_REPORT"
+    owner: "PR 34 parked"
+    evidence:
+      - "Historical local audit, privacy classification and LearningPacket planning documents"
+    limitation: "Path, capacity, privacy and canonical assumptions predate PR 57 and current QCLAW routing."
+    disposition: "Extract hash-stamped evidence only; revalidate all current-state claims."
+
+  - capability_id: "BLUEPRINT-TO-SKILL-GAP-COMPILER"
+    classification: "CANDIDATE_INDEPENDENT_SKILL"
+    maturity: "CANDIDATE_SKILL_REGISTERED"
+    source_maturity: "BLUEPRINTED_NOT_IMPLEMENTED"
+    evidence_class: "REPOSITORY_ONLY"
+    owner: "W12"
+    evidence:
+      - "Decision-science blueprint and machine-readable registry exist on main"
+      - "No compiler runtime or dedicated tests found"
+    role: "D1 meta-infrastructure; not counted as a child vertical slice."
+
+  - capability_id: "DS-01"
+    skill_id: "DECISION-FRAMING-INFLUENCE-DIAGRAM-SKILL-0012A"
+    classification: "CANDIDATE_INDEPENDENT_SKILL"
+    maturity: "CANDIDATE_SKILL_REGISTERED"
+    evidence_class: "REPOSITORY_ONLY"
+    owner: "W12; consumes W10 context without replacing DecisionEpisode"
+    existing_fragments: ["DecisionPacket", "TaskContextModel", "causal boundary guidance"]
+    missing: ["DecisionFrame contract", "observability ordering tests", "A-share RuleSnapshot binding"]
+    priority: "P0_FIRST_SLICE"
+
+  - capability_id: "DS-02"
+    skill_id: "BAYESIAN-BELIEF-UPDATE-FORECAST-FUSION-SKILL-0012B"
+    classification: "CANDIDATE_INDEPENDENT_SKILL"
+    maturity: "CANDIDATE_SKILL_REGISTERED"
+    evidence_class: "VERIFIED_LOCAL"
+    owner: "W12 / DS-02 schema and computation; W10 freezes estimate reference; W11 consumes read-only"
+    existing_fragments: ["ForecastRecord", "probability-fusion critic skill", "experimental weighted fusion scaffold"]
+    missing: ["ProbabilityEstimate runtime", "correlation-group deduplication", "proper-scoring calibration", "abstention coverage"]
+    boundary: "One shared ProbabilityEstimate; PersonalCognitiveModel and PEOS cannot rewrite the ex-ante probability."
+    priority: "P0_SECOND_SLICE"
+
+  - capability_id: "DS-03"
+    skill_id: "VALUE-OF-INFORMATION-RESEARCH-STOPPING-SKILL-0012C"
+    classification: "CANDIDATE_INDEPENDENT_SKILL"
+    maturity: "CANDIDATE_SKILL_REGISTERED"
+    evidence_class: "REPOSITORY_ONLY"
+    owner: "W12"
+    existing_fragments: ["next evidence fields", "research queue priorities"]
+    priority: "P0_AFTER_FIRST_THREE"
+
+  - capability_id: "DS-04"
+    skill_id: "ROBUST-AMBIGUITY-MINIMAX-REGRET-SKILL-0012D"
+    classification: "CANDIDATE_INDEPENDENT_SKILL"
+    maturity: "CANDIDATE_SKILL_REGISTERED"
+    evidence_class: "REPOSITORY_ONLY"
+    owner: "W12"
+    existing_fragments: ["UNKNOWN preservation", "no-trade and sensitivity guidance"]
+    boundary: "Outputs AmbiguityAndRobustDecisionEnvelope only; all Kelly solvers remain W11."
+    priority: "P0_AFTER_FIRST_THREE"
+
+  - capability_id: "DS-05"
+    skill_id: "SEQUENTIAL-DECISION-OPTIMAL-STOPPING-REAL-OPTIONS-SKILL-0012E"
+    classification: "CANDIDATE_INDEPENDENT_SKILL"
+    maturity: "CANDIDATE_SKILL_REGISTERED"
+    evidence_class: "REPOSITORY_ONLY"
+    owner: "W12"
+    existing_fragments: ["T+1 inventory state", "wait/no-trade actions"]
+    priority: "P2"
+
+  - capability_id: "DS-06"
+    skill_id: "EXPLORATION-EXPLOITATION-ADAPTIVE-EXPERIMENT-SKILL-0012F"
+    classification: "CANDIDATE_INDEPENDENT_SKILL"
+    maturity: "CANDIDATE_SKILL_REGISTERED"
+    evidence_class: "REPOSITORY_ONLY"
+    owner: "W12"
+    existing_fragments: ["ResearchQueue", "experimental status"]
+    priority: "P2"
+
+  - capability_id: "DS-07"
+    skill_id: "PORTFOLIO-BELIEF-TO-WEIGHTS-SKILL-0012G"
+    classification: "EXISTING_SKILL_SUBCAPABILITY"
+    maturity: "MAPPED_TO_LIFECYCLE"
+    evidence_class: "REPOSITORY_ONLY"
+    owner: "W11 portfolio allocation boundary"
+    boundary: "W12 may define belief-to-input adapters; it must not build another optimizer."
+    priority: "P1"
+
+  - capability_id: "DS-08"
+    skill_id: "RISK-BUDGET-DOWNSIDE-SURVIVAL-SKILL-0012H"
+    classification: "EXISTING_SKILL_SUBCAPABILITY"
+    maturity: "MAPPED_TO_LIFECYCLE"
+    evidence_class: "REPOSITORY_ONLY"
+    owner: "DS-08 portfolio risk envelope; W7 final hard gate; W11 constrained sizing consumer"
+    boundary: "DS-08 does not generate alpha, capital fraction or orders; W7 may cap, freeze or reject."
+    priority: "P1"
+
+  - capability_id: "DS-09"
+    skill_id: "OPTIMAL-EXECUTION-IMPLEMENTATION-SHORTFALL-SKILL-0012I"
+    classification: "EXISTING_SKILL_SUBCAPABILITY"
+    maturity: "MAPPED_TO_LIFECYCLE"
+    evidence_class: "REPOSITORY_ONLY"
+    owner: "OMS and Execution"
+    boundary: "Execution/OMS authority may reduce, delay, split or abstain; it cannot amplify W11 allocation and W12 creates no order path."
+    priority: "P1"
+
+  - capability_id: "DS-10"
+    skill_id: "RESEARCH-MULTIPLE-TESTING-OVERFITTING-AUDIT-SKILL-0012J"
+    classification: "CANDIDATE_INDEPENDENT_SKILL"
+    maturity: "CANDIDATE_SKILL_REGISTERED"
+    evidence_class: "VERIFIED_LOCAL"
+    owner: "W12 audit layer invoking W7 validation records"
+    existing_fragments: ["ValidationReport", "walk-forward tests", "consistency and scaffold-exit auditors", "Romano-Wolf registered subcapability"]
+    missing: ["experiment family ledger", "failed-trial preservation", "PBO/DSR applicability gates", "selection-bias report"]
+    priority: "P0_THIRD_SLICE"
+
+  - capability_id: "DS-10-ROMANO-WOLF"
+    parent_skill_id: "RESEARCH-MULTIPLE-TESTING-OVERFITTING-AUDIT-SKILL-0012J"
+    classification: "EXISTING_SKILL_SUBCAPABILITY"
+    maturity: "MAPPED_TO_LIFECYCLE"
+    evidence_class: "VERIFIED_FACT"
+    owner: "DS-10"
+    purpose: "Stepdown familywise-error control using joint dependence across a complete related hypothesis family."
+    required_inputs: ["complete experiment family", "common baseline", "time-dependence-preserving resampling", "studentized statistics", "predeclared alpha"]
+    non_goals: ["replace PBO", "replace DSR", "replace SPA", "replace lockbox", "replace costs/capacity/shadow validation"]
+    implementation_status: "NOT_IMPLEMENTED_BY_D0"
+
+  - capability_id: "DS-11"
+    skill_id: "REGIME-CHANGE-MODEL-DECAY-SKILL-0012K"
+    classification: "CANDIDATE_INDEPENDENT_SKILL"
+    maturity: "CANDIDATE_SKILL_REGISTERED"
+    evidence_class: "REPOSITORY_ONLY"
+    owner: "W12 monitoring view; W2 retains rule and market facts"
+    priority: "P1"
+
+  - capability_id: "DS-12"
+    skill_id: "PERFORMANCE-DECISION-EXECUTION-ATTRIBUTION-SKILL-0012L"
+    classification: "CANDIDATE_INDEPENDENT_SKILL"
+    maturity: "CANDIDATE_SKILL_REGISTERED"
+    evidence_class: "REPOSITORY_ONLY"
+    owner: "W12 attribution view over W10, W11 and OMS facts"
+    priority: "P1"
+
+  - capability_id: "DS-13"
+    skill_id: "MULTI-OBJECTIVE-UTILITY-CAPITAL-RATIONING-SKILL-0012M"
+    classification: "CANDIDATE_INDEPENDENT_SKILL"
+    maturity: "CANDIDATE_SKILL_REGISTERED"
+    evidence_class: "REPOSITORY_ONLY"
+    owner: "W12 preference contract; user remains utility authority"
+    priority: "P2"
+
+ownership_freeze:
+  market_facts_and_time: "W2"
+  independent_hard_risk_and_validation_gate: "W7 final ALLOW/CAP/FREEZE/REJECT authority"
+  world_personal_task_context_and_decision_episode: "W10"
+  positive_edge_expected_value_and_capital_allocation: "W11, including the sole Raw/Fractional/Risk-Constrained/Robust Kelly solver"
+  decision_skill_completeness_and_upstream_downstream_decision_contracts: "W12"
+  orders_fills_reconciliation_and_execution_state: "OMS / Execution"
+  canonical_memory_store_retrieval_fusion_and_gateway: "Issue 38 / PR 57 and PR 58"
