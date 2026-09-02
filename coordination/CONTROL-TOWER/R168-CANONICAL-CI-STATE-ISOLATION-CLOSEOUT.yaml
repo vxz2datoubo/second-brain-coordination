@@ -1,0 +1,96 @@
+schema: "POST_MERGE_CLOSEOUT/v1"
+project: "SECOND_BRAIN"
+repository: "vxz2datoubo/second-brain-coordination"
+task_id: "GPT-CANONICAL-CI-STATE-ISOLATION-R168"
+route_epoch: 168
+source_issue: 496
+implementation_pr: 517
+accepted_exact_head: "6a00939495ec7d8c974e5fbe8a8940a56dec3855"
+independent_review:
+  review_id: 5066628944
+  matching_review_result: 5478588001
+  verdict: "ACCEPT"
+exact_head_ci:
+  run_id: 33382974470
+  conclusion: "SUCCESS"
+canonicalization:
+  pre_merge_main: "d392fcad80014ca5f65a860baf45c2eec0b15629"
+  merge_commit: "7c77e303a124f1debfb52f497eccd1db3f9f7cb4"
+  merge_parents:
+    - "d392fcad80014ca5f65a860baf45c2eec0b15629"
+    - "6a00939495ec7d8c974e5fbe8a8940a56dec3855"
+  expected_head_lock_used: true
+  implementation_paths:
+    - ".github/workflows/program-control-tower.yml"
+    - "coordination/CONTROL-TOWER/integration_state_isolation.py"
+    - "coordination/CONTROL-TOWER/integration_state_isolation.schema.json"
+    - "coordination/CONTROL-TOWER/tests/test_integration_state_isolation.py"
+
+closeout_branch:
+  branch: "gpt/r168-post-merge-closeout"
+  base: "7c77e303a124f1debfb52f497eccd1db3f9f7cb4"
+  purpose: "DETERMINISTIC_GOVERNANCE_RELEASE_ONLY"
+
+released_authority:
+  worker_slot_id: "GPT-WORKER-R168-CANONICAL-CI-STATE-ISOLATION-1"
+  worker_slot_active_after_closeout: false
+  route_execution_allowed: false
+  route_runtime_code_change_allowed: false
+  work_claim_active: false
+  lease_active: false
+  executor_reservation_active: false
+  authorization_witness_execution_authorized: false
+  active_write_paths: []
+  review_authority: false
+  merge_authority: false
+  domain_write_authority: false
+  w3_write_authority: false
+  trading_authority: false
+
+closed_bindings:
+  active_worker_registry: "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+  route: "coordination/ROUTES/GPT-CANONICAL-CI-STATE-ISOLATION-R168.yaml"
+  work_claim: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/WORK-CLAIM.yaml"
+  task_lease: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/TASK-LEASE.yaml"
+  executor_reservation: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/EXECUTOR-RESERVATION.yaml"
+  authorization_witness: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/AUTHORIZATION-WITNESS.yaml"
+
+active_registry_projection_after_closeout:
+  retained_executable_gpt_slots:
+    - "GPT-WORKER-R166-W5-EVENT-COVERAGE-2"
+  released_slot:
+    - "GPT-WORKER-R168-CANONICAL-CI-STATE-ISOLATION-1"
+  historical_frozen_entries_retained:
+    - "GPT-WORKER-R163-INTERACTIVE-FILM-REMEDIATION-1"
+    - "GPT-WORKER-R164-W5-EVENT-COVERAGE-2"
+
+program_lane_projection:
+  modified_by_this_closeout: false
+  reason: >-
+    ACTIVE-PROGRAM-LANES is a high-drift shared governance projection with concurrent R180-era activity. This closeout avoids
+    overwriting unrelated current lane state. Any successor slot activation must fresh-reconcile lane state and publish its own
+    exact bindings rather than infer authority from this receipt.
+
+successor_capacity_effect:
+  claims_new_worker_authority: false
+  claims_new_task_authority: false
+  one_gpt_slot_becomes_eligible_for_fresh_governed_release_after_this_closeout_is_canonical: true
+  successor_requires:
+    - "fresh canonical main"
+    - "fresh active worker registry readback"
+    - "fresh lane/collision scan"
+    - "new route/task/claim/witness/lease/reservation bindings"
+    - "new EFFECTIVE_SPEC_SNAPSHOT/v1 before substantive write"
+
+intended_successor_candidate:
+  issue: 543
+  title: "Cognitive Utilization + Feedback Loop"
+  authority_effect: "NONE_UNTIL_SEPARATE_GOVERNED_RELEASE"
+
+hard_locks:
+  - "NO_R168_REOPEN"
+  - "NO_RETROACTIVE_SUCCESSOR_AUTHORITY"
+  - "NO_SELF_REVIEW_SELF_ACCEPT_SELF_MERGE"
+  - "NO_W3_DOMAIN_TRADING_PRODUCTION_CREDENTIAL_AUTHORITY"
+
+closeout_state: "READY_FOR_INDEPENDENT_GOVERNANCE_REVIEW"
