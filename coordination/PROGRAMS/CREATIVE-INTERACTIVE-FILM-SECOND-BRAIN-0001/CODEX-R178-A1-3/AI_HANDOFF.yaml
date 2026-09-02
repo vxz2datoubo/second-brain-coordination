@@ -1,0 +1,18 @@
+schema: AI_HANDOFF/v1
+source_agent: CODEX
+target_agent: GPT_INDEPENDENT_REVIEWER_AFTER_DEPENDENCY_GATE
+reviewer: UNASSIGNED
+executor_status: EXECUTOR_VERIFIED_ONLY
+task_id: CODEX-A1-3-DIRECTORBRIEF-V2-MULTISCRIPT-R178
+issue: 538
+base_sha: adbba1f36294f520007694ddc465fa35fe968309
+implementation_checkpoint_sha: 11c9903495368b17185d871af6f2d50b782630b2
+final_exact_head_binding: ISSUE_538_AND_FUTURE_DRAFT_PR_AFTER_EVIDENCE_COMMIT
+tests:
+  executor_full_regression: PASS_61
+  executor_clean_clone_reproduction: PASS_61
+  scope_and_diff: PASS
+known_risks:
+  - R178 is stacked on unaccepted and unmerged R176/R177 candidates.
+  - This content compiler does not yet combine a player NarrativeState with shot planning.
+next_action: Create stacked Draft PR, observe exact-head CI, and freeze until predecessor gates are satisfied.

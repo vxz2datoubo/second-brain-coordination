@@ -1,0 +1,15 @@
+schema: UnplannedImprovementLedger/v1
+task_id: CODEX-A1-3-DIRECTORBRIEF-V2-MULTISCRIPT-R178
+improvements:
+  - id: R178-B1-RECOMPILE-INSPECTION
+    class: B
+    value: catches content substitution even when an attacker recomputes the outer compile hash
+    evidence: test_recomputed_hash_cannot_hide_compiled_content_substitution
+  - id: R178-B2-CURRENT-BEFORE-TARGET
+    class: B
+    value: prevents switching away from a forged current director input without detection
+    evidence: test_switch_rejects_tampered_current_before_compiling_target
+  - id: R178-B3-ERROR-BOUNDARY-NORMALIZATION
+    class: B
+    value: converts registry rejection during manual selection into the stable director violation contract
+    evidence: test_compile_selection_revalidates_manual_selection

@@ -1,0 +1,30 @@
+schema: CODEX_IMPLEMENTATION_RECEIPT/v1
+agent_id: CODEX
+task_id: CODEX-A1-3-DIRECTORBRIEF-V2-MULTISCRIPT-R178
+issue: 538
+route_epoch: 178
+executor_status: EXECUTOR_VERIFIED_ONLY
+base_sha: adbba1f36294f520007694ddc465fa35fe968309
+implementation_checkpoint_sha: 11c9903495368b17185d871af6f2d50b782630b2
+branch: codex/r178-a1-3-directorbrief-v2-multiscript-compilation
+delivered:
+  - immutable DirectorBrief/v2 compiled content contract
+  - exact catalog package revision style asset and provenance binding
+  - deterministic compile hash and brief ID
+  - pure list select compile inspect and switch facade
+  - fail-closed stale binding, substitution, schema, hash and cross-catalog attacks
+  - no player session director-job media-job queue scheduler or provider authority
+verification:
+  local_regression: PASS_61
+  scope: PASS_7_ALLOWED_FILES
+  diff_check: PASS
+  clean_clone_reproduction: PASS_61_SCOPE_DIFF
+  evidence_class: EXECUTOR_CLEAN_REPRODUCTION_NOT_INDEPENDENT_REVIEW
+failed_attempts:
+  - >-
+    Initial verification clone exceeded the command wait boundary and left an empty repository.
+    A premature follow-up command printed a PASS label after earlier commands had failed because it
+    lacked exit-code guards. No result from that command is counted. The repository was completed
+    with a targeted fetch and every verification step was rerun with explicit fail-fast guards.
+rollback: Revert ordinary R178 implementation and evidence commits; no persistent runtime state exists.
+next_gate: DRAFT_PR_EXACT_HEAD_CI_THEN_PREDECESSOR_CHAIN_DEPENDENCY_GATE
