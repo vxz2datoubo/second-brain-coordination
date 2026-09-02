@@ -5,12 +5,13 @@ route_epoch: 178
 source_issue: 538
 executor: CODEX
 worker_slot_id: CODEX-R178-A1-3-DIRECTORBRIEF-1
-reservation_state: RESERVED_PENDING_SNAPSHOT
+reservation_state: ACTIVE_HELD
 implementation_baseline: adbba1f36294f520007694ddc465fa35fe968309
-snapshot_base: PENDING
+snapshot_base: f07d6782ae1ab1b7daf01ee2f846725b091ae321
 branch: codex/r178-a1-3-directorbrief-v2-multiscript-compilation
-branch_head_at_activation: PENDING
-effective_spec_snapshot_ref: PENDING
+branch_head_at_activation: adbba1f36294f520007694ddc465fa35fe968309
+effective_spec_snapshot_id: SECOND-BRAIN-R178-ISSUE538-SNAPSHOT-001
+effective_spec_snapshot_ref: issuecomment-5503205671
 exclusive_write_surface:
   - DIRECTORBRIEF_V2_COMPILED_CONTENT_INPUT
   - READ_ONLY_MULTI_SCRIPT_DIRECTOR_SWITCHING
@@ -19,4 +20,6 @@ conflict_fences:
   WORKBUDDY_ISSUE_532: ACTIVE_ORDERED_BATCH_NO_PREEMPTION_NO_OVERLAP
   PR_535_PR_537: DRAFT_PREDECESSORS_NO_MUTATION_REVIEW_READY_MERGE
   DIRECTOR_JOB_MEDIA_JOB_AUTHORITY: FORBIDDEN
-execution_allowed: false
+execution_environment:
+  fresh_task_owned_standalone_clone_required: true
+execution_allowed: true
