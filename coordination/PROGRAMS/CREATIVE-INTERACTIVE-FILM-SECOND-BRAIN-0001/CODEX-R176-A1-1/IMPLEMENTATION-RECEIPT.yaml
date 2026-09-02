@@ -1,0 +1,51 @@
+schema: CODEX_IMPLEMENTATION_RECEIPT/v1
+agent_id: CODEX
+project: CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001
+task_id: CODEX-A1-1-SCRIPTPACKAGE-REGISTRY-R176
+route_epoch: 176
+issue: 534
+executor_status: EXECUTOR_VERIFIED_ONLY
+implementation_baseline: 1502fb11f77cbe7b16f87ed6f0624a21cba303d8
+implementation_checkpoint: 2ddc3ea0f27677c40f580a0a04b8cc5f2d913b92
+branch: codex/r176-a1-1-scriptpackage-registry-snapshot-bound
+delivered:
+  - immutable ScriptPackage/v1 content contract with deep-frozen nested values
+  - exact script_id + script_revision + package_hash registry identity
+  - two approved non-explicit synthetic script fixtures
+  - four presentation-only style profiles per fixture
+  - deterministic canonical hashing and strict JSON duplicate-key rejection
+  - fail-closed approval, provenance, identity, style, schema, private-metadata and tamper gates
+  - minimal frozen DirectorScriptSelection for future DirectorBrief/v2
+  - no campaign, session, director-job, media-job or canonical-knowledge authority
+verification:
+  local_python_3_13:
+    command: python -m unittest discover -s tests -p "test_creative*.py" -q
+    result: PASS_37_TESTS
+  local_python_3_12_compatibility:
+    command: py -3.12 -m unittest discover -s tests -p "test_creative*.py" -q
+    result: PASS_36_TESTS_AT_PRE_FINAL_TEST_EXPANSION
+  scope:
+    command: python tools/verify_r176_scope.py --base 1502fb11f77cbe7b16f87ed6f0624a21cba303d8 --head 2ddc3ea0f27677c40f580a0a04b8cc5f2d913b92
+    result: PASS_8_ALLOWED_FILES
+  whitespace:
+    command: git diff --check 1502fb11f77cbe7b16f87ed6f0624a21cba303d8...2ddc3ea0f27677c40f580a0a04b8cc5f2d913b92
+    result: PASS
+  clean_clone:
+    path: F:/aidanao-worktrees/standalone-clones/second-brain-r176-a1-1-verify
+    exact_head: 2ddc3ea0f27677c40f580a0a04b8cc5f2d913b92
+    result: PASS_37_TESTS_SCOPE_AND_DIFF
+    classification: EXECUTOR_CLEAN_REPRODUCTION_NOT_INDEPENDENT_REVIEW
+failed_attempts:
+  - >-
+    The first clean-clone test command used an absolute discovery directory with an incompatible
+    unittest top-level argument and failed before importing tests. Running the documented command
+    from the clean repository root passed 37 tests; the failed command is retained here.
+known_limits:
+  - DirectorBrief/v2 compilation is deliberately not implemented in A1.1.
+  - PlayerCampaign and session authority remain owned by the separate GPT R172 lane.
+  - Only synthetic offline fixtures are admitted; no external provider or real user data exists here.
+rollback: >-
+  Revert the ordinary R176 implementation and evidence commits; no database, session, media,
+  external provider, deployment or canonical knowledge migration is required.
+next_gate: FUTURE_SEPARATE_GPT_INDEPENDENT_REVIEW_REQUEST_AFTER_FINAL_EXACT_HEAD_PUBLICATION
+

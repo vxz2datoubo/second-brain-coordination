@@ -1,0 +1,29 @@
+schema: AI_HANDOFF/v1
+source_agent: CODEX
+target_agent: GPT_INDEPENDENT_REVIEWER
+reviewer: UNASSIGNED_UNTIL_SEPARATE_REVIEW_REQUEST
+executor_status: EXECUTOR_VERIFIED_ONLY
+task_id: CODEX-A1-1-SCRIPTPACKAGE-REGISTRY-R176
+issue: 534
+route_epoch: 176
+base_sha: 1502fb11f77cbe7b16f87ed6f0624a21cba303d8
+implementation_checkpoint_sha: 2ddc3ea0f27677c40f580a0a04b8cc5f2d913b92
+final_exact_head_binding: ISSUE_534_AND_FUTURE_DRAFT_PR_AFTER_EVIDENCE_COMMIT
+branch: codex/r176-a1-1-scriptpackage-registry-snapshot-bound
+changed_contracts:
+  - ScriptPackage/v1
+  - StyleProfile
+  - DirectorScriptSelection
+  - strict ScriptPackage JSON parser
+tests:
+  executor_full_regression: PASS_37
+  executor_clean_clone_reproduction: PASS_37
+  scope_and_diff: PASS
+known_risks:
+  - This is executor evidence and cannot be called independent acceptance.
+  - The future DirectorBrief/v2 consumer must preserve exact package and style identity.
+  - A future persistent registry must preserve the same duplicate and immutable-revision rules.
+next_action: >-
+  Bind the evidence commit's final exact head in Issue #534 and a Draft PR, allow exact-head CI,
+  then publish a separate future independent review request without using CODEX as reviewer.
+
