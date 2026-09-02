@@ -38,6 +38,23 @@
     "blocking_findings": {"type": "array", "items": {"$ref": "#/$defs/finding"}},
     "nonblocking_findings": {"type": "array", "items": {"$ref": "#/$defs/finding"}},
     "required_retest": {"type": "boolean"},
+    "authority": {"$ref": "#/$defs/authority"},
+    "w7_handoff_is_acceptance": {"const": false},
+    "audit_digest": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "gitBlobOrNull": {"type": ["string", "null"], "pattern": "^[0-9a-f]{40}$"},
+    "finding": {
+      "type": "object", "additionalProperties": false,
+      "required": ["code", "severity", "path", "detail"],
+      "properties": {
+        "code": {"type": "string", "minLength": 1},
+        "severity": {"enum": ["BLOCKING", "WARNING", "UNKNOWN"]},
+        "path": {"type": "string", "minLength": 1},
+        "detail": {"type": "string", "minLength": 1}
+      }
+    },
     "authority": {
       "type": "object", "additionalProperties": false,
       "required": ["experiment_registry_write_authority", "strategy_experiment_write_authority", "probability_authority",
@@ -51,21 +68,6 @@
         "position_authority": {"const": false},
         "order_authority": {"const": false},
         "trade_authority": {"const": false}
-      }
-    },
-    "w7_handoff_is_acceptance": {"const": false},
-    "audit_digest": {"$ref": "#/$defs/sha256"}
-  },
-  "$defs": {
-    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
-    "finding": {
-      "type": "object", "additionalProperties": false,
-      "required": ["code", "severity", "path", "detail"],
-      "properties": {
-        "code": {"type": "string", "minLength": 1},
-        "severity": {"enum": ["BLOCKING", "WARNING", "UNKNOWN"]},
-        "path": {"type": "string", "minLength": 1},
-        "detail": {"type": "string", "minLength": 1}
       }
     },
     "trialReconciliation": {
@@ -93,9 +95,18 @@
     },
     "lockboxReceipt": {
       "type": "object", "additionalProperties": false,
-      "required": ["schema", "access_id", "lockbox_id", "opened_at", "candidate_id", "candidate_digest", "purpose",
-                   "result_digest", "selection_consumed_after", "task_id", "accessor_id", "code_digest", "parameter_digest",
-                   "cost_model_digest", "rule_snapshot_digest", "dataset_snapshot_digest", "frozen_configuration_digest", "subsequent_action"],
+      "required": [
+        "schema", "access_id", "lockbox_id", "opened_at", "candidate_id", "candidate_digest", "purpose",
+        "result_digest", "selection_consumed_after",
+        "dataset_artifact_ref", "dataset_artifact_blob_sha",
+        "code_artifact_ref", "code_artifact_blob_sha",
+        "parameter_artifact_ref", "parameter_artifact_blob_sha",
+        "cost_artifact_ref", "cost_artifact_blob_sha",
+        "rule_artifact_ref", "rule_artifact_blob_sha", "rule_snapshot_id",
+        "accessor_claim_ref", "accessor_claim_blob_sha",
+        "authorization_witness_ref", "authorization_witness_blob_sha",
+        "accessor_id", "task_id", "configuration_frozen_at", "configuration_digest", "subsequent_action"
+      ],
       "properties": {
         "schema": {"const": "LockboxAccessReceipt/v1"},
         "access_id": {"type": "string", "minLength": 1},
@@ -106,28 +117,72 @@
         "purpose": {"enum": ["FINAL_EVAL", "TUNING", "FEATURE_ENGINEERING", "PROMPT_OPTIMIZATION", "MODEL_SELECTION", "PARAMETER_SELECTION", "RESELECTION", "DIAGNOSTIC"]},
         "result_digest": {"$ref": "#/$defs/sha256"},
         "selection_consumed_after": {"type": "boolean"},
-        "task_id": {"type": "string", "minLength": 1},
-        "accessor_id": {"type": "string", "minLength": 1},
-        "code_digest": {"$ref": "#/$defs/sha256"},
-        "parameter_digest": {"$ref": "#/$defs/sha256"},
-        "cost_model_digest": {"$ref": "#/$defs/sha256"},
-        "rule_snapshot_digest": {"$ref": "#/$defs/sha256"},
-        "dataset_snapshot_digest": {"$ref": "#/$defs/sha256"},
-        "frozen_configuration_digest": {"$ref": "#/$defs/sha256"},
+        "dataset_artifact_ref": {"type": ["string", "null"], "minLength": 1},
+        "dataset_artifact_blob_sha": {"$ref": "#/$defs/gitBlobOrNull"},
+        "code_artifact_ref": {"type": ["string", "null"], "minLength": 1},
+        "code_artifact_blob_sha": {"$ref": "#/$defs/gitBlobOrNull"},
+        "parameter_artifact_ref": {"type": ["string", "null"], "minLength": 1},
+        "parameter_artifact_blob_sha": {"$ref": "#/$defs/gitBlobOrNull"},
+        "cost_artifact_ref": {"type": ["string", "null"], "minLength": 1},
+        "cost_artifact_blob_sha": {"$ref": "#/$defs/gitBlobOrNull"},
+        "rule_artifact_ref": {"type": ["string", "null"], "minLength": 1},
+        "rule_artifact_blob_sha": {"$ref": "#/$defs/gitBlobOrNull"},
+        "rule_snapshot_id": {"type": ["string", "null"], "minLength": 1},
+        "accessor_claim_ref": {"type": ["string", "null"], "minLength": 1},
+        "accessor_claim_blob_sha": {"$ref": "#/$defs/gitBlobOrNull"},
+        "authorization_witness_ref": {"type": ["string", "null"], "minLength": 1},
+        "authorization_witness_blob_sha": {"$ref": "#/$defs/gitBlobOrNull"},
+        "accessor_id": {"type": ["string", "null"], "minLength": 1},
+        "task_id": {"type": ["string", "null"], "minLength": 1},
+        "configuration_frozen_at": {"type": ["string", "null"], "format": "date-time"},
+        "configuration_digest": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
         "subsequent_action": {"type": ["string", "null"], "minLength": 1}
       }
     },
     "pitStatus": {"enum": ["PASS", "FAIL", "UNKNOWN"]},
+    "declaredPITStatuses": {
+      "type": "object", "additionalProperties": false,
+      "required": ["dataset_lineage", "available_at_lineage", "rule_version", "revision_timing", "universe_membership"],
+      "properties": {
+        "dataset_lineage": {"$ref": "#/$defs/pitStatus"},
+        "available_at_lineage": {"$ref": "#/$defs/pitStatus"},
+        "rule_version": {"$ref": "#/$defs/pitStatus"},
+        "revision_timing": {"$ref": "#/$defs/pitStatus"},
+        "universe_membership": {"$ref": "#/$defs/pitStatus"}
+      }
+    },
+    "pitAuthorityBinding": {
+      "type": "object", "additionalProperties": false,
+      "required": ["authority_source_ref", "authority_source_blob_sha", "dataset_artifact_ref", "dataset_artifact_blob_sha",
+                   "dataset_event_id", "symbol", "exchange", "board", "security_status", "trading_day", "rule_snapshot_id", "decision_time"],
+      "properties": {
+        "authority_source_ref": {"type": ["string", "null"], "minLength": 1},
+        "authority_source_blob_sha": {"$ref": "#/$defs/gitBlobOrNull"},
+        "dataset_artifact_ref": {"type": ["string", "null"], "minLength": 1},
+        "dataset_artifact_blob_sha": {"$ref": "#/$defs/gitBlobOrNull"},
+        "dataset_event_id": {"type": ["string", "null"], "minLength": 1},
+        "symbol": {"type": ["string", "null"], "minLength": 1},
+        "exchange": {"type": ["string", "null"], "minLength": 1},
+        "board": {"type": ["string", "null"], "minLength": 1},
+        "security_status": {"type": ["string", "null"], "minLength": 1},
+        "trading_day": {"type": ["string", "null"], "minLength": 1},
+        "rule_snapshot_id": {"type": ["string", "null"], "minLength": 1},
+        "decision_time": {"type": "string", "format": "date-time"}
+      }
+    },
     "pitEvidence": {
       "type": "object", "additionalProperties": false,
-      "required": ["dataset_lineage", "available_at_lineage", "rule_version", "revision_timing", "universe_membership", "future_information_findings"],
+      "required": ["dataset_lineage", "available_at_lineage", "rule_version", "revision_timing", "universe_membership",
+                   "declared_statuses", "future_information_findings", "authority_binding"],
       "properties": {
         "dataset_lineage": {"$ref": "#/$defs/pitStatus"},
         "available_at_lineage": {"$ref": "#/$defs/pitStatus"},
         "rule_version": {"$ref": "#/$defs/pitStatus"},
         "revision_timing": {"$ref": "#/$defs/pitStatus"},
         "universe_membership": {"$ref": "#/$defs/pitStatus"},
-        "future_information_findings": {"type": "array", "items": {"type": "string", "minLength": 1}}
+        "declared_statuses": {"$ref": "#/$defs/declaredPITStatuses"},
+        "future_information_findings": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "authority_binding": {"$ref": "#/$defs/pitAuthorityBinding"}
       }
     },
     "methodResult": {
