@@ -5,13 +5,13 @@ route_epoch: 180
 source_issue: 542
 executor: CODEX
 worker_slot_id: CODEX-R180-A2-1-DIRECTOR-BEAT-1
-claim_state: RESERVED_PENDING_SNAPSHOT
+claim_state: ACTIVE
 implementation_baseline: 607fe934be3b098c32e31cd257de8b462cd20ccd
-snapshot_base: PENDING
+snapshot_base: f31d2d0096ef5c3bbcba7d54c6200b90e964ded2
 required_branch: codex/r180-a2-1-director-beat-plan-pure-compiler
-branch_head_at_activation: PENDING
+branch_head_at_activation: 607fe934be3b098c32e31cd257de8b462cd20ccd
 effective_spec_snapshot_id: SECOND-BRAIN-R180-ISSUE542-SNAPSHOT-001
-effective_spec_snapshot_ref: PENDING
+effective_spec_snapshot_ref: issuecomment-5503973871
 single_writer_surface:
   primary:
     - PURE_DIRECTOR_BEAT_PLAN_COMPILER
@@ -19,6 +19,7 @@ single_writer_surface:
   excludes:
     - PLAYER_CAMPAIGN_AND_SESSION_AUTHORITY
     - NARRATIVE_STATE_AND_CAMPAIGN_REDUCER_AUTHORITY
+    - PLAYER_PROGRESS_OR_PERSISTED_CURSOR_AUTHORITY
     - DIRECTOR_JOB_MEDIA_JOB_AUTHORITY
     - WORKBUDDY_ISSUE_532_SURFACES
 predecessor_dependency:
@@ -29,6 +30,7 @@ predecessor_dependency:
 parallel_fences:
   GPT_R172_ISSUE_515: PRESERVE_SINGLE_WRITER_NO_CODEX_WRITE
   WORKBUDDY_ISSUE_532: PRESERVE_ACTIVE_BATCH_UNCHANGED_NO_OVERLAP
+path_fence: ADDITIVE_ONLY_NO_SHARED_RUNTIME_AUTHORITY_FILE_WRITES
 execution_environment:
   fresh_task_owned_standalone_clone_required: true
-execution_allowed: false
+execution_allowed: true
