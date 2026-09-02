@@ -13,13 +13,13 @@ portfolio_capacity_policy:
   same_canonical_object_writers_max: 1
   nested_parallelism: FORBIDDEN
 current_user_release_policy:
-  decision: R181_CODEX_A2_2_SHOT_BUNDLE + R182_W2_MARKET_SEMANTIC_CAPABILITY + R166_ACCEPTED_EXECUTION_RELEASED + R168_CANONICALIZED_RELEASED
+  decision: R181_CODEX_A2_2_SHOT_BUNDLE + R166_ACCEPTED_EXECUTION_RELEASED + R168_CANONICALIZED_RELEASED + R182_ENGINEERING_FROZEN_REVIEW_PENDING
   rationale: >-
-    Current explicit user direction is immediate trading-system construction. R166 PR #504 is independently ACCEPTED on exact head
-    cc982f33ad87601a0327e595125272ea4954cdce, so future engineering writes are released without Ready/merge/canonicalization.
-    R182 uses one GPT slot for a non-overlapping W2 market-semantic/capability validation slice. R168 implementation PR #517 was
-    independently ACCEPTED and canonicalized as 7c77e303a124f1debfb52f497eccd1db3f9f7cb4, so its engineering slot is now released
-    rather than retained as a current Control Tower reservation. CODEX R181 remains a separate agent/type with no R182 path overlap.
+    R168 PR #517 is independently ACCEPTED and canonicalized, so its GPT engineering lease is released. R182 has completed its
+    bounded six-file engineering slice on Draft PR #551, dedicated exact-head W2 CI is green, and engineering handoff/review
+    request are published; therefore its modifier lease is also released while independent review remains pending. R166 remains
+    independently accepted with engineering execution released and separate canonicalization pending. CODEX R181 remains the
+    only current implementation execution reflected here and is a separate agent type.
   auxiliary_bounded_releases:
     - task_id: CODEX-A2-2-SHOT-BUNDLE-R181
       route_epoch: 181
@@ -28,15 +28,6 @@ current_user_release_policy:
       branch: codex/r181-a2-2-shot-bundle-static-compiler
       status: ACTIVE_GOVERNED_EXECUTION
       execution_allowed: true
-    - task_id: GPT-W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182
-      route_epoch: 182
-      issue: 550
-      agent_type: GPT_ENGINEERING_WORKER
-      worker_slot_id: GPT-WORKER-R182-W2-MARKET-SEMANTICS-1
-      branch: gpt/r182-w2-market-semantic-capability-gate
-      status: ACTIVE_GOVERNED_PREWRITE
-      execution_allowed: true
-      substantive_write_gate: ISSUE_550_EFFECTIVE_SPEC_SNAPSHOT_REQUIRED
     - task_id: GPT-W5-EVENT-COVERAGE-CLEAN-SUCCESSOR-R166
       route_epoch: 166
       issue: 501
@@ -82,6 +73,15 @@ historical_execution_refs:
     exact_head_ci: 33382974470
     merge_commit: 7c77e303a124f1debfb52f497eccd1db3f9f7cb4
     status: CANONICALIZED_EXECUTION_RELEASED
+  r182:
+    issue: 550
+    pr: 551
+    exact_head: c436df7d99f2ee66915e436ee1629835aad14bad
+    snapshot: issuecomment-5504490980
+    dedicated_exact_head_ci: 33592468996
+    engineering_handoff: issuecomment-5505798658
+    independent_review_ticket: issuecomment-5505800859
+    status: ENGINEERING_FROZEN_EXECUTION_RELEASED_AWAITING_INDEPENDENT_REVIEW
 observed_agent_state:
   CODEX:
     observed_task_id: CODEX-A2-2-SHOT-BUNDLE-R181
@@ -89,14 +89,14 @@ observed_agent_state:
     observed_issue: 548
     execution_allowed: true
   GPT_ENGINEERING_WORKER:
-    observed_status: R182_ACTIVE_PREWRITE + R166_ACCEPTED_EXECUTION_RELEASED + R168_CANONICALIZED_RELEASED
+    observed_status: R166_ACCEPTED_RELEASED + R168_CANONICALIZED_RELEASED + R182_ENGINEERING_FROZEN_RELEASED
 program_lanes:
   - lane_id: LANE-A-HARNESS-INTEGRATION
     observed_state: R168_CANONICALIZED_RELEASED_NO_ACTIVE_IMPLEMENTATION
     implementation_owner: null
   - lane_id: LANE-B-A-SHARE-REMEDIATION
-    observed_state: R182_W2_MARKET_SEMANTIC_CAPABILITY_ACTIVE_PREWRITE
-    implementation_owner: GPT_ENGINEERING_WORKER
+    observed_state: R182_ENGINEERING_FROZEN_WAITING_INDEPENDENT_REVIEW_NO_ACTIVE_IMPLEMENTATION
+    implementation_owner: null
     trading_authorized: false
     predecessor_r166: INDEPENDENTLY_ACCEPTED_EXECUTION_RELEASED_AWAITING_CANONICALIZATION
   - lane_id: LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP
@@ -114,7 +114,8 @@ cross_lane_overlap_matrix:
   - pair: [LANE-B-A-SHARE-REMEDIATION, LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP]
     overlap_level: O0_NO_MATERIAL_WRITE_OVERLAP
 reconciliation_rule: >-
-  R182 execution truth is Issue #550 + its canonical Route/Claim/Witness/Lease/Reservation/worker slot/activation scan followed by
-  an Issue #550 EFFECTIVE_SPEC_SNAPSHOT/v1. No branch or substantive W2 write may exist before that snapshot. R168 implementation
-  is canonical history and its GPT worker slot is RELEASED; historical R168 route/task artifacts do not independently recreate a
-  current execution lease. R166 ACCEPT does not authorize Ready or merge; its released engineering identity cannot mutate PR #504.
+  R168 implementation is canonical history and its GPT worker slot is RELEASED. R182 Draft PR #551 is frozen at exact head
+  c436df7d99f2ee66915e436ee1629835aad14bad pending independent review; its engineering execution lease is RELEASED and no further
+  modifier write is allowed without a separately governed remediation release. R166 ACCEPT does not authorize Ready or merge. Any
+  new GPT implementation, including Issue #543, requires a fresh slot/claim/witness/lease/reservation/snapshot release rather than
+  inheriting authority from these historical records.
