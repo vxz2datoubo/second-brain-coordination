@@ -28,27 +28,47 @@ closeout_branch:
   branch: "gpt/r168-post-merge-closeout"
   original_base: "7c77e303a124f1debfb52f497eccd1db3f9f7cb4"
   fresh_main_reconciled_during_closeout: "09b95ad8e4b8b540791be68aceafb0baba21cbcb"
-  purpose: "CURRENT_AUTHORITY_RELEASE_PLUS_WORKER_REGISTRY_VALIDATOR_NORMALIZATION"
+  purpose: "CURRENT_AUTHORITY_RELEASE_PLUS_WORKER_REGISTRY_AND_PROGRAM_PROJECTION_NORMALIZATION"
 
 validator_contract_reconciliation:
   trigger: "R168 comparator / Codex P1 on PR #545"
-  canonical_validator: "coordination/CONTROL-TOWER/worker_slots.py"
+  canonical_worker_validator: "coordination/CONTROL-TOWER/worker_slots.py"
+  canonical_program_validator: "coordination/CONTROL-TOWER/control_tower.py"
   required_registry_schema: "1.0"
   allowed_activation_states: [ACTIVE, RESERVED, RELEASED]
   allowed_terminal_closure_state: RELEASED
+  program_lane_required_fields:
+    - lane_id
+    - mission
+    - owner
+    - architecture_owner
+    - desired_state
+    - observed_state
+    - primary_system_positions
+    - current_phase
+    - active_execution_route
+    - dependencies
+    - shared_interfaces
+    - next_gate
+    - maturity
   corrections:
     r163: "unsupported FROZEN/superseded state labels -> RELEASED/RELEASED; execution remains false"
     r164: "unsupported FROZEN/superseded state labels -> RELEASED/RELEASED; execution remains false"
     r166: "already RELEASED; unchanged in authority"
     r168: "canonicalized implementation -> RELEASED/RELEASED; execution false"
     r182: "engineering complete/frozen on PR #551 -> RELEASED/RELEASED; execution false"
+    program_lanes: "restore complete canonical lane contract fields without creating a new execution authority"
+    observed_agents: "bind exact CODEX R181 / QCLAW R60 / WorkBuddy R175 current route projections"
+    human_projection: "regenerate CONTROL_TOWER_AUTOGEN block from the reconciled current facts"
   rule: >-
-    State-label normalization does not rewrite implementation provenance. RELEASED is the validator-supported terminal authority state;
-    task/PR/review/history remains in provenance fields and Git history. No unsupported historical label may masquerade as a current
-    execution state.
+    State-label and current-projection normalization does not rewrite implementation provenance. RELEASED is the validator-supported
+    terminal GPT worker authority state; task/PR/review/history remains in provenance fields and Git history. The Program Control Tower
+    projection is derived current-state observability, not an independent execution authority.
 
 fresh_concurrency_reconciliation:
   r181_preserved: "CODEX-A2-2-SHOT-BUNDLE-R181 / separate agent execution"
+  workbuddy_r175_preserved: "WORKBUDDY-R175-ORDERED-BATCH / separate agent execution"
+  qclaw_r60_preserved: "DONE_HISTORICAL / NO_EXECUTION"
   r166_preserved: "INDEPENDENTLY_ACCEPTED_EXECUTION_RELEASED_AWAITING_CANONICALIZATION"
   r168_preserved: "CANONICALIZED_HISTORY_EXECUTION_RELEASED"
   r182_engineering_completion:
@@ -70,7 +90,7 @@ current_authority_release:
     execution_allowed_after_closeout: false
     active_write_paths_after_closeout: []
     resource_class_after_closeout: FROZEN_NO_EXECUTION
-    lane_projection: R168_CANONICALIZED_RELEASED_NO_ACTIVE_IMPLEMENTATION
+    lane_projection: "R168_CANONICALIZED_RELEASED / NO_ACTIVE_GPT_IMPLEMENTATION"
   r182:
     worker_slot_id: "GPT-WORKER-R182-W2-MARKET-SEMANTICS-1"
     activation_state_after_closeout: RELEASED
@@ -78,7 +98,7 @@ current_authority_release:
     execution_allowed_after_closeout: false
     active_write_paths_after_closeout: []
     resource_class_after_closeout: FROZEN_NO_EXECUTION
-    lane_projection: R182_ENGINEERING_FROZEN_WAITING_INDEPENDENT_REVIEW_NO_ACTIVE_IMPLEMENTATION
+    lane_projection: "R182_ENGINEERING_FROZEN_WAITING_INDEPENDENT_REVIEW / NO_ACTIVE_GPT_IMPLEMENTATION"
   canonical_lane_claims:
     lane_a: CLOSED_NO_ACTIVE_IMPLEMENTATION
     lane_b: CLOSED_NO_ACTIVE_IMPLEMENTATION
@@ -96,6 +116,7 @@ historical_r168_bindings_preserved_unchanged:
 changed_path_allowlist:
   - "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
   - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+  - "coordination/PROGRAM-CONTROL-TOWER.md"
   - "coordination/CONTROL-TOWER/R168-CANONICAL-CI-STATE-ISOLATION-CLOSEOUT.yaml"
 
 non_authority:
@@ -128,7 +149,7 @@ hard_locks:
   - "NO_R182_POST_HANDOFF_WRITE_WITHOUT_REMEDIATION_RELEASE"
   - "NO_RETROACTIVE_SUCCESSOR_AUTHORITY"
   - "NO_HISTORICAL_R168_ROUTE_CLAIM_LEASE_WITNESS_REWRITE"
-  - "NO_R181_COLLATERAL_STATE_LOSS"
+  - "NO_R181_OR_WORKBUDDY_COLLATERAL_STATE_LOSS"
   - "NO_SELF_REVIEW_SELF_ACCEPT_SELF_MERGE"
   - "NO_W3_DOMAIN_TRADING_PRODUCTION_CREDENTIAL_AUTHORITY"
 
