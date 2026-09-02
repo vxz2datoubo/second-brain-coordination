@@ -7,13 +7,14 @@ source_issue: 550
 agent_type: "GPT_ENGINEERING_WORKER"
 worker_slot_id: "GPT-WORKER-R182-W2-MARKET-SEMANTICS-1"
 implementation_branch: "gpt/r182-w2-market-semantic-capability-gate"
-pull_request: null
-lease_state: "RESERVED_PRE_SNAPSHOT"
-execution_allowed: true
+pull_request: 551
+lease_state: "RELEASED_AFTER_CANONICAL_MERGE"
+execution_allowed: false
 substantive_write_allowed: false
-substantive_write_gate: "ISSUE_550_EFFECTIVE_SPEC_SNAPSHOT_REQUIRED"
+substantive_write_gate: "CLOSED_POST_CANONICAL_MERGE"
+exclusive_write_surface: []
 
-exclusive_write_surface:
+historical_exclusive_write_surface:
   - ".github/workflows/w2-market-semantic-capability-p0.yml"
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/MARKET-SEMANTIC-FIELD-SPEC.schema.json"
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/PROVIDER-CAPABILITY-OBSERVATION.schema.json"
@@ -21,21 +22,20 @@ exclusive_write_surface:
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src/offline_research/market_semantics.py"
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/tests/test_market_semantics.py"
 
-concurrency:
-  gpt_r168_active: true
-  gpt_active_slots_after_r166_release_and_r182: 2
-  codex_r181_active: true
-  overlap: "O0_NO_MATERIAL_WRITE_OVERLAP"
-  same_surface_second_writer_forbidden: true
-  nested_parallelism: "FORBIDDEN"
+terminalization:
+  accepted_exact_head: "fd66a90267faac1b3b6cb0dbe74824b070dac2e5"
+  review_result: "issuecomment-5516893526"
+  merge_commit: "a9669e31a9b59c72fff66d6d364c92d4eec51f49"
+  historical_lease_consumed: true
+  current_exclusive_write_authority: false
+  reactivation_forbidden: true
 
 freshness:
   route: "coordination/ROUTES/GPT-W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182.yaml"
   work_claim: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182/WORK-CLAIM.yaml"
-  authorization_witness: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182/AUTHORIZATION-WITNESS.yaml"
-  active_worker_registry: "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+  post_merge_closeout: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182/POST-MERGE-WORKER-CLOSEOUT.yaml"
   mismatch_action: "LEASE_INVALID_FAIL_CLOSED"
 
 self_review_allowed: false
 self_merge_allowed: false
-lease_expiry: "ON_HANDOFF_OR_GOVERNANCE_SUPERSESSION"
+lease_expiry: "TERMINATED_BY_CANONICAL_MERGE_CLOSEOUT"
