@@ -9,13 +9,13 @@ agent_type: "GPT_ENGINEERING_WORKER"
 executor_role: "GPT_ENGINEERING_WORKER"
 worker_slot_id: "GPT-WORKER-R182-W2-MARKET-SEMANTICS-1"
 model_id: "GPT-5.6 Sol"
-status: "CLAIMED_GOVERNANCE_ONLY_PRE_SNAPSHOT"
-execution_allowed_observed: true
+status: "RELEASED_HISTORY_ONLY_AFTER_CANONICAL_MERGE"
+execution_allowed_observed: false
 implementation_branch: "gpt/r182-w2-market-semantic-capability-gate"
-branch_state_required_before_snapshot: "NOT_CREATED"
-pull_request: null
+pull_request: 551
+claim_scope: []
 
-claim_scope:
+historical_claim_scope:
   - ".github/workflows/w2-market-semantic-capability-p0.yml"
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/MARKET-SEMANTIC-FIELD-SPEC.schema.json"
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/PROVIDER-CAPABILITY-OBSERVATION.schema.json"
@@ -31,30 +31,26 @@ claim_exclusions:
   - "credentials/network/provider execution/production/trading"
   - "review/Ready/merge authority"
 
+terminalization:
+  accepted_exact_head: "fd66a90267faac1b3b6cb0dbe74824b070dac2e5"
+  independent_review: "pullrequestreview-5095449147"
+  review_result: "issuecomment-5516893526"
+  merge_commit: "a9669e31a9b59c72fff66d6d364c92d4eec51f49"
+  post_merge_closeout: "POST-MERGE-WORKER-CLOSEOUT.yaml"
+  historical_claim_consumed: true
+  reactivation_from_this_claim_forbidden: true
+
 freshness_binding:
   route: "coordination/ROUTES/GPT-W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182.yaml"
-  task_brief: "coordination/TASK-BRIEFS/GPT-W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182.yaml"
-  authorization_witness: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182/AUTHORIZATION-WITNESS.yaml"
-  source_selection_provenance: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182/SOURCE-SELECTION-PROVENANCE.yaml"
-  task_lease: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182/TASK-LEASE.yaml"
-  executor_reservation: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182/EXECUTOR-RESERVATION.yaml"
   active_registry: "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
   program_lanes: "coordination/ACTIVE-PROGRAM-LANES.yaml"
-  activation_scan: "coordination/CONTROL-TOWER/R182-W2-MARKET-SEMANTIC-CAPABILITY-ACTIVATION-SCAN.yaml"
-
-parallelism:
-  concurrent_gpt_r168: true
-  concurrent_codex_r181: true
-  overlap_class: "O0_NO_MATERIAL_WRITE_OVERLAP"
-  same_surface_second_writer_forbidden: true
-  nested_parallelism: "FORBIDDEN"
 
 substantive_write_gate:
-  state: "CLOSED_UNTIL_ISSUE_550_EFFECTIVE_SPEC_SNAPSHOT"
+  state: "CLOSED_POST_CANONICAL_MERGE"
   mismatch_action: "FAIL_CLOSED_NO_EDIT"
 
 self_review_allowed: false
 self_accept_allowed: false
 self_merge_allowed: false
 history_rewrite_allowed: false
-claim_status: "CLAIMED_GOVERNANCE_ONLY_PENDING_SNAPSHOT"
+claim_status: "CLOSED_AND_RELEASED"
