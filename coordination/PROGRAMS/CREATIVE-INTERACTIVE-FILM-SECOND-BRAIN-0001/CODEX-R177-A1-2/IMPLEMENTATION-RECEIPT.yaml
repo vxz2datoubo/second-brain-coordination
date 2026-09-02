@@ -1,0 +1,39 @@
+schema: CODEX_IMPLEMENTATION_RECEIPT/v1
+agent_id: CODEX
+task_id: CODEX-A1-2-PERSISTENT-SCRIPT-CATALOG-DIRECTORBRIEF-R177
+issue: 536
+route_epoch: 177
+executor_status: EXECUTOR_VERIFIED_ONLY
+base_sha: 0ba071a14b7d945de6f008a382b5f43554b1030e
+implementation_checkpoint_sha: 9436fd499bf7a8d9e4b3d7ec84c07f7be87787a8
+branch: codex/r177-a1-2-persistent-script-catalog-directorbrief-boundary
+delivered:
+  - deterministic canonical UTF-8 ScriptPackageCatalog/v1 serialization
+  - atomic idempotent materialization with exclusive concurrency lock
+  - restart-safe immutable list/get/select APIs
+  - strict catalog, package, approval, provenance and canonical-order reload validation
+  - root-confined relative catalog paths
+  - frozen DirectorBrief/v2 content binding with package, asset and provenance revalidation
+  - fail-closed duplicate, tamper, stale hash, malformed, partial, corrupt, path and substitution cases
+verification:
+  local:
+    command: python -m unittest discover -s tests -p "test_creative*.py" -q
+    result: PASS_51
+  scope:
+    command: python tools/verify_r177_scope.py --base 0ba071a14b7d945de6f008a382b5f43554b1030e --head 9436fd499bf7a8d9e4b3d7ec84c07f7be87787a8
+    result: PASS_8_ALLOWED_FILES
+  diff_check:
+    command: git diff --check 0ba071a14b7d945de6f008a382b5f43554b1030e...9436fd499bf7a8d9e4b3d7ec84c07f7be87787a8
+    result: PASS
+  clean_clone:
+    path: F:/aidanao-worktrees/standalone-clones/second-brain-r177-a1-2-verify
+    exact_head: 9436fd499bf7a8d9e4b3d7ec84c07f7be87787a8
+    result: PASS_51_SCOPE_DIFF
+    evidence_class: EXECUTOR_CLEAN_REPRODUCTION_NOT_INDEPENDENT_REVIEW
+authority_boundaries:
+  r176_acceptance_inherited: false
+  player_campaign_or_session_write: absent
+  workbuddy_issue_532_write: absent
+  provider_network_credential_deployment_trade_canonical_knowledge: absent
+rollback: Revert the ordinary R177 implementation and evidence commits; no runtime catalog is committed or migrated.
+next_gate: DRAFT_PR_EXACT_HEAD_CI_THEN_WAIT_FOR_R176_DEPENDENCY_ACCEPTANCE_AND_CANONICALIZATION

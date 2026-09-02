@@ -1,0 +1,18 @@
+schema: UnplannedImprovementLedger/v1
+task_id: CODEX-A1-2-PERSISTENT-SCRIPT-CATALOG-DIRECTORBRIEF-R177
+improvements:
+  - id: R177-B1-CONCURRENT-MATERIALIZATION-LOCK
+    class: B
+    value: prevents two creators from replacing one immutable path during a race
+    evidence: test_concurrent_materialization_lock_fails_closed_without_target
+    rollback: remove lock acquisition while retaining atomic temp-file write
+  - id: R177-B2-EXACT-DUPLICATE-REJECTION
+    class: B
+    value: prevents ambiguous duplicated catalog entries even when content hashes match
+    evidence: test_exact_duplicate_and_noncanonical_order_fail_closed
+    rollback: permit idempotent duplicates at serialization, not recommended
+  - id: R177-B3-TYPED-DIRECTOR-BOUNDARY
+    class: B
+    value: turns invalid object injection into a stable fail-closed result
+    evidence: test_director_boundary_rejects_untyped_selection_and_binding
+    rollback: rely on incidental AttributeError, not recommended

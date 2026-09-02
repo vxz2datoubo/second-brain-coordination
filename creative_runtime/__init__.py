@@ -11,6 +11,7 @@ from .contracts import (
     CreativeEvent,
     DirectorScriptSelection,
     DirectorBrief,
+    DirectorBriefV2ContentSelection,
     GenerationRequest,
     GenerationResult,
     PlayerAction,
@@ -18,6 +19,7 @@ from .contracts import (
     StoryBeat,
     StoryState,
     ScriptPackage,
+    ScriptCatalogEntry,
     StyleProfile,
     canonical_json,
 )
@@ -35,6 +37,13 @@ from .script_registry import (
     parse_script_package_json,
     style_profiles_v1,
 )
+from .script_catalog import (
+    PersistentScriptCatalog,
+    ScriptCatalogViolation,
+    load_catalog,
+    materialize_catalog,
+    serialize_catalog,
+)
 
 __all__ = [
     "CreativeArtifact",
@@ -42,6 +51,7 @@ __all__ = [
     "CreativeLedger",
     "DirectorCompilation",
     "DirectorBrief",
+    "DirectorBriefV2ContentSelection",
     "DirectorScriptSelection",
     "GenerationRequest",
     "GenerationResult",
@@ -59,11 +69,14 @@ __all__ = [
     "ProvenanceViolation",
     "ShotPlan",
     "ScriptPackage",
+    "ScriptCatalogEntry",
+    "ScriptCatalogViolation",
     "ScriptPackageRegistry",
     "ScriptRegistryViolation",
     "StoryBeat",
     "StoryState",
     "StyleProfile",
+    "PersistentScriptCatalog",
     "SourceProvenance",
     "TaskGovernance",
     "canonical_json",
@@ -76,5 +89,8 @@ __all__ = [
     "parse_script_package_json",
     "require_reusable_source",
     "load_task_governance",
+    "load_catalog",
+    "materialize_catalog",
+    "serialize_catalog",
     "style_profiles_v1",
 ]

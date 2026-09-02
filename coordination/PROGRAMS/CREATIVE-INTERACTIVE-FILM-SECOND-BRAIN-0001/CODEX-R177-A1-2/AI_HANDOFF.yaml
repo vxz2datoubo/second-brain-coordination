@@ -1,0 +1,20 @@
+schema: AI_HANDOFF/v1
+source_agent: CODEX
+target_agent: GPT_INDEPENDENT_REVIEWER_AFTER_DEPENDENCY_GATE
+reviewer: UNASSIGNED
+executor_status: EXECUTOR_VERIFIED_ONLY
+task_id: CODEX-A1-2-PERSISTENT-SCRIPT-CATALOG-DIRECTORBRIEF-R177
+issue: 536
+route_epoch: 177
+base_sha: 0ba071a14b7d945de6f008a382b5f43554b1030e
+implementation_checkpoint_sha: 9436fd499bf7a8d9e4b3d7ec84c07f7be87787a8
+final_exact_head_binding: ISSUE_536_AND_FUTURE_DRAFT_PR_AFTER_EVIDENCE_COMMIT
+tests:
+  executor_full_regression: PASS_51
+  executor_clean_clone_reproduction: PASS_51
+  scope_and_diff: PASS
+known_risks:
+  - R177 is stacked on unaccepted and unmerged R176 candidate head.
+  - A process crash can leave a stale lock that requires explicit operator diagnosis; it fails closed.
+  - Directory durability after power loss depends on host filesystem guarantees beyond file fsync and atomic replace.
+next_action: Create Draft PR, observe exact-head CI, then preserve Draft until the R176 dependency gate is satisfied.
