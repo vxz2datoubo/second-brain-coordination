@@ -1,4 +1,4 @@
-schema_version: "178.0-pre"
+schema_version: "178.1"
 route_id: CODEX-A1-3-DIRECTORBRIEF-V2-MULTISCRIPT-R178
 route_epoch: 178
 repository: vxz2datoubo/second-brain-coordination
@@ -8,8 +8,8 @@ parent_issue: 536
 executor: CODEX
 worker_slot_id: CODEX-R178-A1-3-DIRECTORBRIEF-1
 mode: stacked_dependent_bounded_implementation
-status: PENDING_PREWRITE_SNAPSHOT
-execution_allowed: false
+status: READY
+execution_allowed: true
 second_user_start_command_required: false
 merge_authorized: false
 identity_fields:
@@ -20,12 +20,12 @@ identity_fields:
   predecessor_ci_run: 33580445009
   predecessor_evidence_class: EXECUTOR_VERIFIED_ONLY_NOT_ACCEPTED_NOT_MERGED
   implementation_baseline: adbba1f36294f520007694ddc465fa35fe968309
-  snapshot_base: PENDING
-required_branch: codex/r178-a1-3-directorbrief-v2-multiscript-compilation
-branch_state_required_at_snapshot: ABSENT
-branch_head_at_activation: PENDING
+  snapshot_base: f07d6782ae1ab1b7daf01ee2f846725b091ae321
+branch: codex/r178-a1-3-directorbrief-v2-multiscript-compilation
+branch_state_at_snapshot: NOT_CREATED
+branch_head_at_activation: adbba1f36294f520007694ddc465fa35fe968309
 effective_spec_snapshot_id: SECOND-BRAIN-R178-ISSUE538-SNAPSHOT-001
-effective_spec_snapshot_ref: PENDING
+effective_spec_snapshot_ref: issuecomment-5503205671
 dependency_gate:
   r176_pr_535: DRAFT_UNACCEPTED_UNMERGED
   r177_pr_537: DRAFT_UNACCEPTED_UNMERGED
@@ -61,5 +61,6 @@ hard_locks:
 execution_environment:
   fresh_task_owned_standalone_clone_required: true
   reuse_unrelated_mutable_checkout_as_sole_environment: false
-substantive_write_gate: CLOSED_UNTIL_SNAPSHOT_BRANCH_READBACK_AND_ACTIVATION
+  final_receipt_must_record_clone_identity_exact_head_and_commands: true
+substantive_write_gate: OPEN
 completion_signal: R178_A1_3_EXECUTOR_COMPLETE_READY_FOR_DEPENDENCY_GATED_FUTURE_REVIEW
