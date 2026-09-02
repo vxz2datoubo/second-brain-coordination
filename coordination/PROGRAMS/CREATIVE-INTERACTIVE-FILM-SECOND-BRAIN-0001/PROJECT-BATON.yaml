@@ -12,37 +12,43 @@ human_entrypoint: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0
 history_log: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/PROJECT-HANDOFF-LOG.md
 current_main_rule: "Fresh-fetch remote main before execution; baton is navigation only and never replaces ACTIVE route, Issue, Claim, Lease, Reservation, Snapshot, PR, CI or Independent Review."
 baton:
-  handoff_id: CIF-RELAY-R176-A1-1-ACTIVE
+  handoff_id: CIF-RELAY-R177-A1-2-ACTIVE
   from_agent: GPT_GITHUB_INTEGRATOR
   current_holder: CODEX
-  next_preferred_after_holder: GPT_INDEPENDENT_REVIEWER_ONLY_AFTER_SEPARATE_FUTURE_REVIEW_REQUEST
-  relay_mode: PARALLEL_NONOVERLAPPING_CODEX_A1_1_AND_WORKBUDDY_R175
+  next_preferred_after_holder: GPT_INDEPENDENT_REVIEWER_ONLY_AFTER_DEPENDENCY_GATE_AND_SEPARATE_REVIEW_REQUEST
+  relay_mode: PARALLEL_NONOVERLAPPING_CODEX_A1_2_AND_WORKBUDDY_R175
   user_second_start_command_required: false
 current_mission:
   summary: >-
-    Execute the clean A1.1 ScriptPackage/v1 immutable multi-script registry and DirectorBrief/v2 read-only selection foundation from the exact snapshot-bound canonical baseline. Do not enter PlayerCampaign/session authority and do not preempt WorkBuddy Issue #532.
-  active_issue: 534
-  parent_issue: 528
-  route_epoch: 176
-  task_id: CODEX-A1-1-SCRIPTPACKAGE-REGISTRY-R176
+    Execute R177 A1.2 as a stacked dependent candidate: persist the approved ScriptPackage catalog read-only and establish the DirectorBrief/v2 content-selection boundary. R176 exact head is a technical dependency only, not independent acceptance or canonicality. Do not enter GPT R172 session authority and do not preempt WorkBuddy Issue #532.
+  active_issue: 536
+  parent_issue: 534
+  route_epoch: 177
+  task_id: CODEX-A1-2-PERSISTENT-SCRIPT-CATALOG-DIRECTORBRIEF-R177
   identity_fields:
-    implementation_baseline: 1502fb11f77cbe7b16f87ed6f0624a21cba303d8
-    snapshot_base: cd28725fd394f820644e381806f3eb48d06db14c
+    implementation_baseline: 0ba071a14b7d945de6f008a382b5f43554b1030e
+    snapshot_base: 37055ae3e6168bd4490c475f394096d718fbdf92
+    predecessor_issue: 534
+    predecessor_pr: 535
+    predecessor_exact_head: 0ba071a14b7d945de6f008a382b5f43554b1030e
+    predecessor_ci_run: 33577671890
+    predecessor_evidence_class: EXECUTOR_VERIFIED_ONLY_NOT_ACCEPTED_NOT_MERGED
     canonical_governance_main_source: FRESH_MAIN_AFTER_ACTIVATION_UPDATES
-  working_branch: codex/r176-a1-1-scriptpackage-registry-snapshot-bound
-  branch_head_at_activation: 1502fb11f77cbe7b16f87ed6f0624a21cba303d8
-  effective_spec_snapshot_id: SECOND-BRAIN-R176-ISSUE534-SNAPSHOT-001
-  effective_spec_snapshot_ref: issuecomment-5502473943
+  working_branch: codex/r177-a1-2-persistent-script-catalog-directorbrief-boundary
+  branch_head_at_activation: 0ba071a14b7d945de6f008a382b5f43554b1030e
+  effective_spec_snapshot_id: SECOND-BRAIN-R177-ISSUE536-SNAPSHOT-001
+  effective_spec_snapshot_ref: issuecomment-5502793340
   execution_allowed: true
-  next_action: CLAIM_AND_EXECUTE_ISSUE_534_NOW_WITHOUT_SECOND_USER_START
+  next_action: CLAIM_AND_EXECUTE_ISSUE_536_NOW_WITHOUT_SECOND_USER_START
 required_closure:
-  - ScriptPackage/v1 immutable registry keyed by exact script_id + revision + package_hash
-  - exactly two approved synthetic scripts
-  - minimum four style profiles per script
-  - approval status, asset manifest and source provenance recorded
-  - unknown/unapproved/wrong-version/unknown-style/tamper fail closed
-  - DirectorBrief/v2 receives only read-only validated script/revision/hash/style selection foundation
-  - offline positive/negative/tamper/scope/reproducibility tests and Python 3.11/3.13 where supported
+  - deterministic persistent read-only ScriptPackage catalog
+  - exact approved script_id/revision/package_hash/provenance revalidation on load
+  - restart/reload identity stability and immutable list/get/select
+  - fail-closed duplicate revision, tamper, malformed schema, path escape, partial/corrupt catalog, stale hash, unapproved package and unknown style
+  - DirectorBrief/v2 content-selection boundary accepts validated exact selection only
+  - substitution after validation fails closed
+  - no PlayerCampaign/session/director-job/media/provider side effect
+  - offline lifecycle/negative/scope/clean-clone/exact-head CI
 parallel_project_state:
   WORKBUDDY_R175:
     issue: 532
@@ -54,37 +60,45 @@ parallel_project_state:
   GPT_R172:
     issue: 515
     owner: GPT_ENGINEERING_WORKER
-    state: SEPARATE_GPT_OWNED_LANE
-    surface: PLAYER_CAMPAIGN_AND_SINGLE_SESSION_AUTHORITY
-    codex_r176_write: FORBIDDEN
-  CODEX_R175:
-    issue: 528
-    branch: codex/r175-capability-policy-confinement-remediation
-    state: SOURCE_CONTINUITY_AND_NONCANONICAL_SPECIFICATION_EVIDENCE_FOR_R176
-    active_codex_route: false
+    state: SEPARATE_GPT_OWNED_SINGLE_WRITER_LANE
+    surface: PLAYER_CAMPAIGN_CREATIVESESSION_V2_SESSION_LEDGER_MIGRATION_SAVE_SLOT_AUTHORITY
+    codex_r177_write: FORBIDDEN
   CODEX_R176:
     issue: 534
+    pr: 535
     branch: codex/r176-a1-1-scriptpackage-registry-snapshot-bound
-    state: READY_EXECUTION_ALLOWED
+    exact_head: 0ba071a14b7d945de6f008a382b5f43554b1030e
+    ci_run: 33577671890
+    state: IMPLEMENTATION_COMPLETE_EXECUTOR_EVIDENCE_ONLY_DRAFT_UNMERGED_UNREVIEWED
+    active_codex_route: false
+  CODEX_R177:
+    issue: 536
+    branch: codex/r177-a1-2-persistent-script-catalog-directorbrief-boundary
+    state: READY_EXECUTION_ALLOWED_STACKED_DEPENDENT
 single_writer_fences:
   - object: GPT_R172_PLAYER_CAMPAIGN_AND_SESSION_AUTHORITY
     writer: GPT_ENGINEERING_WORKER_WHEN_GOVERNED_ACTIVE
-    codex_r176_write: FORBIDDEN
+    codex_r177_write: FORBIDDEN
   - object: WORKBUDDY_R175_ORDERED_BATCH_SURFACES
     writer: WORKBUDDY
-    codex_r176_write: FORBIDDEN
-  - object: CODEX_R176_SCRIPTPACKAGE_REGISTRY_AND_READ_ONLY_SELECTION_FOUNDATION
+    codex_r177_write: FORBIDDEN
+  - object: CODEX_R177_PERSISTENT_READ_ONLY_CATALOG_AND_DIRECTORBRIEF_CONTENT_SELECTION
     writer: CODEX
-    execution_authority: ACTIVE_CODEX_TASK_PLUS_ROUTE_CLAIM_LEASE_RESERVATION_SNAPSHOT
-  - object: FROZEN_PRS_493_495_502_506_508_511_513_525_527
-    writer: NONE
-    rule: FROZEN_NO_MUTATION_IMPORT_REUSE
+    execution_authority: ACTIVE_CODEX_TASK_PLUS_ROUTE_CLAIM_LEASE_RESERVATION_SNAPSHOT_ALLOWLIST
+  - object: PR_535
+    writer: NONE_UNDER_R177
+    rule: DRAFT_PREDECESSOR_NO_MUTATION_REVIEW_READY_OR_MERGE
+promotion_gate:
+  r176_independent_acceptance_required_before_r177_ready_or_merge: true
+  r176_canonicalization_required_before_r177_ready_or_merge: true
+  r176_acceptance_inherited: false
 hard_boundaries:
   - NO_SELF_REVIEW
   - NO_SELF_MERGE
-  - NO_PLAYER_CAMPAIGN_OR_SECOND_SESSION_AUTHORITY
+  - NO_R176_ACCEPTANCE_OR_CANONICALITY_CLAIM
+  - NO_PR535_MUTATION_REVIEW_READY_OR_MERGE
+  - NO_PLAYER_CAMPAIGN_CREATIVESESSION_V2_SESSION_LEDGER_MIGRATION_SAVE_SLOT_WRITE
   - NO_WORKBUDDY_532_PREEMPTION_OR_MUTATION
   - NO_REAL_PHOTO_REAL_COMMENT_PRIVATE_CUSTOMER_DATA
   - NO_EXTERNAL_MODEL_PROVIDER_CREDENTIAL_PAID_GENERATION
   - NO_DEPLOYMENT_PUBLIC_RELEASE_TRADING_CANONICAL_KNOWLEDGE
-  - NO_FROZEN_PR_MUTATION_OR_IMPLEMENTATION_REUSE
