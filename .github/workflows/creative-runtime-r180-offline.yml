@@ -28,9 +28,11 @@ jobs:
       - name: Assert exact head
         shell: bash
         run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+      - name: Assert frozen R180 layer is in current stack
+        run: git merge-base --is-ancestor dd9c85b42224573468bb1fcdefbb30b104dd222d HEAD
       - name: Full creative regression
         run: python -m unittest discover -s tests -p "test_creative*.py" -v
       - name: Exact R180 scope
-        run: python tools/verify_r180_scope.py --base 607fe934be3b098c32e31cd257de8b462cd20ccd --head HEAD
-      - name: Patch whitespace
-        run: git diff --check 607fe934be3b098c32e31cd257de8b462cd20ccd...HEAD
+        run: python tools/verify_r180_scope.py --base 607fe934be3b098c32e31cd257de8b462cd20ccd --head dd9c85b42224573468bb1fcdefbb30b104dd222d
+      - name: Exact R180 patch whitespace
+        run: git diff --check 607fe934be3b098c32e31cd257de8b462cd20ccd...dd9c85b42224573468bb1fcdefbb30b104dd222d
