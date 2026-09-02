@@ -4,7 +4,7 @@ control_tower_issue: 310
 owner: "USER"
 architecture_owner: "GPT"
 status: "ACTIVE_CANDIDATE_CONTROL_VIEW"
-as_of: "2026-09-02T09:16:00-05:00"
+as_of: "2026-09-02T10:36:00-05:00"
 boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 
 authority_role: >-
@@ -24,12 +24,12 @@ portfolio_capacity_policy:
   nested_parallelism: "FORBIDDEN"
 
 current_user_release_policy:
-  decision: "R181_CODEX_ACTIVE + R175_WORKBUDDY_ACTIVE + GPT_R166_R168_R182_ENGINEERING_RELEASED"
+  decision: "R181_CODEX_ACTIVE + R175_WORKBUDDY_ACTIVE + GPT_R166_R168_RELEASED + R182_CHANGES_REQUIRED_NO_REMEDIATION_RELEASE"
   rationale: >-
-    R168 is independently accepted and canonicalized. R182 has completed its bounded engineering slice and is frozen at
-    Draft PR #551 pending independent review. R166 is independently accepted and awaits separate canonicalization.
-    No GPT Engineering Worker implementation lease is active in this closeout candidate. CODEX R181 and WorkBuddy R175
-    remain separate active agent routes and are preserved.
+    R168 is independently accepted and canonicalized; its current Route, Work Claim and worker slot are terminal/non-executable.
+    R182 exact head was independently reviewed CHANGES_REQUIRED and no remediation execution is authorized until a fresh governed
+    remediation release. R166 is independently accepted and awaits separate canonicalization. No GPT Engineering Worker implementation
+    lease is active in this closeout candidate. CODEX R181 and WorkBuddy R175 remain separate active agent routes and are preserved.
   released_implementation_lanes: []
   prepared_implementation_lanes: []
   held_lanes: []
@@ -58,6 +58,7 @@ historical_execution_refs:
     review_result: 5478588001
     exact_head_ci: 33382974470
     merge_commit: "7c77e303a124f1debfb52f497eccd1db3f9f7cb4"
+    closeout_receipt: "coordination/CONTROL-TOWER/R168-CANONICAL-CI-STATE-ISOLATION-CLOSEOUT.yaml"
     status: "CANONICALIZED_EXECUTION_RELEASED"
   r182:
     issue: 550
@@ -67,7 +68,11 @@ historical_execution_refs:
     dedicated_exact_head_ci: 33592468996
     engineering_handoff: "issuecomment-5505798658"
     independent_review_ticket: "issuecomment-5505800859"
-    status: "ENGINEERING_FROZEN_EXECUTION_RELEASED_AWAITING_INDEPENDENT_REVIEW"
+    independent_review: 5090747771
+    review_verdict: "CHANGES_REQUIRED"
+    remediation_release_required: true
+    remediation_release_present: false
+    status: "INDEPENDENT_REVIEW_CHANGES_REQUIRED_EXECUTION_RELEASED"
 
 observed_agent_state:
   CODEX:
@@ -99,7 +104,7 @@ observed_agent_state:
     observation_status: "R175_ORDERED_BATCH_ACTIVE"
   GPT_ENGINEERING_WORKER:
     source: "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
-    observed_status: "R166_ACCEPTED_RELEASED + R168_CANONICALIZED_RELEASED + R182_ENGINEERING_FROZEN_RELEASED"
+    observed_status: "R166_ACCEPTED_RELEASED + R168_CANONICALIZED_RELEASED + R182_CHANGES_REQUIRED_RELEASED"
     execution_allowed: false
 
 program_lanes:
@@ -130,24 +135,28 @@ program_lanes:
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
     mission: >-
-      Preserve A-share research semantics and W2 validation while R182 waits independent review; no trading or runtime authority is implied.
+      Preserve A-share research semantics and W2 validation after R182 CHANGES_REQUIRED; no remediation, trading or runtime authority
+      is implied until a fresh governed remediation release exists.
     owner: "USER"
     architecture_owner: "GPT"
     desired_state: "ACTIVE"
-    observed_state: "R182_ENGINEERING_FROZEN_WAITING_INDEPENDENT_REVIEW / NO_ACTIVE_GPT_IMPLEMENTATION"
+    observed_state: "R182_INDEPENDENT_REVIEW_CHANGES_REQUIRED / NO_ACTIVE_GPT_IMPLEMENTATION"
     primary_system_positions: ["W2", "W3", "W12"]
-    current_phase: "R182_INDEPENDENT_REVIEW_PENDING"
+    current_phase: "R182_REMEDIATION_RELEASE_REQUIRED"
     active_execution_route: null
     dependencies:
       - "R182 Draft PR #551 exact head c436df7d99f2ee66915e436ee1629835aad14bad"
       - "R182 dedicated exact-head W2 CI 33592468996 SUCCESS"
-      - "Independent review ticket issuecomment-5505800859"
+      - "Independent review pullrequestreview-5090747771 CHANGES_REQUIRED"
+      - "P1 CALLER_MINTABLE_LOCAL_RUNTIME_VERIFIED_CAPABILITY"
+      - "P1 CALLER_SUPPLIED_SOURCE_ENUM_MAP_IS_DIRECTION_AUTHORITY"
+      - "P1 REQUIRED_SEMANTIC_PROVENANCE_IDENTITY_IS_NOT_BOUND"
     shared_interfaces:
       - "W2 market semantics"
       - "W3 knowledge/context read boundary"
       - "W12 research semantics"
-    next_gate: "R182_INDEPENDENT_REVIEW_RESULT"
-    maturity: "IMPLEMENTATION_FROZEN / REVIEW_PENDING"
+    next_gate: "FRESH_GOVERNED_R182_REMEDIATION_RELEASE_OR_CLEAN_SUCCESSOR_DECISION"
+    maturity: "IMPLEMENTATION_FROZEN / CHANGES_REQUIRED"
     heavy_execution_authorized: false
     implementation_owner: null
     implementation_owner_candidate: null
@@ -184,10 +193,11 @@ cross_lane_overlap_matrix:
     rule: "R181 CODEX task-local implementation does not grant Lane-A control-plane write authority."
   - pair: ["LANE-B-A-SHARE-REMEDIATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
     overlap_level: "O0_NO_MATERIAL_WRITE_OVERLAP"
-    rule: "R182 is frozen and R181 remains separately bounded."
+    rule: "R182 has no remediation lease and R181 remains separately bounded."
 
 reconciliation_rule: >-
-  R168 is canonical history and its GPT worker execution is released. R182 is frozen at exact head
-  c436df7d99f2ee66915e436ee1629835aad14bad pending independent review and has no modifier lease. R166 is independently
-  accepted but separately awaiting canonicalization. CODEX R181 and WorkBuddy R175 retain their own current execution authority.
-  Any new GPT implementation, including Issue #543, requires a fresh governed Route/Claim/Witness/Lease/Reservation/Snapshot.
+  R168 is canonical history and its GPT worker execution is released through a terminal Route, terminal Work Claim and RELEASED worker
+  slot. R182 exact head c436df7d99f2ee66915e436ee1629835aad14bad is independently CHANGES_REQUIRED and has no remediation lease.
+  R166 is independently accepted but separately awaiting canonicalization. CODEX R181 and WorkBuddy R175 retain their own current
+  execution authority. Any new GPT implementation, including Issue #543 or R182 remediation, requires a fresh governed
+  Route/Claim/Witness/Lease/Reservation/Snapshot.
