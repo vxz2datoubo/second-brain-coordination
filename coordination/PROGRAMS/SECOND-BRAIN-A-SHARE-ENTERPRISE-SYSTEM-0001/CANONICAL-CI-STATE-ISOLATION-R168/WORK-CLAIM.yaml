@@ -8,45 +8,48 @@ agent_type: "GPT_ENGINEERING_WORKER"
 executor_role: "GPT_ENGINEERING_WORKER"
 worker_slot_id: "GPT-WORKER-R168-CANONICAL-CI-STATE-ISOLATION-1"
 model_id: "GPT-5.6 Sol"
-status: "CLOSED_RELEASED_AFTER_CANONICAL_MERGE"
-execution_allowed_observed: false
+status: "CLAIMED_GOVERNANCE_ONLY_PRE_SNAPSHOT"
+execution_allowed_observed: true
 implementation_branch: "gpt/canonical-ci-state-isolation-r168"
-pull_request: 517
-accepted_exact_head: "6a00939495ec7d8c974e5fbe8a8940a56dec3855"
-canonical_merge: "7c77e303a124f1debfb52f497eccd1db3f9f7cb4"
+branch_state_required_before_snapshot: "NOT_CREATED"
+pull_request: null
 
-claim_scope: []
-historical_claim_scope:
+claim_scope:
   - ".github/workflows/program-control-tower.yml"
   - "coordination/CONTROL-TOWER/integration_state_isolation.py"
   - "coordination/CONTROL-TOWER/integration_state_isolation.schema.json"
   - "coordination/CONTROL-TOWER/tests/test_integration_state_isolation.py"
 
 claim_exclusions:
-  - "all new implementation writes"
-  - "W5 Event Coverage runtime and workflow"
-  - "creative_runtime/apps/cli/root tests/CODEX surfaces"
+  - "existing Control Tower test semantics outside the new helper's own tests"
+  - "W5 Event Coverage files and R166 workflow"
+  - "creative_runtime/apps/cli/root tests/R167 CODEX surfaces"
   - "W3/domain/trading/credential/provider/production surfaces"
   - "review/Ready/merge authority"
 
-closure_evidence:
-  independent_review: 5066628944
-  matching_review_result: 5478588001
-  exact_head_ci: 33382974470
-  canonical_merge: "7c77e303a124f1debfb52f497eccd1db3f9f7cb4"
+freshness_binding:
+  route: "coordination/ROUTES/GPT-CANONICAL-CI-STATE-ISOLATION-R168.yaml"
+  task_brief: "coordination/TASK-BRIEFS/GPT-CANONICAL-CI-STATE-ISOLATION-R168.yaml"
+  authorization_witness: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/AUTHORIZATION-WITNESS.yaml"
+  source_selection_provenance: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/SOURCE-SELECTION-PROVENANCE.yaml"
+  task_lease: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/TASK-LEASE.yaml"
+  executor_reservation: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/EXECUTOR-RESERVATION.yaml"
   active_registry: "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
-  closeout_receipt: "coordination/CONTROL-TOWER/R168-CANONICAL-CI-STATE-ISOLATION-CLOSEOUT.yaml"
+  program_lanes: "coordination/ACTIVE-PROGRAM-LANES.yaml"
+  activation_scan: "coordination/CONTROL-TOWER/R168-CANONICAL-CI-STATE-ISOLATION-ACTIVATION-SCAN.yaml"
 
 parallelism:
+  concurrent_gpt_r166: true
+  concurrent_codex_r167: true
+  overlap_class: "O1_READ_ONLY_COEXISTENCE"
   same_surface_second_writer_forbidden: true
-  nested_parallelism: "FORBIDDEN"
 
 substantive_write_gate:
-  state: "CLOSED_PERMANENTLY_FOR_R168"
+  state: "CLOSED_UNTIL_ISSUE_496_EFFECTIVE_SPEC_SNAPSHOT"
   mismatch_action: "FAIL_CLOSED_NO_EDIT"
 
 self_review_allowed: false
 self_accept_allowed: false
 self_merge_allowed: false
 history_rewrite_allowed: false
-claim_status: "CLOSED_RELEASED"
+claim_status: "CLAIMED_GOVERNANCE_ONLY_PENDING_SNAPSHOT"
