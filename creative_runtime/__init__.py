@@ -9,6 +9,7 @@ from .governance import GovernanceViolation, TaskGovernance, load_task_governanc
 from .contracts import (
     CreativeArtifact,
     CreativeEvent,
+    DirectorScriptSelection,
     DirectorBrief,
     GenerationRequest,
     GenerationResult,
@@ -16,6 +17,8 @@ from .contracts import (
     ShotPlan,
     StoryBeat,
     StoryState,
+    ScriptPackage,
+    StyleProfile,
     canonical_json,
 )
 from .ledger import CreativeLedger, LedgerViolation, create_artifact
@@ -23,6 +26,15 @@ from .director import DirectorCompilation, QualityFinding, QualityReport, compil
 from .knowledge import KnowledgeBridgeViolation, KnowledgeCandidate, KnowledgeReviewBridge
 from .generation import ExternalGenerationGuard, GenerationViolation, OfflineGenerationAdapter, adapter_for
 from .provenance import ProvenanceViolation, SourceProvenance, require_reusable_source
+from .script_fixtures import approved_synthetic_script_packages
+from .script_registry import (
+    ScriptPackageRegistry,
+    ScriptRegistryViolation,
+    build_script_package,
+    compute_package_hash,
+    parse_script_package_json,
+    style_profiles_v1,
+)
 
 __all__ = [
     "CreativeArtifact",
@@ -30,6 +42,7 @@ __all__ = [
     "CreativeLedger",
     "DirectorCompilation",
     "DirectorBrief",
+    "DirectorScriptSelection",
     "GenerationRequest",
     "GenerationResult",
     "GenerationViolation",
@@ -45,14 +58,23 @@ __all__ = [
     "QualityReport",
     "ProvenanceViolation",
     "ShotPlan",
+    "ScriptPackage",
+    "ScriptPackageRegistry",
+    "ScriptRegistryViolation",
     "StoryBeat",
     "StoryState",
+    "StyleProfile",
     "SourceProvenance",
     "TaskGovernance",
     "canonical_json",
     "adapter_for",
+    "approved_synthetic_script_packages",
+    "build_script_package",
     "compile_director",
     "create_artifact",
+    "compute_package_hash",
+    "parse_script_package_json",
     "require_reusable_source",
     "load_task_governance",
+    "style_profiles_v1",
 ]

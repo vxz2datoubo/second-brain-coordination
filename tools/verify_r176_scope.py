@@ -1,0 +1,67 @@
+"""Fail closed when an R176 change leaves its authorized write surface."""
+
+from __future__ import annotations
+
+import argparse
+from pathlib import PurePosixPath
+import subprocess
+import sys
+
+
+DEFAULT_BASE = "1502fb11f77cbe7b16f87ed6f0624a21cba303d8"
+ALLOWED_PREFIXES = (
+    "creative_runtime/",
+    "tests/",
+    "tools/",
+    "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R176-A1-1/",
+)
+ALLOWED_FILES = {".github/workflows/creative-runtime-offline.yml"}
+FORBIDDEN_PREFIXES = (
+    "tests/workbuddy/",
+    "tools/workbuddy/",
+    "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/",
+)
+
+
+def changed_files(base: str, head: str) -> tuple[str, ...]:
+    output = subprocess.run(
+        ["git", "diff", "--name-only", f"{base}...{head}"],
+        check=True,
+        text=True,
+        encoding="utf-8",
+        capture_output=True,
+    ).stdout
+    return tuple(line.strip().replace("\\", "/") for line in output.splitlines() if line.strip())
+
+
+def validate(paths: tuple[str, ...]) -> tuple[str, ...]:
+    violations: list[str] = []
+    for raw_path in paths:
+        path = PurePosixPath(raw_path).as_posix()
+        if any(path.startswith(prefix) for prefix in FORBIDDEN_PREFIXES):
+            violations.append(f"FORBIDDEN_OVERLAP:{path}")
+        elif path not in ALLOWED_FILES and not any(path.startswith(prefix) for prefix in ALLOWED_PREFIXES):
+            violations.append(f"OUTSIDE_ALLOWLIST:{path}")
+    return tuple(violations)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--base", default=DEFAULT_BASE)
+    parser.add_argument("--head", default="HEAD")
+    args = parser.parse_args()
+    paths = changed_files(args.base, args.head)
+    violations = validate(paths)
+    print(f"base={args.base}")
+    print(f"head={args.head}")
+    print(f"changed_files={len(paths)}")
+    for path in paths:
+        print(f"ALLOW {path}")
+    for violation in violations:
+        print(f"DENY {violation}", file=sys.stderr)
+    print("scope_verdict=" + ("PASS" if not violations else "FAIL"))
+    return 0 if not violations else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

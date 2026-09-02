@@ -1,0 +1,46 @@
+name: Creative runtime offline
+
+on:
+  pull_request:
+    paths:
+      - "creative_runtime/**"
+      - "tests/**"
+      - "tools/**"
+      - ".github/workflows/creative-runtime-offline.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out exact candidate
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - name: Use Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Assert exact head
+        shell: bash
+        run: |
+          actual="$(git rev-parse HEAD)"
+          expected="${{ github.event.pull_request.head.sha || github.sha }}"
+          test "$actual" = "$expected"
+      - name: Run offline creative regression
+        run: python -m unittest discover -s tests -p "test_creative*.py" -v
+      - name: Verify R176 write scope
+        run: python tools/verify_r176_scope.py --base 1502fb11f77cbe7b16f87ed6f0624a21cba303d8 --head HEAD
+      - name: Check patch whitespace
+        run: git diff --check 1502fb11f77cbe7b16f87ed6f0624a21cba303d8...HEAD
+      - name: Reject provider or credential capability imports
+        shell: bash
+        run: |
+          if grep -R -n -E '^\s*(from|import)\s+(requests|urllib|socket|httpx|openai|anthropic|boto3)(\.|\s|$)' creative_runtime; then
+            echo "External provider/network capability import is forbidden in R176" >&2
+            exit 1
+          fi
