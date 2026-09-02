@@ -1,0 +1,32 @@
+schema: PDER/v1
+task_id: CODEX-A1-2-PERSISTENT-SCRIPT-CATALOG-DIRECTORBRIEF-R177
+route_epoch: 177
+planned_difficulty: D2
+expected_primary_changes:
+  - persistent read-only ScriptPackage catalog implementation
+  - DirectorBrief/v2 content-selection boundary implementation
+  - focused offline tests and task-local verification tooling
+expected_unaffected_surfaces:
+  - GPT R172 PlayerCampaign and CreativeSession/v2 session authority
+  - session ledger, migration and save-slot authority
+  - WorkBuddy Issue 532 branch, queue and authorized paths
+  - Draft PR 535 state and review status
+  - external provider/model/media/deployment paths
+risk_register:
+  - id: R177-P1
+    risk: catalog persistence accidentally becomes mutable story or session truth
+    prevention: allowlist plus typed read-only projection and no session surface writes
+  - id: R177-P2
+    risk: stale/tampered catalog identity accepted across restart
+    prevention: exact revision/hash/provenance revalidation on load plus negative tests
+  - id: R177-P3
+    risk: stacked dependency mistaken for R176 acceptance
+    prevention: executor-evidence-only provenance and promotion gate requiring future R176 independent acceptance/canonicalization
+  - id: R177-P4
+    risk: path traversal or partial write creates unsafe catalog state
+    prevention: confined repository/task path handling, atomic persistence and corrupt/partial negative tests
+stop_if:
+  - work overlaps GPT R172 single-writer surface
+  - work overlaps WorkBuddy #532 paths or execution authority
+  - implementation requires treating R176 as independently accepted or canonical
+  - external/provider/credential/real-data/deployment capability becomes necessary
