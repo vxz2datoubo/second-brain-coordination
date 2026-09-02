@@ -8,6 +8,7 @@ import importlib.util
 import json
 from pathlib import Path
 import re
+import sys
 from typing import Any, Mapping, Sequence
 
 AUDIT_SCHEMA = "ResearchIntegrityAudit/v1"
@@ -87,7 +88,9 @@ class Disposition(str, Enum):
 class IntegrityValidationError(ValueError):
     def __init__(self, code: str, path: str, message: str):
         super().__init__(f"{code} at {path}: {message}")
-        self.code, self.path, self.message = code, path, message
+        self.code = code
+        self.path = path
+        self.message = message
 
 
 def _canon(value: Any) -> str:
@@ -174,11 +177,17 @@ def _verify_governed_artifact(ref: str, claimed_blob_sha: str, path: str) -> tup
 
 def _load_verified_w2_rule_module(ref: str, blob_sha: str):
     path, _ = _verify_governed_artifact(ref, blob_sha, "pit.authority_source")
-    spec = importlib.util.spec_from_file_location("_ds10_verified_w2_rules", path)
+    module_name = f"_ds10_verified_w2_rules_{blob_sha}"
+    spec = importlib.util.spec_from_file_location(module_name, path)
     if spec is None or spec.loader is None:
         raise IntegrityValidationError("W2_RULE_MODULE_LOAD_FAILED", "pit.authority_source_ref", "module spec unavailable")
     module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    sys.modules[module_name] = module
+    try:
+        spec.loader.exec_module(module)
+    except Exception:
+        sys.modules.pop(module_name, None)
+        raise
     return module
 
 
@@ -186,11 +195,10 @@ def _load_jsonl_event(ref: str, blob_sha: str, event_id: str) -> dict[str, Any]:
     _, raw = _verify_governed_artifact(ref, blob_sha, "pit.dataset_artifact")
     matches = []
     for line in raw.decode("utf-8").splitlines():
-        if not line.strip():
-            continue
-        row = json.loads(line)
-        if row.get("event_id") == event_id:
-            matches.append(row)
+        if line.strip():
+            row = json.loads(line)
+            if row.get("event_id") == event_id:
+                matches.append(row)
     if len(matches) != 1:
         raise IntegrityValidationError("PIT_EVENT_NOT_UNIQUE", "pit.dataset_event_id", f"matches={len(matches)}")
     return matches[0]
@@ -200,6 +208,23 @@ def _yaml_scalar(raw: bytes, key: str) -> str | None:
     pattern = re.compile(rf"(?m)^\s*{re.escape(key)}:\s*[\"']?([^\"'\n]+)[\"']?\s*$")
     match = pattern.search(raw.decode("utf-8"))
     return match.group(1).strip() if match else None
+
+
+def _exchange_code(value: str) -> str:
+    normalized = str(value).upper()
+    return {"SH": "SSE", "SSE": "SSE", "SZ": "SZSE", "SZSE": "SZSE", "BJ": "BSE", "BSE": "BSE"}.get(normalized, normalized)
+
+
+def _board_for_symbol(symbol: str, exchange: str) -> str:
+    # This mirrors the exact canonical W2 engine mapping only after the engine
+    # artifact itself is re-read and verified against its fixed Git blob below.
+    code = symbol.split(".", 1)[0]
+    ex = _exchange_code(exchange)
+    if ex == "SSE" and code.startswith("688"):
+        return "STAR"
+    if ex == "SZSE" and code.startswith(("300", "301")):
+        return "CHINEXT"
+    return "MAIN"
 
 
 @dataclass(frozen=True)
@@ -259,10 +284,7 @@ class ExperimentFamilySnapshot:
     required_method_ids: tuple[str, ...] = ()
 
     def __post_init__(self):
-        for name in (
-            "experiment_family_ref", "benchmark_ref", "metric_id", "horizon_id",
-            "search_space_ref", "selection_rule_ref", "selected_trial_id", "lockbox_id",
-        ):
+        for name in ("experiment_family_ref", "benchmark_ref", "metric_id", "horizon_id", "search_space_ref", "selection_rule_ref", "selected_trial_id", "lockbox_id"):
             _text(getattr(self, name), f"family.{name}")
         _sha(self.registered_family_digest, "family.registered_family_digest")
         if not isinstance(self.expected_trial_digests, Mapping) or not self.expected_trial_digests:
@@ -272,11 +294,7 @@ class ExperimentFamilySnapshot:
             _sha(value, f"family.expected_trial_digests.{key}")
         if not isinstance(self.lockbox_access_history_complete, bool):
             raise IntegrityValidationError("INVALID_BOOLEAN", "family.lockbox_access_history_complete", "boolean required")
-        if self.declared_trial_count is not None and (
-            isinstance(self.declared_trial_count, bool)
-            or not isinstance(self.declared_trial_count, int)
-            or self.declared_trial_count < 0
-        ):
+        if self.declared_trial_count is not None and (isinstance(self.declared_trial_count, bool) or not isinstance(self.declared_trial_count, int) or self.declared_trial_count < 0):
             raise IntegrityValidationError("INVALID_COUNT", "family.declared_trial_count", "non-negative integer required")
         if len(set(self.required_method_ids)) != len(self.required_method_ids):
             raise IntegrityValidationError("DUPLICATE_METHOD_ID", "family.required_method_ids", "unique IDs required")
@@ -312,7 +330,7 @@ class ExperimentFamilySnapshot:
             "lockbox_access_history_complete": self.lockbox_access_history_complete,
             "declared_trial_count": self.declared_trial_count,
             "required_method_ids": list(self.required_method_ids),
-            "trials": [t.row() for t in self.trials],
+            "trials": [trial.row() for trial in self.trials],
         }
 
     def snapshot_digest(self) -> str:
@@ -320,25 +338,14 @@ class ExperimentFamilySnapshot:
 
 
 def lockbox_configuration_material(
-    *,
-    dataset_artifact_ref: str,
-    dataset_artifact_blob_sha: str,
-    code_artifact_ref: str,
-    code_artifact_blob_sha: str,
-    parameter_artifact_ref: str,
-    parameter_artifact_blob_sha: str,
-    cost_artifact_ref: str,
-    cost_artifact_blob_sha: str,
-    rule_artifact_ref: str,
-    rule_artifact_blob_sha: str,
-    rule_snapshot_id: str,
-    accessor_claim_ref: str,
-    accessor_claim_blob_sha: str,
-    authorization_witness_ref: str,
-    authorization_witness_blob_sha: str,
-    accessor_id: str,
-    task_id: str,
-    configuration_frozen_at: str,
+    *, dataset_artifact_ref: str, dataset_artifact_blob_sha: str,
+    code_artifact_ref: str, code_artifact_blob_sha: str,
+    parameter_artifact_ref: str, parameter_artifact_blob_sha: str,
+    cost_artifact_ref: str, cost_artifact_blob_sha: str,
+    rule_artifact_ref: str, rule_artifact_blob_sha: str, rule_snapshot_id: str,
+    accessor_claim_ref: str, accessor_claim_blob_sha: str,
+    authorization_witness_ref: str, authorization_witness_blob_sha: str,
+    accessor_id: str, task_id: str, configuration_frozen_at: str,
 ) -> dict[str, str]:
     material = {
         "dataset_artifact_ref": _text(dataset_artifact_ref, "lockbox.dataset_artifact_ref"),
@@ -490,17 +497,10 @@ class PITEvidence:
             _text(item, "pit.future_information_findings")
 
     def declared_statuses(self) -> dict[str, str]:
-        return {
-            name: getattr(self, name).value
-            for name in ("dataset_lineage", "available_at_lineage", "rule_version", "revision_timing", "universe_membership")
-        }
+        return {name: getattr(self, name).value for name in ("dataset_lineage", "available_at_lineage", "rule_version", "revision_timing", "universe_membership")}
 
     def binding_complete(self) -> bool:
-        names = (
-            "authority_source_ref", "authority_source_blob_sha", "dataset_artifact_ref",
-            "dataset_artifact_blob_sha", "dataset_event_id", "symbol", "exchange",
-            "board", "security_status", "trading_day", "rule_snapshot_id",
-        )
+        names = ("authority_source_ref", "authority_source_blob_sha", "dataset_artifact_ref", "dataset_artifact_blob_sha", "dataset_event_id", "symbol", "exchange", "board", "security_status", "trading_day", "rule_snapshot_id")
         return all(getattr(self, name) is not None for name in names)
 
 
@@ -522,56 +522,48 @@ class MethodResult:
             raise IntegrityValidationError("NOT_APPLICABLE_REQUIRES_REASON", "method.applicability_reason", "reason required")
 
     def row(self) -> dict[str, Any]:
-        return {
-            "method_id": self.method_id,
-            "status": self.status.value,
-            "computation_ref": self.computation_ref,
-            "applicability_reason": self.applicability_reason,
-        }
+        return {"method_id": self.method_id, "status": self.status.value, "computation_ref": self.computation_ref, "applicability_reason": self.applicability_reason}
 
 
-def _reconcile_trials(s: ExperimentFamilySnapshot):
-    f: list[dict[str, str]] = []
+def _reconcile_trials(snapshot: ExperimentFamilySnapshot):
+    findings: list[dict[str, str]] = []
     seen: dict[str, TrialRecord] = {}
-    dup = set()
-    for t in s.trials:
-        if t.trial_id in seen:
-            dup.add(t.trial_id)
+    duplicates: set[str] = set()
+    for record in snapshot.trials:
+        if record.trial_id in seen:
+            duplicates.add(record.trial_id)
         else:
-            seen[t.trial_id] = t
-    for tid in sorted(dup):
-        f.append(_finding("DUPLICATE_TRIAL_ID", "BLOCKING", f"trials.{tid}", "duplicate identity"))
-    expected = dict(s.expected_trial_digests)
-    economic = {k: v for k, v in seen.items() if v.selection_affecting}
-    reruns = {k: v for k, v in seen.items() if not v.selection_affecting}
+            seen[record.trial_id] = record
+    for trial_id in sorted(duplicates):
+        findings.append(_finding("DUPLICATE_TRIAL_ID", "BLOCKING", f"trials.{trial_id}", "duplicate identity"))
+    expected = dict(snapshot.expected_trial_digests)
+    economic = {key: value for key, value in seen.items() if value.selection_affecting}
+    reruns = {key: value for key, value in seen.items() if not value.selection_affecting}
     missing = sorted(set(expected) - set(economic))
     unexpected = sorted(set(economic) - set(expected))
-    mutated = []
-    invalid_reruns = []
-    for tid in missing:
-        f.append(_finding("MISSING_EXPECTED_TRIAL", "BLOCKING", f"trials.{tid}", "manifested trial absent"))
-    for tid in unexpected:
-        f.append(_finding("UNREGISTERED_SELECTION_TRIAL", "BLOCKING", f"trials.{tid}", "selection trial absent from manifest"))
-    for tid in sorted(set(expected) & set(economic)):
-        if expected[tid] != economic[tid].immutable_digest:
-            mutated.append(tid)
-            f.append(_finding("TRIAL_IMMUTABLE_DIGEST_MISMATCH", "BLOCKING", f"trials.{tid}.immutable_digest", "trial mutated"))
-    for tid, t in sorted(reruns.items()):
-        if expected.get(t.rerun_of or "") != t.immutable_digest:
-            invalid_reruns.append(tid)
-            f.append(_finding("INVALID_REPRODUCIBILITY_RERUN", "BLOCKING", f"trials.{tid}", "rerun does not preserve original"))
+    mutated: list[str] = []
+    invalid_reruns: list[str] = []
+    for trial_id in missing:
+        findings.append(_finding("MISSING_EXPECTED_TRIAL", "BLOCKING", f"trials.{trial_id}", "manifested trial absent"))
+    for trial_id in unexpected:
+        findings.append(_finding("UNREGISTERED_SELECTION_TRIAL", "BLOCKING", f"trials.{trial_id}", "selection trial absent from manifest"))
+    for trial_id in sorted(set(expected) & set(economic)):
+        if expected[trial_id] != economic[trial_id].immutable_digest:
+            mutated.append(trial_id)
+            findings.append(_finding("TRIAL_IMMUTABLE_DIGEST_MISMATCH", "BLOCKING", f"trials.{trial_id}.immutable_digest", "trial mutated"))
+    for trial_id, record in sorted(reruns.items()):
+        if expected.get(record.rerun_of or "") != record.immutable_digest:
+            invalid_reruns.append(trial_id)
+            findings.append(_finding("INVALID_REPRODUCIBILITY_RERUN", "BLOCKING", f"trials.{trial_id}", "rerun does not preserve original"))
     count = len(economic)
-    if s.declared_trial_count is not None and s.declared_trial_count != count:
-        f.append(_finding(
-            "DECLARED_TRIAL_COUNT_MISMATCH", "WARNING", "family.declared_trial_count",
-            f"declared={s.declared_trial_count}; observed={count}",
-        ))
-    counts = {x.value: 0 for x in TrialStatus}
-    for t in economic.values():
-        counts[t.status.value] += 1
+    if snapshot.declared_trial_count is not None and snapshot.declared_trial_count != count:
+        findings.append(_finding("DECLARED_TRIAL_COUNT_MISMATCH", "WARNING", "family.declared_trial_count", f"declared={snapshot.declared_trial_count}; observed={count}"))
+    counts = {status.value: 0 for status in TrialStatus}
+    for record in economic.values():
+        counts[record.status.value] += 1
     return {
         "expected_trial_count": len(expected),
-        "declared_trial_count": s.declared_trial_count,
+        "declared_trial_count": snapshot.declared_trial_count,
         "observed_trial_count": count,
         "successful_trial_count": counts["SUCCESS"],
         "failed_trial_count": counts["FAILURE"],
@@ -584,38 +576,32 @@ def _reconcile_trials(s: ExperimentFamilySnapshot):
         "unexpected_selection_trial_ids": unexpected,
         "mutated_trial_ids": mutated,
         "invalid_rerun_ids": invalid_reruns,
-    }, f
+    }, findings
 
 
-def _selection(s: ExperimentFamilySnapshot):
-    f = []
-    if s.computed_family_digest() != s.registered_family_digest:
-        f.append(_finding(
-            "FAMILY_DEFINITION_MUTATED_AFTER_REGISTRATION", "BLOCKING", "family.registered_family_digest",
-            "registered benchmark/metric/horizon/search/selection material changed",
-        ))
-    if _time(s.selection_rule_registered_at, "family.selection_rule_registered_at") > _time(s.selected_at, "family.selected_at"):
-        f.append(_finding("SELECTION_RULE_REGISTERED_AFTER_SELECTION", "BLOCKING", "family.selection_rule_registered_at", "rule post-dates winner"))
-    if _time(s.family_frozen_at, "family.family_frozen_at") > _time(s.selected_at, "family.selected_at"):
-        f.append(_finding("FAMILY_FROZEN_AFTER_SELECTION", "BLOCKING", "family.family_frozen_at", "family freeze post-dates winner"))
-    if s.selected_trial_id not in s.expected_trial_digests:
-        f.append(_finding("SELECTED_TRIAL_NOT_IN_REGISTERED_FAMILY", "BLOCKING", "family.selected_trial_id", "winner absent from manifest"))
-    return f
+def _selection(snapshot: ExperimentFamilySnapshot):
+    findings: list[dict[str, str]] = []
+    if snapshot.computed_family_digest() != snapshot.registered_family_digest:
+        findings.append(_finding("FAMILY_DEFINITION_MUTATED_AFTER_REGISTRATION", "BLOCKING", "family.registered_family_digest", "registered benchmark/metric/horizon/search/selection material changed"))
+    if _time(snapshot.selection_rule_registered_at, "family.selection_rule_registered_at") > _time(snapshot.selected_at, "family.selected_at"):
+        findings.append(_finding("SELECTION_RULE_REGISTERED_AFTER_SELECTION", "BLOCKING", "family.selection_rule_registered_at", "rule post-dates winner"))
+    if _time(snapshot.family_frozen_at, "family.family_frozen_at") > _time(snapshot.selected_at, "family.selected_at"):
+        findings.append(_finding("FAMILY_FROZEN_AFTER_SELECTION", "BLOCKING", "family.family_frozen_at", "family freeze post-dates winner"))
+    if snapshot.selected_trial_id not in snapshot.expected_trial_digests:
+        findings.append(_finding("SELECTED_TRIAL_NOT_IN_REGISTERED_FAMILY", "BLOCKING", "family.selected_trial_id", "winner absent from manifest"))
+    return findings
 
 
-def _selected_trial(s: ExperimentFamilySnapshot) -> TrialRecord | None:
-    matches = [t for t in s.trials if t.selection_affecting and t.trial_id == s.selected_trial_id]
+def _selected_trial(snapshot: ExperimentFamilySnapshot) -> TrialRecord | None:
+    matches = [record for record in snapshot.trials if record.selection_affecting and record.trial_id == snapshot.selected_trial_id]
     return matches[0] if len(matches) == 1 else None
 
 
-def _verify_lockbox_provenance(r: LockboxAccessReceipt, s: ExperimentFamilySnapshot, path: str) -> tuple[bool, list[dict[str, str]]]:
-    f: list[dict[str, str]] = []
-    kwargs = r.configuration_kwargs()
-    if kwargs is None or r.configuration_digest is None:
-        return False, [_finding(
-            "LOCKBOX_CONFIGURATION_PROVENANCE_INCOMPLETE", "UNKNOWN", path,
-            "final evaluation requires frozen dataset/code/params/cost/rule/accessor/task provenance",
-        )]
+def _verify_lockbox_provenance(receipt: LockboxAccessReceipt, snapshot: ExperimentFamilySnapshot, path: str) -> tuple[bool, list[dict[str, str]]]:
+    findings: list[dict[str, str]] = []
+    kwargs = receipt.configuration_kwargs()
+    if kwargs is None or receipt.configuration_digest is None:
+        return False, [_finding("LOCKBOX_CONFIGURATION_PROVENANCE_INCOMPLETE", "UNKNOWN", path, "final evaluation requires frozen dataset/code/params/cost/rule/accessor/task provenance")]
     try:
         for ref_field, sha_field, label in (
             ("dataset_artifact_ref", "dataset_artifact_blob_sha", "dataset"),
@@ -626,203 +612,164 @@ def _verify_lockbox_provenance(r: LockboxAccessReceipt, s: ExperimentFamilySnaps
             ("accessor_claim_ref", "accessor_claim_blob_sha", "accessor_claim"),
             ("authorization_witness_ref", "authorization_witness_blob_sha", "authorization_witness"),
         ):
-            _verify_governed_artifact(str(getattr(r, ref_field)), str(getattr(r, sha_field)), f"{path}.{label}")
-        _, claim_raw = _verify_governed_artifact(
-            str(r.accessor_claim_ref), str(r.accessor_claim_blob_sha), f"{path}.accessor_claim",
-        )
-        _, witness_raw = _verify_governed_artifact(
-            str(r.authorization_witness_ref), str(r.authorization_witness_blob_sha), f"{path}.authorization_witness",
-        )
-        claim_task = _yaml_scalar(claim_raw, "task_id")
-        claim_slot = _yaml_scalar(claim_raw, "worker_slot_id")
-        claim_role = _yaml_scalar(claim_raw, "claimant_role")
-        witness_task = _yaml_scalar(witness_raw, "task_id")
-        witness_slot = _yaml_scalar(witness_raw, "worker_slot_id")
-        witness_role = _yaml_scalar(witness_raw, "executor_role")
+            _verify_governed_artifact(str(getattr(receipt, ref_field)), str(getattr(receipt, sha_field)), f"{path}.{label}")
+        _, claim_raw = _verify_governed_artifact(str(receipt.accessor_claim_ref), str(receipt.accessor_claim_blob_sha), f"{path}.accessor_claim")
+        _, witness_raw = _verify_governed_artifact(str(receipt.authorization_witness_ref), str(receipt.authorization_witness_blob_sha), f"{path}.authorization_witness")
         if (
-            claim_task != r.task_id or witness_task != r.task_id
-            or claim_slot != r.accessor_id or witness_slot != r.accessor_id
-            or claim_role != "GPT_ENGINEERING_WORKER" or witness_role != "GPT_ENGINEERING_WORKER"
+            _yaml_scalar(claim_raw, "task_id") != receipt.task_id
+            or _yaml_scalar(witness_raw, "task_id") != receipt.task_id
+            or _yaml_scalar(claim_raw, "worker_slot_id") != receipt.accessor_id
+            or _yaml_scalar(witness_raw, "worker_slot_id") != receipt.accessor_id
+            or _yaml_scalar(claim_raw, "claimant_role") != "GPT_ENGINEERING_WORKER"
+            or _yaml_scalar(witness_raw, "executor_role") != "GPT_ENGINEERING_WORKER"
         ):
-            f.append(_finding(
-                "LOCKBOX_ACCESSOR_TASK_PROVENANCE_MISMATCH", "BLOCKING", path,
-                "Work Claim / Authorization Witness do not bind the asserted accessor and task",
-            ))
-            return False, f
+            findings.append(_finding("LOCKBOX_ACCESSOR_TASK_PROVENANCE_MISMATCH", "BLOCKING", path, "Work Claim / Authorization Witness do not bind the asserted accessor and task"))
+            return False, findings
+        valid = True
         computed = _digest(lockbox_configuration_material(**kwargs))
-        if computed != r.configuration_digest:
-            f.append(_finding(
-                "LOCKBOX_CONFIGURATION_DIGEST_MISMATCH", "BLOCKING", f"{path}.configuration_digest",
-                "configuration digest does not match frozen artifact/accessor material",
-            ))
-            return False, f
-        selected = _selected_trial(s)
+        if computed != receipt.configuration_digest:
+            valid = False
+            findings.append(_finding("LOCKBOX_CONFIGURATION_DIGEST_MISMATCH", "BLOCKING", f"{path}.configuration_digest", "configuration digest does not match frozen artifact/accessor material"))
+        selected = _selected_trial(snapshot)
         if selected is None or selected.configuration_digest is None:
-            return False, [_finding(
-                "SELECTED_TRIAL_CONFIGURATION_IDENTITY_UNKNOWN", "UNKNOWN", path,
-                "selected trial does not bind a configuration digest",
-            )]
-        if selected.configuration_digest != r.configuration_digest:
-            f.append(_finding(
-                "LOCKBOX_SELECTED_TRIAL_CONFIGURATION_MISMATCH", "BLOCKING", f"{path}.configuration_digest",
-                "lockbox configuration is not the selected trial frozen configuration",
-            ))
-            return False, f
-        if _time(str(r.configuration_frozen_at), f"{path}.configuration_frozen_at") != _time(
-            s.candidate_frozen_at, "family.candidate_frozen_at",
-        ):
-            f.append(_finding(
-                "LOCKBOX_CONFIGURATION_FREEZE_MISMATCH", "BLOCKING", f"{path}.configuration_frozen_at",
-                "configuration freeze must match candidate freeze",
-            ))
-            return False, f
+            return False, [_finding("SELECTED_TRIAL_CONFIGURATION_IDENTITY_UNKNOWN", "UNKNOWN", path, "selected trial does not bind a configuration digest")]
+        if selected.configuration_digest != receipt.configuration_digest:
+            valid = False
+            findings.append(_finding("LOCKBOX_SELECTED_TRIAL_CONFIGURATION_MISMATCH", "BLOCKING", f"{path}.configuration_digest", "lockbox configuration is not the selected trial frozen configuration"))
+        if _time(str(receipt.configuration_frozen_at), f"{path}.configuration_frozen_at") != _time(snapshot.candidate_frozen_at, "family.candidate_frozen_at"):
+            valid = False
+            findings.append(_finding("LOCKBOX_CONFIGURATION_FREEZE_MISMATCH", "BLOCKING", f"{path}.configuration_frozen_at", "configuration freeze must match candidate freeze"))
+        return valid, findings
     except IntegrityValidationError as exc:
-        f.append(_finding(exc.code, "BLOCKING", exc.path, exc.message))
-        return False, f
-    return True, f
+        findings.append(_finding(exc.code, "BLOCKING", exc.path, exc.message))
+        return False, findings
 
 
-def _lockbox(s: ExperimentFamilySnapshot, receipts: Sequence[LockboxAccessReceipt]):
-    f: list[dict[str, str]] = []
-    rows = sorted(receipts, key=lambda r: (_time(r.opened_at, "lockbox.opened_at"), r.access_id))
-    out = [r.row() for r in rows]
-    if len({r.access_id for r in rows}) != len(rows):
-        return LockboxStatus.CONTAMINATED_REUSED_FOR_SELECTION, [
-            _finding("DUPLICATE_LOCKBOX_ACCESS_ID", "BLOCKING", "lockbox_receipts", "duplicate access identity")
-        ], out
-    if not s.lockbox_access_history_complete:
-        return LockboxStatus.IDENTITY_OR_ACCESS_HISTORY_UNKNOWN, [
-            _finding("LOCKBOX_ACCESS_HISTORY_UNKNOWN", "UNKNOWN", "family.lockbox_access_history_complete", "absence of receipts is not proof of sealed state")
-        ], out
-    if not rows:
-        return LockboxStatus.SEALED_UNUSED, f, out
-
-    bad = len(rows) != 1
+def _lockbox(snapshot: ExperimentFamilySnapshot, receipts: Sequence[LockboxAccessReceipt]):
+    findings: list[dict[str, str]] = []
+    ordered = sorted(receipts, key=lambda receipt: (_time(receipt.opened_at, "lockbox.opened_at"), receipt.access_id))
+    rows = [receipt.row() for receipt in ordered]
+    if len({receipt.access_id for receipt in ordered}) != len(ordered):
+        return LockboxStatus.CONTAMINATED_REUSED_FOR_SELECTION, [_finding("DUPLICATE_LOCKBOX_ACCESS_ID", "BLOCKING", "lockbox_receipts", "duplicate access identity")], rows
+    if not snapshot.lockbox_access_history_complete:
+        return LockboxStatus.IDENTITY_OR_ACCESS_HISTORY_UNKNOWN, [_finding("LOCKBOX_ACCESS_HISTORY_UNKNOWN", "UNKNOWN", "family.lockbox_access_history_complete", "absence of receipts is not proof of sealed state")], rows
+    if not ordered:
+        return LockboxStatus.SEALED_UNUSED, findings, rows
+    contaminated = len(ordered) != 1
     unknown_provenance = False
-    if bad:
-        f.append(_finding("LOCKBOX_OPENED_MORE_THAN_ONCE", "BLOCKING", "lockbox_receipts", "final holdout may be revealed once"))
-    selected_digest = s.expected_trial_digests.get(s.selected_trial_id)
-    cf = _time(s.candidate_frozen_at, "family.candidate_frozen_at")
-    ff = _time(s.family_frozen_at, "family.family_frozen_at")
-    st = _time(s.selected_at, "family.selected_at")
-    for i, r in enumerate(rows):
-        p = f"lockbox_receipts.{i}"
-        ot = _time(r.opened_at, f"{p}.opened_at")
-        provenance_ok, provenance_findings = _verify_lockbox_provenance(r, s, p)
-        f += provenance_findings
+    if contaminated:
+        findings.append(_finding("LOCKBOX_OPENED_MORE_THAN_ONCE", "BLOCKING", "lockbox_receipts", "final holdout may be revealed once"))
+    selected_digest = snapshot.expected_trial_digests.get(snapshot.selected_trial_id)
+    candidate_freeze = _time(snapshot.candidate_frozen_at, "family.candidate_frozen_at")
+    family_freeze = _time(snapshot.family_frozen_at, "family.family_frozen_at")
+    selected_at = _time(snapshot.selected_at, "family.selected_at")
+    for index, receipt in enumerate(ordered):
+        path = f"lockbox_receipts.{index}"
+        opened = _time(receipt.opened_at, f"{path}.opened_at")
+        provenance_ok, provenance_findings = _verify_lockbox_provenance(receipt, snapshot, path)
+        findings += provenance_findings
         if not provenance_ok:
-            if any(x["severity"] == "BLOCKING" for x in provenance_findings):
-                bad = True
+            if any(item["severity"] == "BLOCKING" for item in provenance_findings):
+                contaminated = True
             else:
                 unknown_provenance = True
-        checks = [
-            (r.lockbox_id != s.lockbox_id, "LOCKBOX_IDENTITY_MISMATCH", "lockbox_id"),
-            (
-                r.candidate_id != s.selected_trial_id or r.candidate_digest != selected_digest,
-                "LOCKBOX_CANDIDATE_IDENTITY_MISMATCH", "candidate_id",
-            ),
-            (cf > ot or ff > ot or st > ot, "LOCKBOX_OPENED_BEFORE_FREEZE", "opened_at"),
-            (r.purpose is not LockboxPurpose.FINAL_EVAL, "LOCKBOX_USED_FOR_SELECTION_OR_TUNING", "purpose"),
-            (r.selection_consumed_after, "LOCKBOX_RESULT_CONSUMED_BY_LATER_SELECTION", "selection_consumed_after"),
-        ]
+        checks = (
+            (receipt.lockbox_id != snapshot.lockbox_id, "LOCKBOX_IDENTITY_MISMATCH", "lockbox_id"),
+            (receipt.candidate_id != snapshot.selected_trial_id or receipt.candidate_digest != selected_digest, "LOCKBOX_CANDIDATE_IDENTITY_MISMATCH", "candidate_id"),
+            (candidate_freeze > opened or family_freeze > opened or selected_at > opened, "LOCKBOX_OPENED_BEFORE_FREEZE", "opened_at"),
+            (receipt.purpose is not LockboxPurpose.FINAL_EVAL, "LOCKBOX_USED_FOR_SELECTION_OR_TUNING", "purpose"),
+            (receipt.selection_consumed_after, "LOCKBOX_RESULT_CONSUMED_BY_LATER_SELECTION", "selection_consumed_after"),
+        )
         for failed, code, field in checks:
             if failed:
-                bad = True
-                f.append(_finding(code, "BLOCKING", f"{p}.{field}", "final holdout boundary violated"))
-    if bad:
-        return LockboxStatus.CONTAMINATED_REUSED_FOR_SELECTION, f, out
+                contaminated = True
+                findings.append(_finding(code, "BLOCKING", f"{path}.{field}", "final holdout boundary violated"))
+    if contaminated:
+        return LockboxStatus.CONTAMINATED_REUSED_FOR_SELECTION, findings, rows
     if unknown_provenance:
-        return LockboxStatus.IDENTITY_OR_ACCESS_HISTORY_UNKNOWN, f, out
-    return LockboxStatus.OPENED_ONCE_FINAL_EVAL, f, out
+        return LockboxStatus.IDENTITY_OR_ACCESS_HISTORY_UNKNOWN, findings, rows
+    return LockboxStatus.OPENED_ONCE_FINAL_EVAL, findings, rows
 
 
-def _derive_pit(p: PITEvidence, decision_time: str):
-    declared = p.declared_statuses()
+def _derive_pit(pit: PITEvidence, decision_time: str):
+    declared = pit.declared_statuses()
     effective = {name: PITStatus.UNKNOWN for name in declared}
-    f: list[dict[str, str]] = []
+    findings: list[dict[str, str]] = []
     fail = False
     unknown = False
-
     for name, state in declared.items():
         if state == PITStatus.FAIL.value:
             effective[name] = PITStatus.FAIL
             fail = True
-            f.append(_finding(f"PIT_{name.upper()}_FAIL", "BLOCKING", f"pit.{name}", "caller reported a negative PIT finding"))
-
-    if not p.binding_complete():
+            findings.append(_finding(f"PIT_{name.upper()}_FAIL", "BLOCKING", f"pit.{name}", "caller reported a negative PIT finding"))
+    if not pit.binding_complete():
         for name, state in declared.items():
             if state == PITStatus.PASS.value:
-                f.append(_finding(
-                    "PIT_CALLER_DECLARED_PASS_UNTRUSTED", "UNKNOWN", f"pit.{name}",
-                    "positive PIT status requires governed W2 artifact revalidation",
-                ))
+                findings.append(_finding("PIT_CALLER_DECLARED_PASS_UNTRUSTED", "UNKNOWN", f"pit.{name}", "positive PIT status requires governed W2 artifact revalidation"))
         unknown = True
     else:
         try:
-            module = _load_verified_w2_rule_module(str(p.authority_source_ref), str(p.authority_source_blob_sha))
-            row = _load_jsonl_event(str(p.dataset_artifact_ref), str(p.dataset_artifact_blob_sha), str(p.dataset_event_id))
+            module = _load_verified_w2_rule_module(str(pit.authority_source_ref), str(pit.authority_source_blob_sha))
+            row = _load_jsonl_event(str(pit.dataset_artifact_ref), str(pit.dataset_artifact_blob_sha), str(pit.dataset_event_id))
+            _verify_governed_artifact(W2_ENGINE_REF, _GOVERNED_ARTIFACTS[W2_ENGINE_REF], "pit.engine_semantics")
             decision = _time(decision_time, "family.selected_at")
             actual_symbol = str(row.get("symbol", ""))
-            actual_event_day = str(row.get("event_time", ""))[:10]
-            if actual_symbol != p.symbol or actual_event_day != p.trading_day:
-                effective["dataset_lineage"] = PITStatus.FAIL
-                fail = True
-                f.append(_finding("PIT_DATASET_LINEAGE_FAIL", "BLOCKING", "pit.dataset_lineage", "event identity does not match symbol/trading day"))
-            else:
+            actual_day = str(row.get("event_time", ""))[:10]
+            actual_exchange = _exchange_code(str(row.get("exchange", "")))
+            derived_board = _board_for_symbol(actual_symbol, actual_exchange)
+            derived_status = "RISK_WARNING" if row.get("is_st") is True else "NORMAL"
+            claimed_exchange = _exchange_code(str(pit.exchange))
+            identity_match = (
+                actual_symbol == pit.symbol
+                and actual_day == pit.trading_day
+                and actual_exchange == claimed_exchange
+                and derived_board == str(pit.board).upper()
+                and derived_status == str(pit.security_status).upper()
+            )
+            if identity_match:
                 effective["dataset_lineage"] = PITStatus.PASS
-
+                effective["universe_membership"] = PITStatus.PASS
+            else:
+                effective["dataset_lineage"] = PITStatus.FAIL
+                effective["universe_membership"] = PITStatus.FAIL
+                fail = True
+                findings.append(_finding("PIT_DATASET_LINEAGE_FAIL", "BLOCKING", "pit.dataset_lineage", "governed dataset identity disagrees with symbol/date/exchange/board/status claim"))
+                findings.append(_finding("PIT_UNIVERSE_MEMBERSHIP_FAIL", "BLOCKING", "pit.universe_membership", "claimed universe identity is not the governed event identity"))
             available = _time(str(row.get("available_at")), "pit.dataset.available_at")
             if available <= decision:
                 effective["available_at_lineage"] = PITStatus.PASS
             else:
                 effective["available_at_lineage"] = PITStatus.FAIL
                 fail = True
-                f.append(_finding("PIT_AVAILABLE_AT_LINEAGE_FAIL", "BLOCKING", "pit.available_at_lineage", "dataset was not available at selection time"))
-
-            resolved = module.DEFAULT_RULE_RESOLVER.resolve(
-                str(p.exchange), str(p.board), str(p.security_status), str(p.trading_day), None, decision_time,
-            )
-            if resolved.rule_snapshot_id != p.rule_snapshot_id:
+                findings.append(_finding("PIT_AVAILABLE_AT_LINEAGE_FAIL", "BLOCKING", "pit.available_at_lineage", "dataset was not available at selection time"))
+            resolved = module.DEFAULT_RULE_RESOLVER.resolve(actual_exchange, derived_board, derived_status, actual_day, None, decision_time)
+            if resolved.rule_snapshot_id == pit.rule_snapshot_id:
+                effective["rule_version"] = PITStatus.PASS
+            else:
                 effective["rule_version"] = PITStatus.FAIL
                 fail = True
-                f.append(_finding("PIT_RULE_VERSION_FAIL", "BLOCKING", "pit.rule_version", "governed W2 resolver returned a different rule snapshot"))
-            else:
-                effective["rule_version"] = PITStatus.PASS
-
-            revision_candidates = [
-                row.get("available_at"), row.get("observed_at"), row.get("receive_time"),
-                row.get("entered_system_at"), row.get("as_of"),
-            ]
-            if all(item and _time(str(item), "pit.dataset.revision_time") <= decision for item in revision_candidates):
+                findings.append(_finding("PIT_RULE_VERSION_FAIL", "BLOCKING", "pit.rule_version", "governed W2 resolver returned a different rule snapshot"))
+            revision_fields = ("available_at", "observed_at", "receive_time", "entered_system_at", "as_of")
+            if all(row.get(field) and _time(str(row[field]), f"pit.dataset.{field}") <= decision for field in revision_fields):
                 effective["revision_timing"] = PITStatus.PASS
             else:
                 effective["revision_timing"] = PITStatus.FAIL
                 fail = True
-                f.append(_finding("PIT_REVISION_TIMING_FAIL", "BLOCKING", "pit.revision_timing", "a recorded revision/ingestion time is after selection"))
-
-            if actual_symbol == p.symbol:
-                effective["universe_membership"] = PITStatus.PASS
-            else:
-                effective["universe_membership"] = PITStatus.FAIL
-                fail = True
-                f.append(_finding("PIT_UNIVERSE_MEMBERSHIP_FAIL", "BLOCKING", "pit.universe_membership", "symbol absent from governed dataset universe"))
+                findings.append(_finding("PIT_REVISION_TIMING_FAIL", "BLOCKING", "pit.revision_timing", "a recorded revision/ingestion time is after selection"))
         except IntegrityValidationError as exc:
             unknown = True
-            f.append(_finding(exc.code, "UNKNOWN", exc.path, exc.message))
+            findings.append(_finding(exc.code, "UNKNOWN", exc.path, exc.message))
         except Exception as exc:
             unknown = True
-            f.append(_finding("PIT_GOVERNED_REVALIDATION_FAILED", "UNKNOWN", "pit.authority_binding", type(exc).__name__))
-
-    for i, item in enumerate(p.future_information_findings):
+            findings.append(_finding("PIT_GOVERNED_REVALIDATION_FAILED", "UNKNOWN", "pit.authority_binding", f"{type(exc).__name__}:{exc}"))
+    for index, item in enumerate(pit.future_information_findings):
         fail = True
-        f.append(_finding("FUTURE_INFORMATION_LEAKAGE", "BLOCKING", f"pit.future_information_findings.{i}", item))
-
+        findings.append(_finding("FUTURE_INFORMATION_LEAKAGE", "BLOCKING", f"pit.future_information_findings.{index}", item))
     for name, state in effective.items():
         if state is PITStatus.UNKNOWN:
             unknown = True
-            if not any(x["path"] == f"pit.{name}" and x["severity"] == "UNKNOWN" for x in f):
-                f.append(_finding(f"PIT_{name.upper()}_UNKNOWN", "UNKNOWN", f"pit.{name}", "PIT evidence unresolved"))
-
+            if not any(item["path"] == f"pit.{name}" and item["severity"] == "UNKNOWN" for item in findings):
+                findings.append(_finding(f"PIT_{name.upper()}_UNKNOWN", "UNKNOWN", f"pit.{name}", "PIT evidence unresolved"))
     row = {
         "dataset_lineage": effective["dataset_lineage"].value,
         "available_at_lineage": effective["available_at_lineage"].value,
@@ -830,44 +777,44 @@ def _derive_pit(p: PITEvidence, decision_time: str):
         "revision_timing": effective["revision_timing"].value,
         "universe_membership": effective["universe_membership"].value,
         "declared_statuses": declared,
-        "future_information_findings": list(p.future_information_findings),
+        "future_information_findings": list(pit.future_information_findings),
         "authority_binding": {
-            "authority_source_ref": p.authority_source_ref,
-            "authority_source_blob_sha": p.authority_source_blob_sha,
-            "dataset_artifact_ref": p.dataset_artifact_ref,
-            "dataset_artifact_blob_sha": p.dataset_artifact_blob_sha,
-            "dataset_event_id": p.dataset_event_id,
-            "symbol": p.symbol,
-            "exchange": p.exchange,
-            "board": p.board,
-            "security_status": p.security_status,
-            "trading_day": p.trading_day,
-            "rule_snapshot_id": p.rule_snapshot_id,
+            "authority_source_ref": pit.authority_source_ref,
+            "authority_source_blob_sha": pit.authority_source_blob_sha,
+            "dataset_artifact_ref": pit.dataset_artifact_ref,
+            "dataset_artifact_blob_sha": pit.dataset_artifact_blob_sha,
+            "dataset_event_id": pit.dataset_event_id,
+            "symbol": pit.symbol,
+            "exchange": pit.exchange,
+            "board": pit.board,
+            "security_status": pit.security_status,
+            "trading_day": pit.trading_day,
+            "rule_snapshot_id": pit.rule_snapshot_id,
             "decision_time": decision_time,
         },
     }
-    return row, f, fail, unknown
+    return row, findings, fail, unknown
 
 
 def _methods(required: Sequence[str], results: Sequence[MethodResult]):
-    f = []
-    index = {}
+    findings: list[dict[str, str]] = []
+    index: dict[str, MethodResult] = {}
     blocked = False
-    for r in results:
-        if r.method_id in index:
+    for result in results:
+        if result.method_id in index:
             blocked = True
-            f.append(_finding("DUPLICATE_METHOD_RESULT", "BLOCKING", f"methods.{r.method_id}", "duplicate result"))
+            findings.append(_finding("DUPLICATE_METHOD_RESULT", "BLOCKING", f"methods.{result.method_id}", "duplicate result"))
         else:
-            index[r.method_id] = r
-    for mid in required:
-        r = index.get(mid)
-        if r is None:
+            index[result.method_id] = result
+    for method_id in required:
+        result = index.get(method_id)
+        if result is None:
             blocked = True
-            f.append(_finding("REQUIRED_METHOD_MISSING", "BLOCKING", f"methods.{mid}", "explicit state required"))
-        elif r.status in {MethodStatus.FAIL, MethodStatus.NOT_RUN, MethodStatus.INSUFFICIENT_DATA, MethodStatus.NUMERICAL_FAILURE}:
+            findings.append(_finding("REQUIRED_METHOD_MISSING", "BLOCKING", f"methods.{method_id}", "explicit state required"))
+        elif result.status in {MethodStatus.FAIL, MethodStatus.NOT_RUN, MethodStatus.INSUFFICIENT_DATA, MethodStatus.NUMERICAL_FAILURE}:
             blocked = True
-            f.append(_finding("REQUIRED_METHOD_NOT_CLEAR", "BLOCKING", f"methods.{mid}.status", f"status={r.status.value}"))
-    return f, [index[k].row() for k in sorted(index)], blocked
+            findings.append(_finding("REQUIRED_METHOD_NOT_CLEAR", "BLOCKING", f"methods.{method_id}.status", f"status={result.status.value}"))
+    return findings, [index[key].row() for key in sorted(index)], blocked
 
 
 def audit_research_integrity(
@@ -880,38 +827,33 @@ def audit_research_integrity(
     observed_at: str,
 ) -> dict[str, Any]:
     observed = _time(observed_at, "audit.observed_at")
-    snap_digest = snapshot.snapshot_digest()
+    snapshot_digest = snapshot.snapshot_digest()
     findings: list[dict[str, str]] = []
-    match = False
+    digest_match = False
     if expected_w4_snapshot_digest is None:
         findings.append(_finding("W4_SNAPSHOT_EXPECTED_DIGEST_MISSING", "UNKNOWN", "expected_w4_snapshot_digest", "content comparison absent"))
     else:
         _sha(expected_w4_snapshot_digest, "expected_w4_snapshot_digest")
-        match = expected_w4_snapshot_digest == snap_digest
-        if not match:
+        digest_match = expected_w4_snapshot_digest == snapshot_digest
+        if not digest_match:
             findings.append(_finding("W4_SNAPSHOT_DIGEST_MISMATCH", "BLOCKING", "expected_w4_snapshot_digest", "snapshot differs from comparison digest"))
-    findings.append(_finding(
-        "W4_AUTHORITY_BINDING_NOT_IMPLEMENTED_P0A", "UNKNOWN", "w4_authority_state",
-        "canonical W4 provenance requires a separately governed read adapter",
-    ))
+    findings.append(_finding("W4_AUTHORITY_BINDING_NOT_IMPLEMENTED_P0A", "UNKNOWN", "w4_authority_state", "canonical W4 provenance requires a separately governed read adapter"))
 
-    reconciliation, fs = _reconcile_trials(snapshot)
-    findings += fs
+    reconciliation, more = _reconcile_trials(snapshot)
+    findings += more
     findings += _selection(snapshot)
-    lock_state, fs, lock_rows = _lockbox(snapshot, lockbox_receipts)
-    findings += fs
-    pit_row, fs, pit_fail, pit_unknown = _derive_pit(pit_evidence, snapshot.selected_at)
-    findings += fs
-    fs, method_rows, methods_blocked = _methods(snapshot.required_method_ids, method_results)
-    findings += fs
+    lockbox_state, more, lockbox_rows = _lockbox(snapshot, lockbox_receipts)
+    findings += more
+    pit_row, more, pit_fail, pit_unknown = _derive_pit(pit_evidence, snapshot.selected_at)
+    findings += more
+    more, method_rows, methods_blocked = _methods(snapshot.required_method_ids, method_results)
+    findings += more
 
-    codes = {x["code"] for x in findings}
-    trial_codes = {"DUPLICATE_TRIAL_ID", "MISSING_EXPECTED_TRIAL", "UNREGISTERED_SELECTION_TRIAL",
-                   "TRIAL_IMMUTABLE_DIGEST_MISMATCH", "INVALID_REPRODUCIBILITY_RERUN"}
-    selection_codes = {"FAMILY_DEFINITION_MUTATED_AFTER_REGISTRATION", "SELECTION_RULE_REGISTERED_AFTER_SELECTION",
-                       "FAMILY_FROZEN_AFTER_SELECTION", "SELECTED_TRIAL_NOT_IN_REGISTERED_FAMILY"}
-    unknown = any(x["severity"] == "UNKNOWN" for x in findings)
-    hard = any(x["severity"] == "BLOCKING" for x in findings)
+    codes = {item["code"] for item in findings}
+    trial_codes = {"DUPLICATE_TRIAL_ID", "MISSING_EXPECTED_TRIAL", "UNREGISTERED_SELECTION_TRIAL", "TRIAL_IMMUTABLE_DIGEST_MISMATCH", "INVALID_REPRODUCIBILITY_RERUN"}
+    selection_codes = {"FAMILY_DEFINITION_MUTATED_AFTER_REGISTRATION", "SELECTION_RULE_REGISTERED_AFTER_SELECTION", "FAMILY_FROZEN_AFTER_SELECTION", "SELECTED_TRIAL_NOT_IN_REGISTERED_FAMILY"}
+    unknown = any(item["severity"] == "UNKNOWN" for item in findings)
+    hard = any(item["severity"] == "BLOCKING" for item in findings)
 
     if pit_fail:
         disposition = Disposition.REJECT_POINT_IN_TIME_LEAKAGE
@@ -919,21 +861,19 @@ def audit_research_integrity(
         disposition = Disposition.REJECT_INCOMPLETE_TRIAL_HISTORY
     elif codes & selection_codes:
         disposition = Disposition.RETEST_WITH_PREREGISTERED_FAMILY
-    elif lock_state is LockboxStatus.CONTAMINATED_REUSED_FOR_SELECTION:
+    elif lockbox_state is LockboxStatus.CONTAMINATED_REUSED_FOR_SELECTION:
         disposition = Disposition.REJECT_LOCKBOX_CONTAMINATION
     elif methods_blocked:
         disposition = Disposition.INSUFFICIENT_EVIDENCE
-    elif unknown or pit_unknown or lock_state is LockboxStatus.IDENTITY_OR_ACCESS_HISTORY_UNKNOWN:
+    elif unknown or pit_unknown or lockbox_state is LockboxStatus.IDENTITY_OR_ACCESS_HISTORY_UNKNOWN:
         disposition = Disposition.ABSTAIN
     elif hard:
         disposition = Disposition.REJECT_SELECTION_BIAS
     else:
         disposition = Disposition.ELIGIBLE_FOR_W7_VALIDATION
 
-    warning = any(x["severity"] == "WARNING" for x in findings)
-    if disposition in {Disposition.REJECT_INCOMPLETE_TRIAL_HISTORY, Disposition.REJECT_LOCKBOX_CONTAMINATION,
-                       Disposition.REJECT_POINT_IN_TIME_LEAKAGE, Disposition.REJECT_SELECTION_BIAS,
-                       Disposition.RETEST_WITH_PREREGISTERED_FAMILY}:
+    warning = any(item["severity"] == "WARNING" for item in findings)
+    if disposition in {Disposition.REJECT_INCOMPLETE_TRIAL_HISTORY, Disposition.REJECT_LOCKBOX_CONTAMINATION, Disposition.REJECT_POINT_IN_TIME_LEAKAGE, Disposition.REJECT_SELECTION_BIAS, Disposition.RETEST_WITH_PREREGISTERED_FAMILY}:
         risk, grade = "HIGH", "BLOCKED"
     elif disposition in {Disposition.ABSTAIN, Disposition.INSUFFICIENT_EVIDENCE}:
         risk, grade = "UNKNOWN", "UNKNOWN"
@@ -942,42 +882,35 @@ def audit_research_integrity(
     else:
         risk, grade = "LOW_BOOKKEEPING_RISK", "P0A_INTEGRITY_CLEAR"
 
-    authority = {k: False for k in (
-        "experiment_registry_write_authority", "strategy_experiment_write_authority", "probability_authority",
-        "final_validation_authority", "risk_override_authority", "position_authority", "order_authority", "trade_authority",
-    )}
-    out = {
+    authority = {key: False for key in ("experiment_registry_write_authority", "strategy_experiment_write_authority", "probability_authority", "final_validation_authority", "risk_override_authority", "position_authority", "order_authority", "trade_authority")}
+    output = {
         "schema": AUDIT_SCHEMA,
         "skill_id": SKILL_ID,
         "audit_version": "P0A",
-        "audit_id": f"ds10-p0a-{snap_digest[:16]}",
+        "audit_id": f"ds10-p0a-{snapshot_digest[:16]}",
         "observed_at": observed.isoformat(),
         "experiment_family_ref": snapshot.experiment_family_ref,
-        "w4_snapshot_digest": snap_digest,
-        "w4_snapshot_digest_matches_expected": match,
+        "w4_snapshot_digest": snapshot_digest,
+        "w4_snapshot_digest_matches_expected": digest_match,
         "w4_authority_state": "EXTERNAL_CANONICAL_BINDING_REQUIRED",
         "registered_family_digest": snapshot.registered_family_digest,
         "computed_family_digest": snapshot.computed_family_digest(),
         "trial_reconciliation": reconciliation,
-        "lockbox_status": lock_state.value,
-        "lockbox_access_receipts": lock_rows,
+        "lockbox_status": lockbox_state.value,
+        "lockbox_access_receipts": lockbox_rows,
         "pit_evidence": pit_row,
         "method_results": method_rows,
         "selection_bias_risk": risk,
         "adjusted_evidence_grade": grade,
         "research_integrity_disposition": disposition.value,
-        "blocking_findings": sorted((x for x in findings if x["severity"] == "BLOCKING"), key=lambda x: (x["code"], x["path"], x["detail"])),
-        "nonblocking_findings": sorted((x for x in findings if x["severity"] != "BLOCKING"), key=lambda x: (x["severity"], x["code"], x["path"], x["detail"])),
-        "required_retest": disposition in {Disposition.RETEST_WITH_PREREGISTERED_FAMILY,
-                                            Disposition.REJECT_INCOMPLETE_TRIAL_HISTORY,
-                                            Disposition.REJECT_LOCKBOX_CONTAMINATION,
-                                            Disposition.REJECT_POINT_IN_TIME_LEAKAGE,
-                                            Disposition.REJECT_SELECTION_BIAS},
+        "blocking_findings": sorted((item for item in findings if item["severity"] == "BLOCKING"), key=lambda item: (item["code"], item["path"], item["detail"])),
+        "nonblocking_findings": sorted((item for item in findings if item["severity"] != "BLOCKING"), key=lambda item: (item["severity"], item["code"], item["path"], item["detail"])),
+        "required_retest": disposition in {Disposition.RETEST_WITH_PREREGISTERED_FAMILY, Disposition.REJECT_INCOMPLETE_TRIAL_HISTORY, Disposition.REJECT_LOCKBOX_CONTAMINATION, Disposition.REJECT_POINT_IN_TIME_LEAKAGE, Disposition.REJECT_SELECTION_BIAS},
         "authority": authority,
         "w7_handoff_is_acceptance": False,
     }
-    out["audit_digest"] = _digest(out)
-    return out
+    output["audit_digest"] = _digest(output)
+    return output
 
 
 def canonical_audit_digest(audit: Mapping[str, Any]) -> str:
