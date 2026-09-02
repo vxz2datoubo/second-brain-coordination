@@ -51,6 +51,27 @@ from .director_v2 import (
     compile_director_brief_v2,
     inspect_director_brief_v2,
 )
+from .story_graph import (
+    ChoiceOption,
+    ConsequenceCoverage,
+    ImmutableStoryGraph,
+    MajorChoicePoint,
+    StaticConsequence,
+    StoryAct,
+    StoryChapter,
+    StoryGraphViolation,
+    compile_consequence_coverage,
+    validate_graph_for_package,
+    validate_story_graph,
+)
+from .story_bibles import (
+    CharacterBible,
+    SceneBible,
+    StoryBibleBundle,
+    StoryBibleViolation,
+    validate_story_bibles,
+)
+from .flagship_story_fixture import flagship_story_fixture
 
 __all__ = [
     "CreativeArtifact",
@@ -105,4 +126,21 @@ __all__ = [
     "inspect_director_brief_v2",
     "serialize_catalog",
     "style_profiles_v1",
+    "ChoiceOption",
+    "ConsequenceCoverage",
+    "ImmutableStoryGraph",
+    "MajorChoicePoint",
+    "StaticConsequence",
+    "StoryAct",
+    "StoryChapter",
+    "StoryGraphViolation",
+    "CharacterBible",
+    "SceneBible",
+    "StoryBibleBundle",
+    "StoryBibleViolation",
+    "compile_consequence_coverage",
+    "validate_graph_for_package",
+    "validate_story_graph",
+    "validate_story_bibles",
+    "flagship_story_fixture",
 ]
