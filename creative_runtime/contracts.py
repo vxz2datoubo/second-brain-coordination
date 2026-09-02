@@ -7,18 +7,29 @@ network access, media binaries, or a canonical knowledge-store write.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field, is_dataclass
+from dataclasses import dataclass, field, fields, is_dataclass
 import json
+from types import MappingProxyType
 from typing import Any, Mapping
 
 
 def _json_value(value: Any) -> Any:
     if is_dataclass(value):
-        return _json_value(asdict(value))
+        return {item.name: _json_value(getattr(value, item.name)) for item in fields(value)}
     if isinstance(value, Mapping):
         return {str(key): _json_value(item) for key, item in value.items()}
     if isinstance(value, tuple | list):
         return [_json_value(item) for item in value]
+    return value
+
+
+def _deep_freeze(value: Any) -> Any:
+    """Return an immutable representation suitable for approved content."""
+
+    if isinstance(value, Mapping):
+        return MappingProxyType({str(key): _deep_freeze(item) for key, item in value.items()})
+    if isinstance(value, tuple | list):
+        return tuple(_deep_freeze(item) for item in value)
     return value
 
 
@@ -162,6 +173,77 @@ class CreativeEvent:
     previous_hash: str | None
     event_hash: str
     parent_artifact_ids: tuple[str, ...] = ()
+
+    def to_dict(self) -> dict[str, Any]:
+        return _json_value(self)
+
+
+@dataclass(frozen=True)
+class StyleProfile:
+    """Presentation-only style selectable without changing story semantics."""
+
+    style_profile_id: str
+    label: str
+    visual_language: str
+    audio_language: str
+    presentation_only: bool = True
+
+    def to_dict(self) -> dict[str, Any]:
+        return _json_value(self)
+
+
+@dataclass(frozen=True)
+class ScriptPackage:
+    """Immutable, hash-addressed story content shared by player campaigns."""
+
+    script_id: str
+    script_revision: str
+    package_hash: str
+    genre: tuple[str, ...]
+    content_rating: str
+    world_bible: Mapping[str, Any]
+    character_bibles: tuple[Mapping[str, Any], ...]
+    scene_bibles: tuple[Mapping[str, Any], ...]
+    story_beats: tuple[Mapping[str, Any], ...]
+    legal_choices: Mapping[str, tuple[str, ...]]
+    consequence_rules: Mapping[str, Any]
+    reward_rules: Mapping[str, Any]
+    ending_rules: Mapping[str, Any]
+    style_profiles: tuple[StyleProfile, ...]
+    asset_manifest: tuple[Mapping[str, Any], ...]
+    source_provenance: Mapping[str, Any]
+    approval_status: str
+    schema_version: str = "ScriptPackage/v1"
+
+    def __post_init__(self) -> None:
+        for name in (
+            "genre",
+            "world_bible",
+            "character_bibles",
+            "scene_bibles",
+            "story_beats",
+            "legal_choices",
+            "consequence_rules",
+            "reward_rules",
+            "ending_rules",
+            "style_profiles",
+            "asset_manifest",
+            "source_provenance",
+        ):
+            object.__setattr__(self, name, _deep_freeze(getattr(self, name)))
+
+    def to_dict(self) -> dict[str, Any]:
+        return _json_value(self)
+
+
+@dataclass(frozen=True)
+class DirectorScriptSelection:
+    """Minimal validated input boundary for a future DirectorBrief/v2."""
+
+    script_id: str
+    script_revision: str
+    package_hash: str
+    style_profile_id: str
 
     def to_dict(self) -> dict[str, Any]:
         return _json_value(self)
