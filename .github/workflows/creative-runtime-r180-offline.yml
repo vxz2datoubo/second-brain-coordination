@@ -1,0 +1,36 @@
+name: R180 director beat plan offline
+
+on:
+  pull_request:
+    paths:
+      - "creative_runtime/director_beat_plan.py"
+      - "creative_runtime/DIRECTOR_BEAT_PLAN_V1.md"
+      - "tests/test_creative_director_beat_plan.py"
+      - "tools/verify_r180_scope.py"
+      - ".github/workflows/creative-runtime-r180-offline.yml"
+      - "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R180-A2-1/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-r180:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Assert exact head
+        shell: bash
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+      - name: Full creative regression
+        run: python -m unittest discover -s tests -p "test_creative*.py" -v
+      - name: Exact R180 scope
+        run: python tools/verify_r180_scope.py --base 607fe934be3b098c32e31cd257de8b462cd20ccd --head HEAD
+      - name: Patch whitespace
+        run: git diff --check 607fe934be3b098c32e31cd257de8b462cd20ccd...HEAD
