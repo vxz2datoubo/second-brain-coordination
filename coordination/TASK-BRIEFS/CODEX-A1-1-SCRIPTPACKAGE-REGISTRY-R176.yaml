@@ -1,0 +1,108 @@
+schema: TASK_BRIEF/v1
+task_id: CODEX-A1-1-SCRIPTPACKAGE-REGISTRY-R176
+route_epoch: 176
+project: CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001
+source_issue: 534
+parent_issue: 528
+executor: CODEX
+reviewer: GPT_INDEPENDENT_REVIEWER_AFTER_SEPARATE_FUTURE_REVIEW_REQUEST
+implementation_baseline: 1502fb11f77cbe7b16f87ed6f0624a21cba303d8
+required_branch: codex/r176-a1-1-scriptpackage-registry-governed-after-snapshot
+mode: bounded_core_implementation
+mode_reason: >-
+  Add the smallest deterministic content registry and read-only director-selection substrate without entering PlayerCampaign/session authority, WorkBuddy execution surfaces, external generation, or canonical promotion.
+planned_difficulty: D2
+root_goal: >-
+  Implement ScriptPackage/v1 as an immutable fail-closed multi-script registry with two approved synthetic fixtures and expose only validated script/revision/style identity for future DirectorBrief/v2 consumption.
+system_position:
+  upstream: APPROVED_SYNTHETIC_SCRIPT_PACKAGES
+  source_of_record: SCRIPT_PACKAGE_REGISTRY_EXACT_ID_REVISION_HASH
+  downstream: DIRECTORBRIEF_V2_READ_ONLY_SELECTION_INPUT
+  explicit_non_owner: PLAYER_CAMPAIGN_AND_SESSION_AUTHORITY
+minimum_delivery:
+  - immutable registry keyed by script_id + script_revision + package_hash
+  - exactly two approved synthetic script fixtures
+  - at least four style profiles per script
+  - script_id, revision, package_hash, approval_status, asset_manifest, source_provenance
+  - fail-closed unknown script, unapproved script, wrong revision, unknown style, package/content tamper
+  - read-only validated selection object for future DirectorBrief/v2
+  - no registration/selection side effect that creates or mutates a campaign/session/director job
+  - offline positive, negative, tamper and scope tests
+  - Python 3.11/3.13 where repository-supported
+  - clean-clone/GitHub reproducible commands and git diff --check
+implementation_choices:
+  allowed: >-
+    Codex may choose data structures, canonical serialization/hash mechanics, fixture layout and validator decomposition as long as exact identity, immutability, fail-closed behavior and authority boundaries are mechanically enforced.
+  better_method_mandate: >-
+    Reuse a canonical deterministic hash/validation primitive if fresh inventory proves it reduces duplication without importing unrelated authority.
+autonomy:
+  A: IMPLEMENT_WITHIN_SCOPE
+  B: IMPLEMENT_IF_DIRECTLY_IMPROVES_DETERMINISM_TAMPER_RESISTANCE_TESTABILITY_OR_REPRODUCIBILITY
+  C: PROPOSE_ONLY
+  D: STOP_AND_ESCALATE
+research_trigger: EXISTING_CANONICAL_REGISTRY_HASH_VALIDATION_PRIMITIVE_MAY_AVOID_DUPLICATION
+noncanonical_design_evidence:
+  platform_contract_architecture_commit: f49e90f872ba452d3fa870403f0d42f7f24a6add
+  latest_r175_evidence_head: c21b7e03496f9132e868b7b26cd1a4f5c35401b9
+  rule: READ_AS_SPECIFICATION_EVIDENCE_ONLY_DO_NOT_TREAT_AS_CANONICAL_BASELINE
+parallel_coordination:
+  workbuddy_issue_532:
+    state: PRESERVE_ACTIVE_BATCH_UNCHANGED
+    forbidden_overlap:
+      - tests/workbuddy/**
+      - tools/workbuddy/**
+      - coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/**
+  gpt_r172_issue_515:
+    state: PRESERVE_SEPARATE_GPT_SINGLE_WRITER_AUTHORITY
+    forbidden: PLAYER_CAMPAIGN_OR_SESSION_AUTHORITY_WRITE
+allowed_write_paths:
+  - creative_runtime/**
+  - tests/**
+  - tools/**
+  - coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R176-A1-1/**
+  - .github/workflows/creative-runtime-offline.yml
+hard_boundaries:
+  - NO_PLAYER_CAMPAIGN_WRITE_OR_SECOND_SESSION_AUTHORITY
+  - NO_REAL_PHOTOS_REAL_COMMENTS_PRIVATE_CUSTOMER_DATA
+  - NO_EXTERNAL_MODEL_PROVIDER_NETWORK_PAID_GENERATION
+  - NO_CREDENTIALS_DEPLOYMENT_PUBLIC_RELEASE_TRADING_CANONICAL_KNOWLEDGE
+  - NO_INDEPENDENT_REVIEW_REQUEST_DURING_TASK_PUBLICATION
+  - NO_SELF_REVIEW_SELF_ACCEPT_SELF_MERGE
+  - NO_HISTORY_REWRITE
+verification:
+  positive:
+    - two approved synthetic scripts register and select by exact id/revision/hash
+    - each script exposes at least four approved style profiles
+    - future DirectorBrief/v2 selection projection is read-only and contains only validated identity/style fields
+  negative:
+    - unknown script rejected
+    - unapproved script rejected
+    - wrong revision rejected
+    - unknown style rejected
+    - package/content tamper or hash mismatch rejected
+    - rejection creates no campaign/session/director job
+  engineering:
+    - allowed-path/scope verifier
+    - deterministic hash/replay test
+    - Python 3.11 and 3.13 where supported
+    - git diff --check
+    - git diff --check 1502fb11f77cbe7b16f87ed6f0624a21cba303d8...HEAD
+    - clean-clone reproducible command receipt
+local_execution_prevention:
+  registry: coordination/ENGINEERING-LEARNING/LOCAL-EXECUTION-ISSUE-PATTERNS.yaml
+  matching_classes: [PYTHON, YAML, JSON, UNICODE, PATH, GIT]
+  minimum_checks:
+    - explicit UTF-8 where platform defaults can diverge
+    - deterministic parsing/serialization
+    - duplicate-key or ambiguous metadata rejected where applicable
+    - portable repository-relative paths
+seven_discovery_questions_required: true
+wpdcr_required: true
+completion:
+  allow_draft_pr: true
+  independent_review_request_now: false
+  merge_authorized: false
+  completion_signal: R176_A1_1_SCRIPTPACKAGE_READY_FOR_FUTURE_INDEPENDENT_REVIEW_REQUEST
+rtce:
+  read_task_means: CLAIM_VALID_LEASE_AND_EXECUTE_IMMEDIATELY
+  second_user_start_command_required: false
