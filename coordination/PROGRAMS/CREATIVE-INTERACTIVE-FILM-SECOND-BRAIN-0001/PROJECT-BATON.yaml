@@ -1,53 +1,48 @@
 schema: CreativeInteractiveFilmProjectBaton/v1
 project_id: CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001
-project_names:
-  - 实时互动电影游戏
-  - 实时互动电影游戏项目
-  - 互动电影游戏
-  - Creative Interactive Film + Second Brain
 status: ACTIVE_RELAY
 updated_by: GPT_GITHUB_INTEGRATOR
-stable_skill: coordination/SKILLS/CREATIVE-INTERACTIVE-FILM-MULTI-AGENT-RELAY-SKILL-v1.0.yaml
-human_entrypoint: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CONTINUE-HERE.md
-history_log: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/PROJECT-HANDOFF-LOG.md
 current_main_rule: "Fresh-fetch remote main before execution; baton is navigation only and never replaces ACTIVE route, Issue, Claim, Lease, Reservation, Snapshot, PR, CI or Independent Review."
 baton:
-  handoff_id: CIF-RELAY-R180-A2-1-ACTIVE
-  from_agent: GPT_GITHUB_INTEGRATOR
+  handoff_id: CIF-RELAY-R181-A2-2-ACTIVE
   current_holder: CODEX
-  next_preferred_after_holder: GPT_INDEPENDENT_REVIEWER_ONLY_AFTER_DEPENDENCY_GATE_AND_SEPARATE_REVIEW_REQUEST
-  relay_mode: PARALLEL_NONOVERLAPPING_CODEX_R180_PURE_DIRECTOR_PLAN_AND_WORKBUDDY_R175
+  relay_mode: PARALLEL_NONOVERLAPPING_CODEX_R181_STATIC_SHOT_BUNDLE_AND_WORKBUDDY_R175
   user_second_start_command_required: false
 current_mission:
   summary: >-
-    Execute R180 A2.1 as a stacked dependent candidate: compile immutable DirectorBeatPlan/v1 outputs by purely joining validated DirectorBrief/v2 compiled content with validated R179 story graph and bibles. Explicit choice/scene/option selectors are content addresses only, never player progress or persisted state.
-  active_issue: 542
-  parent_issue: 540
-  route_epoch: 180
-  task_id: CODEX-A2-1-DIRECTOR-BEAT-PLAN-R180
+    Execute R181 A2.2 as a stacked technical candidate: compile immutable ShotBundle/v1 and ShotResponsibility/v1 static production blueprints from validated R180 DirectorBeatPlan/OutcomePreview content. Shot bundles describe coverage responsibilities only and never create player/session state, media jobs, provider calls or executable generation payloads.
+  active_issue: 548
+  parent_issue: 542
+  route_epoch: 181
+  task_id: CODEX-A2-2-SHOT-BUNDLE-R181
   identity_fields:
-    implementation_baseline: 607fe934be3b098c32e31cd257de8b462cd20ccd
-    snapshot_base: f31d2d0096ef5c3bbcba7d54c6200b90e964ded2
-    predecessor_issue: 540
-    predecessor_pr: 541
-    predecessor_exact_head: 607fe934be3b098c32e31cd257de8b462cd20ccd
-    predecessor_ci_run: 33587454674
+    implementation_baseline: 330745146be7726c42c517623a6feb5a8eaf5eb0
+    snapshot_base: cd2ce8d880747e34358ceb25826397b1b3709942
+    predecessor_issue: 542
+    predecessor_pr: 544
+    predecessor_implementation_exact_head: dd9c85b42224573468bb1fcdefbb30b104dd222d
+    predecessor_ci_run: 33588870204
     predecessor_evidence_class: EXECUTOR_VERIFIED_ONLY_NOT_ACCEPTED_NOT_MERGED
-  working_branch: codex/r180-a2-1-director-beat-plan-pure-compiler
-  branch_head_at_activation: 607fe934be3b098c32e31cd257de8b462cd20ccd
-  effective_spec_snapshot_id: SECOND-BRAIN-R180-ISSUE542-SNAPSHOT-001
-  effective_spec_snapshot_ref: issuecomment-5503973871
+    ci_correction_issue: 546
+    ci_correction_pr: 547
+    ci_correction_exact_head: 330745146be7726c42c517623a6feb5a8eaf5eb0
+    ci_correction_r179_run: 33589460674
+    ci_correction_r180_run: 33589460604
+  working_branch: codex/r181-a2-2-shot-bundle-static-compiler
+  branch_head_at_activation: 330745146be7726c42c517623a6feb5a8eaf5eb0
+  effective_spec_snapshot_id: SECOND-BRAIN-R181-ISSUE548-SNAPSHOT-001
+  effective_spec_snapshot_ref: issuecomment-5504242567
   execution_allowed: true
-  next_action: CREATE_OR_VERIFY_FRESH_TASK_OWNED_STANDALONE_CLONE_THEN_CLAIM_AND_EXECUTE_ISSUE_542_NOW_WITHOUT_SECOND_USER_START
+  next_action: CREATE_OR_VERIFY_FRESH_TASK_OWNED_STANDALONE_CLONE_THEN_CLAIM_AND_EXECUTE_ISSUE_548_NOW_WITHOUT_SECOND_USER_START
 required_closure:
-  - immutable deterministic DirectorBeatPlan/v1 contract and source-truth inspection
-  - all 12 flagship choices compile and inspect
-  - all 24 authored option outcome previews compile and inspect
-  - style is presentation-only and cannot mutate story or consequence truth
-  - fail-closed cross-script hash schema scene choice option continuity and asset substitution
-  - no player/session/NarrativeState/progress/director-job/media-job/provider side effect
-  - additive allowlist only with dedicated R180 offline CI
-  - fresh task-owned standalone clone plus regression negative scope diff and exact-head CI
+  - immutable deterministic ShotBundle/v1 and ShotResponsibility/v1
+  - all 12 flagship choice plans compile and inspect
+  - all 24 authored outcome previews compile and inspect
+  - directing-beat coverage and continuity/asset/style invariants
+  - provider/job-like executable payloads fail closed
+  - no player/session/NarrativeState/director-job/media-job/provider side effect
+  - dedicated R181 exact-scope workflow without inherited allowlist widening
+  - fresh task-owned standalone clone plus regression/negative/scope/diff/exact-head CI
 parallel_project_state:
   WORKBUDDY_R175:
     issue: 532
@@ -61,54 +56,59 @@ parallel_project_state:
     owner: GPT_ENGINEERING_WORKER
     state: SEPARATE_GPT_OWNED_SINGLE_WRITER_LANE
     surface: PLAYER_CAMPAIGN_CREATIVESESSION_V2_SESSION_LEDGER_MIGRATION_SAVE_SLOT_AUTHORITY
-    codex_r180_write: FORBIDDEN
-  CODEX_R179:
-    issue: 540
-    pr: 541
-    branch: codex/r179-a2-storygraph-bibles-choice-consequence-validation
-    exact_head: 607fe934be3b098c32e31cd257de8b462cd20ccd
-    ci_run: 33587454674
-    state: IMPLEMENTATION_COMPLETE_EXECUTOR_EVIDENCE_ONLY_DRAFT_UNMERGED_UNREVIEWED
-    active_codex_route: false
+    codex_r181_write: FORBIDDEN
   CODEX_R180:
     issue: 542
-    branch: codex/r180-a2-1-director-beat-plan-pure-compiler
+    pr: 544
+    exact_head: dd9c85b42224573468bb1fcdefbb30b104dd222d
+    state: IMPLEMENTATION_COMPLETE_EXECUTOR_EVIDENCE_ONLY_DRAFT_UNMERGED_UNREVIEWED
+    active_codex_route: false
+  CI_CORRECTION_R180:
+    issue: 546
+    pr: 547
+    head: 330745146be7726c42c517623a6feb5a8eaf5eb0
+    state: GOVERNANCE_CORRECTION_DRAFT_UNMERGED_UNREVIEWED_TECHNICAL_BASELINE
+    r179_run: 33589460674
+    r180_run: 33589460604
+  CODEX_R181:
+    issue: 548
+    branch: codex/r181-a2-2-shot-bundle-static-compiler
     state: READY_EXECUTION_ALLOWED_STACKED_DEPENDENT
 single_writer_fences:
   - object: GPT_R172_PLAYER_CAMPAIGN_AND_SESSION_AUTHORITY
     writer: GPT_ENGINEERING_WORKER_WHEN_GOVERNED_ACTIVE
-    codex_r180_write: FORBIDDEN
+    codex_r181_write: FORBIDDEN
   - object: WORKBUDDY_R175_ORDERED_BATCH_SURFACES
     writer: WORKBUDDY
-    codex_r180_write: FORBIDDEN
-  - object: CODEX_R180_PURE_DIRECTOR_BEAT_PLAN_COMPILER
+    codex_r181_write: FORBIDDEN
+  - object: CODEX_R181_STATIC_SHOT_BUNDLE_COMPILER
     writer: CODEX
     execution_authority: ACTIVE_CODEX_TASK_PLUS_ROUTE_CLAIM_LEASE_RESERVATION_SNAPSHOT_ALLOWLIST
-  - object: PLAYER_PROGRESS_NARRATIVE_STATE_CAMPAIGN_REDUCER_AUTHORITY
-    writer: NONE_UNDER_R180
-    codex_r180_write: FORBIDDEN
-  - object: DIRECTOR_JOB_MEDIA_JOB_AUTHORITY
-    writer: NONE_UNDER_R180
-    rule: FORBIDDEN
-  - object: PR_535_PR_537_PR_539_PR_541
-    writer: NONE_UNDER_R180
+  - object: NARRATIVE_STATE_PLAYER_PROGRESS_CAMPAIGN_REDUCER_AUTHORITY
+    writer: NONE_UNDER_R181
+    codex_r181_write: FORBIDDEN
+  - object: DIRECTOR_JOB_MEDIA_JOB_RENDER_GENERATION_PROVIDER_AUTHORITY
+    writer: NONE_UNDER_R181
+    codex_r181_write: FORBIDDEN
+  - object: PR_535_PR_537_PR_539_PR_541_PR_544_PR_547
+    writer: NONE_UNDER_R181
     rule: DRAFT_PREDECESSORS_NO_MUTATION_REVIEW_READY_OR_MERGE
+ci_layer_invariant:
+  R179: a2ea1b35937f81a7f2b243cd063871d3250c8b6b..607fe934be3b098c32e31cd257de8b462cd20ccd
+  R180: 607fe934be3b098c32e31cd257de8b462cd20ccd..dd9c85b42224573468bb1fcdefbb30b104dd222d
+  R181_executor: 330745146be7726c42c517623a6feb5a8eaf5eb0..HEAD
+  rule: EACH_LAYER_VERIFIER_OWNS_ONLY_ITS_DELTA_NO_ALLOWLIST_WIDENING
 promotion_gate:
-  predecessor_chain_independent_acceptance_required_before_r180_ready_or_merge: true
-  predecessor_chain_canonicalization_required_before_r180_ready_or_merge: true
   predecessor_acceptance_inherited: false
+  predecessor_chain_independent_acceptance_required_before_R181_ready_or_merge: true
 hard_boundaries:
   - NO_SELF_REVIEW
   - NO_SELF_MERGE
-  - NO_R176_R177_R178_R179_ACCEPTANCE_OR_CANONICALITY_CLAIM
-  - NO_PR535_PR537_PR539_PR541_MUTATION_REVIEW_READY_OR_MERGE
+  - NO_PREDECESSOR_ACCEPTANCE_OR_CANONICALITY_CLAIM
+  - NO_PR535_PR537_PR539_PR541_PR544_PR547_MUTATION_REVIEW_READY_OR_MERGE
   - NO_PLAYER_CAMPAIGN_CREATIVESESSION_V2_SESSION_LEDGER_MIGRATION_SAVE_SLOT_WRITE
-  - NO_NARRATIVE_STATE_PERSISTENCE_WRITE_RUNTIME_STATE_RESOLVER_OR_CAMPAIGN_REDUCER
-  - NO_PLAYER_PROGRESS_OR_PERSISTED_STORY_CURSOR_AUTHORITY
-  - NO_DIRECTOR_TASK_JOB_QUEUE_SCHEDULER_PERSISTENT_AUTHORITY
-  - NO_MEDIA_TASK_JOB_GENERATION_AUTHORITY
+  - NO_NARRATIVE_STATE_PLAYER_PROGRESS_OR_CAMPAIGN_REDUCER_WRITE
+  - NO_DIRECTOR_JOB_MEDIA_JOB_RENDER_GENERATION_UPLOAD_PROVIDER_AUTHORITY
   - NO_WORKBUDDY_532_PREEMPTION_OR_MUTATION
-  - NO_SHARED_RUNTIME_AUTHORITY_FILE_WRITES
-  - NO_REAL_PHOTO_REAL_COMMENT_PRIVATE_CUSTOMER_DATA
-  - NO_EXTERNAL_MODEL_PROVIDER_CREDENTIAL_PAID_GENERATION
-  - NO_DEPLOYMENT_PUBLIC_RELEASE_TRADING_CANONICAL_KNOWLEDGE
+  - NO_INHERITED_ALLOWLIST_WIDENING
+  - NO_REAL_PRIVATE_DATA_CREDENTIAL_PAID_GENERATION_DEPLOYMENT_PUBLIC_RELEASE_TRADING_CANONICAL_KNOWLEDGE
