@@ -10,73 +10,81 @@ updated_by: GPT_GITHUB_INTEGRATOR
 stable_skill: coordination/SKILLS/CREATIVE-INTERACTIVE-FILM-MULTI-AGENT-RELAY-SKILL-v1.0.yaml
 human_entrypoint: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CONTINUE-HERE.md
 history_log: coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/PROJECT-HANDOFF-LOG.md
-current_main_rule: "Fresh-fetch remote main before execution; baton is navigation, not authority."
+current_main_rule: "Fresh-fetch remote main before execution; baton is navigation only and never replaces ACTIVE route, Issue, Claim, Lease, Reservation, Snapshot, PR, CI or Independent Review."
 baton:
-  handoff_id: CIF-RELAY-R175-ACTIVE
+  handoff_id: CIF-RELAY-R176-A1-1-ACTIVE
   from_agent: GPT_GITHUB_INTEGRATOR
   current_holder: CODEX
-  next_preferred_after_holder: GPT_INDEPENDENT_REVIEWER
-  relay_mode: CLEAN_REMEDIATION_LONG_ROUND
+  next_preferred_after_holder: GPT_INDEPENDENT_REVIEWER_ONLY_AFTER_SEPARATE_FUTURE_REVIEW_REQUEST
+  relay_mode: PARALLEL_NONOVERLAPPING_CODEX_A1_1_AND_WORKBUDDY_R175
   user_second_start_command_required: false
 current_mission:
   summary: >-
-    Execute the R175 clean successor from the canonical policy-floor baseline only. Close all five terminal R174 T3 blockers in one adjacent lifecycle slice, freeze one new exact head, run exact-head CI, hand off, and request an uninvolved T3.
-  active_issue: 528
-  parent_issue: 526
-  frozen_prs: [527, 525]
-  frozen_head: bebc29e504fbed64aaa6db981e09b359b0c83b80
-  terminal_review: pullrequestreview-5068638956
-  terminal_result: issuecomment-5481082134
-  route_epoch: 175
-  task_id: CODEX-R174-CAPABILITY-CONFINEMENT-REMEDIATION-R175
+    Execute the clean A1.1 ScriptPackage/v1 immutable multi-script registry and DirectorBrief/v2 read-only selection foundation from the exact snapshot-bound canonical baseline. Do not enter PlayerCampaign/session authority and do not preempt WorkBuddy Issue #532.
+  active_issue: 534
+  parent_issue: 528
+  route_epoch: 176
+  task_id: CODEX-A1-1-SCRIPTPACKAGE-REGISTRY-R176
   identity_fields:
-    implementation_baseline: 740788a3847a402923bf2e89093d910eda0c89d0
-    snapshot_base: 40166aea147f3797768a2369f55e87346f3e3c52
+    implementation_baseline: 1502fb11f77cbe7b16f87ed6f0624a21cba303d8
+    snapshot_base: cd28725fd394f820644e381806f3eb48d06db14c
     canonical_governance_main_source: FRESH_MAIN_AFTER_ACTIVATION_UPDATES
-  working_branch: codex/r175-capability-policy-confinement-remediation
-  branch_head_at_activation: 740788a3847a402923bf2e89093d910eda0c89d0
-  effective_spec_snapshot_ref: issuecomment-5483140274
+  working_branch: codex/r176-a1-1-scriptpackage-registry-snapshot-bound
+  branch_head_at_activation: 1502fb11f77cbe7b16f87ed6f0624a21cba303d8
+  effective_spec_snapshot_id: SECOND-BRAIN-R176-ISSUE534-SNAPSHOT-001
+  effective_spec_snapshot_ref: issuecomment-5502473943
   execution_allowed: true
-  next_action: CLAIM_AND_EXECUTE_ISSUE_528_NOW_WITHOUT_SECOND_USER_START
+  next_action: CLAIM_AND_EXECUTE_ISSUE_534_NOW_WITHOUT_SECOND_USER_START
 required_closure:
-  - nonliteral/computed dynamic Python import and reflective env access fail closed
-  - browser URL/CSS/JS normalized capability gate including alias/bracket/computed import/SVG feImage/backslash/escape forms
-  - candidate config/workflow mechanically bound to canonical non-shrinkable policy floor
-  - source descriptor/lock/identity remains bound through final publish with race failure leaving no new target
-  - workspace/save/staging/target full ancestor symlink/junction/reparse confinement with Windows-aware tests
+  - ScriptPackage/v1 immutable registry keyed by exact script_id + revision + package_hash
+  - exactly two approved synthetic scripts
+  - minimum four style profiles per script
+  - approval status, asset manifest and source provenance recorded
+  - unknown/unapproved/wrong-version/unknown-style/tamper fail closed
+  - DirectorBrief/v2 receives only read-only validated script/revision/hash/style selection foundation
+  - offline positive/negative/tamper/scope/reproducibility tests and Python 3.11/3.13 where supported
 parallel_project_state:
+  WORKBUDDY_R175:
+    issue: 532
+    task_id: WORKBUDDY-R175-ORDERED-BATCH
+    branch: workbuddy/r175-ordered-batch-execution
+    state: READY_EXECUTION_ALLOWED
+    fixed_order: [WB-V1, WB-V2, WB-V3, WB-V4, WB-S1, WB-S2, WB-S3]
+    rule: PRESERVE_UNCHANGED_NO_PREEMPTION_RETURN_TO_CODEX_AFTER_BATCH
   GPT_R172:
     issue: 515
     owner: GPT_ENGINEERING_WORKER
     state: SEPARATE_GPT_OWNED_LANE
-    surface: SINGLE_MIGRATED_V2_SESSION_AUTHORITY
-    r175_overlap: MINIMAL_MIGRATION_PUBLICATION_AND_CONFINEMENT_ONLY
-    rule: R172_MUST_FRESH_RECONCILE_R175_OUTCOME_BEFORE_ANY_LATER_ACTIVATION
-  CODEX_R174:
-    issue: 526
-    pr: 527
-    head: bebc29e504fbed64aaa6db981e09b359b0c83b80
-    state: FROZEN_CHANGES_REQUIRED
+    surface: PLAYER_CAMPAIGN_AND_SINGLE_SESSION_AUTHORITY
+    codex_r176_write: FORBIDDEN
   CODEX_R175:
     issue: 528
     branch: codex/r175-capability-policy-confinement-remediation
+    state: SOURCE_CONTINUITY_AND_NONCANONICAL_SPECIFICATION_EVIDENCE_FOR_R176
+    active_codex_route: false
+  CODEX_R176:
+    issue: 534
+    branch: codex/r176-a1-1-scriptpackage-registry-snapshot-bound
     state: READY_EXECUTION_ALLOWED
 single_writer_fences:
-  - object: PR_527_AND_PR_525
-    writer: NONE
-    rule: FROZEN_NO_MUTATION_IMPORT_REUSE
-  - object: CANONICAL_PUBLIC_SAFE_POLICY_FLOOR
-    writer: GOVERNANCE_ONLY
-    r175_candidate_write: FORBIDDEN
-  - object: GPT_R172_SINGLE_SESSION_AUTHORITY
-    writer: GPT_ENGINEERING_WORKER_WHEN_FUTURE_ACTIVATED
-    codex_write: ONLY_MINIMUM_R175_MIGRATION_PUBLICATION_AND_CONFINEMENT_BUGFIX_WHILE_NO_CONFLICTING_R172_WRITE
-  - object: CODEX_R175_REMEDIATION
+  - object: GPT_R172_PLAYER_CAMPAIGN_AND_SESSION_AUTHORITY
+    writer: GPT_ENGINEERING_WORKER_WHEN_GOVERNED_ACTIVE
+    codex_r176_write: FORBIDDEN
+  - object: WORKBUDDY_R175_ORDERED_BATCH_SURFACES
+    writer: WORKBUDDY
+    codex_r176_write: FORBIDDEN
+  - object: CODEX_R176_SCRIPTPACKAGE_REGISTRY_AND_READ_ONLY_SELECTION_FOUNDATION
     writer: CODEX
     execution_authority: ACTIVE_CODEX_TASK_PLUS_ROUTE_CLAIM_LEASE_RESERVATION_SNAPSHOT
+  - object: FROZEN_PRS_493_495_502_506_508_511_513_525_527
+    writer: NONE
+    rule: FROZEN_NO_MUTATION_IMPORT_REUSE
 hard_boundaries:
   - NO_SELF_REVIEW
   - NO_SELF_MERGE
+  - NO_PLAYER_CAMPAIGN_OR_SECOND_SESSION_AUTHORITY
+  - NO_WORKBUDDY_532_PREEMPTION_OR_MUTATION
+  - NO_REAL_PHOTO_REAL_COMMENT_PRIVATE_CUSTOMER_DATA
+  - NO_EXTERNAL_MODEL_PROVIDER_CREDENTIAL_PAID_GENERATION
+  - NO_DEPLOYMENT_PUBLIC_RELEASE_TRADING_CANONICAL_KNOWLEDGE
   - NO_FROZEN_PR_MUTATION_OR_IMPLEMENTATION_REUSE
-  - NO_SECOND_LEDGER_GATEWAY_RESOLVER_AUTHORITY
-  - NO_NETWORK_PROVIDER_CREDENTIAL_DEPLOYMENT_CUSTOMER_DATA_TRADING_CANONICAL_KNOWLEDGE
