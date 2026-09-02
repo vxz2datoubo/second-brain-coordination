@@ -1,121 +1,193 @@
-schema_version: "3.29"
-registry_id: AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001
+schema_version: "3.30"
+registry_id: "AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001"
 control_tower_issue: 310
-owner: USER
-architecture_owner: GPT
-status: ACTIVE_CANDIDATE_CONTROL_VIEW
-boundary: GOVERNANCE_AND_OBSERVABILITY / NO_TRADE
+owner: "USER"
+architecture_owner: "GPT"
+status: "ACTIVE_CANDIDATE_CONTROL_VIEW"
+as_of: "2026-09-02T09:16:00-05:00"
+boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
+
+authority_role: >-
+  This registry is authoritative only for Program Lane identity, mission, desired state, current lane relationships,
+  overlap declarations and portfolio-level gates. Per-agent ACTIVE routes, GPT worker slots, Work Claims and immutable
+  historical provenance remain their own authority surfaces.
+
 portfolio_capacity_policy:
   program_lanes_may_coexist: 3
   codex_active_execution_routes_max: 1
+  qclaw_active_execution_routes_max: 1
+  workbuddy_active_execution_routes_max: 1
   gpt_engineering_worker_parallel_routes_allowed: true
   gpt_engineering_worker_active_slots_max: 2
+  local_heavy_stage_concurrency_max: 1
   same_canonical_object_writers_max: 1
-  nested_parallelism: FORBIDDEN
+  nested_parallelism: "FORBIDDEN"
+
 current_user_release_policy:
-  decision: R181_CODEX_A2_2_SHOT_BUNDLE + R166_ACCEPTED_EXECUTION_RELEASED + R168_CANONICALIZED_RELEASED + R182_ENGINEERING_FROZEN_REVIEW_PENDING
+  decision: "R181_CODEX_ACTIVE + R175_WORKBUDDY_ACTIVE + GPT_R166_R168_R182_ENGINEERING_RELEASED"
   rationale: >-
-    R168 PR #517 is independently ACCEPTED and canonicalized, so its GPT engineering lease is released. R182 has completed its
-    bounded six-file engineering slice on Draft PR #551, dedicated exact-head W2 CI is green, and engineering handoff/review
-    request are published; therefore its modifier lease is also released while independent review remains pending. R166 remains
-    independently accepted with engineering execution released and separate canonicalization pending. CODEX R181 remains the
-    only current implementation execution reflected here and is a separate agent type.
-  auxiliary_bounded_releases:
-    - task_id: CODEX-A2-2-SHOT-BUNDLE-R181
-      route_epoch: 181
-      issue: 548
-      agent_type: CODEX
-      branch: codex/r181-a2-2-shot-bundle-static-compiler
-      status: ACTIVE_GOVERNED_EXECUTION
-      execution_allowed: true
-    - task_id: GPT-W5-EVENT-COVERAGE-CLEAN-SUCCESSOR-R166
-      route_epoch: 166
-      issue: 501
-      agent_type: GPT_ENGINEERING_WORKER
-      pr: 504
-      exact_head: cc982f33ad87601a0327e595125272ea4954cdce
-      status: INDEPENDENTLY_ACCEPTED_AWAITING_SEPARATE_CANONICALIZATION
-      execution_allowed: false
+    R168 is independently accepted and canonicalized. R182 has completed its bounded engineering slice and is frozen at
+    Draft PR #551 pending independent review. R166 is independently accepted and awaits separate canonicalization.
+    No GPT Engineering Worker implementation lease is active in this closeout candidate. CODEX R181 and WorkBuddy R175
+    remain separate active agent routes and are preserved.
+  released_implementation_lanes: []
+  prepared_implementation_lanes: []
+  held_lanes: []
+  standing_routine_engineering_merge_authorization: true
+  standing_authorization_scope: "INDEPENDENT_EXACT_HEAD_ACCEPT + REQUIRED_GATES_PASS + NO_DRIFT"
+  standing_authorization_exclusions:
+    - "TRADING_ACCOUNT_ORDER_FUND"
+    - "SECRETS_CREDENTIALS"
+    - "PERMISSION_VISIBILITY_EXPANSION"
+    - "DESTRUCTIVE_DELETION"
+    - "MAJOR_ARCHITECTURE_OUTSIDE_APPROVED_SCOPE"
+
 historical_execution_refs:
-  r170:
-    issue: 509
-    pr: 511
-    reviewed_head: 8ce9cbfccf95afebf44726dc61a09572f9f1eabf
-    independent_review: 5059784113
-    review_result: 5466332157
-    status: FROZEN_AFTER_INDEPENDENT_CHANGES_REQUIRED
-    successor: R171 CLEAN CODEX V2 CONTINUATION DURABILITY
-  r169:
-    issue: 507
-    pr: 508
-    status: FROZEN_AFTER_INDEPENDENT_CHANGES_REQUIRED
-  r167:
-    issue: 503
-    pr: 506
-    status: FROZEN_AFTER_INDEPENDENT_CHANGES_REQUIRED
-  r165:
-    issue: 499
-    pr: 502
-    status: FROZEN_AFTER_INDEPENDENT_REVIEW_BLOCKED
   r166:
     issue: 501
     pr: 504
-    reviewed_head: cc982f33ad87601a0327e595125272ea4954cdce
+    reviewed_head: "cc982f33ad87601a0327e595125272ea4954cdce"
     independent_review: 5063417708
     review_result: 5474215140
-    status: INDEPENDENTLY_ACCEPTED_EXECUTION_RELEASED_AWAITING_CANONICALIZATION
+    status: "INDEPENDENTLY_ACCEPTED_EXECUTION_RELEASED_AWAITING_CANONICALIZATION"
   r168:
     issue: 496
     pr: 517
-    reviewed_head: 6a00939495ec7d8c974e5fbe8a8940a56dec3855
+    reviewed_head: "6a00939495ec7d8c974e5fbe8a8940a56dec3855"
     independent_review: 5066628944
     review_result: 5478588001
     exact_head_ci: 33382974470
-    merge_commit: 7c77e303a124f1debfb52f497eccd1db3f9f7cb4
-    status: CANONICALIZED_EXECUTION_RELEASED
+    merge_commit: "7c77e303a124f1debfb52f497eccd1db3f9f7cb4"
+    status: "CANONICALIZED_EXECUTION_RELEASED"
   r182:
     issue: 550
     pr: 551
-    exact_head: c436df7d99f2ee66915e436ee1629835aad14bad
-    snapshot: issuecomment-5504490980
+    exact_head: "c436df7d99f2ee66915e436ee1629835aad14bad"
+    snapshot: "issuecomment-5504490980"
     dedicated_exact_head_ci: 33592468996
-    engineering_handoff: issuecomment-5505798658
-    independent_review_ticket: issuecomment-5505800859
-    status: ENGINEERING_FROZEN_EXECUTION_RELEASED_AWAITING_INDEPENDENT_REVIEW
+    engineering_handoff: "issuecomment-5505798658"
+    independent_review_ticket: "issuecomment-5505800859"
+    status: "ENGINEERING_FROZEN_EXECUTION_RELEASED_AWAITING_INDEPENDENT_REVIEW"
+
 observed_agent_state:
   CODEX:
-    observed_task_id: CODEX-A2-2-SHOT-BUNDLE-R181
+    source: "coordination/ACTIVE-CODEX-TASK.yaml"
+    observed_task_id: "CODEX-A2-2-SHOT-BUNDLE-R181"
     observed_route_epoch: 181
     observed_issue: 548
+    observed_pr: null
+    observed_status: "READY"
     execution_allowed: true
+    observation_status: "R181_ACTIVE_GOVERNED_EXECUTION"
+  QCLAW:
+    source: "coordination/ACTIVE-QCLAW-TASK.yaml"
+    observed_task_id: "QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60"
+    observed_route_epoch: 60
+    observed_issue: 296
+    observed_pr: null
+    observed_status: "DONE_HISTORICAL"
+    execution_allowed: false
+    observation_status: "R60_DONE_HISTORICAL_NO_EXECUTION"
+  WORKBUDDY:
+    source: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+    observed_task_id: "WORKBUDDY-R175-ORDERED-BATCH"
+    observed_route_epoch: 175
+    observed_issue: 532
+    observed_pr: null
+    observed_status: "READY"
+    execution_allowed: true
+    observation_status: "R175_ORDERED_BATCH_ACTIVE"
   GPT_ENGINEERING_WORKER:
-    observed_status: R166_ACCEPTED_RELEASED + R168_CANONICALIZED_RELEASED + R182_ENGINEERING_FROZEN_RELEASED
+    source: "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+    observed_status: "R166_ACCEPTED_RELEASED + R168_CANONICALIZED_RELEASED + R182_ENGINEERING_FROZEN_RELEASED"
+    execution_allowed: false
+
 program_lanes:
-  - lane_id: LANE-A-HARNESS-INTEGRATION
-    observed_state: R168_CANONICALIZED_RELEASED_NO_ACTIVE_IMPLEMENTATION
+  - lane_id: "LANE-A-HARNESS-INTEGRATION"
+    mission: >-
+      Maintain shared Second Brain coordination, Control Tower and cognitive substrate without creating a second domain authority.
+    owner: "USER"
+    architecture_owner: "GPT"
+    desired_state: "ACTIVE"
+    observed_state: "R168_CANONICALIZED_RELEASED / NO_ACTIVE_GPT_IMPLEMENTATION"
+    primary_system_positions: ["W1", "W8", "W9"]
+    current_phase: "CONTROL_PLANE_RECONCILIATION"
+    active_execution_route: null
+    dependencies:
+      - "R168 implementation canonicalized as 7c77e303a124f1debfb52f497eccd1db3f9f7cb4"
+      - "R168 post-merge current-control-plane closeout must independently pass before successor GPT execution"
+    shared_interfaces:
+      - "Control Tower execution identity"
+      - "GPT worker registry"
+      - "Lane Work Claims"
+      - "Authorization witness"
+      - "Program Control Tower projection"
+    next_gate: "R168_CLOSEOUT_ACCEPT_AND_CANONICAL_THEN_FRESH_SUCCESSOR_RELEASE"
+    maturity: "FOUNDATION_OPERATIONAL / CURRENT_CONTROL_PLANE_CLOSEOUT"
+    heavy_execution_authorized: false
     implementation_owner: null
-  - lane_id: LANE-B-A-SHARE-REMEDIATION
-    observed_state: R182_ENGINEERING_FROZEN_WAITING_INDEPENDENT_REVIEW_NO_ACTIVE_IMPLEMENTATION
+    implementation_owner_candidate: null
+
+  - lane_id: "LANE-B-A-SHARE-REMEDIATION"
+    mission: >-
+      Preserve A-share research semantics and W2 validation while R182 waits independent review; no trading or runtime authority is implied.
+    owner: "USER"
+    architecture_owner: "GPT"
+    desired_state: "ACTIVE"
+    observed_state: "R182_ENGINEERING_FROZEN_WAITING_INDEPENDENT_REVIEW / NO_ACTIVE_GPT_IMPLEMENTATION"
+    primary_system_positions: ["W2", "W3", "W12"]
+    current_phase: "R182_INDEPENDENT_REVIEW_PENDING"
+    active_execution_route: null
+    dependencies:
+      - "R182 Draft PR #551 exact head c436df7d99f2ee66915e436ee1629835aad14bad"
+      - "R182 dedicated exact-head W2 CI 33592468996 SUCCESS"
+      - "Independent review ticket issuecomment-5505800859"
+    shared_interfaces:
+      - "W2 market semantics"
+      - "W3 knowledge/context read boundary"
+      - "W12 research semantics"
+    next_gate: "R182_INDEPENDENT_REVIEW_RESULT"
+    maturity: "IMPLEMENTATION_FROZEN / REVIEW_PENDING"
+    heavy_execution_authorized: false
     implementation_owner: null
+    implementation_owner_candidate: null
     trading_authorized: false
-    predecessor_r166: INDEPENDENTLY_ACCEPTED_EXECUTION_RELEASED_AWAITING_CANONICALIZATION
-  - lane_id: LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP
-    mission: Bounded interactive-film A2.2 immutable ShotBundle and shot-responsibility compilation.
-    observed_state: R181_CODEX_A2_2_ACTIVE
-    current_phase: EXECUTION
-    implementation_owner: CODEX
-    worker_slot_id: CODEX-R181-SHOT-BUNDLE-A2-2-1
-    canonical_knowledge_write_authorized: false
+
+  - lane_id: "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"
+    mission: >-
+      Preserve the currently authorized CODEX R181 bounded interactive-film A2.2 ShotBundle implementation while keeping it isolated
+      from GPT worker closeout and Second Brain W3/domain authority.
+    owner: "USER"
+    architecture_owner: "GPT"
+    desired_state: "ACTIVE"
+    observed_state: "R181_CODEX_A2_2_ACTIVE"
+    primary_system_positions: ["CREATIVE_RUNTIME", "SHOT_BUNDLE"]
+    current_phase: "R181_ACTIVE_EXECUTION"
+    active_execution_route: "coordination/ROUTES/CODEX-A2-2-SHOT-BUNDLE-R181.yaml"
+    dependencies:
+      - "R181 route/lease/claim remain separate from GPT worker closeout"
+      - "No R168/R182/#543 write overlap"
+    shared_interfaces:
+      - "Program Control Tower execution observability"
+    next_gate: "R181_EXECUTOR_COMPLETION_AND_DEPENDENCY_GATED_REVIEW"
+    maturity: "BOUNDED_ACTIVE_IMPLEMENTATION"
+    heavy_execution_authorized: false
+    implementation_owner: "CODEX"
+    implementation_owner_candidate: "CODEX"
+
 cross_lane_overlap_matrix:
-  - pair: [LANE-A-HARNESS-INTEGRATION, LANE-B-A-SHARE-REMEDIATION]
-    overlap_level: O0_NO_MATERIAL_WRITE_OVERLAP
-  - pair: [LANE-A-HARNESS-INTEGRATION, LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP]
-    overlap_level: O0_NO_MATERIAL_WRITE_OVERLAP
-  - pair: [LANE-B-A-SHARE-REMEDIATION, LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP]
-    overlap_level: O0_NO_MATERIAL_WRITE_OVERLAP
+  - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-B-A-SHARE-REMEDIATION"]
+    overlap_level: "O0_NO_MATERIAL_WRITE_OVERLAP"
+    rule: "Both lanes have no active GPT implementation writer in this closeout candidate."
+  - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
+    overlap_level: "O0_NO_MATERIAL_WRITE_OVERLAP"
+    rule: "R181 CODEX task-local implementation does not grant Lane-A control-plane write authority."
+  - pair: ["LANE-B-A-SHARE-REMEDIATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
+    overlap_level: "O0_NO_MATERIAL_WRITE_OVERLAP"
+    rule: "R182 is frozen and R181 remains separately bounded."
+
 reconciliation_rule: >-
-  R168 implementation is canonical history and its GPT worker slot is RELEASED. R182 Draft PR #551 is frozen at exact head
-  c436df7d99f2ee66915e436ee1629835aad14bad pending independent review; its engineering execution lease is RELEASED and no further
-  modifier write is allowed without a separately governed remediation release. R166 ACCEPT does not authorize Ready or merge. Any
-  new GPT implementation, including Issue #543, requires a fresh slot/claim/witness/lease/reservation/snapshot release rather than
-  inheriting authority from these historical records.
+  R168 is canonical history and its GPT worker execution is released. R182 is frozen at exact head
+  c436df7d99f2ee66915e436ee1629835aad14bad pending independent review and has no modifier lease. R166 is independently
+  accepted but separately awaiting canonicalization. CODEX R181 and WorkBuddy R175 retain their own current execution authority.
+  Any new GPT implementation, including Issue #543, requires a fresh governed Route/Claim/Witness/Lease/Reservation/Snapshot.
