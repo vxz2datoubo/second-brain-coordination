@@ -1,0 +1,33 @@
+schema: TASK_BRIEF/v1
+project: CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001
+task_id: CODEX-A2-PRELUDE-STORYGRAPH-BIBLES-R179
+route_epoch: 179
+source_issue: 540
+executor: CODEX
+implementation_baseline: a2ea1b35937f81a7f2b243cd063871d3250c8b6b
+required_branch: codex/r179-a2-storygraph-bibles-choice-consequence-validation
+objective: >-
+  Build the immutable static flagship-season authored-content structure above ScriptPackage/v1: exactly 3 acts, 6 chapters and 12 major choice points, with deterministic story graph, character bible, scene bible, static consequence coverage compiler and fail-closed validation. Choice consequences are authored static descriptors only, never runtime player/session/NarrativeState authority.
+required_outputs:
+  - deterministic exact 3-act 6-chapter 12-major-choice structure
+  - immutable story graph and canonical serialization/hash
+  - immutable character bible with continuity/knowledge constraints
+  - immutable scene bible with location/time/staging/asset bindings
+  - static choice consequence coverage compiler
+  - reachability/reference/integrity validators and adversarial tests
+  - read-only downstream content contract for future DirectorBrief and separately governed state join
+execution_environment:
+  fresh_task_owned_standalone_clone_required: true
+  final_receipt_must_record_clone_identity_exact_head_commands: true
+forbidden:
+  - player or session writes
+  - NarrativeState persistence or runtime state authority
+  - director/media jobs or schedulers
+  - WorkBuddy Issue 532 surfaces
+  - GPT R172 Issue 515 surfaces
+  - PR 535/537/539 review Ready merge mutation
+  - external model/provider/network, credentials, paid generation, deployment, trading, canonical knowledge
+review_policy:
+  independent_review_requested_now: false
+  executor_ci_is_evidence_only: true
+  merge_authorized: false
