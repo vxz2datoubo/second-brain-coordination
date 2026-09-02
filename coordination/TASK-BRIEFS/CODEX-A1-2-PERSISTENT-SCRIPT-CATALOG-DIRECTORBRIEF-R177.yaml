@@ -1,0 +1,72 @@
+schema: TASK_BRIEF/v1
+task_id: CODEX-A1-2-PERSISTENT-SCRIPT-CATALOG-DIRECTORBRIEF-R177
+route_epoch: 177
+project: CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001
+source_issue: 536
+parent_issue: 534
+executor: CODEX
+reviewer: UNASSIGNED_UNTIL_SEPARATE_FUTURE_REVIEW_REQUEST
+mode: stacked_dependent_bounded_implementation
+planned_difficulty: D2
+implementation_baseline: 0ba071a14b7d945de6f008a382b5f43554b1030e
+required_branch: codex/r177-a1-2-persistent-script-catalog-directorbrief-boundary
+predecessor:
+  issue: 534
+  pr: 535
+  exact_head: 0ba071a14b7d945de6f008a382b5f43554b1030e
+  ci_run: 33577671890
+  evidence_class: EXECUTOR_VERIFIED_ONLY_NOT_INDEPENDENT_ACCEPTANCE
+  inheritance_rule: TECHNICAL_DEPENDENCY_ONLY_NO_ACCEPTANCE_TRANSFER
+root_goal: >-
+  Persist the approved ScriptPackage/v1 registry as a deterministic read-only offline catalog and establish a DirectorBrief/v2 content-selection consumption boundary without entering PlayerCampaign/session authority.
+system_position:
+  upstream: R176_VALIDATED_SCRIPTPACKAGE_AND_DIRECTOR_SCRIPT_SELECTION_CANDIDATE
+  source_of_record: EXACT_SCRIPT_ID_REVISION_PACKAGE_HASH_PLUS_APPROVAL_AND_PROVENANCE
+  downstream: DIRECTORBRIEF_V2_CONTENT_SELECTION_ONLY
+  explicit_non_owner:
+    - PLAYER_CAMPAIGN
+    - CREATIVESESSION_V2
+    - SESSION_LEDGER
+    - MIGRATION_AND_SAVE_SLOT_AUTHORITY
+minimum_delivery:
+  - deterministic persistent read-only approved package catalog
+  - restart/reload deterministic catalog identity
+  - immutable approved-entry list/get/select APIs
+  - strict duplicate/revision/hash/schema/path/tamper/partial-write rejection
+  - DirectorBrief/v2 content-selection binding from validated selection only
+  - substitution-after-validation rejection
+  - no campaign/session/director-job/media/provider side effects
+  - offline lifecycle and negative tests
+  - allowlist scope verifier, git diff check, clean-clone commands, exact-head CI
+implementation_choices:
+  allowed: >-
+    Codex may choose deterministic offline catalog file format, atomic write strategy, immutable projection types and validator decomposition, provided the allowlist and all authority fences hold.
+  better_method_mandate: >-
+    Reuse R176 deterministic identity/hash primitives from the dependency baseline rather than creating a competing ScriptPackage identity system.
+autonomy:
+  A: IMPLEMENT_WITHIN_SCOPE
+  B: IMPLEMENT_IF_DIRECTLY_IMPROVES_DETERMINISTIC_PERSISTENCE_FAIL_CLOSED_INTEGRITY_READ_ONLY_BOUNDARY_OR_REPRODUCIBILITY
+  C: PROPOSE_ONLY
+  D: STOP_AND_ESCALATE
+verification:
+  - persist approved synthetic catalog then restart/reload with exact same identity
+  - unknown/unapproved/stale-hash/tampered/duplicate-revision/unknown-style fail closed
+  - malformed schema, traversal/path escape and partial/corrupt catalog fail closed
+  - validated selection cannot be relabeled to another script/revision/hash/style
+  - DirectorBrief/v2 content-selection projection is immutable and read-only
+  - no PlayerCampaign/CreativeSession/v2/session ledger or save-slot write path touched
+  - no WorkBuddy path touched
+  - provider/network capability absent
+  - exact allowed-path verifier
+  - git diff --check
+  - clean-clone reproducibility
+  - exact-head CI
+promotion_gate:
+  predecessor_independent_acceptance_required_before_ready_or_merge: true
+  predecessor_canonicalization_required_before_ready_or_merge: true
+  r177_self_review: forbidden
+  r177_merge: forbidden
+  independent_review_request_now: false
+rtce:
+  read_task_means: CLAIM_VALID_LEASE_AND_EXECUTE_IMMEDIATELY
+  second_user_start_command_required: false
