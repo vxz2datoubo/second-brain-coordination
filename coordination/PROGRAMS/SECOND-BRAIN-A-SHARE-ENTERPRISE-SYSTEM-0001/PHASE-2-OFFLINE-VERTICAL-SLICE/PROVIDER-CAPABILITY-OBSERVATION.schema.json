@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ProviderCapabilityObservation/v1",
+  "title": "ProviderCapabilityObservation/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["observation_id", "provider", "product", "capability_id", "method", "evidence_class", "observed_at", "local_runtime_observed", "documented_fields", "observed_fields", "documentation_version", "runtime_version", "entitlement_state", "semantic_field_refs", "evidence_refs", "invalidation_conditions", "next_verification_action"],
+  "properties": {
+    "observation_id": {"type": "string", "minLength": 1},
+    "provider": {"type": "string", "minLength": 1},
+    "product": {"type": "string", "minLength": 1},
+    "capability_id": {"type": "string", "minLength": 1},
+    "method": {"type": "string", "minLength": 1},
+    "evidence_class": {"enum": ["OFFICIAL_DOCUMENTED", "LOCAL_RUNTIME_VERIFIED", "LOCAL_RUNTIME_NOT_VERIFIED", "ENTITLEMENT_UNVERIFIED", "OBSERVED_UNSUPPORTED", "STALE_REVALIDATION_REQUIRED", "UNKNOWN"]},
+    "observed_at": {"type": "string", "format": "date-time"},
+    "local_runtime_observed": {"type": "boolean"},
+    "documented_fields": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "observed_fields": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "documentation_version": {"type": ["string", "null"]},
+    "runtime_version": {"type": ["string", "null"]},
+    "entitlement_state": {"type": "string", "minLength": 1},
+    "semantic_field_refs": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "evidence_refs": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "invalidation_conditions": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "next_verification_action": {"type": "string"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"evidence_class": {"const": "OFFICIAL_DOCUMENTED"}}, "required": ["evidence_class"]},
+      "then": {"properties": {"local_runtime_observed": {"const": false}, "documentation_version": {"type": "string", "minLength": 1}, "documented_fields": {"minItems": 1}}}
+    },
+    {
+      "if": {"properties": {"evidence_class": {"const": "LOCAL_RUNTIME_VERIFIED"}}, "required": ["evidence_class"]},
+      "then": {"properties": {"local_runtime_observed": {"const": true}, "runtime_version": {"type": "string", "minLength": 1}, "observed_fields": {"minItems": 1}, "evidence_refs": {"minItems": 1, "contains": {"type": "string", "pattern": "^local:"}}}}
+    }
+  ]
+}

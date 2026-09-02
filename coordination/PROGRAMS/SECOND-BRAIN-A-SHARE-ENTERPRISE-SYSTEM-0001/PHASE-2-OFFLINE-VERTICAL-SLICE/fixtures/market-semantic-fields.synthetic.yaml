@@ -1,0 +1,126 @@
+schema_version: "1.0"
+fixture_id: "R182-W2-MARKET-SEMANTICS-SYNTHETIC-001"
+disposition: "SYNTHETIC_AND_OFFICIAL_DOCUMENTATION_REFERENCE_ONLY / NO_LOCAL_RUNTIME_TRUTH"
+
+field_specs:
+  - semantic_field_id: "TDXQUANT.TICK.PRICE.DOCREF.V1"
+    semantic_version: "1.0"
+    source_system: "TDXQUANT_OFFICIAL_DOC"
+    source_version: "OFFICIAL_DOC_CURRENT_AT_2026_09_01"
+    source_field_name: "Price"
+    canonical_field_ref: "trade.price"
+    primitive_type: "DECIMAL_STRING"
+    unit_kind: "CURRENCY"
+    unit_symbol: "CNY"
+    unit_scale: "1"
+    fixed_scale: null
+    tick_size: null
+    tick_size_ref: "AShareRuleSnapshot.tick_size"
+    rounding_policy: "EXACT_NO_IMPLICIT_ROUNDING"
+    price_semantic: "RAW_TRADE_PRICE"
+    time_semantic: null
+    adjustment_state: "RAW_SOURCE_OBSERVATION"
+    source_enum_map: {}
+    allowed_missing_states: ["PRESENT", "SOURCE_MISSING", "PERMISSION_OR_ENTITLEMENT_UNVERIFIED", "STALE", "UNVERIFIED", "UNKNOWN"]
+    canonical_persistable: true
+    valid_from: null
+    valid_until: null
+    evidence_ref: "official:https://help.tdx.com.cn/quant/docs/markdown/mindoc-1hjbgqpdhv114/mindoc-1hjbidnohpjn4.html"
+    last_verified_at: "2026-09-01T23:21:00-05:00"
+
+  - semantic_field_id: "TDXQUANT.TICK.VOLUME.DOCREF.V1"
+    semantic_version: "1.0"
+    source_system: "TDXQUANT_OFFICIAL_DOC"
+    source_version: "OFFICIAL_DOC_CURRENT_AT_2026_09_01"
+    source_field_name: "Volume"
+    canonical_field_ref: "trade.source_volume"
+    primitive_type: "DECIMAL_STRING"
+    unit_kind: "SOURCE_UNIT_UNVERIFIED"
+    unit_symbol: "UNKNOWN"
+    unit_scale: "1"
+    fixed_scale: null
+    tick_size: null
+    tick_size_ref: null
+    rounding_policy: "EXACT_NO_IMPLICIT_ROUNDING"
+    price_semantic: null
+    time_semantic: null
+    adjustment_state: "NOT_APPLICABLE"
+    source_enum_map: {}
+    allowed_missing_states: ["PRESENT", "SOURCE_MISSING", "PERMISSION_OR_ENTITLEMENT_UNVERIFIED", "STALE", "UNVERIFIED", "UNKNOWN"]
+    canonical_persistable: false
+    valid_from: null
+    valid_until: null
+    evidence_ref: "official:https://help.tdx.com.cn/quant/docs/markdown/mindoc-1hjbgqpdhv114/mindoc-1hjbidnohpjn4.html"
+    last_verified_at: "2026-09-01T23:21:00-05:00"
+
+  - semantic_field_id: "TDXQUANT.TICK.BSFLAG.DOCREF.V1"
+    semantic_version: "1.0"
+    source_system: "TDXQUANT_OFFICIAL_DOC"
+    source_version: "OFFICIAL_DOC_CURRENT_AT_2026_09_01"
+    source_field_name: "BSFlag"
+    canonical_field_ref: "trade.aggressor_direction"
+    primitive_type: "ENUM_STRING"
+    unit_kind: "ENUM"
+    unit_symbol: "NONE"
+    unit_scale: "1"
+    fixed_scale: null
+    tick_size: null
+    tick_size_ref: null
+    rounding_policy: "NOT_APPLICABLE"
+    price_semantic: null
+    time_semantic: null
+    adjustment_state: "NOT_APPLICABLE"
+    source_enum_map:
+      "0": "BUY"
+      "1": "SELL"
+      "2": "UNKNOWN"
+    allowed_missing_states: ["PRESENT", "NOT_AVAILABLE", "SOURCE_MISSING", "PERMISSION_OR_ENTITLEMENT_UNVERIFIED", "UNVERIFIED", "UNKNOWN"]
+    canonical_persistable: true
+    valid_from: null
+    valid_until: null
+    evidence_ref: "official:https://help.tdx.com.cn/quant/docs/markdown/mindoc-1hjbgqpdhv114/mindoc-1hjbidnohpjn4.html"
+    last_verified_at: "2026-09-01T23:21:00-05:00"
+
+  - semantic_field_id: "TDXQUANT.TICK.TIME.DOCREF.V1"
+    semantic_version: "1.0"
+    source_system: "TDXQUANT_OFFICIAL_DOC"
+    source_version: "OFFICIAL_DOC_CURRENT_AT_2026_09_01"
+    source_field_name: "Time"
+    canonical_field_ref: "trade.exchange_time_source"
+    primitive_type: "STRING"
+    unit_kind: "TIME"
+    unit_symbol: "SOURCE_FORMAT"
+    unit_scale: "1"
+    fixed_scale: null
+    tick_size: null
+    tick_size_ref: null
+    rounding_policy: "NOT_APPLICABLE"
+    price_semantic: null
+    time_semantic: "EXCHANGE_TIME"
+    adjustment_state: "NOT_APPLICABLE"
+    source_enum_map: {}
+    allowed_missing_states: ["PRESENT", "SOURCE_MISSING", "PERMISSION_OR_ENTITLEMENT_UNVERIFIED", "UNVERIFIED", "UNKNOWN"]
+    canonical_persistable: true
+    valid_from: null
+    valid_until: null
+    evidence_ref: "official:https://help.tdx.com.cn/quant/docs/markdown/mindoc-1hjbgqpdhv114/mindoc-1hjbidnohpjn4.html"
+    last_verified_at: "2026-09-01T23:21:00-05:00"
+
+capability_observations:
+  - observation_id: "TDXQUANT-GET-TICK-DATA-OFFICIAL-DOC-2026-09-01"
+    provider: "TDX"
+    product: "TdxQuant"
+    capability_id: "GET_TICK_DATA"
+    method: "get_tick_data"
+    evidence_class: "OFFICIAL_DOCUMENTED"
+    observed_at: "2026-09-01T23:21:00-05:00"
+    local_runtime_observed: false
+    documented_fields: ["Time", "Price", "Volume", "BSFlag"]
+    observed_fields: []
+    documentation_version: "OFFICIAL_DOC_CURRENT_AT_2026_09_01"
+    runtime_version: null
+    entitlement_state: "UNVERIFIED"
+    semantic_field_refs: ["TDXQUANT.TICK.PRICE.DOCREF.V1", "TDXQUANT.TICK.VOLUME.DOCREF.V1", "TDXQUANT.TICK.BSFLAG.DOCREF.V1", "TDXQUANT.TICK.TIME.DOCREF.V1"]
+    evidence_refs: ["official:https://help.tdx.com.cn/quant/docs/markdown/mindoc-1hjbgqpdhv114/mindoc-1hjbidnohpjn4.html"]
+    invalidation_conditions: ["official_documentation_change", "installed_runtime_version_change", "entitlement_change"]
+    next_verification_action: "Run a separately authorized local-runtime A/B capability probe; preserve this documentation observation unchanged."
