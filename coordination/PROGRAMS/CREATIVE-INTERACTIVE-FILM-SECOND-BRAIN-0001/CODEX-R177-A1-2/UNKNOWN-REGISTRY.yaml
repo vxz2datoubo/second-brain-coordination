@@ -1,0 +1,21 @@
+schema: UNKNOWN_REGISTRY/v1
+task_id: CODEX-A1-2-PERSISTENT-SCRIPT-CATALOG-DIRECTORBRIEF-R177
+unknowns:
+  - id: R177-U1-DIRECTORY-DURABILITY
+    fact: Exact directory-entry durability across sudden host power loss is filesystem and host dependent.
+    current_behavior: File content is flushed and replaced atomically; reload always revalidates the complete document.
+    owner: WORKBUDDY_FUTURE_LOCAL_CAPABILITY_TASK
+    trigger: before local production storage selection
+    measurement: platform-specific power-loss or fault-injection rehearsal
+  - id: R177-U2-STALE-LOCK-OWNERSHIP
+    fact: A crash after lock creation can leave a lock without provable live owner identity.
+    current_behavior: Fail closed with CATALOG_WRITE_BUSY; never delete an unknown lock automatically.
+    owner: CODEX_ARCHITECTURE_PLUS_WORKBUDDY_LOCAL_VALIDATION
+    trigger: before multi-process authoring is enabled
+    measurement: define lock receipt and operator recovery protocol
+  - id: R177-U3-SCALE_LIMIT
+    fact: Catalog size and package-count limits are not yet evidence-based.
+    current_behavior: No invented limit; two approved synthetic fixtures are tested.
+    owner: PRODUCT_PERFORMANCE_OWNER
+    trigger: measured catalog growth or latency budget definition
+    measurement: record package count, encoded bytes, load latency and memory on target hardware
