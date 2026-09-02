@@ -32,24 +32,159 @@ jobs:
         python-version: ["3.11", "3.13"]
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install test-only YAML parser
         run: python -m pip install --disable-pip-version-check PyYAML==6.0.2
-      - name: Run targeted regressions
+      - name: Compile CI-isolation helper
+        working-directory: coordination/CONTROL-TOWER
+        run: python -m py_compile integration_state_isolation.py tests/test_integration_state_isolation.py
+      - name: Attack unproven object-address and temp-path normalization
+        working-directory: coordination/CONTROL-TOWER
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import tempfile
+
+          from integration_state_isolation import failure_fingerprint, normalize_failure_text
+
+          semantic_pairs = (
+              ('AssertionError: expected <mask at 0x20>', 'AssertionError: expected <mask at 0x40>'),
+              ('AssertionError: expected <mask object at 0x20>', 'AssertionError: expected <mask object at 0x40>'),
+              ('AssertionError: expected <capability object at 0x20>', 'AssertionError: expected <capability object at 0x40>'),
+              ('<Probe object at 0xABCDEF>', '<Probe object at 0x123456>'),
+          )
+          for left, right in semantic_pairs:
+              assert normalize_failure_text(left) == left
+              assert normalize_failure_text(right) == right
+              assert failure_fingerprint('FAIL', left) != failure_fingerprint('FAIL', right)
+
+          trace_left = 'File "/tmp/a/repo/test.py", line 12, in test_x\nAssertionError: stable'
+          trace_right = 'File "/tmp/b/repo/test.py", line 998, in test_x\nAssertionError: stable'
+          assert failure_fingerprint('FAIL', trace_left, roots=['/tmp/a/repo']) == failure_fingerprint(
+              'FAIL', trace_right, roots=['/tmp/b/repo']
+          )
+
+          with tempfile.TemporaryDirectory() as first_dir, tempfile.TemporaryDirectory() as second_dir:
+              assert Path(first_dir).name != Path(second_dir).name
+              same_left = f"AssertionError: artifact at {Path(first_dir) / 'result.json'}"
+              same_right = f"AssertionError: artifact at {Path(second_dir) / 'result.json'}"
+              same_left_fp = failure_fingerprint('FAIL', same_left)
+              same_right_fp = failure_fingerprint('FAIL', same_right)
+              assert normalize_failure_text(same_left) == normalize_failure_text(same_right)
+              assert same_left_fp == same_right_fp
+
+              semantic_right = f"AssertionError: artifact at {Path(second_dir) / 'other.json'}"
+              assert normalize_failure_text(same_left) != normalize_failure_text(semantic_right)
+              assert same_left_fp != failure_fingerprint('FAIL', semantic_right)
+
+          temp_root = Path(tempfile.gettempdir())
+          semantic_path_left = f"AssertionError: artifact at {temp_root / 'semantic-alpha' / 'result.json'}"
+          semantic_path_right = f"AssertionError: artifact at {temp_root / 'semantic-beta' / 'result.json'}"
+          assert normalize_failure_text(semantic_path_left) != normalize_failure_text(semantic_path_right)
+          assert failure_fingerprint('FAIL', semantic_path_left) != failure_fingerprint('FAIL', semantic_path_right)
+
+          print('R168_PROVENANCE_SAFE_NORMALIZATION_PASS')
+          PY
+      - name: Attack candidate remote-ref namespace
+        working-directory: coordination/CONTROL-TOWER
+        run: |
+          python - <<'PY'
+          from integration_state_isolation import IsolationError, _remote_ref
+
+          accepted = {
+              'feature/fork-safe': 'refs/heads/feature/fork-safe',
+              'refs/heads/feature/fork-safe': 'refs/heads/feature/fork-safe',
+              'refs/pull/517/head': 'refs/pull/517/head',
+              'refs/pull/1/head': 'refs/pull/1/head',
+          }
+          for supplied, expected in accepted.items():
+              assert _remote_ref(supplied) == expected, (supplied, _remote_ref(supplied))
+
+          rejected = (
+              '',
+              'refs/tags/v1.0',
+              'refs/pull/517/merge',
+              'refs/pull/not-a-number/head',
+              'refs/pull/0/head',
+              'refs/notes/security',
+              'bad..branch',
+              'bad@{branch',
+              'bad//branch',
+              '-candidate',
+          )
+          for supplied in rejected:
+              try:
+                  _remote_ref(supplied)
+              except IsolationError:
+                  pass
+              else:
+                  raise AssertionError(f'candidate ref unexpectedly accepted: {supplied!r}')
+          print('R168_FORK_SAFE_REMOTE_REF_NAMESPACE_PASS')
+          PY
+      - name: Run CI-isolation focused regressions absolutely
+        working-directory: coordination/CONTROL-TOWER
+        run: python -m unittest discover -s tests -p 'test_integration_state_isolation.py' -v
+      - name: Prove current-main versus exact-candidate Control Tower delta
+        if: ${{ github.event_name == 'pull_request' }}
+        working-directory: coordination/CONTROL-TOWER
+        env:
+          CANDIDATE_REF: refs/pull/${{ github.event.pull_request.number }}/head
+          EXPECTED_CANDIDATE_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          REMOTE_CANDIDATE_SHA="$(git ls-remote origin "$CANDIDATE_REF" | awk 'NR == 1 {print $1}')"
+          test -n "$REMOTE_CANDIDATE_SHA"
+          test "$REMOTE_CANDIDATE_SHA" = "$EXPECTED_CANDIDATE_SHA"
+          python integration_state_isolation.py proof \
+            --repo-root ../.. \
+            --candidate-branch "$CANDIDATE_REF" \
+            --test-dir coordination/CONTROL-TOWER/tests \
+            --output /tmp/control-tower-integration-state-receipt.json
+          python -m json.tool /tmp/control-tower-integration-state-receipt.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          receipt = json.loads(Path('/tmp/control-tower-integration-state-receipt.json').read_text())
+          assert receipt['classification'] == 'PASS_NO_CANDIDATE_REGRESSION', receipt
+          assert receipt['baseline_declared_healthy'] is False
+          assert receipt['authority'] and all(value is False for value in receipt['authority'].values())
+          assert not receipt['candidate_introduced_command_failures'], receipt
+          assert not receipt['candidate_modified_baseline_command_failures'], receipt
+          print('integration_state_isolation=PASS')
+          print('baseline_failures_preserved=', len(receipt['baseline_failures_preserved']))
+          print('baseline_command_failures_preserved=', len(receipt['baseline_command_failures_preserved']))
+          print('candidate_only_tests=', len(receipt['candidate_only_test_ids']))
+          print('command_observations=', len(receipt['per_command_observations']))
+          print('receipt_digest=', receipt['receipt_digest'])
+          PY
+      - name: Verify candidate diff whitespace
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          git fetch --no-tags origin main
+          BASE="$(git merge-base origin/main HEAD)"
+          git diff --check "$BASE"...HEAD
+      - name: Run full retained suite on workflow dispatch
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         working-directory: coordination/CONTROL-TOWER
         run: python run_all_tests.py
       - name: Reconcile current canonical control-plane state
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         working-directory: coordination/CONTROL-TOWER
         run: python run_control_tower.py check --repo-root ../..
       - name: Validate Program Lane work claims
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         working-directory: coordination/CONTROL-TOWER
         run: python run_lane_claims.py --repo-root ../..
       - name: Verify work-claim bulletin projection
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         working-directory: coordination/CONTROL-TOWER
         run: python run_claim_projection.py check --repo-root ../..
       - name: Verify durable authorization witness round trips
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         working-directory: coordination/CONTROL-TOWER
         run: |
           python run_authorization_witness.py create --repo-root ../.. --lane LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP > /tmp/control-tower-lane-c-witness.json
@@ -57,5 +192,6 @@ jobs:
           python run_authorization_witness.py create --repo-root ../.. --lane LANE-B-A-SHARE-REMEDIATION > /tmp/control-tower-lane-b-witness.json
           python run_authorization_witness.py verify --repo-root ../.. --lane LANE-B-A-SHARE-REMEDIATION --witness-file /tmp/control-tower-lane-b-witness.json
       - name: Emit Codex route witness
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         working-directory: coordination/CONTROL-TOWER
         run: python run_control_tower.py witness --repo-root ../.. --agent CODEX
