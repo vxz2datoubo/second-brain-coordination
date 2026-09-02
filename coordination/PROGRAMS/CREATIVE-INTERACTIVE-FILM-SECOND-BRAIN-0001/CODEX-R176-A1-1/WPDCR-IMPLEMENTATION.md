@@ -1,6 +1,6 @@
 # R176 implementation discovery and WPDCR
 
-`agent_id: CODEX`  
+`agent_id: CODEX`
 `status: EXECUTOR_VERIFIED_ONLY`
 
 ## Seven discovery questions
