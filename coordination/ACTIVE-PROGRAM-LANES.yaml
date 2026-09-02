@@ -13,31 +13,38 @@ portfolio_capacity_policy:
   same_canonical_object_writers_max: 1
   nested_parallelism: FORBIDDEN
 current_user_release_policy:
-  decision: R171_CODEX_V2_CONTINUATION_DURABILITY + R168_LANE_A_CI_ISOLATION + R166_W5_WAITING_REVIEW
-  rationale: R170 PR #511 is frozen after independent CHANGES_REQUIRED review 5059784113. R171 is a clean CODEX successor from current canonical main and writes only interactive-film runtime/test/task-local surfaces; R168 Control Tower and R166 W5 surfaces do not collide.
+  decision: R181_CODEX_A2_2_SHOT_BUNDLE + R182_W2_MARKET_SEMANTIC_CAPABILITY + R166_ACCEPTED_EXECUTION_RELEASED + R168_CANONICALIZED_RELEASED
+  rationale: >-
+    Current explicit user direction is immediate trading-system construction. R166 PR #504 is independently ACCEPTED on exact head
+    cc982f33ad87601a0327e595125272ea4954cdce, so future engineering writes are released without Ready/merge/canonicalization.
+    R182 uses one GPT slot for a non-overlapping W2 market-semantic/capability validation slice. R168 implementation PR #517 was
+    independently ACCEPTED and canonicalized as 7c77e303a124f1debfb52f497eccd1db3f9f7cb4, so its engineering slot is now released
+    rather than retained as a current Control Tower reservation. CODEX R181 remains a separate agent/type with no R182 path overlap.
   auxiliary_bounded_releases:
-    - task_id: CODEX-R170-V2-CONTINUATION-DURABILITY-R171
-      route_epoch: 171
-      issue: 512
+    - task_id: CODEX-A2-2-SHOT-BUNDLE-R181
+      route_epoch: 181
+      issue: 548
       agent_type: CODEX
-      worker_slot_id: CODEX-R171-INTERACTIVE-FILM-V2-CONTINUATION-1
-      route: coordination/ROUTES/CODEX-R170-V2-CONTINUATION-DURABILITY-R171.yaml
-      implementation_baseline: 5574ebf4287691aed3f5789e895bb5c55451f209
-      branch: codex/r171-r170-v2-continuation-durability
-      status: ACTIVE_GOVERNED_PREWRITE
+      branch: codex/r181-a2-2-shot-bundle-static-compiler
+      status: ACTIVE_GOVERNED_EXECUTION
       execution_allowed: true
-      substantive_write_gate: ISSUE_512_EFFECTIVE_SPEC_SNAPSHOT_REQUIRED
-    - task_id: GPT-CANONICAL-CI-STATE-ISOLATION-R168
-      route_epoch: 168
-      issue: 496
+    - task_id: GPT-W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182
+      route_epoch: 182
+      issue: 550
       agent_type: GPT_ENGINEERING_WORKER
+      worker_slot_id: GPT-WORKER-R182-W2-MARKET-SEMANTICS-1
+      branch: gpt/r182-w2-market-semantic-capability-gate
       status: ACTIVE_GOVERNED_PREWRITE
       execution_allowed: true
+      substantive_write_gate: ISSUE_550_EFFECTIVE_SPEC_SNAPSHOT_REQUIRED
     - task_id: GPT-W5-EVENT-COVERAGE-CLEAN-SUCCESSOR-R166
       route_epoch: 166
       issue: 501
       agent_type: GPT_ENGINEERING_WORKER
-      status: WAITING_INDEPENDENT_REVIEW
+      pr: 504
+      exact_head: cc982f33ad87601a0327e595125272ea4954cdce
+      status: INDEPENDENTLY_ACCEPTED_AWAITING_SEPARATE_CANONICALIZATION
+      execution_allowed: false
 historical_execution_refs:
   r170:
     issue: 509
@@ -59,33 +66,55 @@ historical_execution_refs:
     issue: 499
     pr: 502
     status: FROZEN_AFTER_INDEPENDENT_REVIEW_BLOCKED
+  r166:
+    issue: 501
+    pr: 504
+    reviewed_head: cc982f33ad87601a0327e595125272ea4954cdce
+    independent_review: 5063417708
+    review_result: 5474215140
+    status: INDEPENDENTLY_ACCEPTED_EXECUTION_RELEASED_AWAITING_CANONICALIZATION
+  r168:
+    issue: 496
+    pr: 517
+    reviewed_head: 6a00939495ec7d8c974e5fbe8a8940a56dec3855
+    independent_review: 5066628944
+    review_result: 5478588001
+    exact_head_ci: 33382974470
+    merge_commit: 7c77e303a124f1debfb52f497eccd1db3f9f7cb4
+    status: CANONICALIZED_EXECUTION_RELEASED
 observed_agent_state:
   CODEX:
-    observed_task_id: CODEX-R170-V2-CONTINUATION-DURABILITY-R171
-    observed_route_epoch: 171
-    observed_issue: 512
+    observed_task_id: CODEX-A2-2-SHOT-BUNDLE-R181
+    observed_route_epoch: 181
+    observed_issue: 548
     execution_allowed: true
   GPT_ENGINEERING_WORKER:
-    observed_status: R166_WAITING_REVIEW + R168_ACTIVE_PREWRITE
+    observed_status: R182_ACTIVE_PREWRITE + R166_ACCEPTED_EXECUTION_RELEASED + R168_CANONICALIZED_RELEASED
 program_lanes:
   - lane_id: LANE-A-HARNESS-INTEGRATION
-    observed_state: R168_CANONICAL_CI_STATE_ISOLATION_ACTIVE_PREWRITE
-    implementation_owner: GPT_ENGINEERING_WORKER
+    observed_state: R168_CANONICALIZED_RELEASED_NO_ACTIVE_IMPLEMENTATION
+    implementation_owner: null
   - lane_id: LANE-B-A-SHARE-REMEDIATION
-    observed_state: R166_W5_GPT_WORKER_WAITING_REVIEW
+    observed_state: R182_W2_MARKET_SEMANTIC_CAPABILITY_ACTIVE_PREWRITE
     implementation_owner: GPT_ENGINEERING_WORKER
     trading_authorized: false
+    predecessor_r166: INDEPENDENTLY_ACCEPTED_EXECUTION_RELEASED_AWAITING_CANONICALIZATION
   - lane_id: LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP
-    mission: Bounded interactive-film v2 continuation durability with immutable legacy-source provenance.
-    observed_state: R171_CODEX_V2_CONTINUATION_ACTIVE_PREWRITE
-    current_phase: ISSUE_512_EFFECTIVE_SPEC_SNAPSHOT_REQUIRED
-    active_execution_route: coordination/ROUTES/CODEX-R170-V2-CONTINUATION-DURABILITY-R171.yaml
+    mission: Bounded interactive-film A2.2 immutable ShotBundle and shot-responsibility compilation.
+    observed_state: R181_CODEX_A2_2_ACTIVE
+    current_phase: EXECUTION
     implementation_owner: CODEX
-    worker_slot_id: CODEX-R171-INTERACTIVE-FILM-V2-CONTINUATION-1
+    worker_slot_id: CODEX-R181-SHOT-BUNDLE-A2-2-1
     canonical_knowledge_write_authorized: false
 cross_lane_overlap_matrix:
+  - pair: [LANE-A-HARNESS-INTEGRATION, LANE-B-A-SHARE-REMEDIATION]
+    overlap_level: O0_NO_MATERIAL_WRITE_OVERLAP
   - pair: [LANE-A-HARNESS-INTEGRATION, LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP]
-    overlap_level: O1_READ_ONLY_COEXISTENCE
+    overlap_level: O0_NO_MATERIAL_WRITE_OVERLAP
   - pair: [LANE-B-A-SHARE-REMEDIATION, LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP]
     overlap_level: O0_NO_MATERIAL_WRITE_OVERLAP
-reconciliation_rule: R171 execution truth is its CODEX route + claim/lease/reservation + witness + Control Tower scan + Issue #512 pre-write snapshot; PR #511/#508/#506/#502/#495/#493 remain frozen/reference evidence only.
+reconciliation_rule: >-
+  R182 execution truth is Issue #550 + its canonical Route/Claim/Witness/Lease/Reservation/worker slot/activation scan followed by
+  an Issue #550 EFFECTIVE_SPEC_SNAPSHOT/v1. No branch or substantive W2 write may exist before that snapshot. R168 implementation
+  is canonical history and its GPT worker slot is RELEASED; historical R168 route/task artifacts do not independently recreate a
+  current execution lease. R166 ACCEPT does not authorize Ready or merge; its released engineering identity cannot mutate PR #504.
