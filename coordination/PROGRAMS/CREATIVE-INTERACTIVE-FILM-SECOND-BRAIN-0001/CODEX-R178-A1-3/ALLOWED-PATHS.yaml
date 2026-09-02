@@ -1,0 +1,44 @@
+schema: ALLOWED_PATHS/v1
+project: CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001
+task_id: CODEX-A1-3-DIRECTORBRIEF-V2-MULTISCRIPT-R178
+route_epoch: 178
+source_issue: 538
+policy: FAIL_CLOSED_EXACT_TASK_SCOPE
+allowed:
+  - creative_runtime/**
+  - tests/**
+  - tools/**
+  - coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R178-A1-3/**
+  - .github/workflows/creative-runtime-offline.yml
+forbidden_overrides:
+  - tests/workbuddy/**
+  - tools/workbuddy/**
+  - coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/**
+  - creative_runtime/session_v2.py
+  - apps/cli/**
+  - saves/**
+semantic_forbidden_surfaces:
+  - PLAYER_CAMPAIGN_WRITE
+  - CREATIVESESSION_V2_SESSION_LEDGER_MIGRATION_SAVE_SLOT_WRITE
+  - DIRECTOR_TASK_JOB_QUEUE_SCHEDULER_PERSISTENCE
+  - MEDIA_TASK_JOB_OR_GENERATION_AUTHORITY
+  - EXTERNAL_PROVIDER_NETWORK_MODEL_RUNTIME
+  - CREDENTIAL_SECRET_REAL_PRIVATE_CUSTOMER_DATA
+  - DEPLOYMENT_PUBLIC_RELEASE_TRADING_CANONICAL_KNOWLEDGE
+pr_mutation_forbidden:
+  - 535
+  - 537
+frozen_prs_no_mutation_import_reuse:
+  - 493
+  - 495
+  - 502
+  - 506
+  - 508
+  - 511
+  - 513
+  - 525
+  - 527
+required_scope_verification:
+  - every changed path must be justified as DirectorBrief/v2 compiled-content or read-only multi-script switching, task-local evidence, test, verifier, or offline workflow support
+  - generic creative_runtime wildcard does not authorize session/job/media/provider authority
+  - any ambiguous path or semantic expansion fails closed and stops execution
