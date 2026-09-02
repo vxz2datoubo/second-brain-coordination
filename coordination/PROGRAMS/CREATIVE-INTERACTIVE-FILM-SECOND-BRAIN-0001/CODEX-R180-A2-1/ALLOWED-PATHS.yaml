@@ -1,0 +1,28 @@
+schema: ALLOWED_PATHS/v1
+task_id: CODEX-A2-1-DIRECTOR-BEAT-PLAN-R180
+route_epoch: 180
+policy: FAIL_CLOSED_EXACT_SCOPE
+allow:
+  - creative_runtime/director_beat_plan.py
+  - creative_runtime/DIRECTOR_BEAT_PLAN_V1.md
+  - creative_runtime/__init__.py
+  - creative_runtime/contracts.py
+  - tests/test_creative_director_beat_plan.py
+  - tools/verify_r180_scope.py
+  - coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R180-A2-1/**
+  - .github/workflows/creative-runtime-offline.yml
+conditional_existing_source_reads_only:
+  - creative_runtime/director_v2.py
+  - creative_runtime/story_graph.py
+  - creative_runtime/story_bibles.py
+  - creative_runtime/flagship_story_fixture.py
+forbid:
+  - tests/workbuddy/**
+  - tools/workbuddy/**
+  - coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/**
+  - any GPT R172 PlayerCampaign CreativeSession session-ledger migration save-slot implementation surface
+  - any NarrativeState persistence runtime-state resolver gateway or campaign reducer surface
+  - any director-job media-job queue scheduler provider network credential deployment trading or canonical-knowledge surface
+notes:
+  - Existing R178/R179 source files are dependency inputs and must not be modified unless a narrowly necessary compatibility edit is explicitly justified in WPDCR and remains inside the listed writable files.
+  - .github workflow edits are allowed only to bind R180 exact-head offline verification and may not widen runtime authority.
