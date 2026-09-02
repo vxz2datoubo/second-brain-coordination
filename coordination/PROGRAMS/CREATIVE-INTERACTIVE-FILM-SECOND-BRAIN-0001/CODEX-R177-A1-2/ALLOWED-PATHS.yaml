@@ -1,0 +1,28 @@
+schema: ALLOWED_PATHS/v1
+task_id: CODEX-A1-2-PERSISTENT-SCRIPT-CATALOG-DIRECTORBRIEF-R177
+route_epoch: 177
+source_issue: 536
+mode: FAIL_CLOSED_ALLOWLIST
+allowed:
+  - creative_runtime/**
+  - tests/**
+  - tools/**
+  - coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R177-A1-2/**
+  - .github/workflows/creative-runtime-offline.yml
+explicit_exclusions:
+  - tests/workbuddy/**
+  - tools/workbuddy/**
+  - coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/**
+  - creative_runtime/session_v2.py
+  - apps/cli/creativectl.py
+  - any PlayerCampaign/session ledger/migration/save-slot authority surface owned by GPT R172 Issue 515
+  - coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/SINGLE-V2-AUTHORITY-R172/**
+  - coordination/ACTIVE-WORKBUDDY-TASK.yaml
+  - coordination/ROUTES/WORKBUDDY-R175-ORDERED-BATCH.yaml
+  - PR_535_OR_PREDECESSOR_BRANCH_MUTATION
+rules:
+  use_smallest_subset: true
+  unknown_path: REJECT
+  workbuddy_overlap: REJECT
+  gpt_r172_overlap: REJECT
+  predecessor_pr_mutation: REJECT
