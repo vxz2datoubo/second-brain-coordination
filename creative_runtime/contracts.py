@@ -247,3 +247,34 @@ class DirectorScriptSelection:
 
     def to_dict(self) -> dict[str, Any]:
         return _json_value(self)
+
+
+@dataclass(frozen=True)
+class ScriptCatalogEntry:
+    """Immutable public metadata for one persisted approved package."""
+
+    script_id: str
+    script_revision: str
+    package_hash: str
+    approval_status: str
+    style_profile_ids: tuple[str, ...]
+
+    def to_dict(self) -> dict[str, Any]:
+        return _json_value(self)
+
+
+@dataclass(frozen=True)
+class DirectorBriefV2ContentSelection:
+    """Revalidatable content identity consumed by a future DirectorBrief/v2."""
+
+    catalog_hash: str
+    script_id: str
+    script_revision: str
+    package_hash: str
+    style_profile_id: str
+    asset_manifest_hash: str
+    source_provenance_hash: str
+    schema_version: str = "DirectorBrief/v2.content-selection"
+
+    def to_dict(self) -> dict[str, Any]:
+        return _json_value(self)

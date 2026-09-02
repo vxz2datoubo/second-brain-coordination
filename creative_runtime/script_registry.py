@@ -155,7 +155,7 @@ def parse_script_package_json(text: str) -> ScriptPackage:
 
 
 class ScriptPackageRegistry:
-    """In-memory immutable registry keyed by exact script ID and revision."""
+    """In-memory registry keyed by exact script ID, revision and package hash."""
 
     def __init__(self) -> None:
         self._packages: dict[tuple[str, str, str], ScriptPackage] = {}
