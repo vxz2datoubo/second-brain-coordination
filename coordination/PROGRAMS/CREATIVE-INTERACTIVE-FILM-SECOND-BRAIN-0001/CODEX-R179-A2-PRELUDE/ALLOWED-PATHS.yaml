@@ -1,0 +1,29 @@
+schema: ALLOWED_PATHS/v1
+task_id: CODEX-A2-PRELUDE-STORYGRAPH-BIBLES-R179
+route_epoch: 179
+policy: FAIL_CLOSED
+allowed:
+  - creative_runtime/story_graph.py
+  - creative_runtime/story_bibles.py
+  - creative_runtime/flagship_story_fixture.py
+  - creative_runtime/__init__.py
+  - creative_runtime/SCRIPT_PACKAGE_V1.md
+  - tests/test_creative_story_graph.py
+  - tests/test_creative_story_bibles.py
+  - tests/test_creative_flagship_story.py
+  - tools/verify_r179_scope.py
+  - coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R179-A2-PRELUDE/**
+  - .github/workflows/creative-runtime-offline.yml
+forbidden:
+  - tests/workbuddy/**
+  - tools/workbuddy/**
+  - coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/**
+  - creative_runtime/session*.py
+  - creative_runtime/*session*.py
+  - creative_runtime/*campaign*.py
+  - creative_runtime/generation.py
+  - any GPT R172 Issue 515 implementation/test/governance surface
+  - any PlayerCampaign/CreativeSession/v2/session-ledger/migration/save-slot/NarrativeState persistence surface
+  - any director-job/media-job/queue/scheduler/provider/credential/deployment surface
+rule: >-
+  If implementation needs any path outside this allowlist, stop and publish a governance boundary finding; do not widen the allowlist from the implementation branch.
