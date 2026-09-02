@@ -30,8 +30,20 @@ closeout_branch:
   fresh_main_reconciled_during_closeout: "09b95ad8e4b8b540791be68aceafb0baba21cbcb"
   purpose: "CURRENT_AUTHORITY_RELEASE_PLUS_WORKER_REGISTRY_AND_PROGRAM_PROJECTION_NORMALIZATION"
 
+review_remediation:
+  reviewed_head: "fe3be9651d724c327895f044dc8e1a4dc09e92c7"
+  independent_review: "pullrequestreview-5091558507"
+  verdict: "CHANGES_REQUIRED"
+  p1: "BIND_SUPERSESSION_INTO_LIVE_AUTHORITY_GRAPH"
+  inline_finding: "pullrequestreviewcomment-3915677039"
+  remediation: >-
+    Terminalize the current R168 Route and Work Claim, bind this closeout receipt from the canonical worker slot and both terminal
+    authority artifacts, and preserve the old executable state only as explicit historical provenance. A historical Lease,
+    Reservation, Witness or Activation Scan cannot independently reactivate execution because the current Route, Work Claim and
+    worker slot are all non-executable.
+
 validator_contract_reconciliation:
-  trigger: "R168 comparator / Codex P1 on PR #545"
+  trigger: "R168 comparator plus independent T3 findings on PR #545"
   canonical_worker_validator: "coordination/CONTROL-TOWER/worker_slots.py"
   canonical_program_validator: "coordination/CONTROL-TOWER/control_tower.py"
   required_registry_schema: "1.0"
@@ -55,15 +67,16 @@ validator_contract_reconciliation:
     r163: "unsupported FROZEN/superseded state labels -> RELEASED/RELEASED; execution remains false"
     r164: "unsupported FROZEN/superseded state labels -> RELEASED/RELEASED; execution remains false"
     r166: "already RELEASED; unchanged in authority"
-    r168: "canonicalized implementation -> RELEASED/RELEASED; execution false"
-    r182: "engineering complete/frozen on PR #551 -> RELEASED/RELEASED; execution false"
+    r168_worker_slot: "canonicalized implementation -> RELEASED/RELEASED; execution false"
+    r168_route: "terminalized to CLOSED_HISTORY_ONLY_CANONICALIZED / execution false / runtime write false"
+    r168_work_claim: "terminalized to RELEASED_HISTORY_ONLY / execution false / current_claim_scope empty"
+    r182: "fresh independent review CHANGES_REQUIRED; execution remains false; remediation requires fresh release"
     program_lanes: "restore complete canonical lane contract fields without creating a new execution authority"
     observed_agents: "bind exact CODEX R181 / QCLAW R60 / WorkBuddy R175 current route projections"
-    human_projection: "regenerate CONTROL_TOWER_AUTOGEN block from the reconciled current facts"
+    human_projection: "regenerate CONTROL_TOWER_AUTOGEN block from reconciled current facts"
   rule: >-
-    State-label and current-projection normalization does not rewrite implementation provenance. RELEASED is the validator-supported
-    terminal GPT worker authority state; task/PR/review/history remains in provenance fields and Git history. The Program Control Tower
-    projection is derived current-state observability, not an independent execution authority.
+    Current authority sources must be mechanically non-executable after release. Historical execution facts remain available through
+    explicit historical fields and Git history, but no historical true/active observation may be consumed as present authority.
 
 fresh_concurrency_reconciliation:
   r181_preserved: "CODEX-A2-2-SHOT-BUNDLE-R181 / separate agent execution"
@@ -71,14 +84,15 @@ fresh_concurrency_reconciliation:
   qclaw_r60_preserved: "DONE_HISTORICAL / NO_EXECUTION"
   r166_preserved: "INDEPENDENTLY_ACCEPTED_EXECUTION_RELEASED_AWAITING_CANONICALIZATION"
   r168_preserved: "CANONICALIZED_HISTORY_EXECUTION_RELEASED"
-  r182_engineering_completion:
+  r182_review_state:
     issue: 550
     pr: 551
     exact_head: "c436df7d99f2ee66915e436ee1629835aad14bad"
     dedicated_ci: 33592468996
     engineering_handoff: 5505798658
-    independent_review_ticket: 5505800859
-    disposition: "ENGINEERING_FROZEN_EXECUTION_RELEASED_AWAITING_INDEPENDENT_REVIEW"
+    independent_review: 5090747771
+    verdict: "CHANGES_REQUIRED"
+    disposition: "EXECUTION_RELEASED / NO_REMEDIATION_WITHOUT_FRESH_GOVERNED_RELEASE"
   no_r181_runtime_or_task_local_file_modified: true
   no_r182_runtime_or_task_local_file_modified_by_this_closeout: true
 
@@ -88,6 +102,10 @@ current_authority_release:
     activation_state_after_closeout: RELEASED
     closure_state_after_closeout: RELEASED
     execution_allowed_after_closeout: false
+    route_state_after_closeout: "CLOSED_HISTORY_ONLY_CANONICALIZED"
+    route_execution_allowed_after_closeout: false
+    work_claim_state_after_closeout: "RELEASED_HISTORY_ONLY"
+    work_claim_execution_allowed_after_closeout: false
     active_write_paths_after_closeout: []
     resource_class_after_closeout: FROZEN_NO_EXECUTION
     lane_projection: "R168_CANONICALIZED_RELEASED / NO_ACTIVE_GPT_IMPLEMENTATION"
@@ -96,47 +114,71 @@ current_authority_release:
     activation_state_after_closeout: RELEASED
     closure_state_after_closeout: RELEASED
     execution_allowed_after_closeout: false
+    current_review_verdict: "CHANGES_REQUIRED"
+    remediation_release_required: true
     active_write_paths_after_closeout: []
     resource_class_after_closeout: FROZEN_NO_EXECUTION
-    lane_projection: "R182_ENGINEERING_FROZEN_WAITING_INDEPENDENT_REVIEW / NO_ACTIVE_GPT_IMPLEMENTATION"
+    lane_projection: "R182_CHANGES_REQUIRED / NO_ACTIVE_GPT_IMPLEMENTATION"
   canonical_lane_claims:
     lane_a: CLOSED_NO_ACTIVE_IMPLEMENTATION
     lane_b: CLOSED_NO_ACTIVE_IMPLEMENTATION
     lane_c: CLOSED_NO_ACTIVE_IMPLEMENTATION
   effective_gpt_execution_authority_after_closeout: false
 
-live_authority_supersession:
-  precedent: "R166 PostReviewExecutionRelease/v1"
-  supersedes_live_execution_semantics_of:
-    - "coordination/ROUTES/GPT-CANONICAL-CI-STATE-ISOLATION-R168.yaml"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/WORK-CLAIM.yaml"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/TASK-LEASE.yaml"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/EXECUTOR-RESERVATION.yaml"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/AUTHORIZATION-WITNESS.yaml"
-  historical_artifacts_become_provenance_only_after_closeout: true
-  historical_execution_allowed_fields_do_not_reactivate_authority: true
-  current_authority_source: "ACTIVE-GPT-ENGINEERING-WORKERS RELEASED state + current Program Lane/Work-Claim projection + this monotonic closeout receipt"
-  reactivation_requires_new_governed_route_claim_witness_lease_reservation_snapshot: true
+authority_graph_terminalization:
+  canonical_worker_slot:
+    path: "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+    state: "RELEASED"
+    execution_allowed: false
+    closeout_receipt_backlink_required: true
+  route:
+    path: "coordination/ROUTES/GPT-CANONICAL-CI-STATE-ISOLATION-R168.yaml"
+    state: "CLOSED_HISTORY_ONLY_CANONICALIZED"
+    execution_allowed: false
+    runtime_code_change_allowed: false
+    closeout_receipt_backlink_required: true
+  work_claim:
+    path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/WORK-CLAIM.yaml"
+    state: "RELEASED_HISTORY_ONLY"
+    execution_allowed_observed: false
+    current_claim_scope: []
+    closeout_receipt_backlink_required: true
+  historical_supporting_artifacts:
+    task_lease: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/TASK-LEASE.yaml"
+    executor_reservation: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/EXECUTOR-RESERVATION.yaml"
+    authorization_witness: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/AUTHORIZATION-WITNESS.yaml"
+    activation_scan: "coordination/CONTROL-TOWER/R168-CANONICAL-CI-STATE-ISOLATION-ACTIVATION-SCAN.yaml"
+    semantics: >-
+      Historical execution-time observations remain immutable evidence. They are subordinate to the terminal current Route, terminal
+      current Work Claim and RELEASED canonical worker slot, and cannot independently mint or reactivate a current execution lease.
+  reactivation_requires:
+    - "new task/route epoch"
+    - "fresh Route"
+    - "fresh Work Claim"
+    - "fresh Authorization Witness"
+    - "fresh Task Lease"
+    - "fresh Executor Reservation"
+    - "fresh worker-slot activation"
+    - "fresh collision/capacity scan"
+    - "fresh EFFECTIVE_SPEC_SNAPSHOT/v1"
   retroactive_reactivation_forbidden: true
-  rationale: >-
-    R168's prewrite Route/Claim/Lease/Reservation/Witness accurately record the authority that existed at execution time and are
-    therefore preserved as immutable provenance. After the independently accepted implementation was canonicalized, this closeout
-    monotonically supersedes only their live-execution effect. Their historical `execution_allowed` observations cannot mint a new
-    current worker lease once the canonical worker slot is RELEASED.
 
-historical_r168_bindings_preserved_unchanged:
-  route: "coordination/ROUTES/GPT-CANONICAL-CI-STATE-ISOLATION-R168.yaml"
-  work_claim: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/WORK-CLAIM.yaml"
-  task_lease: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/TASK-LEASE.yaml"
-  executor_reservation: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/EXECUTOR-RESERVATION.yaml"
-  authorization_witness: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/AUTHORIZATION-WITNESS.yaml"
-  reason: "PRESERVE_EXECUTION_PROVENANCE / DO_NOT_RETROACTIVELY_REWRITE_PREWRITE_HISTORY"
+historical_r168_evidence_preserved:
+  prior_route_and_claim_states: "PRESERVED_IN_EXPLICIT_HISTORICAL_FIELDS_AND_GIT_HISTORY"
+  task_lease_unchanged: true
+  executor_reservation_unchanged: true
+  authorization_witness_unchanged: true
+  activation_scan_unchanged: true
+  implementation_provenance_unchanged: true
+  reason: "TERMINALIZE_CURRENT_AUTHORITY_WITHOUT_ERASING_EXECUTION_HISTORY"
 
 changed_path_allowlist:
   - "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
   - "coordination/ACTIVE-PROGRAM-LANES.yaml"
   - "coordination/PROGRAM-CONTROL-TOWER.md"
   - "coordination/CONTROL-TOWER/R168-CANONICAL-CI-STATE-ISOLATION-CLOSEOUT.yaml"
+  - "coordination/ROUTES/GPT-CANONICAL-CI-STATE-ISOLATION-R168.yaml"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/WORK-CLAIM.yaml"
 
 non_authority:
   review_authority: false
@@ -165,11 +207,11 @@ intended_successor_candidate:
 
 hard_locks:
   - "NO_R168_REOPEN"
-  - "NO_R182_POST_HANDOFF_WRITE_WITHOUT_REMEDIATION_RELEASE"
+  - "NO_R182_REMEDIATION_WITHOUT_FRESH_GOVERNED_RELEASE"
   - "NO_RETROACTIVE_SUCCESSOR_AUTHORITY"
-  - "NO_HISTORICAL_R168_ROUTE_CLAIM_LEASE_WITNESS_REWRITE"
+  - "NO_HISTORICAL_EXECUTION_FACT_ERASURE"
   - "NO_R181_OR_WORKBUDDY_COLLATERAL_STATE_LOSS"
   - "NO_SELF_REVIEW_SELF_ACCEPT_SELF_MERGE"
   - "NO_W3_DOMAIN_TRADING_PRODUCTION_CREDENTIAL_AUTHORITY"
 
-closeout_state: "READY_FOR_EXACT_HEAD_CI_AND_INDEPENDENT_GOVERNANCE_REVIEW"
+closeout_state: "REMEDIATED_READY_FOR_EXACT_HEAD_CI_AND_NEW_INDEPENDENT_REVIEW"
