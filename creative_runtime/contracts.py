@@ -278,3 +278,37 @@ class DirectorBriefV2ContentSelection:
 
     def to_dict(self) -> dict[str, Any]:
         return _json_value(self)
+
+
+@dataclass(frozen=True)
+class DirectorBriefV2CompiledContent:
+    """Immutable read-only directing input compiled from one validated binding."""
+
+    brief_id: str
+    content_binding: DirectorBriefV2ContentSelection
+    content_rating: str
+    genre: tuple[str, ...]
+    world_bible: Mapping[str, Any]
+    character_bibles: tuple[Mapping[str, Any], ...]
+    scene_bibles: tuple[Mapping[str, Any], ...]
+    story_beats: tuple[Mapping[str, Any], ...]
+    legal_choices: Mapping[str, tuple[str, ...]]
+    style_profile: StyleProfile
+    asset_manifest: tuple[Mapping[str, Any], ...]
+    compile_hash: str
+    schema_version: str = "DirectorBrief/v2.compiled-content"
+
+    def __post_init__(self) -> None:
+        for name in (
+            "genre",
+            "world_bible",
+            "character_bibles",
+            "scene_bibles",
+            "story_beats",
+            "legal_choices",
+            "asset_manifest",
+        ):
+            object.__setattr__(self, name, _deep_freeze(getattr(self, name)))
+
+    def to_dict(self) -> dict[str, Any]:
+        return _json_value(self)
