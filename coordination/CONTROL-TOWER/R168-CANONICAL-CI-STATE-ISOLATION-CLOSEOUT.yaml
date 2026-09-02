@@ -6,13 +6,16 @@ route_epoch: 168
 source_issue: 496
 implementation_pr: 517
 accepted_exact_head: "6a00939495ec7d8c974e5fbe8a8940a56dec3855"
+
 independent_review:
   review_id: 5066628944
   matching_review_result: 5478588001
   verdict: "ACCEPT"
+
 exact_head_ci:
   run_id: 33382974470
   conclusion: "SUCCESS"
+
 canonicalization:
   pre_merge_main: "d392fcad80014ca5f65a860baf45c2eec0b15629"
   merge_commit: "7c77e303a124f1debfb52f497eccd1db3f9f7cb4"
@@ -28,48 +31,55 @@ canonicalization:
 
 closeout_branch:
   branch: "gpt/r168-post-merge-closeout"
-  base: "7c77e303a124f1debfb52f497eccd1db3f9f7cb4"
-  purpose: "DETERMINISTIC_GOVERNANCE_RELEASE_ONLY"
+  original_base: "7c77e303a124f1debfb52f497eccd1db3f9f7cb4"
+  fresh_main_reconciled_during_closeout: "09b95ad8e4b8b540791be68aceafb0baba21cbcb"
+  purpose: "CURRENT_AUTHORITY_RELEASE_WITH_HISTORICAL_BINDINGS_PRESERVED"
 
-released_authority:
+fresh_concurrency_reconciliation:
+  r168_before_closeout: "ACTIVE_GPT_WORKER_SLOT"
+  r182_preserved: "GPT-WORKER-R182-W2-MARKET-SEMANTICS-1"
+  r181_preserved: "CODEX-A2-2-SHOT-BUNDLE-R181"
+  r166_preserved: "INDEPENDENTLY_ACCEPTED_EXECUTION_RELEASED_AWAITING_CANONICALIZATION"
+  no_r181_r182_runtime_or_task_local_file_modified: true
+
+current_authority_release:
   worker_slot_id: "GPT-WORKER-R168-CANONICAL-CI-STATE-ISOLATION-1"
-  worker_slot_active_after_closeout: false
-  route_execution_allowed: false
-  route_runtime_code_change_allowed: false
-  work_claim_active: false
-  lease_active: false
-  executor_reservation_active: false
-  authorization_witness_execution_authorized: false
-  active_write_paths: []
-  review_authority: false
-  merge_authority: false
-  domain_write_authority: false
-  w3_write_authority: false
-  trading_authority: false
+  worker_registry_transition: "ACTIVE/PREWRITE_RESERVED -> RELEASED"
+  activation_state_after_closeout: "RELEASED"
+  closure_state_after_closeout: "RELEASED"
+  execution_allowed_after_closeout: false
+  active_write_paths_after_closeout: []
+  resource_class_after_closeout: "FROZEN_NO_EXECUTION"
+  program_lane_a_projection_after_closeout: "R168_CANONICALIZED_RELEASED_NO_ACTIVE_IMPLEMENTATION"
+  current_lane_claim_already_canonical_closed: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
+  effective_execution_authority_after_closeout: false
+  authority_rule: >-
+    The current GPT worker registry is the slot/lease execution identity source and canonical worker semantics require
+    no_slot_no_execution. R168 is retained in worker_slots as immutable provenance but its activation_state and closure_state are
+    RELEASED with execution_allowed=false and no active write surface. Lane A's current work claim was already closed on canonical
+    main. Therefore historical pre-write Route/Claim/Lease/Witness artifacts cannot independently recreate current execution.
 
-closed_bindings:
-  active_worker_registry: "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+historical_bindings_preserved_unchanged:
   route: "coordination/ROUTES/GPT-CANONICAL-CI-STATE-ISOLATION-R168.yaml"
   work_claim: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/WORK-CLAIM.yaml"
   task_lease: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/TASK-LEASE.yaml"
   executor_reservation: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/EXECUTOR-RESERVATION.yaml"
   authorization_witness: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/AUTHORIZATION-WITNESS.yaml"
+  reason: "PRESERVE_EXECUTION_PROVENANCE / DO_NOT_RETROACTIVELY_REWRITE_PREWRITE_HISTORY"
 
-active_registry_projection_after_closeout:
-  retained_executable_gpt_slots:
-    - "GPT-WORKER-R166-W5-EVENT-COVERAGE-2"
-  released_slot:
-    - "GPT-WORKER-R168-CANONICAL-CI-STATE-ISOLATION-1"
-  historical_frozen_entries_retained:
-    - "GPT-WORKER-R163-INTERACTIVE-FILM-REMEDIATION-1"
-    - "GPT-WORKER-R164-W5-EVENT-COVERAGE-2"
+changed_path_allowlist:
+  - "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+  - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+  - "coordination/CONTROL-TOWER/R168-CANONICAL-CI-STATE-ISOLATION-CLOSEOUT.yaml"
 
-program_lane_projection:
-  modified_by_this_closeout: false
-  reason: >-
-    ACTIVE-PROGRAM-LANES is a high-drift shared governance projection with concurrent R180-era activity. This closeout avoids
-    overwriting unrelated current lane state. Any successor slot activation must fresh-reconcile lane state and publish its own
-    exact bindings rather than infer authority from this receipt.
+non_authority:
+  review_authority: false
+  merge_authority: false
+  domain_write_authority: false
+  w3_write_authority: false
+  trading_authority: false
+  production_authority: false
+  credential_or_provider_authority: false
 
 successor_capacity_effect:
   claims_new_worker_authority: false
@@ -90,7 +100,9 @@ intended_successor_candidate:
 hard_locks:
   - "NO_R168_REOPEN"
   - "NO_RETROACTIVE_SUCCESSOR_AUTHORITY"
+  - "NO_HISTORICAL_ROUTE_CLAIM_LEASE_WITNESS_REWRITE"
+  - "NO_R181_OR_R182_COLLATERAL_STATE_LOSS"
   - "NO_SELF_REVIEW_SELF_ACCEPT_SELF_MERGE"
   - "NO_W3_DOMAIN_TRADING_PRODUCTION_CREDENTIAL_AUTHORITY"
 
-closeout_state: "READY_FOR_INDEPENDENT_GOVERNANCE_REVIEW"
+closeout_state: "READY_FOR_EXACT_HEAD_CI_AND_INDEPENDENT_GOVERNANCE_REVIEW"
