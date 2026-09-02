@@ -51,6 +51,44 @@ jobs:
           -p 'test_*.py'
           -v
 
+      - name: Attack caller-minted last_verified_at freshness
+        env:
+          PYTHONPATH: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src
+        run: |
+          python - <<'PY'
+          import json
+          from dataclasses import fields
+          from pathlib import Path
+
+          from offline_research.market_semantics import (
+              MarketSemanticFieldSpec,
+              SemanticValidationError,
+              require_governed_semantic_spec,
+              semantic_identity_digest_from_mapping,
+          )
+
+          root = Path("coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE")
+          fixture = json.loads((root / "fixtures/market-semantic-fields.synthetic.yaml").read_text())
+          original = dict(fixture["field_specs"][0])
+
+          def attack(timestamp):
+              forged = dict(original)
+              forged["last_verified_at"] = timestamp
+              forged["semantic_digest"] = semantic_identity_digest_from_mapping(forged)
+              assert forged["semantic_digest"] != original["semantic_digest"], forged
+              spec = MarketSemanticFieldSpec(**forged)
+              try:
+                  require_governed_semantic_spec(spec)
+              except SemanticValidationError as exc:
+                  assert exc.code == "SEMANTIC_REGISTRY_DIGEST_MISMATCH", exc
+                  return
+              raise AssertionError(f"caller-minted verification freshness accepted: {timestamp}")
+
+          attack("2026-09-02T00:00:00-05:00")
+          attack("2099-01-01T00:00:00+00:00")
+          print("R182_LAST_VERIFIED_AT_AUTHORITY_ATTACK_PASS")
+          PY
+
       - name: Enforce exact six-file write scope
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
