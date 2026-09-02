@@ -1,4 +1,4 @@
-schema_version: "3.30"
+schema_version: "3.29"
 registry_id: AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001
 control_tower_issue: 310
 owner: USER
@@ -13,12 +13,13 @@ portfolio_capacity_policy:
   same_canonical_object_writers_max: 1
   nested_parallelism: FORBIDDEN
 current_user_release_policy:
-  decision: R181_CODEX_A2_2_SHOT_BUNDLE + R168_LANE_A_CI_ISOLATION + R182_W2_MARKET_SEMANTIC_CAPABILITY + R166_POST_ACCEPT_EXECUTION_RELEASE
+  decision: R181_CODEX_A2_2_SHOT_BUNDLE + R168_LANE_A_CI_ISOLATION + R182_W2_MARKET_SEMANTIC_CAPABILITY + R166_ACCEPTED_EXECUTION_RELEASED
   rationale: >-
-    Current explicit user direction is to begin trading-system construction immediately. R166 PR #504 is independently ACCEPTED
-    on exact head cc982f33ad87601a0327e595125272ea4954cdce, so future engineering writes are released without Ready/merge/canonicalization.
-    R182 takes the freed GPT execution slot for a non-overlapping W2 market-semantic/capability validation slice. R168 retains its
-    separate Control Tower four-file reservation. CODEX R181 remains a separate agent/type and non-overlapping creative-runtime task.
+    Current explicit user direction is immediate trading-system construction. R166 PR #504 is independently ACCEPTED on exact head
+    cc982f33ad87601a0327e595125272ea4954cdce, so future engineering writes are released without Ready/merge/canonicalization.
+    R182 uses the freed GPT slot for a non-overlapping W2 market-semantic/capability validation slice. R168 retains its separate
+    Control Tower reservation. CODEX R181 is independently observed through the current interactive-film baton and remains a
+    separate agent/type with no R182 path overlap.
   auxiliary_bounded_releases:
     - task_id: CODEX-A2-2-SHOT-BUNDLE-R181
       route_epoch: 181
@@ -45,11 +46,39 @@ current_user_release_policy:
     - task_id: GPT-W5-EVENT-COVERAGE-CLEAN-SUCCESSOR-R166
       route_epoch: 166
       issue: 501
+      agent_type: GPT_ENGINEERING_WORKER
       pr: 504
       exact_head: cc982f33ad87601a0327e595125272ea4954cdce
       status: INDEPENDENTLY_ACCEPTED_AWAITING_SEPARATE_CANONICALIZATION
       execution_allowed: false
-
+historical_execution_refs:
+  r170:
+    issue: 509
+    pr: 511
+    reviewed_head: 8ce9cbfccf95afebf44726dc61a09572f9f1eabf
+    independent_review: 5059784113
+    review_result: 5466332157
+    status: FROZEN_AFTER_INDEPENDENT_CHANGES_REQUIRED
+    successor: R171 CLEAN CODEX V2 CONTINUATION DURABILITY
+  r169:
+    issue: 507
+    pr: 508
+    status: FROZEN_AFTER_INDEPENDENT_CHANGES_REQUIRED
+  r167:
+    issue: 503
+    pr: 506
+    status: FROZEN_AFTER_INDEPENDENT_CHANGES_REQUIRED
+  r165:
+    issue: 499
+    pr: 502
+    status: FROZEN_AFTER_INDEPENDENT_REVIEW_BLOCKED
+  r166:
+    issue: 501
+    pr: 504
+    reviewed_head: cc982f33ad87601a0327e595125272ea4954cdce
+    independent_review: 5063417708
+    review_result: 5474215140
+    status: INDEPENDENTLY_ACCEPTED_EXECUTION_RELEASED_AWAITING_CANONICALIZATION
 observed_agent_state:
   CODEX:
     observed_task_id: CODEX-A2-2-SHOT-BUNDLE-R181
@@ -58,8 +87,6 @@ observed_agent_state:
     execution_allowed: true
   GPT_ENGINEERING_WORKER:
     observed_status: R168_ACTIVE_PREWRITE + R182_ACTIVE_PREWRITE + R166_ACCEPTED_EXECUTION_RELEASED
-    executable_or_reserved_slots: 2
-
 program_lanes:
   - lane_id: LANE-A-HARNESS-INTEGRATION
     observed_state: R168_CANONICAL_CI_STATE_ISOLATION_ACTIVE_PREWRITE
@@ -76,7 +103,6 @@ program_lanes:
     implementation_owner: CODEX
     worker_slot_id: CODEX-R181-SHOT-BUNDLE-A2-2-1
     canonical_knowledge_write_authorized: false
-
 cross_lane_overlap_matrix:
   - pair: [LANE-A-HARNESS-INTEGRATION, LANE-B-A-SHARE-REMEDIATION]
     overlap_level: O0_NO_MATERIAL_WRITE_OVERLAP
@@ -84,8 +110,7 @@ cross_lane_overlap_matrix:
     overlap_level: O1_READ_ONLY_COEXISTENCE
   - pair: [LANE-B-A-SHARE-REMEDIATION, LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP]
     overlap_level: O0_NO_MATERIAL_WRITE_OVERLAP
-
 reconciliation_rule: >-
   R182 execution truth is Issue #550 + its canonical Route/Claim/Witness/Lease/Reservation/worker slot/activation scan followed by
   an Issue #550 EFFECTIVE_SPEC_SNAPSHOT/v1. No branch or substantive W2 write may exist before that snapshot. R166 ACCEPT does not
-  authorize Ready or merge; its released engineering identity cannot mutate PR #504.
+  authorize Ready or merge; its released engineering identity cannot mutate PR #504. Historical execution refs remain preserved.
