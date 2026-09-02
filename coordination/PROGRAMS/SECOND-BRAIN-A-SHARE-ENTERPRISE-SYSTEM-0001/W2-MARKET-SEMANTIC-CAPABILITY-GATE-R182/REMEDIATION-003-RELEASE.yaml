@@ -1,0 +1,66 @@
+schema_version: "1.0"
+release_id: "R182-W2-MARKET-SEMANTIC-REMEDIATION-003"
+program_id: "SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001"
+repository: "vxz2datoubo/second-brain-coordination"
+source_issue: 550
+parent_issue: 31
+route_epoch: 182
+task_id: "GPT-W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182"
+worker_slot_id: "GPT-WORKER-R182-W2-MARKET-SEMANTICS-1"
+branch: "gpt/r182-w2-market-semantic-capability-gate"
+pr: 551
+remediation_parent_head: "7445dbb31e5b9fd86b2b54597da132d4e19d14e8"
+review_attestation: "issuecomment-5514260612"
+review_result: "issuecomment-5514263625"
+verdict: "CHANGES_REQUIRED"
+blockers:
+  - "P1_LAST_VERIFIED_AT_IS_CALLER_MINTABLE_FRESHNESS_PROVENANCE"
+prior_blockers_closed:
+  - "P1_CALLER_MINTABLE_LOCAL_RUNTIME_VERIFIED_CAPABILITY"
+  - "P1_CALLER_SUPPLIED_SOURCE_ENUM_MAP_IS_DIRECTION_AUTHORITY"
+remediation_scope:
+  objective: >-
+    Bind last_verified_at into the existing governed semantic identity so caller-authored
+    freshness timestamps cannot refresh authority while retaining an approved semantic identity.
+  preferred_fix:
+    - "add last_verified_at to _SEMANTIC_IDENTITY_FIELDS"
+    - "recompute the four fixed governed TdxQuant documentation semantic digests"
+    - "update the matching synthetic fixture semantic_digest values"
+    - "add mutation and future-timestamp adversarial regressions"
+  runtime_write_allowlist:
+    - ".github/workflows/w2-market-semantic-capability-p0.yml"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/MARKET-SEMANTIC-FIELD-SPEC.schema.json"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/PROVIDER-CAPABILITY-OBSERVATION.schema.json"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/fixtures/market-semantic-fields.synthetic.yaml"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src/offline_research/market_semantics.py"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/tests/test_market_semantics.py"
+  expected_changed_files_this_remediation:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/fixtures/market-semantic-fields.synthetic.yaml"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src/offline_research/market_semantics.py"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/tests/test_market_semantics.py"
+  all_other_paths: "READ_ONLY"
+execution:
+  executor: "GPT_ENGINEERING_WORKER"
+  same_worker_slot_reused: true
+  new_worker_slot_created: false
+  third_gpt_route_created: false
+  execution_allowed_after_effective_spec_snapshot: true
+  pre_snapshot_write_allowed: false
+  nested_parallelism: "FORBIDDEN"
+concurrency:
+  r183_pr: 557
+  r183_exact_head: "ce0ae51721b71e38cdf132714d160bb6b564727f"
+  r183_state: "REVIEW_WAIT_DO_NOT_MUTATE"
+  codex_r181: "SEPARATE_AGENT_ROUTE"
+  overlap_class: "O0_NO_MATERIAL_WRITE_OVERLAP"
+authority:
+  review_authorized: false
+  self_accept_authorized: false
+  ready_authorized: false
+  merge_authorized: false
+  release_authorized: false
+  trading_authorized: false
+  account_authorized: false
+  order_authorized: false
+  fund_authorized: false
+completion_signal: "R182_REMEDIATION_003_FRESHNESS_PROVENANCE_READY_FOR_INDEPENDENT_REVIEW"
