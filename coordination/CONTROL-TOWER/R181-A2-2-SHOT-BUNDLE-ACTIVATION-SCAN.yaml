@@ -1,0 +1,40 @@
+schema: CONTROL_TOWER_ACTIVATION_SCAN/v1
+scan_id: R181-A2-2-SHOT-BUNDLE-ACTIVATION-SCAN
+route_epoch: 181
+source_issue: 548
+executor: CODEX
+result: PASS_PRE_SNAPSHOT
+canonical_main_observed_at_prepare: 7c77e303a124f1debfb52f497eccd1db3f9f7cb4
+technical_baseline: 330745146be7726c42c517623a6feb5a8eaf5eb0
+r180_implementation_exact_head: dd9c85b42224573468bb1fcdefbb30b104dd222d
+ci_correction:
+  issue: 546
+  pr: 547
+  head: 330745146be7726c42c517623a6feb5a8eaf5eb0
+  r179_run: 33589460674
+  r180_run: 33589460604
+  both_success: true
+  allowlist_widened: false
+parallel_writer_scan:
+  GPT_R172_ISSUE_515:
+    overlap: NONE_BY_SCOPE_AND_PATH
+    preserve_single_writer: true
+  WORKBUDDY_ISSUE_532:
+    overlap: NONE_BY_SCOPE_AND_PATH
+    preserve_active_batch: true
+  CODEX_R180:
+    state: IMPLEMENTATION_COMPLETE_TO_BE_RELEASED_BEFORE_R181_ACTIVATION
+prewrite_checks:
+  route_exists_execution_false: true
+  task_brief_exists_execution_false: true
+  claim_reserved_execution_false: true
+  lease_reserved_execution_false: true
+  reservation_reserved_execution_false: true
+  allowlist_fail_closed: true
+  snapshot_not_yet_posted: true
+  required_branch_must_be_absent_before_snapshot: true
+hard_stop_if:
+  - target_branch_exists_before_snapshot
+  - any_GPT_R172_or_WorkBuddy_overlap
+  - any_media_job_provider_or_player_state_authority_required
+  - inherited_allowlist_widening_required

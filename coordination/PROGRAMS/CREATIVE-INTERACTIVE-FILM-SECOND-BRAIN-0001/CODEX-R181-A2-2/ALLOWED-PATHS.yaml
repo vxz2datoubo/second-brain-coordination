@@ -1,0 +1,43 @@
+schema: ALLOWED_PATHS/v1
+task_id: CODEX-A2-2-SHOT-BUNDLE-R181
+route_epoch: 181
+policy: FAIL_CLOSED_EXACT_SCOPE
+allow:
+  - creative_runtime/shot_bundle.py
+  - creative_runtime/SHOT_BUNDLE_V1.md
+  - tests/test_creative_shot_bundle.py
+  - tools/verify_r181_scope.py
+  - coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R181-A2-2/**
+  - .github/workflows/creative-runtime-r181-offline.yml
+read_only_dependencies:
+  - creative_runtime/director_beat_plan.py
+  - creative_runtime/director_v2.py
+  - creative_runtime/story_graph.py
+  - creative_runtime/story_bibles.py
+  - creative_runtime/flagship_story_fixture.py
+  - creative_runtime/script_catalog.py
+  - creative_runtime/contracts.py
+  - .github/workflows/creative-runtime-offline.yml
+  - .github/workflows/creative-runtime-r180-offline.yml
+forbid:
+  - creative_runtime/__init__.py
+  - creative_runtime/contracts.py
+  - creative_runtime/director_beat_plan.py
+  - creative_runtime/director_v2.py
+  - creative_runtime/story_graph.py
+  - creative_runtime/story_bibles.py
+  - creative_runtime/flagship_story_fixture.py
+  - creative_runtime/script_catalog.py
+  - .github/workflows/creative-runtime-offline.yml
+  - .github/workflows/creative-runtime-r180-offline.yml
+  - tests/workbuddy/**
+  - tools/workbuddy/**
+  - coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/**
+  - any GPT R172 PlayerCampaign CreativeSession session-ledger migration save-slot implementation surface
+  - any NarrativeState persistence runtime reducer player-progress or saved cursor surface
+  - any director-job queue scheduler surface
+  - any media-job render generation upload provider network model-execution surface
+notes:
+  - R181 is additive-only and may not edit any inherited implementation or workflow layer.
+  - R179 and R180 workflows are read-only and already isolate their own frozen deltas under governance correction #546/#547.
+  - R181 dedicated workflow may verify base-to-HEAD during R181 execution; before publishing a successor, governance must freeze the R181 endpoint to final exact head without widening this allowlist.

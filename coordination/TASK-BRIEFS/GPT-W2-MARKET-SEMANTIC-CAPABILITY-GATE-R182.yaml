@@ -1,0 +1,88 @@
+schema_version: "1.0"
+task_id: "GPT-W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182"
+repository: "vxz2datoubo/second-brain-coordination"
+source_issue: 550
+parent_issue: 31
+route_epoch: 182
+mode: "bounded_w2_market_semantic_validation"
+mode_label: "Market semantic type system and provider capability evidence gate"
+target_agent: "GPT_ENGINEERING_WORKER"
+worker_slot_id: "GPT-WORKER-R182-W2-MARKET-SEMANTICS-1"
+implementation_branch: "gpt/r182-w2-market-semantic-capability-gate"
+pull_request: null
+status: "GOVERNED_PREWRITE / CODE_WRITE_BLOCKED_UNTIL_EFFECTIVE_SPEC_SNAPSHOT"
+
+purpose: >-
+  Implement the bounded P0 contract from Issue #550 as an additive semantic-validation layer over existing W2 facts and replay,
+  without changing the existing AShareRuleSnapshot authority or claiming local provider capabilities not actually observed.
+
+required_behavior:
+  numeric:
+    - "canonical decimal parsing rejects float input where precision provenance would be lost"
+    - "tick quantization is explicit and deterministic"
+    - "unit conversion is explicit, never implicit"
+  direction:
+    - "vendor enum mapping is source/version bound"
+    - "UNKNOWN direction remains UNKNOWN"
+  temporal:
+    - "event_time/exchange_time/published_at/available_at/ingested_at are distinct semantic roles"
+    - "available_at cannot be silently substituted from another clock"
+  missingness:
+    - "missing, zero, stale, not-applicable and entitlement-unverified are distinguishable"
+  capability:
+    - "OFFICIAL_DOCUMENTED, LOCAL_RUNTIME_VERIFIED and other evidence states are separate"
+    - "new official docs do not overwrite old local observations"
+  drift:
+    - "typed drift report instead of generic data error"
+
+exact_runtime_write_allowlist:
+  - ".github/workflows/w2-market-semantic-capability-p0.yml"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/MARKET-SEMANTIC-FIELD-SPEC.schema.json"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/PROVIDER-CAPABILITY-OBSERVATION.schema.json"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/fixtures/market-semantic-fields.synthetic.yaml"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src/offline_research/market_semantics.py"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/tests/test_market_semantics.py"
+
+acceptance_scenarios:
+  - "fraction vs percent confusion fails"
+  - "shares vs lots confusion fails"
+  - "yuan vs ten-thousand-yuan confusion fails"
+  - "display-rounded price cannot become canonical truth"
+  - "wrong or reversed vendor direction mapping fails"
+  - "documented unknown direction remains UNKNOWN"
+  - "available_at substitution fails"
+  - "zero/missing/stale/permission states remain distinct"
+  - "official TdxQuant get_tick_data documentation remains docs-only without local verification"
+  - "source version or enum drift forces revalidation"
+  - "attempted second W2 rule/probability/mastery authority fails architecture checks"
+
+source_refs:
+  - "Issue #550"
+  - "Issue #31"
+  - "Issue #404 / merged PR #411"
+  - "Issue #457"
+  - "Issue #63"
+  - "Issue #519 / #522"
+  - "official TdxQuant get_tick_data documentation"
+  - "current SSE/SZSE/CSRC rules as rule-reference evidence only"
+
+parallelism:
+  allowed_with_r168: true
+  allowed_with_codex_r181: true
+  overlap: "O0_NO_MATERIAL_WRITE_OVERLAP"
+  resource_class: "LIGHT_TO_MEDIUM_IMPLEMENTATION"
+  nested_parallelism: "FORBIDDEN"
+
+stop_conditions:
+  - "R182 branch exists before pre-write snapshot"
+  - "R182 write path outside six-file allowlist"
+  - "implementation requires mutating r143_rules.py in first slice"
+  - "local Tdx capability is asserted without local runtime evidence"
+  - "a second A-share rule/data/probability/mastery authority would be created"
+  - "credentials/network/production/trading authority would be required"
+
+completion:
+  signal: "R182_W2_MARKET_SEMANTIC_CAPABILITY_GATE_READY_FOR_INDEPENDENT_REVIEW"
+  next_gate: "ISSUE_453_EXACT_HEAD_REVIEW_REQUEST"
+  ready_transition_authorized: false
+  merge_authorized: false
