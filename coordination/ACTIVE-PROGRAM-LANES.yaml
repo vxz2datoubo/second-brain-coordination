@@ -1,4 +1,4 @@
-schema_version: "3.30"
+schema_version: "3.31"
 registry_id: AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001
 control_tower_issue: 310
 owner: USER
@@ -13,19 +13,21 @@ portfolio_capacity_policy:
   same_canonical_object_writers_max: 1
   nested_parallelism: FORBIDDEN
 current_user_release_policy:
-  decision: R181_CODEX_A2_2_SHOT_BUNDLE + R182_W2_REVIEW_WAIT + R183_DS10_RESEARCH_INTEGRITY + R168_CANONICAL_CLOSED + R166_ACCEPTED_EXECUTION_RELEASED
+  decision: R181_CODEX_A2_2_SHOT_BUNDLE + R182_CANONICAL_MERGED_WORKER_RELEASED + R183_DS10_REVIEW_WAIT + R168_CANONICAL_CLOSED + R166_ACCEPTED_EXECUTION_RELEASED
   rationale: >-
-    R168 PR #517 is independently ACCEPTED at exact head 6a00939495ec7d8c974e5fbe8a8940a56dec3855 and canonical merged as
-    7c77e303a124f1debfb52f497eccd1db3f9f7cb4, which is an ancestor of current main. Its execution slot is therefore closed.
-    R182 PR #551 is frozen at exact head 7445dbb31e5b9fd86b2b54597da132d4e19d14e8 awaiting independent review and remains an occupied
-    review-wait slot. Current explicit user direction is continued large-scale trading-system construction, so the released second
-    GPT slot is assigned to non-overlapping DS-10 P0A research-integrity implementation. CODEX R181 remains a separate agent/type.
+    R182 PR #551 was independently ACCEPTED at exact head fd66a90267faac1b3b6cb0dbe74824b070dac2e5 and canonically merged as
+    a9669e31a9b59c72fff66d6d364c92d4eec51f49, whose parents are pre-merge main 8589a5ffeee40108a82fc2ef6547c54b3e857436
+    and the accepted exact head. R182 execution authority is therefore closed and its GPT slot is released. R183 PR #557 is
+    frozen at exact head 60e5ce6a5bace143942d77bb2d9c5359c8aa1118 after successful exact-head CI and is waiting on fresh independent T3 review.
+    CODEX R181 remains a separate agent/type on Draft PR #549 and has no material write overlap with the trading-system GPT lanes.
   auxiliary_bounded_releases:
     - task_id: CODEX-A2-2-SHOT-BUNDLE-R181
       route_epoch: 181
       issue: 548
       agent_type: CODEX
       branch: codex/r181-a2-2-shot-bundle-static-compiler
+      pr: 549
+      exact_head: 0aa32e31f0130bf144d43ebecef03613f3f268e4
       status: ACTIVE_GOVERNED_EXECUTION
       execution_allowed: true
     - task_id: GPT-CANONICAL-CI-STATE-ISOLATION-R168
@@ -43,18 +45,25 @@ current_user_release_policy:
       worker_slot_id: GPT-WORKER-R182-W2-MARKET-SEMANTICS-1
       branch: gpt/r182-w2-market-semantic-capability-gate
       pr: 551
-      exact_head: 7445dbb31e5b9fd86b2b54597da132d4e19d14e8
-      status: ENGINEERING_STOPPED_WAITING_INDEPENDENT_REVIEW
+      exact_head: fd66a90267faac1b3b6cb0dbe74824b070dac2e5
+      status: CANONICAL_MERGED_WORKER_CLOSED
       execution_allowed: false
+      independent_review: pullrequestreview-5095449147
+      review_result: issuecomment-5516893526
+      merge_commit: a9669e31a9b59c72fff66d6d364c92d4eec51f49
+      post_merge_closeout: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182/POST-MERGE-WORKER-CLOSEOUT.yaml
     - task_id: GPT-DS10-RESEARCH-INTEGRITY-P0A-R183
       route_epoch: 183
       issue: 552
       agent_type: GPT_ENGINEERING_WORKER
       worker_slot_id: GPT-WORKER-R183-DS10-RESEARCH-INTEGRITY-1
       branch: gpt/r183-ds10-research-integrity-p0a
-      status: ACTIVE_GOVERNED_PREWRITE
-      execution_allowed: true
-      substantive_write_gate: ISSUE_552_EFFECTIVE_SPEC_SNAPSHOT_REQUIRED
+      pr: 557
+      exact_head: 60e5ce6a5bace143942d77bb2d9c5359c8aa1118
+      status: ENGINEERING_STOPPED_WAITING_INDEPENDENT_REVIEW
+      execution_allowed: false
+      review_request: issuecomment-5517507431
+      engineering_handoff: issuecomment-5517504358
     - task_id: GPT-W5-EVENT-COVERAGE-CLEAN-SUCCESSOR-R166
       route_epoch: 166
       issue: 501
@@ -64,6 +73,14 @@ current_user_release_policy:
       status: INDEPENDENTLY_ACCEPTED_AWAITING_SEPARATE_CANONICALIZATION
       execution_allowed: false
 historical_execution_refs:
+  r182:
+    issue: 550
+    pr: 551
+    reviewed_head: fd66a90267faac1b3b6cb0dbe74824b070dac2e5
+    independent_review: 5095449147
+    review_result: 5516893526
+    merge_commit: a9669e31a9b59c72fff66d6d364c92d4eec51f49
+    status: CANONICAL_MERGED_AND_WORKER_RELEASED
   r168:
     issue: 496
     pr: 517
@@ -104,25 +121,28 @@ observed_agent_state:
     observed_task_id: CODEX-A2-2-SHOT-BUNDLE-R181
     observed_route_epoch: 181
     observed_issue: 548
+    observed_pr: 549
+    observed_exact_head: 0aa32e31f0130bf144d43ebecef03613f3f268e4
     execution_allowed: true
   GPT_ENGINEERING_WORKER:
-    observed_status: R182_REVIEW_WAIT_SLOT_OCCUPIED + R183_ACTIVE_PREWRITE + R168_CANONICAL_CLOSED + R166_ACCEPTED_EXECUTION_RELEASED
+    observed_status: R182_CANONICAL_CLOSED_SLOT_RELEASED + R183_REVIEW_WAIT_SLOT_OCCUPIED + ONE_GPT_SLOT_AVAILABLE
 program_lanes:
   - lane_id: LANE-A-HARNESS-INTEGRATION
-    mission: Bounded DS-10 research-integrity P0A implementation after R168 canonical closeout.
-    observed_state: R183_DS10_RESEARCH_INTEGRITY_ACTIVE_PREWRITE
+    mission: Bounded DS-10 research-integrity P0A implementation and independent-review closure.
+    observed_state: R183_DS10_RESEARCH_INTEGRITY_WAITING_INDEPENDENT_REVIEW
     implementation_owner: GPT_ENGINEERING_WORKER
     worker_slot_id: GPT-WORKER-R183-DS10-RESEARCH-INTEGRITY-1
     trading_authorized: false
   - lane_id: LANE-B-A-SHARE-REMEDIATION
-    observed_state: R182_W2_MARKET_SEMANTIC_CAPABILITY_WAITING_INDEPENDENT_REVIEW
+    observed_state: R182_W2_MARKET_SEMANTIC_CAPABILITY_CANONICAL_MERGED_WORKER_RELEASED
     implementation_owner: GPT_ENGINEERING_WORKER
-    worker_slot_id: GPT-WORKER-R182-W2-MARKET-SEMANTICS-1
+    worker_slot_id: null
+    next_state: ONE_GPT_SLOT_AVAILABLE_PENDING_FRESH_PRIORITY_COLLISION_SCAN
     trading_authorized: false
     predecessor_r166: INDEPENDENTLY_ACCEPTED_EXECUTION_RELEASED_AWAITING_CANONICALIZATION
   - lane_id: LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP
     mission: Bounded interactive-film A2.2 immutable ShotBundle and shot-responsibility compilation.
-    observed_state: R181_CODEX_A2_2_ACTIVE
+    observed_state: R181_CODEX_A2_2_ACTIVE_DRAFT_PR
     current_phase: EXECUTION
     implementation_owner: CODEX
     worker_slot_id: CODEX-R181-SHOT-BUNDLE-A2-2-1
@@ -135,6 +155,7 @@ cross_lane_overlap_matrix:
   - pair: [LANE-B-A-SHARE-REMEDIATION, LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP]
     overlap_level: O0_NO_MATERIAL_WRITE_OVERLAP
 reconciliation_rule: >-
-  R183 execution truth is Issue #552 + its canonical Route/Claim/Witness/Lease/Reservation/worker slot/activation scan followed by
-  an Issue #552 EFFECTIVE_SPEC_SNAPSHOT/v1. No R183 branch or substantive DS-10 write may exist before that snapshot. R182 remains
-  frozen on exact head 7445dbb31e5b9fd86b2b54597da132d4e19d14e8 for independent review; R183 may not mutate R182 or W4/W7 authorities.
+  R182 execution authority is terminal after exact-head ACCEPT plus canonical merge and may not be reused for successor work.
+  R183 execution is frozen on exact head 60e5ce6a5bace143942d77bb2d9c5359c8aa1118 until a new #453 terminal review result.
+  Any successor using the released GPT slot requires a fresh route/claim/witness/lease/reservation/collision scan and an effective
+  pre-write snapshot before substantive code. No successor may mutate R183, reuse R182 authorization, or mint trade authority.
