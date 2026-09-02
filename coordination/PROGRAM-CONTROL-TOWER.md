@@ -4,7 +4,7 @@
 ## 自动同步快照（机器生成区）
 
 - Registry: `AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001`
-- as_of: `2026-08-24T00:18:34+08:00`
+- as_of: `2026-09-02T09:16:00-05:00`
 - Foundation structural check: **PASS**
 - Lane release decision: **ELIGIBLE_FOR_GPT_DRY_RUN**
 - User-held lanes: `NONE`
@@ -13,23 +13,27 @@
 
 | Agent | task_id | epoch | status | execution_allowed | Issue / PR |
 |---|---|---:|---|---|---|
-| CODEX | `CODEX-CONTROL-TOWER-GPT-ENGINEERING-WORKER-FIRST-CLASS-R144` | 144 | `DONE_HISTORICAL` | `false` | #406 / #408 |
+| CODEX | `CODEX-A2-2-SHOT-BUNDLE-R181` | 181 | `READY` | `true` | #548 / #None |
 | QCLAW | `QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60` | 60 | `DONE_HISTORICAL` | `false` | #296 / #None |
-| WORKBUDDY | `WORKBUDDY-PAUSED-COMPUTE-UNAVAILABLE-UNTIL-AFTER-2026-07-28` | 15 | `PAUSED_COMPUTE_UNAVAILABLE` | `false` | #89 / #97 |
+| WORKBUDDY | `WORKBUDDY-R175-ORDERED-BATCH` | 175 | `READY` | `true` | #532 / #None |
 
 ### GPT Engineering Worker slots
 
 | slot | task_id | epoch | status | execution_allowed | model_id | Issue / PR |
 |---|---|---:|---|---|---|---|
-| _NONE_ | _no active GPT Engineering Worker slot_ | | | | | |
+| `GPT-WORKER-R163-INTERACTIVE-FILM-REMEDIATION-1` | `GPT-R161-INTERACTIVE-FILM-REMEDIATION-R163` | 163 | `FROZEN_GOVERNANCE_INVALID_POST_REVIEW_REMEDIATION` | `false` | `GPT-5.6 Sol` | #494 / #495 |
+| `GPT-WORKER-R164-W5-EVENT-COVERAGE-2` | `GPT-W5-EVENT-COVERAGE-P0-REMEDIATION-R164` | 164 | `FROZEN_SUPERSEDED_ROUTE_BRANCH_BINDING` | `false` | `GPT-5.6 Sol` | #486 / #487 |
+| `GPT-WORKER-R166-W5-EVENT-COVERAGE-2` | `GPT-W5-EVENT-COVERAGE-CLEAN-SUCCESSOR-R166` | 166 | `INDEPENDENTLY_ACCEPTED_AWAITING_SEPARATE_CANONICALIZATION` | `false` | `GPT-5.6 Sol` | #501 / #504 |
+| `GPT-WORKER-R168-CANONICAL-CI-STATE-ISOLATION-1` | `GPT-CANONICAL-CI-STATE-ISOLATION-R168` | 168 | `CANONICALIZED_RELEASED` | `false` | `GPT-5.6 Sol` | #496 / #517 |
+| `GPT-WORKER-R182-W2-MARKET-SEMANTICS-1` | `GPT-W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182` | 182 | `ENGINEERING_FROZEN_WAITING_INDEPENDENT_REVIEW` | `false` | `GPT-5.6 Sol` | #550 / #551 |
 
 ### Program lanes
 
 | Lane | desired | observed | heavy | next gate |
 |---|---|---|---|---|
-| `LANE-A-HARNESS-INTEGRATION` | `ACTIVE` | `R145_S0F_ACCEPTED_MERGED / NO_ACTIVE_IMPLEMENTATION` | `false` | SIGNAL_TOWER_ON_DEMAND_OR_NEW_GOVERNED_TASK_RELEASE |
-| `LANE-B-A-SHARE-REMEDIATION` | `ACTIVE` | `R143_W2_S1_ACCEPTED_MERGED / NO_ACTIVE_IMPLEMENTATION` | `false` | SIGNAL_TOWER_ON_DEMAND_OR_NEW_GOVERNED_TASK_RELEASE |
-| `LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP` | `DONE` | `DONE` | `false` | REOPEN_ONLY_FOR_BUG_SECURITY_CONTRACT_DEFECT_PROVEN_REGRESSION |
+| `LANE-A-HARNESS-INTEGRATION` | `ACTIVE` | `R168_CANONICALIZED_RELEASED / NO_ACTIVE_GPT_IMPLEMENTATION` | `false` | R168_CLOSEOUT_ACCEPT_AND_CANONICAL_THEN_FRESH_SUCCESSOR_RELEASE |
+| `LANE-B-A-SHARE-REMEDIATION` | `ACTIVE` | `R182_ENGINEERING_FROZEN_WAITING_INDEPENDENT_REVIEW / NO_ACTIVE_GPT_IMPLEMENTATION` | `false` | R182_INDEPENDENT_REVIEW_RESULT |
+| `LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP` | `ACTIVE` | `R181_CODEX_A2_2_ACTIVE` | `false` | R181_EXECUTOR_COMPLETION_AND_DEPENDENCY_GATED_REVIEW |
 
 <!-- CONTROL_TOWER_AUTOGEN:END -->
 
@@ -64,31 +68,13 @@
 
 ## 当前正式节奏
 
-- **R145 S0F runtime 已独立验收并 canonical**：PR #418 exact head `a82606b2d3b6605c51bd05e98cd5f87b72850389` 经 Review `5002670436` ACCEPT，合并为 `935840769ca9ac032807066b3e0d3d1b780a55b4`。
-- **accepted head 是 direct merge parent**：merge parents 为 `46225404edd35c0c4c5d7fac852643d4c5b3f808` + `a82606b2d3b6605c51bd05e98cd5f87b72850389`，无 squash/rebase/history rewrite。
-- **R145 post-merge closeout = Draft PR #441**：只释放 `GPT-WORKER-R145-PROGRAMMING-1`、Lane-A Work Claim 和 executable R145 route，不修改已合并 runtime。
-- **当前 closeout candidate 无 active GPT Engineering Worker slot**，Lane-A/B/C 当前 Work Claim 均无 active implementation writer。
-- **任何 successor 不自动启动**：包括 Admission Bridge #424、新 epoch、Signal→Task、跨域写入；都必须重新经过 fresh Signal Tower / Control Tower release。
-- **Signal Tower 正常 ON_DEMAND 继续可用**：Signal != Task，R145 canonical runtime 保持共享只读跨域观测边界。
-- **域隔离继续锁定**：AI Film、World Model、A-share W2、W3 均不可由本 closeout 写入；World Model 私有正文不得复制到公开 coordination repo。
+- **R168 已 canonical**：PR #517 的 independent T3 ACCEPT exact head `6a00939495ec7d8c974e5fbe8a8940a56dec3855` 已合并为 `7c77e303a124f1debfb52f497eccd1db3f9f7cb4`；当前 #545 只做 post-merge control-plane closeout。
+- **R182 已停止工程写入并等待独立审核**：PR #551 frozen at `c436df7d99f2ee66915e436ee1629835aad14bad`，dedicated exact-head W2 CI `33592468996` SUCCESS，新的 remediation 必须重新授权。
+- **R166 已独立 ACCEPT，执行 lease 已释放**，canonicalization 仍是单独治理动作。
+- **CODEX R181 与 WorkBuddy R175 保持各自现有执行权**，本 closeout 不修改它们的 task-local 文件或权限。
+- **当前候选没有 active GPT Engineering Worker implementation lease**；任何新 GPT 施工，包括 Issue #543，都必须 fresh 发布 Route / Claim / Witness / Lease / Reservation / Snapshot。
 - **NO_TRADE / NO_ACCOUNT_ORDER_FUND / NO_PRODUCTION_PRIVATE / NO_SECRET_PERMISSION_VISIBILITY_EXPANSION / NO_SELF_REVIEW / NO_SELF_MERGE** 持续有效。
-
-## R145 accepted runtime history
-
-- Issue: `#415`
-- Task: `GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145`
-- Route epoch: `145`
-- Historical executor: `GPT_ENGINEERING_WORKER` / 编程1 / `GPT-5.6 Sol`
-- Planning PR: `#416` → merged `d06dc93cd1c05d11f8c200039880de3b07c11a23`
-- Final ACTIVE gate PR: `#419` → merged `cecd7427d16ab9ab20d00aeb8227402608708044`
-- Runtime PR: `#418`
-- Accepted runtime head: `a82606b2d3b6605c51bd05e98cd5f87b72850389`
-- Independent Review: `5002670436`
-- Runtime merge: `935840769ca9ac032807066b3e0d3d1b780a55b4`
-- Runtime governance live-proof run: `32644667245`
-- Closeout PR: `#441`
-- Closeout receipt candidate: `coordination/CONTROL-TOWER/R145-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-CLOSURE-RECONCILIATION.yaml`
 
 ## 下一关
 
-PR #441 必须在最终 exact head 上通过 Program Control Tower Python 3.11/3.13、worker registry、Work Claim、Program/claim projections、O0-O4/WIP/resource 验证，再交独立 GPT exact-head Review。若 ACCEPT 且 reviewed head/base/main 未漂移，才按 standing routine engineering authorization 合并 #441。合并后 R145 才成为 `DONE_HISTORICAL / NO_ACTIVE_LEASE`，再关闭 Issue #415；任何 successor 必须从新的 Signal Tower task-release preflight 开始。
+#545 必须在最终 exact head 上证明 worker registry、Program Lane contract、agent projection、Program/claim projection 和 R168 current-main comparator 全部无 candidate regression，再交 #453 独立 exact-head T3。只有 ACCEPT 并 canonicalize 后，才允许给 #543 分配新的 GPT Engineering Worker slot，启动 Safe Semantic Context Materialization。
