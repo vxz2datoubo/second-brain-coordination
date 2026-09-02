@@ -1,4 +1,4 @@
-schema_version: "1.4"
+schema_version: "1.0"
 registry_id: "ACTIVE-GPT-ENGINEERING-WORKERS-0001"
 agent_type: "GPT_ENGINEERING_WORKER"
 parallel_routes_allowed: true
@@ -6,9 +6,9 @@ boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 
 semantics:
   purpose: >-
-    Canonical active route registry for GPT Engineering Worker execution identities. Active slots require exact route, claim,
-    witness, lease, branch and pre-write snapshot bindings. Frozen historical slots remain audit evidence only and carry no
-    execution authority. A later clean successor never inherits invalid execution provenance merely because its code is similar.
+    Canonical active route registry for GPT Engineering Worker execution identities. ACTIVE slots are executable only when exact
+    route/claim/branch/reviewer-separation bindings are complete. RELEASED slots remain durable provenance only and grant no
+    execution authority. Historical evidence never recreates a current lease.
   agent_type: "GPT_ENGINEERING_WORKER"
   slot_is_provenance_not_species: true
   singleton_overwrite_model_forbidden: true
@@ -44,8 +44,8 @@ worker_slots:
       five_post_review_commits_disposition: "UNACCEPTED_EVIDENCE_ONLY"
       clean_successor: "CODEX-R163-CLEAN-SUCCESSOR-R165 / Issue #499"
     reviewer_role: "GPT_INDEPENDENT_REVIEWER"
-    activation_state: "FROZEN"
-    closure_state: "SUPERSEDED_BY_CLEAN_CODEX_R165"
+    activation_state: "RELEASED"
+    closure_state: "RELEASED"
 
   - worker_slot_id: "GPT-WORKER-R164-W5-EVENT-COVERAGE-2"
     agent_type: "GPT_ENGINEERING_WORKER"
@@ -72,8 +72,8 @@ worker_slots:
       route_claim_mismatch_discovered_before_review: true
       retroactive_route_repair_forbidden: true
     reviewer_role: "GPT_INDEPENDENT_REVIEWER"
-    activation_state: "FROZEN"
-    closure_state: "SUPERSEDED_BY_R166_CLEAN_GOVERNED_SUCCESSOR"
+    activation_state: "RELEASED"
+    closure_state: "RELEASED"
 
   - worker_slot_id: "GPT-WORKER-R166-W5-EVENT-COVERAGE-2"
     agent_type: "GPT_ENGINEERING_WORKER"
@@ -150,7 +150,6 @@ worker_slots:
       - "NO_TRADE"
     resource_class: "FROZEN_NO_EXECUTION"
     concurrency:
-      concurrent_gpt_task: "GPT-W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182"
       concurrent_codex_task: "CODEX-A2-2-SHOT-BUNDLE-R181"
       overlap_class: "O0_NO_MATERIAL_WRITE_OVERLAP"
       nested_parallelism: "FORBIDDEN"
@@ -177,11 +176,10 @@ worker_slots:
     issue: 550
     parent_issue: 31
     branch: "gpt/r182-w2-market-semantic-capability-gate"
-    pr: null
-    pr_creation_gate: "AFTER_ISSUE_550_EFFECTIVE_SPEC_SNAPSHOT_AND_FIRST_SUBSTANTIVE_COMMIT"
-    status: "ACTIVE_GOVERNED_PREWRITE"
-    execution_allowed: true
-    substantive_write_gate: "CLOSED_UNTIL_ISSUE_550_EFFECTIVE_SPEC_SNAPSHOT"
+    pr: 551
+    status: "ENGINEERING_FROZEN_WAITING_INDEPENDENT_REVIEW"
+    execution_allowed: false
+    substantive_write_gate: "CLOSED_POST_ENGINEERING_HANDOFF_NO_FURTHER_WRITE"
     route: "coordination/ROUTES/GPT-W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182.yaml"
     task_brief: "coordination/TASK-BRIEFS/GPT-W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182.yaml"
     work_claim: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182/WORK-CLAIM.yaml"
@@ -190,13 +188,7 @@ worker_slots:
     task_lease: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182/TASK-LEASE.yaml"
     executor_reservation: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182/EXECUTOR-RESERVATION.yaml"
     control_tower_scan: "coordination/CONTROL-TOWER/R182-W2-MARKET-SEMANTIC-CAPABILITY-ACTIVATION-SCAN.yaml"
-    write_paths:
-      - ".github/workflows/w2-market-semantic-capability-p0.yml"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/MARKET-SEMANTIC-FIELD-SPEC.schema.json"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/PROVIDER-CAPABILITY-OBSERVATION.schema.json"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/fixtures/market-semantic-fields.synthetic.yaml"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src/offline_research/market_semantics.py"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/tests/test_market_semantics.py"
+    write_paths: []
     read_paths:
       - "Issue #550 and parent #31"
       - "Issue #404 / PR #411 canonical W2 runtime"
@@ -207,29 +199,26 @@ worker_slots:
     read_domains: [W2, W3, W12]
     write_domains: []
     authority_claims:
-      - "R182_BOUNDED_W2_MARKET_DATA_SEMANTIC_VALIDATION_ONLY"
-      - "OFFICIAL_DOCUMENTED_NEVER_EQUALS_LOCAL_RUNTIME_VERIFIED"
-      - "NO_SECOND_A_SHARE_RULE_OR_MARKET_DATA_AUTHORITY"
-      - "NO_SECOND_PROBABILITY_OR_USER_MASTERY_AUTHORITY"
+      - "HISTORICAL_R182_CANDIDATE_WAITING_INDEPENDENT_REVIEW_ONLY"
+      - "NO_FURTHER_ENGINEERING_WRITE_WITHOUT_REMEDIATION_RELEASE"
       - "RESEARCH_ONLY_NO_TRADE"
-    resource_class: "LIGHT_TO_MEDIUM_IMPLEMENTATION"
+    resource_class: "FROZEN_NO_EXECUTION"
     concurrency:
-      concurrent_gpt_task: "GPT-CANONICAL-CI-STATE-ISOLATION-R168"
       concurrent_codex_task: "CODEX-A2-2-SHOT-BUNDLE-R181"
       overlap_class: "O0_NO_MATERIAL_WRITE_OVERLAP"
       nested_parallelism: "FORBIDDEN"
     provenance:
       source_issue: 550
-      release_basis: "CURRENT_EXPLICIT_USER_DIRECTION_IMMEDIATE_CONSTRUCTION"
-      r166_execution_release_required_for_capacity: true
-      route_precedes_snapshot: true
-      claim_precedes_snapshot: true
-      witness_precedes_snapshot: true
-      lease_precedes_snapshot: true
-      reservation_precedes_snapshot: true
-      branch_must_not_exist_before_snapshot: true
-      snapshot_required_before_substantive_write: true
+      snapshot: "issuecomment-5504490980"
+      candidate_pr: 551
+      exact_head: "c436df7d99f2ee66915e436ee1629835aad14bad"
+      dedicated_exact_head_ci: 33592468996
+      engineering_handoff: "issuecomment-5505798658"
+      independent_review_ticket: "issuecomment-5505800859"
+      branch_snapshot_base: "09b95ad8e4b8b540791be68aceafb0baba21cbcb"
+      no_self_review: true
+      no_self_merge: true
     reviewer_role: "GPT_INDEPENDENT_REVIEWER"
     reviewer_separation: "EXECUTION_IDENTITY_NOT_ACCEPTANCE_AUTHORITY"
-    activation_state: "PREWRITE_RESERVED"
-    closure_state: null
+    activation_state: "RELEASED"
+    closure_state: "RELEASED"
