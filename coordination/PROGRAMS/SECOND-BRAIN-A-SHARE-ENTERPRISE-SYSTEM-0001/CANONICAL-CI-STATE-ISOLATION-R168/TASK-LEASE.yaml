@@ -7,22 +7,28 @@ source_issue: 496
 agent_type: "GPT_ENGINEERING_WORKER"
 worker_slot_id: "GPT-WORKER-R168-CANONICAL-CI-STATE-ISOLATION-1"
 implementation_branch: "gpt/canonical-ci-state-isolation-r168"
-pull_request: null
-lease_state: "RESERVED_PRE_SNAPSHOT"
-execution_allowed: true
+pull_request: 517
+accepted_exact_head: "6a00939495ec7d8c974e5fbe8a8940a56dec3855"
+canonical_merge: "7c77e303a124f1debfb52f497eccd1db3f9f7cb4"
+lease_state: "CLOSED_RELEASED_AFTER_CANONICAL_MERGE"
+execution_allowed: false
 substantive_write_allowed: false
-substantive_write_gate: "ISSUE_496_EFFECTIVE_SPEC_SNAPSHOT_REQUIRED"
+substantive_write_gate: "CLOSED_PERMANENTLY_FOR_R168"
 
-exclusive_write_surface:
+exclusive_write_surface: []
+historical_write_surface:
   - ".github/workflows/program-control-tower.yml"
   - "coordination/CONTROL-TOWER/integration_state_isolation.py"
   - "coordination/CONTROL-TOWER/integration_state_isolation.schema.json"
   - "coordination/CONTROL-TOWER/tests/test_integration_state_isolation.py"
 
+closure_evidence:
+  independent_review: 5066628944
+  matching_review_result: 5478588001
+  exact_head_ci: 33382974470
+  closeout_receipt: "coordination/CONTROL-TOWER/R168-CANONICAL-CI-STATE-ISOLATION-CLOSEOUT.yaml"
+
 concurrency:
-  gpt_r166_active: true
-  codex_r167_active: true
-  overlap: "O1_READ_ONLY_COEXISTENCE"
   same_surface_second_writer_forbidden: true
   nested_parallelism: "FORBIDDEN"
 
@@ -35,4 +41,4 @@ freshness:
 
 self_review_allowed: false
 self_merge_allowed: false
-lease_expiry: "ON_HANDOFF_OR_GOVERNANCE_SUPERSESSION"
+lease_expiry: "CLOSED"
