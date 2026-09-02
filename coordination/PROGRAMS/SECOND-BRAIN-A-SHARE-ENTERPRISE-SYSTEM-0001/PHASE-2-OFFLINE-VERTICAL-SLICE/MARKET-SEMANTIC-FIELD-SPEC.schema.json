@@ -4,7 +4,29 @@
   "title": "MarketSemanticFieldSpec/v1",
   "type": "object",
   "additionalProperties": false,
-  "required": ["semantic_field_id", "semantic_version", "source_system", "source_version", "source_field_name", "canonical_field_ref", "primitive_type", "unit_kind", "unit_symbol", "unit_scale", "rounding_policy", "adjustment_state", "source_enum_map", "allowed_missing_states", "canonical_persistable", "evidence_ref"],
+  "required": [
+    "semantic_field_id",
+    "semantic_version",
+    "source_system",
+    "source_version",
+    "source_field_name",
+    "canonical_field_ref",
+    "primitive_type",
+    "unit_kind",
+    "unit_symbol",
+    "unit_scale",
+    "rounding_policy",
+    "adjustment_state",
+    "source_enum_map",
+    "allowed_missing_states",
+    "canonical_persistable",
+    "source_ref",
+    "evidence_ref",
+    "schema_digest",
+    "semantic_digest",
+    "observed_at",
+    "last_verified_at"
+  ],
   "properties": {
     "semantic_field_id": {"type": "string", "minLength": 1},
     "semantic_version": {"type": "string", "minLength": 1},
@@ -28,8 +50,12 @@
     "canonical_persistable": {"type": "boolean"},
     "valid_from": {"type": ["string", "null"], "format": "date-time"},
     "valid_until": {"type": ["string", "null"], "format": "date-time"},
-    "evidence_ref": {"type": "string"},
-    "last_verified_at": {"type": ["string", "null"], "format": "date-time"}
+    "source_ref": {"type": "string", "minLength": 1},
+    "evidence_ref": {"type": "string", "minLength": 1},
+    "schema_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "semantic_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "observed_at": {"type": "string", "format": "date-time"},
+    "last_verified_at": {"type": "string", "format": "date-time"}
   },
   "allOf": [
     {
