@@ -19,13 +19,13 @@ PROVIDER_CAPABILITY_SCHEMA_DIGEST_V1 = "33dc4bf5683bb62720b23c90e2dc3864f43a232f
 # require a governed code/fixture change plus independent review.
 GOVERNED_SEMANTIC_DIGESTS_V1 = MappingProxyType({
     ("TDXQUANT_OFFICIAL_DOC", "OFFICIAL_DOC_CURRENT_AT_2026_09_01", "Price", "TDXQUANT.TICK.PRICE.DOCREF.V1"):
-        "9420f0afd10e8b5601ab2922afdc93b64c4f6fb2ccf0d26ecc99a7b4c5d317b8",
+        "d6ac91f54bf0f990aa79bb0e250a5dada33dfe2f2e04555f3dfd8201c7fe3f2a",
     ("TDXQUANT_OFFICIAL_DOC", "OFFICIAL_DOC_CURRENT_AT_2026_09_01", "Volume", "TDXQUANT.TICK.VOLUME.DOCREF.V1"):
-        "118d70ff087c16c2b544f10f20c837838f454264e2d8fbf1fc12370c07e6c459",
+        "e5410ea49963e7aa79bea690a60309e32eca5fc4678691b56d9e5bb91d38c3d9",
     ("TDXQUANT_OFFICIAL_DOC", "OFFICIAL_DOC_CURRENT_AT_2026_09_01", "BSFlag", "TDXQUANT.TICK.BSFLAG.DOCREF.V1"):
-        "1df9c6f136a35ba092a1ba2177037ca4c20867bae0723ea42fb4160f21b20634",
+        "ba5c6e8d7b008ae795f8b1600a34899cd34168ef05b170c070cdbfcf27d76a1f",
     ("TDXQUANT_OFFICIAL_DOC", "OFFICIAL_DOC_CURRENT_AT_2026_09_01", "Time", "TDXQUANT.TICK.TIME.DOCREF.V1"):
-        "6f905f1c9259207095ae728997e2218d6f703ec1aa3f0a7682d70d8e465dbd5b",
+        "926b3cd8d2797f6b2a2cc7ddb3b9b495dce3005d5b21683bca7b5185c45a9b42",
 })
 
 _SEMANTIC_IDENTITY_FIELDS = (
@@ -35,7 +35,7 @@ _SEMANTIC_IDENTITY_FIELDS = (
     "rounding_policy", "price_semantic", "time_semantic", "adjustment_state",
     "source_enum_map", "allowed_missing_states", "canonical_persistable",
     "valid_from", "valid_until", "source_ref", "evidence_ref", "schema_digest",
-    "observed_at",
+    "observed_at", "last_verified_at",
 )
 
 
