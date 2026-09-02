@@ -1,0 +1,18 @@
+name: R181 shot bundle offline
+on:
+  pull_request:
+    paths: ["creative_runtime/shot_bundle.py", "creative_runtime/SHOT_BUNDLE_V1.md", "tests/test_creative_shot_bundle.py", "tools/verify_r181_scope.py", ".github/workflows/creative-runtime-r181-offline.yml", "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R181-A2-2/**"]
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  offline-r181:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: "${{ github.event.pull_request.head.sha || github.sha }}", fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.13"}
+      - run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+      - run: python -m unittest discover -s tests -p "test_creative*.py" -v
+      - run: python tools/verify_r181_scope.py --base 330745146be7726c42c517623a6feb5a8eaf5eb0 --head HEAD
+      - run: git diff --check 330745146be7726c42c517623a6feb5a8eaf5eb0...HEAD
