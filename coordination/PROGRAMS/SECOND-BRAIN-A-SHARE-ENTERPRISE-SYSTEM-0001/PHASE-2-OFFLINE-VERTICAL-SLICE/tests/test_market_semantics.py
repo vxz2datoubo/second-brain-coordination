@@ -4,7 +4,10 @@ import json
 from pathlib import Path
 import unittest
 
-import jsonschema
+try:
+    import jsonschema
+except ModuleNotFoundError:  # Shared Phase-3 regression runner installs only PyYAML.
+    jsonschema = None
 import yaml
 
 from offline_research.market_semantics import (
@@ -187,7 +190,12 @@ class TimeAndMissingnessTests(unittest.TestCase):
 
     def test_published_at_cannot_substitute_for_available_at(self):
         with self.assertRaisesRegex(SemanticValidationError, "AVAILABLE_AT_REQUIRED"):
-            require_point_in_time({"event_time": "2026-09-01T09:29:59+08:00", "published_at": "2026-09-01T09:30:00+08:00"})
+            require_point_in_time(
+                {
+                    "event_time": "2026-09-01T09:29:59+08:00",
+                    "published_at": "2026-09-01T09:30:00+08:00",
+                }
+            )
 
     def test_timezone_is_required(self):
         with self.assertRaisesRegex(SemanticValidationError, "TIMEZONE_REQUIRED"):
@@ -374,13 +382,21 @@ class ContractFixtureTests(unittest.TestCase):
             (cls.slice_root / "PROVIDER-CAPABILITY-OBSERVATION.schema.json").read_text(encoding="utf-8")
         )
 
+    @unittest.skipUnless(jsonschema is not None, "jsonschema is exercised by the dedicated R182 CI")
     def test_all_field_fixtures_validate_closed_schema(self):
+        validator = jsonschema.Draft202012Validator(
+            self.field_schema, format_checker=jsonschema.FormatChecker()
+        )
         for item in self.fixture["field_specs"]:
-            jsonschema.Draft202012Validator(self.field_schema).validate(item)
+            validator.validate(item)
 
+    @unittest.skipUnless(jsonschema is not None, "jsonschema is exercised by the dedicated R182 CI")
     def test_all_capability_fixtures_validate_closed_schema(self):
+        validator = jsonschema.Draft202012Validator(
+            self.cap_schema, format_checker=jsonschema.FormatChecker()
+        )
         for item in self.fixture["capability_observations"]:
-            jsonschema.Draft202012Validator(self.cap_schema).validate(item)
+            validator.validate(item)
 
     def test_tdx_volume_unit_remains_unverified_not_guessed(self):
         volume = next(item for item in self.fixture["field_specs"] if item["source_field_name"] == "Volume")
@@ -398,6 +414,7 @@ class ContractFixtureTests(unittest.TestCase):
         spec = next(item for item in self.fixture["field_specs"] if item["source_field_name"] == "BSFlag")
         self.assertEqual(spec["source_enum_map"], {"0": "BUY", "1": "SELL", "2": "UNKNOWN"})
 
+    @unittest.skipUnless(jsonschema is not None, "jsonschema is exercised by the dedicated R182 CI")
     def test_schemas_forbid_unknown_top_level_authority_fields(self):
         mutated = dict(self.fixture["capability_observations"][0])
         mutated["trade_authorized"] = True
