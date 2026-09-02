@@ -1,4 +1,4 @@
-schema_version: "3.29"
+schema_version: "3.30"
 registry_id: AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001
 control_tower_issue: 310
 owner: USER
@@ -13,13 +13,13 @@ portfolio_capacity_policy:
   same_canonical_object_writers_max: 1
   nested_parallelism: FORBIDDEN
 current_user_release_policy:
-  decision: R181_CODEX_A2_2_SHOT_BUNDLE + R168_LANE_A_CI_ISOLATION + R182_W2_MARKET_SEMANTIC_CAPABILITY + R166_ACCEPTED_EXECUTION_RELEASED
+  decision: R181_CODEX_A2_2_SHOT_BUNDLE + R182_W2_REVIEW_WAIT + R183_DS10_RESEARCH_INTEGRITY + R168_CANONICAL_CLOSED + R166_ACCEPTED_EXECUTION_RELEASED
   rationale: >-
-    Current explicit user direction is immediate trading-system construction. R166 PR #504 is independently ACCEPTED on exact head
-    cc982f33ad87601a0327e595125272ea4954cdce, so future engineering writes are released without Ready/merge/canonicalization.
-    R182 uses the freed GPT slot for a non-overlapping W2 market-semantic/capability validation slice. R168 retains its separate
-    Control Tower reservation. CODEX R181 is independently observed through the current interactive-film baton and remains a
-    separate agent/type with no R182 path overlap.
+    R168 PR #517 is independently ACCEPTED at exact head 6a00939495ec7d8c974e5fbe8a8940a56dec3855 and canonical merged as
+    7c77e303a124f1debfb52f497eccd1db3f9f7cb4, which is an ancestor of current main. Its execution slot is therefore closed.
+    R182 PR #551 is frozen at exact head 7445dbb31e5b9fd86b2b54597da132d4e19d14e8 awaiting independent review and remains an occupied
+    review-wait slot. Current explicit user direction is continued large-scale trading-system construction, so the released second
+    GPT slot is assigned to non-overlapping DS-10 P0A research-integrity implementation. CODEX R181 remains a separate agent/type.
   auxiliary_bounded_releases:
     - task_id: CODEX-A2-2-SHOT-BUNDLE-R181
       route_epoch: 181
@@ -32,17 +32,29 @@ current_user_release_policy:
       route_epoch: 168
       issue: 496
       agent_type: GPT_ENGINEERING_WORKER
-      status: ACTIVE_GOVERNED_PREWRITE
-      execution_allowed: true
+      pr: 517
+      exact_head: 6a00939495ec7d8c974e5fbe8a8940a56dec3855
+      status: CANONICAL_MERGED_WORKER_CLOSED
+      execution_allowed: false
     - task_id: GPT-W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182
       route_epoch: 182
       issue: 550
       agent_type: GPT_ENGINEERING_WORKER
       worker_slot_id: GPT-WORKER-R182-W2-MARKET-SEMANTICS-1
       branch: gpt/r182-w2-market-semantic-capability-gate
+      pr: 551
+      exact_head: 7445dbb31e5b9fd86b2b54597da132d4e19d14e8
+      status: ENGINEERING_STOPPED_WAITING_INDEPENDENT_REVIEW
+      execution_allowed: false
+    - task_id: GPT-DS10-RESEARCH-INTEGRITY-P0A-R183
+      route_epoch: 183
+      issue: 552
+      agent_type: GPT_ENGINEERING_WORKER
+      worker_slot_id: GPT-WORKER-R183-DS10-RESEARCH-INTEGRITY-1
+      branch: gpt/r183-ds10-research-integrity-p0a
       status: ACTIVE_GOVERNED_PREWRITE
       execution_allowed: true
-      substantive_write_gate: ISSUE_550_EFFECTIVE_SPEC_SNAPSHOT_REQUIRED
+      substantive_write_gate: ISSUE_552_EFFECTIVE_SPEC_SNAPSHOT_REQUIRED
     - task_id: GPT-W5-EVENT-COVERAGE-CLEAN-SUCCESSOR-R166
       route_epoch: 166
       issue: 501
@@ -52,6 +64,14 @@ current_user_release_policy:
       status: INDEPENDENTLY_ACCEPTED_AWAITING_SEPARATE_CANONICALIZATION
       execution_allowed: false
 historical_execution_refs:
+  r168:
+    issue: 496
+    pr: 517
+    reviewed_head: 6a00939495ec7d8c974e5fbe8a8940a56dec3855
+    independent_review: 5066628944
+    review_result: 5478588001
+    merge_commit: 7c77e303a124f1debfb52f497eccd1db3f9f7cb4
+    status: CANONICAL_MERGED_AND_WORKER_RELEASED
   r170:
     issue: 509
     pr: 511
@@ -86,14 +106,18 @@ observed_agent_state:
     observed_issue: 548
     execution_allowed: true
   GPT_ENGINEERING_WORKER:
-    observed_status: R168_ACTIVE_PREWRITE + R182_ACTIVE_PREWRITE + R166_ACCEPTED_EXECUTION_RELEASED
+    observed_status: R182_REVIEW_WAIT_SLOT_OCCUPIED + R183_ACTIVE_PREWRITE + R168_CANONICAL_CLOSED + R166_ACCEPTED_EXECUTION_RELEASED
 program_lanes:
   - lane_id: LANE-A-HARNESS-INTEGRATION
-    observed_state: R168_CANONICAL_CI_STATE_ISOLATION_ACTIVE_PREWRITE
+    mission: Bounded DS-10 research-integrity P0A implementation after R168 canonical closeout.
+    observed_state: R183_DS10_RESEARCH_INTEGRITY_ACTIVE_PREWRITE
     implementation_owner: GPT_ENGINEERING_WORKER
+    worker_slot_id: GPT-WORKER-R183-DS10-RESEARCH-INTEGRITY-1
+    trading_authorized: false
   - lane_id: LANE-B-A-SHARE-REMEDIATION
-    observed_state: R182_W2_MARKET_SEMANTIC_CAPABILITY_ACTIVE_PREWRITE
+    observed_state: R182_W2_MARKET_SEMANTIC_CAPABILITY_WAITING_INDEPENDENT_REVIEW
     implementation_owner: GPT_ENGINEERING_WORKER
+    worker_slot_id: GPT-WORKER-R182-W2-MARKET-SEMANTICS-1
     trading_authorized: false
     predecessor_r166: INDEPENDENTLY_ACCEPTED_EXECUTION_RELEASED_AWAITING_CANONICALIZATION
   - lane_id: LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP
@@ -107,10 +131,10 @@ cross_lane_overlap_matrix:
   - pair: [LANE-A-HARNESS-INTEGRATION, LANE-B-A-SHARE-REMEDIATION]
     overlap_level: O0_NO_MATERIAL_WRITE_OVERLAP
   - pair: [LANE-A-HARNESS-INTEGRATION, LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP]
-    overlap_level: O1_READ_ONLY_COEXISTENCE
+    overlap_level: O0_NO_MATERIAL_WRITE_OVERLAP
   - pair: [LANE-B-A-SHARE-REMEDIATION, LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP]
     overlap_level: O0_NO_MATERIAL_WRITE_OVERLAP
 reconciliation_rule: >-
-  R182 execution truth is Issue #550 + its canonical Route/Claim/Witness/Lease/Reservation/worker slot/activation scan followed by
-  an Issue #550 EFFECTIVE_SPEC_SNAPSHOT/v1. No branch or substantive W2 write may exist before that snapshot. R166 ACCEPT does not
-  authorize Ready or merge; its released engineering identity cannot mutate PR #504. Historical execution refs remain preserved.
+  R183 execution truth is Issue #552 + its canonical Route/Claim/Witness/Lease/Reservation/worker slot/activation scan followed by
+  an Issue #552 EFFECTIVE_SPEC_SNAPSHOT/v1. No R183 branch or substantive DS-10 write may exist before that snapshot. R182 remains
+  frozen on exact head 7445dbb31e5b9fd86b2b54597da132d4e19d14e8 for independent review; R183 may not mutate R182 or W4/W7 authorities.

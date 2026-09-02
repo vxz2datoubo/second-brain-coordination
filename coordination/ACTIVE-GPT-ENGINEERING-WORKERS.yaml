@@ -1,4 +1,4 @@
-schema_version: "1.4"
+schema_version: "1.5"
 registry_id: "ACTIVE-GPT-ENGINEERING-WORKERS-0001"
 agent_type: "GPT_ENGINEERING_WORKER"
 parallel_routes_allowed: true
@@ -129,55 +129,36 @@ worker_slots:
     route_epoch: 168
     issue: 496
     branch: "gpt/canonical-ci-state-isolation-r168"
-    pr: null
-    pr_creation_gate: "AFTER_ISSUE_496_EFFECTIVE_SPEC_SNAPSHOT_AND_FIRST_SUBSTANTIVE_COMMIT"
-    status: "ACTIVE_GOVERNED_PREWRITE"
-    execution_allowed: true
-    substantive_write_gate: "CLOSED_UNTIL_ISSUE_496_EFFECTIVE_SPEC_SNAPSHOT"
+    pr: 517
+    status: "CANONICAL_MERGED_WORKER_CLOSED"
+    execution_allowed: false
+    substantive_write_gate: "CLOSED_POST_CANONICAL_MERGE"
     route: "coordination/ROUTES/GPT-CANONICAL-CI-STATE-ISOLATION-R168.yaml"
     task_brief: "coordination/TASK-BRIEFS/GPT-CANONICAL-CI-STATE-ISOLATION-R168.yaml"
     work_claim: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/WORK-CLAIM.yaml"
     authorization_witness: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/AUTHORIZATION-WITNESS.yaml"
-    source_selection_provenance: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/SOURCE-SELECTION-PROVENANCE.yaml"
-    task_lease: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/TASK-LEASE.yaml"
-    executor_reservation: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/EXECUTOR-RESERVATION.yaml"
-    control_tower_scan: "coordination/CONTROL-TOWER/R168-CANONICAL-CI-STATE-ISOLATION-ACTIVATION-SCAN.yaml"
-    write_paths:
-      - ".github/workflows/program-control-tower.yml"
-      - "coordination/CONTROL-TOWER/integration_state_isolation.py"
-      - "coordination/CONTROL-TOWER/integration_state_isolation.schema.json"
-      - "coordination/CONTROL-TOWER/tests/test_integration_state_isolation.py"
-    read_paths:
-      - "Issue #496 and binding comments"
-      - "PR #485/#487/#504 as reference evidence only"
-      - "coordination/CONTROL-TOWER/**"
-      - ".github/workflows/program-control-tower.yml"
+    write_paths: []
     read_domains: [CONTROL_TOWER]
     write_domains: []
     authority_claims:
-      - "R168_BOUNDED_CANONICAL_CI_STATE_ISOLATION_ONLY"
-      - "NO_TEST_AUTHORITY_REWRITE"
+      - "HISTORICAL_R168_ACCEPTED_AND_CANONICALIZED_ONLY"
       - "NO_REVIEW_MERGE_RELEASE_AUTHORITY"
       - "NO_TRADE"
-    resource_class: "LIGHT_IMPLEMENTATION"
-    concurrency:
-      concurrent_gpt_task: "GPT-W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182"
-      concurrent_codex_task: "CODEX-A2-2-SHOT-BUNDLE-R181"
-      overlap_class: "O0_NO_MATERIAL_WRITE_OVERLAP"
-      nested_parallelism: "FORBIDDEN"
+    resource_class: "FROZEN_NO_EXECUTION"
     provenance:
       source_issue: 496
-      route_precedes_snapshot: true
-      claim_precedes_snapshot: true
-      witness_precedes_snapshot: true
-      lease_precedes_snapshot: true
-      reservation_precedes_snapshot: true
-      branch_must_not_exist_before_snapshot: true
-      snapshot_required_before_substantive_write: true
+      accepted_exact_head: "6a00939495ec7d8c974e5fbe8a8940a56dec3855"
+      independent_review: "pullrequestreview-5066628944"
+      review_result: "issuecomment-5478588001"
+      review_verdict: "ACCEPT"
+      merge_commit: "7c77e303a124f1debfb52f497eccd1db3f9f7cb4"
+      merge_commit_is_ancestor_of_closeout_main: true
+      post_merge_closeout: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/POST-MERGE-WORKER-CLOSEOUT.yaml"
+      historical_write_paths_preserved_in_route_and_git_history: true
     reviewer_role: "GPT_INDEPENDENT_REVIEWER"
     reviewer_separation: "EXECUTION_IDENTITY_NOT_ACCEPTANCE_AUTHORITY"
-    activation_state: "PREWRITE_RESERVED"
-    closure_state: null
+    activation_state: "CLOSED"
+    closure_state: "CANONICAL_MERGED_AND_WORKER_RELEASED"
 
   - worker_slot_id: "GPT-WORKER-R182-W2-MARKET-SEMANTICS-1"
     agent_type: "GPT_ENGINEERING_WORKER"
@@ -188,11 +169,11 @@ worker_slots:
     issue: 550
     parent_issue: 31
     branch: "gpt/r182-w2-market-semantic-capability-gate"
-    pr: null
-    pr_creation_gate: "AFTER_ISSUE_550_EFFECTIVE_SPEC_SNAPSHOT_AND_FIRST_SUBSTANTIVE_COMMIT"
-    status: "ACTIVE_GOVERNED_PREWRITE"
-    execution_allowed: true
-    substantive_write_gate: "CLOSED_UNTIL_ISSUE_550_EFFECTIVE_SPEC_SNAPSHOT"
+    pr: 551
+    exact_head: "7445dbb31e5b9fd86b2b54597da132d4e19d14e8"
+    status: "ENGINEERING_STOPPED_WAITING_INDEPENDENT_REVIEW"
+    execution_allowed: false
+    substantive_write_gate: "CLOSED_POST_ENGINEERING_HANDOFF"
     route: "coordination/ROUTES/GPT-W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182.yaml"
     task_brief: "coordination/TASK-BRIEFS/GPT-W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182.yaml"
     work_claim: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182/WORK-CLAIM.yaml"
@@ -201,20 +182,14 @@ worker_slots:
     task_lease: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182/TASK-LEASE.yaml"
     executor_reservation: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182/EXECUTOR-RESERVATION.yaml"
     control_tower_scan: "coordination/CONTROL-TOWER/R182-W2-MARKET-SEMANTIC-CAPABILITY-ACTIVATION-SCAN.yaml"
-    write_paths:
+    write_paths: []
+    historical_write_paths:
       - ".github/workflows/w2-market-semantic-capability-p0.yml"
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/MARKET-SEMANTIC-FIELD-SPEC.schema.json"
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/PROVIDER-CAPABILITY-OBSERVATION.schema.json"
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/fixtures/market-semantic-fields.synthetic.yaml"
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src/offline_research/market_semantics.py"
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/tests/test_market_semantics.py"
-    read_paths:
-      - "Issue #550 and parent #31"
-      - "Issue #404 / PR #411 canonical W2 runtime"
-      - "Issue #457 epistemic/frontier skill"
-      - "Issue #63 decision-science gap compiler"
-      - "Issue #519/#522 downstream belief numeric-integrity contracts"
-      - "current official TdxQuant/SSE/SZSE/CSRC documentation as reference evidence only"
     read_domains: [W2, W3, W12]
     write_domains: []
     authority_claims:
@@ -223,22 +198,87 @@ worker_slots:
       - "NO_SECOND_A_SHARE_RULE_OR_MARKET_DATA_AUTHORITY"
       - "NO_SECOND_PROBABILITY_OR_USER_MASTERY_AUTHORITY"
       - "RESEARCH_ONLY_NO_TRADE"
-    resource_class: "LIGHT_TO_MEDIUM_IMPLEMENTATION"
+    resource_class: "REVIEW_WAIT_SLOT_OCCUPIED"
     concurrency:
-      concurrent_gpt_task: "GPT-CANONICAL-CI-STATE-ISOLATION-R168"
+      concurrent_gpt_task: "GPT-DS10-RESEARCH-INTEGRITY-P0A-R183"
       concurrent_codex_task: "CODEX-A2-2-SHOT-BUNDLE-R181"
       overlap_class: "O0_NO_MATERIAL_WRITE_OVERLAP"
       nested_parallelism: "FORBIDDEN"
     provenance:
       source_issue: 550
-      release_basis: "CURRENT_EXPLICIT_USER_DIRECTION_IMMEDIATE_CONSTRUCTION"
-      r166_execution_release_required_for_capacity: true
+      snapshot: "W2-MARKET-SEMANTIC-CAPABILITY-R182-2026-09-01-001"
+      review_request: "issuecomment-5512374141"
+      engineering_handoff: "issuecomment-5512371211"
+      exact_head_frozen_for_review: true
+      slot_remains_occupied_until_accept_merge_closeout: true
+    reviewer_role: "GPT_INDEPENDENT_REVIEWER"
+    reviewer_separation: "EXECUTION_IDENTITY_NOT_ACCEPTANCE_AUTHORITY"
+    activation_state: "REVIEW_WAIT"
+    closure_state: null
+
+  - worker_slot_id: "GPT-WORKER-R183-DS10-RESEARCH-INTEGRITY-1"
+    agent_type: "GPT_ENGINEERING_WORKER"
+    executor_role: "GPT_ENGINEERING_WORKER"
+    model_id: "GPT-5.6 Sol"
+    task_id: "GPT-DS10-RESEARCH-INTEGRITY-P0A-R183"
+    route_epoch: 183
+    issue: 552
+    parent_issue: 31
+    skill_issue: 63
+    branch: "gpt/r183-ds10-research-integrity-p0a"
+    pr: null
+    pr_creation_gate: "AFTER_ISSUE_552_EFFECTIVE_SPEC_SNAPSHOT_AND_FIRST_SUBSTANTIVE_COMMIT"
+    status: "ACTIVE_GOVERNED_PREWRITE"
+    execution_allowed: true
+    substantive_write_gate: "CLOSED_UNTIL_ISSUE_552_EFFECTIVE_SPEC_SNAPSHOT"
+    route: "coordination/ROUTES/GPT-DS10-RESEARCH-INTEGRITY-P0A-R183.yaml"
+    task_brief: "coordination/TASK-BRIEFS/GPT-DS10-RESEARCH-INTEGRITY-P0A-R183.yaml"
+    work_claim: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A-R183/WORK-CLAIM.yaml"
+    authorization_witness: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A-R183/AUTHORIZATION-WITNESS.yaml"
+    source_selection_provenance: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A-R183/SOURCE-SELECTION-PROVENANCE.yaml"
+    task_lease: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A-R183/TASK-LEASE.yaml"
+    executor_reservation: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A-R183/EXECUTOR-RESERVATION.yaml"
+    control_tower_scan: "coordination/CONTROL-TOWER/R183-DS10-RESEARCH-INTEGRITY-ACTIVATION-SCAN.yaml"
+    write_paths:
+      - ".github/workflows/ds10-research-integrity-p0a.yml"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/RESEARCH-INTEGRITY-AUDIT.schema.json"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/LOCKBOX-ACCESS-RECEIPT.schema.json"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/fixtures/research-integrity.synthetic.yaml"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/src/offline_research/research_integrity.py"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/tests/test_research_integrity.py"
+    read_paths:
+      - "Issue #552, #63, #31 and #78"
+      - "coordination/GOVERNANCE/ENTERPRISE-BLUEPRINT-AUTHORITY-AND-INTERFACE-REGISTRY-v1.0.yaml"
+      - "coordination/SKILLS/DECISION-SCIENCE-SKILL-FAMILY-REGISTRY-v1.0.yaml"
+      - "W4 StrategyExperimentFamily contracts and synthetic/public-safe evidence"
+      - "W2 PIT/rule evidence and R182 semantic contracts as read-only references"
+      - "W7 validation authority contracts"
+      - "R168 canonical integration-state comparator"
+    read_domains: [W2, W4, W7, W9, W12]
+    write_domains: []
+    authority_claims:
+      - "DS10_AUDIT_EVIDENCE_ONLY"
+      - "W4_REMAINS_STRATEGY_EXPERIMENT_AUTHORITY"
+      - "W7_REMAINS_VALIDATION_AND_FINAL_RISK_AUTHORITY"
+      - "NO_SECOND_TRIAL_LEDGER_OR_EXPERIMENT_SYSTEM_OF_RECORD"
+      - "NO_PROBABILITY_POSITION_ORDER_OR_TRADE_AUTHORITY"
+      - "RESEARCH_ONLY_NO_TRADE"
+    resource_class: "MEDIUM_IMPLEMENTATION"
+    concurrency:
+      concurrent_gpt_task: "GPT-W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182"
+      concurrent_codex_task: "CODEX-A2-2-SHOT-BUNDLE-R181"
+      overlap_class: "O0_NO_MATERIAL_WRITE_OVERLAP"
+      nested_parallelism: "FORBIDDEN"
+    provenance:
+      source_issue: 552
+      release_basis: "CURRENT_EXPLICIT_USER_DIRECTION_CONTINUE_LARGE_SCALE_IMPLEMENTATION"
+      r168_closeout_releases_slot: true
       route_precedes_snapshot: true
       claim_precedes_snapshot: true
       witness_precedes_snapshot: true
       lease_precedes_snapshot: true
       reservation_precedes_snapshot: true
-      branch_must_not_exist_before_snapshot: true
+      branch_absent_before_governance_release: true
       snapshot_required_before_substantive_write: true
     reviewer_role: "GPT_INDEPENDENT_REVIEWER"
     reviewer_separation: "EXECUTION_IDENTITY_NOT_ACCEPTANCE_AUTHORITY"

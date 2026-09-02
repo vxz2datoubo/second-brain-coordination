@@ -1,0 +1,90 @@
+schema_version: "1.0"
+task_id: "GPT-DS10-RESEARCH-INTEGRITY-P0A-R183"
+repository: "vxz2datoubo/second-brain-coordination"
+source_issue: 552
+parent_issue: 31
+skill_issue: 63
+route_epoch: 183
+mode: "bounded_ds10_research_integrity_p0a"
+mode_label: "Trial completeness, selection freeze, lockbox contamination and PIT integrity kernel"
+target_agent: "GPT_ENGINEERING_WORKER"
+worker_slot_id: "GPT-WORKER-R183-DS10-RESEARCH-INTEGRITY-1"
+implementation_branch: "gpt/r183-ds10-research-integrity-p0a"
+pull_request: null
+status: "GOVERNED_PREWRITE / CODE_WRITE_BLOCKED_UNTIL_EFFECTIVE_SPEC_SNAPSHOT"
+
+purpose: >-
+  Implement Issue #552 P0A as an additive non-authoritative audit layer. It reads a W4-owned experiment-family snapshot and emits
+  deterministic research-integrity evidence for W7 without owning experiments, validation, probability, capital or trading.
+
+required_behavior:
+  trial_completeness:
+    - "derive observed trial identity set and digest from supplied immutable records"
+    - "detect declared/observed count mismatch"
+    - "detect duplicate IDs, missing expected IDs, mutation and unexplained deletion"
+    - "distinguish reproducibility rerun from a new selection-affecting trial"
+  selection:
+    - "selection rule must exist before selected winner/final evaluation"
+    - "family definition, benchmark, metric and horizon mutation after selection requires new family/retest"
+  lockbox:
+    - "SEALED_UNUSED and OPENED_ONCE_FINAL_EVAL are the only eligible final-holdout states"
+    - "reuse for tuning/feature/prompt/model/parameter selection is contamination"
+    - "missing access history remains UNKNOWN/ABSTAIN"
+  pit:
+    - "dataset/rule/available_at evidence must be explicit"
+    - "future revisions/current rules applied backward block eligibility"
+  output:
+    - "ResearchIntegrityAudit/v1 with blocking/nonblocking findings, selection-bias risk and W7 handoff disposition"
+    - "all authority flags false"
+
+exact_runtime_write_allowlist:
+  - ".github/workflows/ds10-research-integrity-p0a.yml"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/RESEARCH-INTEGRITY-AUDIT.schema.json"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/LOCKBOX-ACCESS-RECEIPT.schema.json"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/fixtures/research-integrity.synthetic.yaml"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/src/offline_research/research_integrity.py"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/tests/test_research_integrity.py"
+
+acceptance_scenarios:
+  - "caller says 10 trials while W4 records 100 -> observed 100 and mismatch finding"
+  - "losing/failed trial missing -> blocking incomplete-history finding"
+  - "same trial ID with changed immutable digest -> mutation finding"
+  - "identical rerun links to original instead of silently increasing economic trial count"
+  - "family narrowed after winner -> reject/retest"
+  - "benchmark/metric/horizon changed after seeing result -> reject/retest"
+  - "lockbox opened once after full candidate freeze -> eligible final-eval state"
+  - "lockbox used for retuning or second winner selection -> contamination"
+  - "lockbox history absent -> UNKNOWN/ABSTAIN"
+  - "future financial revision/current rule leaks backward -> block"
+  - "statistical method NOT_RUN/NOT_APPLICABLE/INSUFFICIENT_DATA cannot equal PASS"
+  - "ELIGIBLE_FOR_W7_VALIDATION cannot grant W7/position/order/trade authority"
+
+source_refs:
+  - "Issue #552"
+  - "Issue #63"
+  - "Issue #31"
+  - "Issue #78"
+  - "Enterprise Blueprint Authority and Interface Registry"
+  - "Decision Science Skill Family Registry"
+  - "White 2000 / Hansen 2005 / Bailey et al. PBO / DSR / Romano-Wolf references from #552"
+
+parallelism:
+  allowed_with_r182_review_wait: true
+  allowed_with_codex_r181: true
+  overlap: "O0_NO_MATERIAL_WRITE_OVERLAP"
+  resource_class: "MEDIUM_IMPLEMENTATION"
+  nested_parallelism: "FORBIDDEN"
+
+stop_conditions:
+  - "R183 branch exists before pre-write snapshot"
+  - "write path outside six-file allowlist"
+  - "implementation requires creating W4 experiment/trial write authority"
+  - "implementation requires writing W7 canonical validation/risk state"
+  - "a caller-supplied total-trials integer becomes authoritative"
+  - "credentials/network/production/trading authority would be required"
+
+completion:
+  signal: "R183_DS10_RESEARCH_INTEGRITY_P0A_READY_FOR_INDEPENDENT_REVIEW"
+  next_gate: "ISSUE_453_EXACT_HEAD_REVIEW_REQUEST"
+  ready_transition_authorized: false
+  merge_authorized: false

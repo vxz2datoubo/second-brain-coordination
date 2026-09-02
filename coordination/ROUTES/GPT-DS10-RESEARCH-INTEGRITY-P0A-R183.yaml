@@ -1,0 +1,102 @@
+schema_version: "1.0"
+route_id: "GPT-DS10-RESEARCH-INTEGRITY-P0A-R183"
+repository: "vxz2datoubo/second-brain-coordination"
+status: "ACTIVE_GOVERNED_PREWRITE"
+execution_allowed: true
+runtime_code_change_allowed: true
+merge_authorized: false
+self_review_forbidden: true
+self_accept_forbidden: true
+self_merge_forbidden: true
+
+binding:
+  task_id: "GPT-DS10-RESEARCH-INTEGRITY-P0A-R183"
+  route_epoch: 183
+  source_issue: 552
+  parent_issue: 31
+  skill_issue: 63
+  implementation_branch: "gpt/r183-ds10-research-integrity-p0a"
+  pull_request: null
+  pull_request_state: "TO_CREATE_AFTER_EFFECTIVE_SPEC_SNAPSHOT_AND_FIRST_SUBSTANTIVE_COMMIT"
+  worker_slot_id: "GPT-WORKER-R183-DS10-RESEARCH-INTEGRITY-1"
+  task_brief: "coordination/TASK-BRIEFS/GPT-DS10-RESEARCH-INTEGRITY-P0A-R183.yaml"
+  work_claim: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A-R183/WORK-CLAIM.yaml"
+  authorization_witness: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A-R183/AUTHORIZATION-WITNESS.yaml"
+  source_selection_provenance: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A-R183/SOURCE-SELECTION-PROVENANCE.yaml"
+  task_lease: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A-R183/TASK-LEASE.yaml"
+  executor_reservation: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A-R183/EXECUTOR-RESERVATION.yaml"
+  activation_scan: "coordination/CONTROL-TOWER/R183-DS10-RESEARCH-INTEGRITY-ACTIVATION-SCAN.yaml"
+  review_queue_issue: 453
+
+executor:
+  agent_type: "GPT_ENGINEERING_WORKER"
+  executor_role: "GPT_ENGINEERING_WORKER"
+  model_id: "GPT-5.6 Sol"
+  worker_slot_id: "GPT-WORKER-R183-DS10-RESEARCH-INTEGRITY-1"
+  independent_reviewer: "GPT_INDEPENDENT_REVIEWER"
+  reviewer_separation: "EXECUTION_IDENTITY_NOT_ACCEPTANCE_AUTHORITY"
+
+mission:
+  goal: >-
+    Implement the first DS-10 research-integrity kernel as a read-only auditor over W4 experiment-family evidence so incomplete
+    trial history, post-selection family mutation, lockbox contamination and point-in-time leakage fail closed before advanced
+    multiple-testing statistics or W7 validation.
+  success_requires:
+    - "W4 remains the only StrategyExperimentFamily writer"
+    - "trial count is recomputed from immutable trial identities, never trusted from caller metadata"
+    - "failed, aborted and losing trials cannot disappear without a blocking integrity finding"
+    - "selection rule and candidate identity are frozen before final lockbox access"
+    - "lockbox access history is explicit and reuse for tuning contaminates the family"
+    - "PIT, rule-version and available_at gaps remain blockers/unknown, never implicit pass"
+    - "method states NOT_RUN/NOT_APPLICABLE/INSUFFICIENT_DATA remain distinct from PASS"
+    - "ELIGIBLE_FOR_W7_VALIDATION never means W7 ACCEPT or trade authority"
+
+write_scope:
+  allowed:
+    - ".github/workflows/ds10-research-integrity-p0a.yml"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/RESEARCH-INTEGRITY-AUDIT.schema.json"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/LOCKBOX-ACCESS-RECEIPT.schema.json"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/fixtures/research-integrity.synthetic.yaml"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/src/offline_research/research_integrity.py"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/tests/test_research_integrity.py"
+  all_other_runtime_paths: "READ_ONLY"
+  w4_strategy_experiment_authority: "READ_ONLY"
+  w7_validation_authority: "READ_ONLY"
+
+concurrency:
+  concurrent_gpt_r182: "GPT-W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182 / REVIEW_WAIT"
+  concurrent_codex_r181: "CODEX-A2-2-SHOT-BUNDLE-R181"
+  overlap_class: "O0_NO_MATERIAL_WRITE_OVERLAP"
+  same_canonical_object_writers_max: 1
+  nested_parallelism: "FORBIDDEN"
+
+substantive_write_gate:
+  state: "CLOSED_UNTIL_ISSUE_552_EFFECTIVE_SPEC_SNAPSHOT"
+  requires:
+    - "this exact canonical R183 route and task brief"
+    - "matching Work Claim, Authorization Witness, Source Selection Provenance, Task Lease and Executor Reservation"
+    - "canonical R183 worker slot and Lane-A projection"
+    - "fresh R183 activation scan"
+    - "Issue #552 EFFECTIVE_SPEC_SNAPSHOT/v1 published after all bindings"
+    - "declared branch absent before snapshot"
+  mismatch_action: "FAIL_CLOSED_NO_SUBSTANTIVE_WRITE"
+
+hard_locks:
+  - "NO_SECOND_STRATEGY_EXPERIMENT_OR_TRIAL_LEDGER_AUTHORITY"
+  - "NO_W4_OR_W7_CANONICAL_WRITE"
+  - "NO_TRIAL_COUNT_CALLER_TRUST"
+  - "NO_LOCKBOX_REUSE_LAUNDERING"
+  - "NO_FAILED_TRIAL_DELETION_LAUNDERING"
+  - "NO_PIT_OR_RULE_VERSION_LEAKAGE"
+  - "NO_STATISTICAL_METHOD_FAILURE_COERCED_TO_PASS"
+  - "NO_PROBABILITY_POSITION_ORDER_OR_TRADE_AUTHORITY"
+  - "NO_SELF_REVIEW_SELF_ACCEPT_SELF_MERGE"
+
+review_gate:
+  queue_issue: 453
+  exact_head_review_required: true
+  python_matrix: ["3.11", "3.13"]
+  green_ci_is_acceptance_authority: false
+
+completion_signal: "R183_DS10_RESEARCH_INTEGRITY_P0A_READY_FOR_INDEPENDENT_REVIEW"
+next_command: "PUBLISH_ISSUE_552_EFFECTIVE_SPEC_SNAPSHOT_THEN_CREATE_BRANCH_AND_IMPLEMENT"
