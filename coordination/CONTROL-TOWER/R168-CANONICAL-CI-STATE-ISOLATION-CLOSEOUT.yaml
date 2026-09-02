@@ -105,6 +105,25 @@ current_authority_release:
     lane_c: CLOSED_NO_ACTIVE_IMPLEMENTATION
   effective_gpt_execution_authority_after_closeout: false
 
+live_authority_supersession:
+  precedent: "R166 PostReviewExecutionRelease/v1"
+  supersedes_live_execution_semantics_of:
+    - "coordination/ROUTES/GPT-CANONICAL-CI-STATE-ISOLATION-R168.yaml"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/WORK-CLAIM.yaml"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/TASK-LEASE.yaml"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/EXECUTOR-RESERVATION.yaml"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/AUTHORIZATION-WITNESS.yaml"
+  historical_artifacts_become_provenance_only_after_closeout: true
+  historical_execution_allowed_fields_do_not_reactivate_authority: true
+  current_authority_source: "ACTIVE-GPT-ENGINEERING-WORKERS RELEASED state + current Program Lane/Work-Claim projection + this monotonic closeout receipt"
+  reactivation_requires_new_governed_route_claim_witness_lease_reservation_snapshot: true
+  retroactive_reactivation_forbidden: true
+  rationale: >-
+    R168's prewrite Route/Claim/Lease/Reservation/Witness accurately record the authority that existed at execution time and are
+    therefore preserved as immutable provenance. After the independently accepted implementation was canonicalized, this closeout
+    monotonically supersedes only their live-execution effect. Their historical `execution_allowed` observations cannot mint a new
+    current worker lease once the canonical worker slot is RELEASED.
+
 historical_r168_bindings_preserved_unchanged:
   route: "coordination/ROUTES/GPT-CANONICAL-CI-STATE-ISOLATION-R168.yaml"
   work_claim: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/WORK-CLAIM.yaml"
