@@ -216,6 +216,84 @@ class LifecycleProjectionTests(unittest.TestCase):
         )
         self.assertEqual(result.lifecycle_state, LIFECYCLE_RELEASED)
 
+    def test_active_plus_released_closure_fails_closed_and_holds_capacity(self) -> None:
+        result = resolve_worker_lifecycle(
+            _slot(
+                activation_state="ACTIVE",
+                closure_state="RELEASED",
+                status="ACTIVE_GOVERNED_EXECUTION",
+                execution_allowed=True,
+            )
+        )
+        self.assertEqual(result.lifecycle_state, LIFECYCLE_UNKNOWN)
+        self.assertFalse(result.executable)
+        self.assertTrue(result.occupies_capacity)
+        self.assertFalse(result.current_write_authority)
+        self.assertIn("CONTRADICTORY_TERMINAL_PROJECTION_FAILS_CLOSED", result.findings)
+
+    def test_frozen_plus_positive_active_status_fails_closed_and_holds_capacity(self) -> None:
+        result = resolve_worker_lifecycle(
+            _slot(
+                activation_state="FROZEN",
+                closure_state="SUPERSEDED_BY_CLEAN_SUCCESSOR",
+                status="ACTIVE_GOVERNED_EXECUTION",
+                execution_allowed=False,
+            )
+        )
+        self.assertEqual(result.lifecycle_state, LIFECYCLE_UNKNOWN)
+        self.assertFalse(result.executable)
+        self.assertTrue(result.occupies_capacity)
+        self.assertIn("TERMINAL_CONFLICTS_WITH_ACTIVE_STATUS", result.findings)
+
+    def test_closed_released_plus_execution_true_fails_closed_and_holds_capacity(self) -> None:
+        result = resolve_worker_lifecycle(
+            _slot(
+                activation_state="CLOSED",
+                closure_state="CANONICAL_MERGED_AND_WORKER_RELEASED",
+                status="CANONICAL_MERGED_WORKER_CLOSED",
+                execution_allowed=True,
+            )
+        )
+        self.assertEqual(result.lifecycle_state, LIFECYCLE_UNKNOWN)
+        self.assertFalse(result.executable)
+        self.assertTrue(result.occupies_capacity)
+        self.assertIn("TERMINAL_CONFLICTS_WITH_EXECUTION_ALLOWED", result.findings)
+
+    def test_valid_released_and_frozen_records_still_release_capacity(self) -> None:
+        released = resolve_worker_lifecycle(
+            _slot(
+                activation_state="RELEASED",
+                closure_state="RELEASED",
+                status="RELEASED",
+                execution_allowed=False,
+            )
+        )
+        frozen = resolve_worker_lifecycle(
+            _slot(
+                activation_state="FROZEN",
+                closure_state="SUPERSEDED_BY_CLEAN_SUCCESSOR",
+                status="FROZEN_SUPERSEDED_ROUTE_BRANCH_BINDING",
+                execution_allowed=False,
+            )
+        )
+        self.assertEqual(released.lifecycle_state, LIFECYCLE_RELEASED)
+        self.assertFalse(released.occupies_capacity)
+        self.assertEqual(frozen.lifecycle_state, LIFECYCLE_FROZEN)
+        self.assertFalse(frozen.occupies_capacity)
+
+    def test_terminal_conflict_resolution_is_mapping_order_independent(self) -> None:
+        slot = _slot(
+            activation_state="ACTIVE",
+            closure_state="RELEASED",
+            status="ACTIVE_GOVERNED_EXECUTION",
+            execution_allowed=True,
+        )
+        reversed_slot = dict(reversed(list(slot.items())))
+        self.assertEqual(
+            resolve_worker_lifecycle(slot),
+            resolve_worker_lifecycle(reversed_slot),
+        )
+
     def test_ambiguous_closed_fails_closed(self) -> None:
         result = resolve_worker_lifecycle(
             _slot(
