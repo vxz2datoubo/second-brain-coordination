@@ -1,0 +1,195 @@
+{
+  "schema": "WorkBuddyRelayResult/v1",
+  "package_id": "WORKBUDDY-R175-ORDERED-BATCH-RETURN",
+  "agent_id": "WORKBUDDY",
+  "source_agent": "WORKBUDDY",
+  "target_agent": "CODEX",
+  "reviewer": "pending_independent_reviewer",
+  "task_id": "WORKBUDDY-R175-ORDERED-BATCH",
+  "route_epoch": 175,
+  "active_issue": 532,
+  "source_issue": 528,
+  "source_checkpoint": {
+    "baseline": "740788a3847a402923bf2e89093d910eda0c89d0",
+    "exact_head": "7d8ac1fdaf724bed75c8da3e1dbdf4212e108133",
+    "checkpoint_remote_ref": "refs/remotes/origin/codex/checkpoint-r175-mapping-7d8ac1f"
+  },
+  "result": "PASS",
+  "workbuddy_work": {
+    "branch": "workbuddy/r175-ordered-batch-execution",
+    "exact_head": "2c229eaa1228580e80e130f628dc11c56ee6df8d",
+    "pushed": true,
+    "worktree_clean": true,
+    "allowed_write_paths": [
+      "tests/workbuddy/**",
+      "tools/workbuddy/**",
+      "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/**"
+    ],
+    "commits": [
+      "88bba3d51f8ee3ec79d0b5077bb1973d65e34ce5 workbuddy(r175-s1): add offline campaign benchmark probes, tests and measurements",
+      "c278e20f4bfd0404d1706f16f1e39283aab542e7 workbuddy(r175-s2): add director coverage matrix proving compilability hard gate",
+      "823cf43d382bac120d9ea5d0e0e6083c0535a6a4 workbuddy(r175-s3): add offline operator dry run covering intake/duplicate/resume/replay/recovery/handoff",
+      "2c229eaa1228580e80e130f628dc11c56ee6df8d workbuddy(r175-s3): rename operator module to avoid forbidden capability import"
+    ],
+    "changed_paths": [
+      "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/DIRECTOR-MATRIX/director-matrix-receipt.json",
+      "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/MEASUREMENTS/campaign-benchmark-receipts.json",
+      "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/OPERATOR-DRY-RUN/operator-dry-run-receipt.json",
+      "tests/workbuddy/__init__.py",
+      "tests/workbuddy/campaign_benchmark/__init__.py",
+      "tests/workbuddy/campaign_benchmark/test_lifecycle.py",
+      "tests/workbuddy/campaign_benchmark/test_metrics.py",
+      "tests/workbuddy/campaign_benchmark/test_receipts.py",
+      "tests/workbuddy/campaign_benchmark/test_storage.py",
+      "tests/workbuddy/campaign_benchmark/test_synthetic.py",
+      "tests/workbuddy/director_matrix/__init__.py",
+      "tests/workbuddy/director_matrix/test_director_contract.py",
+      "tests/workbuddy/director_matrix/test_matrix.py",
+      "tests/workbuddy/director_matrix/test_states.py",
+      "tests/workbuddy/operator_dry_run/__init__.py",
+      "tests/workbuddy/operator_dry_run/test_handoff.py",
+      "tests/workbuddy/operator_dry_run/test_intake.py",
+      "tests/workbuddy/operator_dry_run/test_lifecycle.py",
+      "tools/workbuddy/campaign_benchmark/__init__.py",
+      "tools/workbuddy/campaign_benchmark/metrics.py",
+      "tools/workbuddy/campaign_benchmark/receipts.py",
+      "tools/workbuddy/campaign_benchmark/storage.py",
+      "tools/workbuddy/campaign_benchmark/synthetic.py",
+      "tools/workbuddy/director_matrix/__init__.py",
+      "tools/workbuddy/director_matrix/matrix.py",
+      "tools/workbuddy/director_matrix/receipts.py",
+      "tools/workbuddy/director_matrix/states.py",
+      "tools/workbuddy/operator_dry_run/__init__.py",
+      "tools/workbuddy/operator_dry_run/dry_run.py",
+      "tools/workbuddy/operator_dry_run/receipts.py"
+    ]
+  },
+  "receipts": [
+    {
+      "item": "WB-V1",
+      "command": "python tools/verify_creative_executor_checkpoint.py --agent-id WORKBUDDY --expected-head 7d8ac1f... --remote-ref refs/remotes/origin/codex/checkpoint-r175-mapping-7d8ac1f --baseline 740788a... --policy-floor-ref 740788a...",
+      "result": "PASS",
+      "note": "EXECUTOR_CLEAN_REPRODUCTION verified at batch start when HEAD==7d8ac1f; the identity check is checkpoint-scoped and no longer applies after WorkBuddy advanced the branch to 2c229eaa.",
+      "exit_code": 0,
+      "stdout_sha256": null,
+      "stderr_sha256": null
+    },
+    {
+      "item": "WB-V2",
+      "command": "python -m unittest tests.test_creative_migration_confinement tests.test_creative_s02_cli tests.test_creative_executor_checkpoint",
+      "result": "PASS",
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 0,
+      "stderr_sha256": "2bff6ef015fe7a628210270c9d13b205fa1c458f3fc85b6d508ac90c65adebaf",
+      "stderr_bytes": 1677
+    },
+    {
+      "item": "WB-V3",
+      "command": "python tools/validate_interactive_cinematic_mapping.py",
+      "result": "PASS",
+      "exit_code": 0,
+      "stdout_sha256": "1bc1ab8d24ae0374096219f694101f280b4acd67b9d3b0ca8b691cca0c4f947f",
+      "stdout_bytes": 311,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_bytes": 0
+    },
+    {
+      "item": "WB-V3b",
+      "command": "python -m unittest tests.test_interactive_cinematic_mapping tests.test_creative_public_safe_boundary tests.test_creative_migration_confinement tests.test_creative_executor_batch",
+      "result": "PASS",
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 0,
+      "stderr_sha256": "6e8a01ae15156f2aad81853752981da5fa55d7e338bad3dd1106c39ab18d90d0",
+      "stderr_bytes": 1705
+    },
+    {
+      "item": "WB-V4",
+      "command": "python -m unittest tests.test_creative_quota_checkpoint tests.test_creative_relay_readiness tests.test_creative_workbuddy_return",
+      "result": "PASS",
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 0,
+      "stderr_sha256": "4045689a68b6c231b7f36c5c5ee6c98be10848a16f75646276c8335d1a69d9d8",
+      "stderr_bytes": 123
+    },
+    {
+      "item": "WB-S1",
+      "command": "python -m unittest discover -s tests/workbuddy/campaign_benchmark -p test_*.py",
+      "result": "PASS",
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 0,
+      "stderr_sha256": "fda9a46564f7324a08b8accd9d049a076fce8f744e4b3b6ac60fb129ada33129",
+      "stderr_bytes": 210
+    },
+    {
+      "item": "WB-S2",
+      "command": "python -m unittest discover -s tests/workbuddy/director_matrix -p test_*.py",
+      "result": "PASS",
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 0,
+      "stderr_sha256": "9ea674de8867d916d70181a19413c496860915c88c7bba4e4c23f6a1029acc9d",
+      "stderr_bytes": 132
+    },
+    {
+      "item": "WB-S3",
+      "command": "python -m unittest discover -s tests/workbuddy/operator_dry_run -p test_*.py",
+      "result": "PASS",
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 0,
+      "stderr_sha256": "8fdcf0922426f9e18c1677fc31344a3b0f45397b5e809db9330070d791700d0d",
+      "stderr_bytes": 138
+    }
+  ],
+  "findings": [
+    {
+      "id": "F-1",
+      "severity": "info_resolved",
+      "title": "operator module name collided with forbidden capability import",
+      "detail": "WB-S3 first landed tools/workbuddy/operator_dry_run/operator.py; the name `operator` is in verify_public_safe_boundary.py's _MINIMUM_FORBIDDEN_IMPORTS, so `from . import operator` tripped BoundaryViolation in test_creative_public_safe_boundary.test_current_repository_passes_immutable_floor (a Codex acceptance oracle that scans the whole repo). Resolved by renaming the module to dry_run.py (commit 2c229eaa). All WB-V3b tests pass after the fix.",
+      "blocks_milestone": false
+    },
+    {
+      "id": "F-2",
+      "severity": "info_observation",
+      "title": "Windows GBK subprocess decode noise in a Codex test",
+      "detail": "tests/test_creative_migration_confinement.py uses subprocess(..., text=True) without an encoding override; under the GBK code page this emits UnicodeDecodeError tracebacks to stderr. Tests still pass; it is cosmetic stderr noise, not a functional defect. Surfaces Codex-owned file; WorkBuddy did not patch it.",
+      "blocks_milestone": false
+    },
+    {
+      "id": "F-3",
+      "severity": "info_observation",
+      "title": "ledger layer does not deduplicate repeated input",
+      "detail": "Re-submitting an identical payload records a distinct event (sequence increments, so event_hash differs). Idempotency (UC-IDEMPOTENCY) is not enforced at the ledger layer and must come from an upstream intake_dedup scope. Documented in tests, not changed.",
+      "blocks_milestone": false
+    },
+    {
+      "id": "F-4",
+      "severity": "info_observation",
+      "title": "replay latency measurement required warmup + interleaving",
+      "detail": "Cold, sequential timing of CreativeLedger.replay() manufactured a 14.3x pseudo-superlinear growth for 1000->10000 events; after warmup + interleaved round-robin sampling the growth is ~10x (near-linear). WB-S1 receipts bake in warmup and interleaving.",
+      "blocks_milestone": false
+    }
+  ],
+  "integrity": {
+    "acceptance_oracle_changed": false,
+    "codex_branch_patched": false,
+    "independent_acceptance": false,
+    "ready_or_merge_authorized": false,
+    "credentials_or_real_user_data_used": false,
+    "external_paid_generation_used": false,
+    "architecture_changed": false
+  },
+  "known_risks": [
+    "wall-clock replay/storage measurements are environment specific (shared local Windows machine); absolute values are not portable, only ratios and the near-linearity conclusion are.",
+    "the director-matrix corpus and operator scene vocabulary snapshot the checkpoint's registered scene/beat/fact values; a future checkpoint that adds or renames them requires re-deriving those constants.",
+    "WB-V1 identity verification is checkpoint-scoped (expected-head 7d8ac1f); after WorkBuddy advanced the branch it can no longer pass from the new HEAD and must be re-run on a fresh clone of the checkpoint ref."
+  ],
+  "single_next_action": "CODEX reads this return package, verifies the four commits are linear and within the WorkBuddy-reserved paths, then decides complementary work or final review.",
+  "rollback": "Create a normal revert commit on workbuddy/r175-ordered-batch-execution for the offending commit; never rewrite history, force-push, rebase, amend or reset.",
+  "completion_signal": "WORKBUDDY_R175_ORDERED_BATCH_COMPLETE_RETURN_TO_CODEX"
+}
