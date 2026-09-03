@@ -1,0 +1,425 @@
+name: W5 Event Coverage P0 VS1
+
+on:
+  pull_request:
+    paths:
+      - 'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/**'
+      - '.github/workflows/w5-event-coverage-p0-vs1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.13']
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install retained-suite dependency
+        run: python -m pip install --disable-pip-version-check PyYAML
+
+      - name: Exact-head provenance
+        if: github.event_name == 'pull_request'
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+          SNAPSHOT_BASE: f1c687947c4846ca9484de0cf977df658f5bfcfb
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          git merge-base --is-ancestor "$SNAPSHOT_BASE" HEAD
+          test "$(git merge-base "$SNAPSHOT_BASE" HEAD)" = "$SNAPSHOT_BASE"
+          echo "R166_EXACT_HEAD_PROVENANCE_PASS head=$EXPECTED_HEAD snapshot_base=$SNAPSHOT_BASE"
+
+      - name: Compile runtime
+        run: >-
+          python -m py_compile
+          coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/event_coverage.py
+
+      - name: R166 adversarial regressions
+        run: >-
+          python -m unittest discover
+          -s coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/tests
+          -p 'test_*.py' -v
+
+      - name: Parse closed JSON schemas
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path('coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE')
+          names = [
+              'SOURCE-REGISTRY.schema.json',
+              'EVENT-COVERAGE-REPORT.schema.json',
+              'CLAIM-EVIDENCE-LEDGER.schema.json',
+          ]
+          for name in names:
+              path = root / name
+              doc = json.loads(path.read_text(encoding='utf-8'))
+              assert doc.get('$schema') == 'https://json-schema.org/draft/2020-12/schema', name
+              assert doc.get('additionalProperties') is False, name
+              assert isinstance(doc.get('required'), list) and doc['required'], name
+          print('R166_W5_CLOSED_SCHEMAS_PASS', names)
+          PY
+
+      - name: Authority boundary static gate
+        run: |
+          python - <<'PY'
+          import importlib.util
+          from pathlib import Path
+
+          path = Path('coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/event_coverage.py')
+          spec = importlib.util.spec_from_file_location('event_coverage_r166', path)
+          module = importlib.util.module_from_spec(spec)
+          assert spec and spec.loader
+          spec.loader.exec_module(module)
+          assert module.AUTHORITY
+          assert all(value is False for value in module.AUTHORITY.values())
+          assert module.CANONICAL_SOURCE_INSTANCE_AUTHORITY_AVAILABLE is False
+          assert module.TYPED_CAUSAL_AUTHORITY_AVAILABLE is False
+          assert module.TYPED_PARTICIPANT_INTENT_AUTHORITY_AVAILABLE is False
+          assert module.TYPED_FREE_TEXT_SEMANTIC_AUTHORITY_AVAILABLE is False
+          print('R166_W5_AUTHORITY_BOUNDARY_PASS')
+          PY
+
+      - name: Current-main integration delta gate
+        if: github.event_name == 'pull_request'
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+
+          git fetch origin main
+          MAIN_START="$(git rev-parse origin/main)"
+          MAIN_REMOTE_START="$(git ls-remote origin refs/heads/main | awk '{print $1}')"
+          CANDIDATE_REMOTE_START="$(git ls-remote origin "refs/heads/${HEAD_REF}" | awk '{print $1}')"
+
+          if [ -z "$MAIN_REMOTE_START" ] || [ "$MAIN_START" != "$MAIN_REMOTE_START" ]; then
+            echo "TEST_ENVIRONMENT_INVALID: current main moved during initial pin"
+            exit 1
+          fi
+          if [ -z "$CANDIDATE_REMOTE_START" ] || [ "$CANDIDATE_REMOTE_START" != "$HEAD_SHA" ]; then
+            echo "TEST_ENVIRONMENT_INVALID: candidate remote head does not equal workflow exact head"
+            exit 1
+          fi
+
+          BASE_WT="/tmp/w5-r166-main-${GITHUB_RUN_ID}-${{ matrix.python-version }}"
+          INTEGRATED_WT="/tmp/w5-r166-integrated-${GITHUB_RUN_ID}-${{ matrix.python-version }}"
+          rm -rf "$BASE_WT" "$INTEGRATED_WT"
+
+          cleanup() {
+            git worktree remove --force "$BASE_WT" >/dev/null 2>&1 || true
+            git worktree remove --force "$INTEGRATED_WT" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+
+          git worktree add --detach "$BASE_WT" "$MAIN_START"
+          git worktree add --detach "$INTEGRATED_WT" "$MAIN_START"
+
+          collect_control_result() {
+            local root="$1"
+            local out="$2"
+            (
+              cd "$root"
+              python - "$out" <<'PY'
+          import hashlib
+          import json
+          import re
+          import sys
+          import unittest
+          from pathlib import Path
+
+          output = Path(sys.argv[1])
+          root = str(Path.cwd().resolve())
+
+          def normalize_traceback(text: str) -> str:
+              value = text.replace(root, '<WORKTREE>')
+              value = re.sub(r'/tmp/tmp[A-Za-z0-9_.-]+', '/tmp/<TMP>', value)
+              value = re.sub(r'/tmp/w5-r166-[A-Za-z0-9_.-]+', '/tmp/<W5_WORKTREE>', value)
+              # Flattened failure text has no trustworthy provenance proving that an
+              # arbitrary 0x token is runtime identity. Preserve all hex values.
+              value = re.sub(
+                  r'(File\s+"[^"\n]+",\s+line\s+)\d+(\s*,\s+in\s+[^\n]+)',
+                  r'\g<1><LINE>\g<2>',
+                  value,
+              )
+              return '\n'.join(line.rstrip() for line in value.strip().splitlines())
+
+          def fingerprint(kind: str, test_id: str, text: str) -> str:
+              normalized = normalize_traceback(text)
+              material = f'{kind}\n{test_id}\n{normalized}'.encode('utf-8')
+              return hashlib.sha256(material).hexdigest()
+
+          semantic_left = 'AssertionError: expected mask 0x10, got 0x20'
+          semantic_right = 'AssertionError: expected mask 0x10, got 0x40'
+          if fingerprint('FAIL', 'semantic-mask', semantic_left) == fingerprint(
+              'FAIL', 'semantic-mask', semantic_right
+          ):
+              raise SystemExit('FINGERPRINT_SELF_TEST_FAILED: semantic hex values collapsed')
+
+          semantic_angle_left = 'AssertionError: expected <mask at 0x20>'
+          semantic_angle_right = 'AssertionError: expected <mask at 0x40>'
+          if fingerprint('FAIL', 'semantic-angle', semantic_angle_left) == fingerprint(
+              'FAIL', 'semantic-angle', semantic_angle_right
+          ):
+              raise SystemExit('FINGERPRINT_SELF_TEST_FAILED: semantic angle-bracket hex values collapsed')
+
+          semantic_object_left = 'AssertionError: expected <mask object at 0x20>'
+          semantic_object_right = 'AssertionError: expected <mask object at 0x40>'
+          if fingerprint('FAIL', 'semantic-object', semantic_object_left) == fingerprint(
+              'FAIL', 'semantic-object', semantic_object_right
+          ):
+              raise SystemExit('FINGERPRINT_SELF_TEST_FAILED: semantic object-at hex values collapsed')
+
+          semantic_capability_left = 'AssertionError: expected <capability object at 0x20>'
+          semantic_capability_right = 'AssertionError: expected <capability object at 0x40>'
+          if fingerprint('FAIL', 'semantic-capability', semantic_capability_left) == fingerprint(
+              'FAIL', 'semantic-capability', semantic_capability_right
+          ):
+              raise SystemExit('FINGERPRINT_SELF_TEST_FAILED: capability object-at hex values collapsed')
+
+          runtime_like_left = 'AssertionError: <Probe object at 0xABCDEF>'
+          runtime_like_right = 'AssertionError: <Probe object at 0x123456>'
+          if fingerprint('FAIL', 'runtime-like', runtime_like_left) == fingerprint(
+              'FAIL', 'runtime-like', runtime_like_right
+          ):
+              raise SystemExit('FINGERPRINT_SELF_TEST_FAILED: unproven object identity was erased')
+
+          semantic_line_left = 'AssertionError: policy violation at line 12'
+          semantic_line_right = 'AssertionError: policy violation at line 99'
+          if fingerprint('FAIL', 'semantic-line', semantic_line_left) == fingerprint(
+              'FAIL', 'semantic-line', semantic_line_right
+          ):
+              raise SystemExit('FINGERPRINT_SELF_TEST_FAILED: semantic line values collapsed')
+
+          volatile_left = (
+              'File "/tmp/w5-r166-main-a/test.py", line 12, in test_x\n'
+              'AssertionError: stable sentinel 0xABCDEF'
+          )
+          volatile_right = (
+              'File "/tmp/w5-r166-main-b/test.py", line 998, in test_x\n'
+              'AssertionError: stable sentinel 0xABCDEF'
+          )
+          if fingerprint('FAIL', 'volatile', volatile_left) != fingerprint(
+              'FAIL', 'volatile', volatile_right
+          ):
+              raise SystemExit('FINGERPRINT_SELF_TEST_FAILED: traceback/path volatility not normalized')
+
+          class RecordingResult(unittest.TestResult):
+              def __init__(self):
+                  super().__init__()
+                  self.states = {}
+
+              def addSuccess(self, test):
+                  super().addSuccess(test)
+                  self.states[test.id()] = {'kind': 'PASS', 'fingerprint': None}
+
+              def addFailure(self, test, err):
+                  super().addFailure(test, err)
+                  text = self._exc_info_to_string(err, test)
+                  self.states[test.id()] = {
+                      'kind': 'FAIL',
+                      'fingerprint': fingerprint('FAIL', test.id(), text),
+                  }
+
+              def addError(self, test, err):
+                  super().addError(test, err)
+                  text = self._exc_info_to_string(err, test)
+                  self.states[test.id()] = {
+                      'kind': 'ERROR',
+                      'fingerprint': fingerprint('ERROR', test.id(), text),
+                  }
+
+              def addSkip(self, test, reason):
+                  super().addSkip(test, reason)
+                  self.states[test.id()] = {
+                      'kind': 'SKIP',
+                      'fingerprint': hashlib.sha256(str(reason).encode('utf-8')).hexdigest(),
+                  }
+
+              def addExpectedFailure(self, test, err):
+                  super().addExpectedFailure(test, err)
+                  text = self._exc_info_to_string(err, test)
+                  self.states[test.id()] = {
+                      'kind': 'EXPECTED_FAILURE',
+                      'fingerprint': fingerprint('EXPECTED_FAILURE', test.id(), text),
+                  }
+
+              def addUnexpectedSuccess(self, test):
+                  super().addUnexpectedSuccess(test)
+                  self.states[test.id()] = {'kind': 'UNEXPECTED_SUCCESS', 'fingerprint': None}
+
+          suite = unittest.defaultTestLoader.discover(
+              'coordination/CONTROL-TOWER/tests', pattern='test_*.py'
+          )
+          result = RecordingResult()
+          suite.run(result)
+
+          if result.testsRun != len(result.states):
+              raise SystemExit(
+                  f'TEST_ENVIRONMENT_INVALID: testsRun={result.testsRun} states={len(result.states)}'
+              )
+
+          states_digest = hashlib.sha256(
+              json.dumps(result.states, sort_keys=True, separators=(',', ':')).encode('utf-8')
+          ).hexdigest()
+          payload = {
+              'testsRun': result.testsRun,
+              'states': result.states,
+              'states_digest': states_digest,
+              'failure_count': len(result.failures),
+              'error_count': len(result.errors),
+              'skip_count': len(result.skipped),
+          }
+          output.write_text(json.dumps(payload, sort_keys=True), encoding='utf-8')
+          print(json.dumps(payload, sort_keys=True))
+          PY
+            )
+          }
+
+          collect_control_result "$BASE_WT" /tmp/w5-r166-main-result.json
+
+          git -C "$INTEGRATED_WT" \
+            -c user.name='R166 CI' \
+            -c user.email='r166-ci@example.invalid' \
+            merge --no-ff "$HEAD_SHA" -m 'R166 temporary current-main integration'
+
+          test -z "$(git -C "$INTEGRATED_WT" status --porcelain=v1 --untracked-files=all)"
+          PARENT1="$(git -C "$INTEGRATED_WT" rev-parse HEAD^1)"
+          PARENT2="$(git -C "$INTEGRATED_WT" rev-parse HEAD^2)"
+          INTEGRATED_TREE="$(git -C "$INTEGRATED_WT" rev-parse 'HEAD^{tree}')"
+          BASE_TREE="$(git -C "$BASE_WT" rev-parse 'HEAD^{tree}')"
+          test "$PARENT1" = "$MAIN_START"
+          test "$PARENT2" = "$HEAD_SHA"
+
+          (
+            cd "$INTEGRATED_WT"
+            python -m py_compile \
+              coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/event_coverage.py
+            python -m unittest discover \
+              -s coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/tests \
+              -p 'test_*.py' -v
+          )
+          collect_control_result "$INTEGRATED_WT" /tmp/w5-r166-integrated-result.json
+
+          MAIN_REMOTE_END="$(git ls-remote origin refs/heads/main | awk '{print $1}')"
+          CANDIDATE_REMOTE_END="$(git ls-remote origin "refs/heads/${HEAD_REF}" | awk '{print $1}')"
+          if [ "$MAIN_REMOTE_END" != "$MAIN_START" ]; then
+            echo "TEST_ENVIRONMENT_INVALID: current main changed during comparison start=$MAIN_START end=$MAIN_REMOTE_END"
+            exit 1
+          fi
+          if [ "$CANDIDATE_REMOTE_END" != "$HEAD_SHA" ]; then
+            echo "TEST_ENVIRONMENT_INVALID: candidate head changed during comparison expected=$HEAD_SHA end=$CANDIDATE_REMOTE_END"
+            exit 1
+          fi
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          base = json.loads(Path('/tmp/w5-r166-main-result.json').read_text(encoding='utf-8'))
+          integrated = json.loads(Path('/tmp/w5-r166-integrated-result.json').read_text(encoding='utf-8'))
+          base_states = base['states']
+          integrated_states = integrated['states']
+
+          base_ids = set(base_states)
+          integrated_ids = set(integrated_states)
+          missing_baseline = sorted(base_ids - integrated_ids)
+          candidate_only = sorted(integrated_ids - base_ids)
+          introduced = []
+          modified = []
+          improved = []
+          preserved_baseline_failures = []
+          candidate_only_nonpass = []
+
+          for test_id in sorted(base_ids & integrated_ids):
+              before = base_states[test_id]
+              after = integrated_states[test_id]
+              if before['kind'] == 'PASS':
+                  if after['kind'] != 'PASS':
+                      introduced.append(test_id)
+              elif before['kind'] in {'FAIL', 'ERROR'}:
+                  if after['kind'] == 'PASS':
+                      improved.append(test_id)
+                  elif after == before:
+                      preserved_baseline_failures.append(test_id)
+                  else:
+                      modified.append(test_id)
+              else:
+                  if after != before:
+                      modified.append(test_id)
+
+          for test_id in candidate_only:
+              if integrated_states[test_id]['kind'] != 'PASS':
+                  candidate_only_nonpass.append(test_id)
+
+          if missing_baseline:
+              raise SystemExit('TEST_ENVIRONMENT_INVALID_MISSING_BASELINE_TEST: ' + repr(missing_baseline))
+          if candidate_only_nonpass:
+              raise SystemExit('CANDIDATE_ONLY_TEST_NOT_PASS: ' + repr(candidate_only_nonpass))
+          if introduced:
+              raise SystemExit('CANDIDATE_INTRODUCED_FAILURE: ' + repr(introduced))
+          if modified:
+              raise SystemExit('CANDIDATE_MODIFIED_BASELINE_FAILURE: ' + repr(modified))
+
+          print(
+              'R166_CURRENT_MAIN_INTEGRATION_DELTA_PASS',
+              'base_tests=', base['testsRun'],
+              'integrated_tests=', integrated['testsRun'],
+              'baseline_failures_preserved=', len(preserved_baseline_failures),
+              'baseline_improvements=', len(improved),
+              'candidate_only_tests=', len(candidate_only),
+              'base_states_digest=', base['states_digest'],
+              'integrated_states_digest=', integrated['states_digest'],
+          )
+          PY
+
+          echo "R166_INTEGRATION_PROVENANCE main=$MAIN_START candidate=$HEAD_SHA parent1=$PARENT1 parent2=$PARENT2 base_tree=$BASE_TREE integrated_tree=$INTEGRATED_TREE"
+
+      - name: Exact bounded seven-file scope
+        if: github.event_name == 'pull_request'
+        env:
+          SNAPSHOT_BASE: f1c687947c4846ca9484de0cf977df658f5bfcfb
+        run: |
+          python - <<'PY'
+          import os
+          import subprocess
+
+          base = os.environ['SNAPSHOT_BASE']
+          expected = {
+              '.github/workflows/w5-event-coverage-p0-vs1.yml',
+              'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/CLAIM-EVIDENCE-LEDGER.schema.json',
+              'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/EVENT-COVERAGE-REPORT.schema.json',
+              'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/PROJECT-PLAN.md',
+              'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/SOURCE-REGISTRY.schema.json',
+              'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/event_coverage.py',
+              'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W5-EVENT-COVERAGE/tests/test_event_coverage.py',
+          }
+          actual = set(
+              subprocess.check_output(
+                  ['git', 'diff', '--name-only', f'{base}...HEAD'], text=True
+              ).splitlines()
+          )
+          actual.discard('')
+          if actual != expected:
+              raise SystemExit(f'changed-file scope mismatch: {sorted(actual)}')
+          print('R166_W5_EXACT_SEVEN_FILE_SCOPE_PASS')
+          PY
+
+      - name: Whitespace gate
+        run: git diff --check f1c687947c4846ca9484de0cf977df658f5bfcfb...HEAD
