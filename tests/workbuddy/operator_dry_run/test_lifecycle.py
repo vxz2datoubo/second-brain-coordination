@@ -15,12 +15,12 @@ for _candidate in (str(_REPO_ROOT), str(_REPO_ROOT / "tools" / "workbuddy")):
         sys.path.insert(0, _candidate)
 
 from creative_runtime.ledger import CreativeLedger, LedgerViolation  # noqa: E402
-from operator_dry_run import operator  # noqa: E402
+from operator_dry_run import dry_run  # noqa: E402
 
 
 class DuplicateTest(unittest.TestCase):
     def setUp(self) -> None:
-        self.op = operator.OperatorDryRun()
+        self.op = dry_run.OperatorDryRun()
         self.op.intake("listen")
 
     def test_duplicate_is_recorded_as_distinct_event(self) -> None:
@@ -38,7 +38,7 @@ class DuplicateTest(unittest.TestCase):
 
 class ResumeReplayTest(unittest.TestCase):
     def setUp(self) -> None:
-        self.op = operator.OperatorDryRun()
+        self.op = dry_run.OperatorDryRun()
         self.op.intake("listen")
         self.op.intake("approach")
 
@@ -57,7 +57,7 @@ class ResumeReplayTest(unittest.TestCase):
 
 class FailureRecoveryTest(unittest.TestCase):
     def setUp(self) -> None:
-        self.op = operator.OperatorDryRun()
+        self.op = dry_run.OperatorDryRun()
         self.op.intake("listen")
 
     def test_tamper_is_rejected(self) -> None:

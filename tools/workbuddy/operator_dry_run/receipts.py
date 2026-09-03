@@ -8,7 +8,7 @@ import platform
 import sys
 from typing import Any, Mapping, Sequence
 
-from . import SCHEMA, operator
+from . import SCHEMA, dry_run
 
 
 def sha256_of(payload: Any) -> str:
@@ -26,7 +26,7 @@ def environment() -> dict[str, Any]:
 
 
 def run() -> dict[str, Any]:
-    body = operator.run_dry_run()
+    body = dry_run.run_dry_run()
     body["environment"] = environment()
     body["receipt_sha256"] = sha256_of(body["handoff_receipt"])
     return body

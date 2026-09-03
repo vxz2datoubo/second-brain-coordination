@@ -22,12 +22,12 @@ from creative_runtime.generation import ExternalGenerationGuard, GenerationViola
 from creative_runtime.governance import GovernanceViolation, TaskGovernance  # noqa: E402
 from creative_runtime.knowledge import KnowledgeBridgeViolation, KnowledgeReviewBridge  # noqa: E402
 from creative_runtime.provenance import ProvenanceViolation, SourceProvenance, require_reusable_source  # noqa: E402
-from operator_dry_run import operator  # noqa: E402
+from operator_dry_run import dry_run  # noqa: E402
 
 
 class HandoffReceiptTest(unittest.TestCase):
     def setUp(self) -> None:
-        self.op = operator.OperatorDryRun()
+        self.op = dry_run.OperatorDryRun()
         self.op.intake("listen")
 
     def test_receipt_is_deterministic(self) -> None:
@@ -45,12 +45,12 @@ class HandoffReceiptTest(unittest.TestCase):
     def test_receipt_hash_covers_body(self) -> None:
         receipt = self.op.handoff_receipt()
         body = {key: value for key, value in receipt.items() if key != "receipt_sha256"}
-        self.assertEqual(receipt["receipt_sha256"], operator.sha256_of(body))
+        self.assertEqual(receipt["receipt_sha256"], dry_run.sha256_of(body))
 
 
 class GenerationBoundaryTest(unittest.TestCase):
     def test_offline_generation_is_simulated_and_never_a_file(self) -> None:
-        result = operator.OperatorDryRun().generate_offline()
+        result = dry_run.OperatorDryRun().generate_offline()
         self.assertEqual(result["provider"], "offline")
         self.assertEqual(result["status"], "simulated")
         self.assertTrue(result["simulated"])
@@ -75,7 +75,7 @@ class GovernanceBoundaryTest(unittest.TestCase):
         )
 
     def test_allowed_path_passes(self) -> None:
-        self.assertTrue(self._governance().is_write_path_allowed("tools/workbuddy/operator_dry_run/operator.py"))
+        self.assertTrue(self._governance().is_write_path_allowed("tools/workbuddy/operator_dry_run/dry_run.py"))
 
     def test_core_runtime_path_is_rejected(self) -> None:
         self.assertFalse(self._governance().is_write_path_allowed("creative_runtime/director.py"))
