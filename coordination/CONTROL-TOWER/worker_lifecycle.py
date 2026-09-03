@@ -74,18 +74,38 @@ _REQUIRED_EVENT_IDENTITY_FIELDS = (
 _REVIEW_AUTHORITY_EVENT_KINDS = frozenset({"CHANGES_REQUIRED", "INDEPENDENT_ACCEPT"})
 _REVIEW_PROVENANCE_FIELDS = ("review_ref", "review_result_ref")
 
-_STATUS_REVIEW_WAIT = (
-    "ENGINEERING_STOPPED_WAITING_INDEPENDENT_REVIEW",
-    "REVIEW_WAIT",
+# Canonical aggregate projection vocabulary is matched deliberately rather than
+# by arbitrary substring. Unknown or negated strings such as NOT_RELEASED must
+# never manufacture a stronger lifecycle state or free capacity.
+_STATUS_REVIEW_WAIT = frozenset(
+    {
+        "ENGINEERING_STOPPED_WAITING_INDEPENDENT_REVIEW",
+        "REVIEW_WAIT",
+    }
 )
-_STATUS_ACCEPTED = (
-    "INDEPENDENTLY_ACCEPTED_AWAITING_SEPARATE_CANONICALIZATION",
-    "INDEPENDENTLY_ACCEPTED_AWAITING_CANONICALIZATION",
+_STATUS_ACCEPTED = frozenset(
+    {
+        "INDEPENDENTLY_ACCEPTED_AWAITING_SEPARATE_CANONICALIZATION",
+        "INDEPENDENTLY_ACCEPTED_AWAITING_CANONICALIZATION",
+    }
 )
-_STATUS_CANONICAL_MERGED = ("CANONICAL_MERGED_AWAITING_CLOSEOUT",)
-_STATUS_FROZEN = ("FROZEN", "SUPERSEDED", "GOVERNANCE_INVALID")
-_STATUS_RELEASED = ("RELEASED", "WORKER_CLOSED")
-_STATUS_CHANGES_REQUIRED = ("CHANGES_REQUIRED",)
+_STATUS_CANONICAL_MERGED = frozenset({"CANONICAL_MERGED_AWAITING_CLOSEOUT"})
+_STATUS_CHANGES_REQUIRED = frozenset({"CHANGES_REQUIRED"})
+_STATUS_RELEASED = frozenset(
+    {
+        "RELEASED",
+        "WORKER_CLOSED",
+        "CANONICAL_MERGED_WORKER_CLOSED",
+    }
+)
+_CLOSURE_RELEASED = frozenset(
+    {
+        "RELEASED",
+        "CANONICAL_MERGED_AND_WORKER_RELEASED",
+    }
+)
+_STATUS_FROZEN_EXACT = frozenset({"FROZEN", "SUPERSEDED", "GOVERNANCE_INVALID"})
+_STATUS_FROZEN_PREFIXES = ("FROZEN_", "SUPERSEDED_", "GOVERNANCE_INVALID_")
 
 
 @dataclass(frozen=True)
@@ -155,9 +175,13 @@ def registry_schema_supported(version: Any) -> bool:
     return version in SUPPORTED_REGISTRY_SCHEMA_VERSIONS
 
 
-def _contains_any(value: Any, tokens: Iterable[str]) -> bool:
+def _matches_projection_status(
+    value: Any,
+    exact_values: Iterable[str],
+    prefixes: Iterable[str] = (),
+) -> bool:
     upper = str(value or "").upper()
-    return any(token in upper for token in tokens)
+    return upper in exact_values or any(upper.startswith(prefix) for prefix in prefixes)
 
 
 def _state_semantics(state: str, execution_allowed: bool) -> tuple[bool, bool, bool, bool]:
@@ -187,30 +211,32 @@ def _baseline_from_projection(slot: Mapping[str, Any]) -> tuple[str, list[str]]:
 
     if closure == "RELEASED" or activation == "RELEASED":
         return LIFECYCLE_RELEASED, findings
-    if activation == "FROZEN" or _contains_any(status, _STATUS_FROZEN):
+    if activation == "FROZEN" or _matches_projection_status(
+        status, _STATUS_FROZEN_EXACT, _STATUS_FROZEN_PREFIXES
+    ):
         return LIFECYCLE_FROZEN, findings
     if activation == "CLOSED":
-        if _contains_any(status, _STATUS_RELEASED) or _contains_any(closure, _STATUS_RELEASED):
-            return LIFECYCLE_RELEASED, findings
-        if "CANONICAL_MERGED_AND_WORKER_RELEASED" in closure:
+        if _matches_projection_status(status, _STATUS_RELEASED) or closure in _CLOSURE_RELEASED:
             return LIFECYCLE_RELEASED, findings
         findings.append("AMBIGUOUS_CLOSED_PROJECTION_FAILS_CLOSED")
         return LIFECYCLE_UNKNOWN, findings
 
-    # Stronger canonical projections beat older REVIEW_WAIT prose.
-    if _contains_any(status, _STATUS_ACCEPTED):
+    # Stronger canonical projections beat older REVIEW_WAIT prose, but only
+    # when they match the governed vocabulary exactly. Text that merely embeds
+    # one of these labels is not transition authority.
+    if _matches_projection_status(status, _STATUS_ACCEPTED):
         if execution_allowed:
             findings.append("STALE_EXECUTION_FLAG_IGNORED_BY_ACCEPTED_STATE")
         return LIFECYCLE_ACCEPTED, findings
-    if _contains_any(status, _STATUS_CHANGES_REQUIRED):
+    if _matches_projection_status(status, _STATUS_CHANGES_REQUIRED):
         if execution_allowed:
             findings.append("STALE_EXECUTION_FLAG_IGNORED_BY_CHANGES_REQUIRED")
         return LIFECYCLE_CHANGES_REQUIRED, findings
-    if _contains_any(status, _STATUS_CANONICAL_MERGED):
+    if _matches_projection_status(status, _STATUS_CANONICAL_MERGED):
         if execution_allowed:
             findings.append("STALE_EXECUTION_FLAG_IGNORED_BY_CANONICAL_MERGE")
         return LIFECYCLE_CANONICAL_MERGED, findings
-    if activation == "REVIEW_WAIT" or _contains_any(status, _STATUS_REVIEW_WAIT):
+    if activation == "REVIEW_WAIT" or _matches_projection_status(status, _STATUS_REVIEW_WAIT):
         if execution_allowed:
             findings.append("STALE_EXECUTION_FLAG_IGNORED_BY_REVIEW_WAIT")
         return LIFECYCLE_REVIEW_WAIT, findings
@@ -226,10 +252,10 @@ def _baseline_from_projection(slot: Mapping[str, Any]) -> tuple[str, list[str]]:
         return LIFECYCLE_ACTIVE, findings
 
     resource_class = str(slot.get("resource_class") or "").upper()
-    if "REVIEW_WAIT_SLOT_OCCUPIED" in resource_class:
+    if resource_class == "REVIEW_WAIT_SLOT_OCCUPIED":
         findings.append("LIFECYCLE_RECOVERED_FROM_RESOURCE_CLASS")
         return LIFECYCLE_REVIEW_WAIT, findings
-    if "RESERV" in resource_class or "PREWRITE" in status:
+    if resource_class.startswith("RESERVED_") or status == "ACTIVE_GOVERNED_PREWRITE":
         findings.append("LIFECYCLE_RECOVERED_FROM_LEGACY_PROJECTION")
         return LIFECYCLE_RESERVED, findings
 
