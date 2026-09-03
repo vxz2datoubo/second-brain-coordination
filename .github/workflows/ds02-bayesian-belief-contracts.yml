@@ -1,0 +1,157 @@
+name: DS-02 Bayesian Belief Contracts Clean Successor
+
+"on":
+  pull_request:
+    paths:
+      - '.github/workflows/ds02-bayesian-belief-contracts.yml'
+      - 'coordination/SKILLS/BAYESIAN-BELIEF-UPDATE-FORECAST-FUSION-SKILL-v1.0.yaml'
+      - 'coordination/BLUEPRINTS/BAYESIAN-BELIEF-UPDATE-FORECAST-FUSION-BLUEPRINT-v1.0.md'
+      - 'coordination/BLUEPRINTS/BAYESIAN-BELIEF-UPDATE-FORECAST-FUSION-RESEARCH-VALIDATION-v1.0.md'
+      - 'coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DS02-BAYESIAN-BELIEF/**'
+  push:
+    branches:
+      - gpt/ds02-bayesian-belief-clean-successor
+    paths:
+      - '.github/workflows/ds02-bayesian-belief-contracts.yml'
+      - 'coordination/SKILLS/BAYESIAN-BELIEF-UPDATE-FORECAST-FUSION-SKILL-v1.0.yaml'
+      - 'coordination/BLUEPRINTS/BAYESIAN-BELIEF-UPDATE-FORECAST-FUSION-BLUEPRINT-v1.0.md'
+      - 'coordination/BLUEPRINTS/BAYESIAN-BELIEF-UPDATE-FORECAST-FUSION-RESEARCH-VALIDATION-v1.0.md'
+      - 'coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DS02-BAYESIAN-BELIEF/**'
+
+permissions:
+  contents: read
+
+jobs:
+  ds02-contract:
+    name: Python ${{ matrix.python }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.11', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Assert checked-out candidate exact head
+        shell: bash
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          echo "event=${{ github.event_name }}"
+          echo "expected_head=$EXPECTED_HEAD"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install contract-test dependencies
+        run: python -m pip install --disable-pip-version-check PyYAML jsonschema
+
+      - name: Validate machine artifact syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import py_compile
+          from pathlib import Path
+          import yaml
+
+          base = Path('coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DS02-BAYESIAN-BELIEF')
+          yaml_paths = [
+              Path('coordination/SKILLS/BAYESIAN-BELIEF-UPDATE-FORECAST-FUSION-SKILL-v1.0.yaml'),
+              base / 'DS02-ADVERSARIAL-EVALS-v1.0.yaml',
+              base / 'DS02-INTEGRATION-INTERFACE-MATRIX-v1.0.yaml',
+              base / 'DS02-RESEARCH-SOURCE-REGISTRY-v1.0.yaml',
+              base / 'NUMERIC-INTEGRITY-REGISTRY-v1.0.yaml',
+              base / 'PHASE2-IMPLEMENTATION-READINESS-PACKET-v1.0.yaml',
+          ]
+          for path in yaml_paths:
+              data = yaml.safe_load(path.read_text(encoding='utf-8'))
+              assert isinstance(data, dict) and data, path
+          schema = json.loads((base / 'BELIEF-PACKET-v1.schema.json').read_text(encoding='utf-8'))
+          assert schema['title'] == 'BeliefPacket/v1'
+          py_compile.compile(str(base / 'belief_contract.py'), doraise=True)
+          py_compile.compile(str(base / 'tests/test_ds02_bayesian_contract.py'), doraise=True)
+          py_compile.compile(str(base / 'tests/test_ds02_integration_boundaries.py'), doraise=True)
+          print('DS02_SYNTAX_VALID')
+          PY
+
+      - name: Run deterministic analytic and executable adversarial tests
+        run: |
+          python -m unittest discover -v \
+            -s coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DS02-BAYESIAN-BELIEF/tests \
+            -p 'test_*.py'
+
+      - name: Enforce no-trade and authority boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import yaml
+
+          base = Path('coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DS02-BAYESIAN-BELIEF')
+          skill = yaml.safe_load(Path('coordination/SKILLS/BAYESIAN-BELIEF-UPDATE-FORECAST-FUSION-SKILL-v1.0.yaml').read_text())
+          matrix = yaml.safe_load((base / 'DS02-INTEGRATION-INTERFACE-MATRIX-v1.0.yaml').read_text())
+          ready = yaml.safe_load((base / 'PHASE2-IMPLEMENTATION-READINESS-PACKET-v1.0.yaml').read_text())
+          numeric = yaml.safe_load((base / 'NUMERIC-INTEGRITY-REGISTRY-v1.0.yaml').read_text())
+          assert skill['skill']['boundaries']['research_only'] is True
+          assert skill['skill']['boundaries']['no_trade'] is True
+          assert skill['skill']['boundaries']['runtime_implemented'] is False
+          assert not any(matrix['authority_flags'].values())
+          assert numeric['probability']['stable_update']['validated_computation_receipt_available'] is False
+          assert numeric['dependence']['canonical_dependence_authority_available'] is False
+          assert ready['implementation_authority'] is False
+          assert ready['runtime_write_authority'] is False
+          assert ready['backtest_write_authority'] is False
+          print('DS02_AUTHORITY_BOUNDARY_PASS')
+          PY
+
+      - name: Prove exact additive scope from snapshot base
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main --no-tags
+          python - <<'PY'
+          import subprocess
+
+          expected_base = '1a514fe839b1c47a14d7fad4a96e8c9fd2365338'
+          allowed = {
+              '.github/workflows/ds02-bayesian-belief-contracts.yml',
+              'coordination/SKILLS/BAYESIAN-BELIEF-UPDATE-FORECAST-FUSION-SKILL-v1.0.yaml',
+              'coordination/BLUEPRINTS/BAYESIAN-BELIEF-UPDATE-FORECAST-FUSION-BLUEPRINT-v1.0.md',
+              'coordination/BLUEPRINTS/BAYESIAN-BELIEF-UPDATE-FORECAST-FUSION-RESEARCH-VALIDATION-v1.0.md',
+              'coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DS02-BAYESIAN-BELIEF/BELIEF-PACKET-v1.schema.json',
+              'coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DS02-BAYESIAN-BELIEF/DS02-ADVERSARIAL-EVALS-v1.0.yaml',
+              'coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DS02-BAYESIAN-BELIEF/DS02-INTEGRATION-INTERFACE-MATRIX-v1.0.yaml',
+              'coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DS02-BAYESIAN-BELIEF/DS02-RESEARCH-SOURCE-REGISTRY-v1.0.yaml',
+              'coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DS02-BAYESIAN-BELIEF/NUMERIC-INTEGRITY-REGISTRY-v1.0.yaml',
+              'coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DS02-BAYESIAN-BELIEF/PHASE2-IMPLEMENTATION-READINESS-PACKET-v1.0.yaml',
+              'coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DS02-BAYESIAN-BELIEF/belief_contract.py',
+              'coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DS02-BAYESIAN-BELIEF/tests/test_ds02_bayesian_contract.py',
+              'coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DS02-BAYESIAN-BELIEF/tests/test_ds02_integration_boundaries.py',
+          }
+          base = subprocess.check_output(['git', 'merge-base', 'HEAD', 'origin/main'], text=True).strip()
+          assert base == expected_base, (base, expected_base)
+          rows = subprocess.check_output(['git', 'diff', '--name-status', f'{base}...HEAD'], text=True).splitlines()
+          actual = {}
+          for row in rows:
+              status, path = row.split('\t', 1)
+              actual[path] = status
+          assert set(actual) == allowed, (set(actual) - allowed, allowed - set(actual))
+          assert set(actual.values()) == {'A'}, actual
+          print(f'DS02_EXACT_ADDITIVE_SCOPE_PASS files={len(actual)} base={base}')
+          PY
+
+      - name: Diff hygiene
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="$(git merge-base HEAD origin/main)"
+          git diff --check "$base"...HEAD

@@ -1,0 +1,73 @@
+schema_version: "1.1"
+matrix_id: DS02-INTEGRATION-INTERFACE-MATRIX-v1
+current_phase:
+  packet_semantics: UNVALIDATED_PROPOSAL
+  canonical_belief_authorized: false
+  validated_posterior_consumer_use_authorized: false
+producer_edges:
+  - producer: W2
+    semantic_authority: MARKET_REPLAY_AND_POINT_IN_TIME
+    ds02_may_consume: true
+    ds02_may_write_back: false
+  - producer: W5
+    semantic_authority: EVENT_AND_EVIDENCE
+    ds02_may_consume: true
+    ds02_may_upgrade_rumor_to_fact: false
+  - producer: W13
+    semantic_authority: PARTICIPANT_AND_CAPITAL_FLOW_CONTEXT
+    ds02_may_consume: true
+    ds02_may_infer_real_identity_from_bucket: false
+  - producer: DS-11
+    semantic_authority: MARKET_REGIME_AND_CHANGE
+    ds02_may_consume: true
+    ds02_regime_authority: false
+  - producer: ISSUE_457
+    semantic_authority: EPISTEMIC_STATE
+    ds02_may_consume: true
+    ds02_epistemic_authority: false
+  - producer: FUTURE_DEPENDENCE_AUTHORITY
+    semantic_authority: SOURCE_ANCESTRY_AND_CONDITIONAL_INDEPENDENCE
+    currently_available: false
+    caller_labels_may_substitute: false
+consumer_edges:
+  - consumer: W7
+    purpose: RISK
+    ds02_output_is_advisory_input: true
+    may_treat_as_validated_posterior: false
+  - consumer: W10
+    purpose: DECISION_EPISODE
+    ds02_output_is_advisory_input: true
+    may_treat_as_validated_posterior: false
+  - consumer: W11
+    purpose: ALLOCATION
+    ds02_output_is_advisory_input: true
+    may_treat_as_validated_posterior: false
+  - consumer: ISSUE_62
+    purpose: KELLY_EXPECTED_VALUE
+    ds02_output_is_advisory_input: true
+    may_treat_as_validated_posterior: false
+  - consumer: DS-10
+    purpose: RESEARCH_OVERFITTING_AUDIT
+    ds02_output_is_advisory_input: true
+    may_treat_as_validated_posterior: false
+forbidden_edges:
+  - [DS02, BROKER]
+  - [DS02, LIVE_ORDER]
+  - [DS02, ACCOUNT_FUNDS]
+  - [DS02, MARKET_TRUTH_WRITEBACK]
+  - [DS02, EVENT_TRUTH_WRITEBACK]
+  - [DS02, REGIME_CANONICAL_WRITEBACK]
+  - [DS02, EPISTEMIC_CANONICAL_WRITEBACK]
+  - [DS02, POSITION_CANONICAL_WRITEBACK]
+  - [DS02_UNVALIDATED_PROPOSAL, KELLY_VALIDATED_POSTERIOR_INPUT]
+  - [DS02_UNVALIDATED_PROPOSAL, ALLOCATION_CANONICAL_PROBABILITY]
+authority_flags:
+  market_truth_authority: false
+  event_truth_authority: false
+  regime_authority: false
+  epistemic_authority: false
+  decision_authority: false
+  risk_override_authority: false
+  position_authority: false
+  order_authority: false
+  trade_authority: false
