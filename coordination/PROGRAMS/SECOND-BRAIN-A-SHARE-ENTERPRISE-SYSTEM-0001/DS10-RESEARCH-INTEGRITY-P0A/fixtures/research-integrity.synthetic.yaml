@@ -1,0 +1,132 @@
+schema_version: "1.1"
+fixture_id: "DS10-RESEARCH-INTEGRITY-P0A-SYNTHETIC-001"
+public_safe: true
+real_market_data: false
+authority:
+  w4_strategy_experiment_write: false
+  w2_market_rule_write: false
+  w7_validation_write: false
+  probability_write: false
+  position_write: false
+  order_write: false
+  trade_write: false
+cases:
+  complete_family:
+    experiment_family_ref: "w4:synthetic:complete"
+    expected_trial_digests:
+      t1: "1111111111111111111111111111111111111111111111111111111111111111"
+      t2: "2222222222222222222222222222222222222222222222222222222222222222"
+      t3: "3333333333333333333333333333333333333333333333333333333333333333"
+    trials:
+      - {trial_id: t1, immutable_digest: "1111111111111111111111111111111111111111111111111111111111111111", status: SUCCESS, selection_affecting: true, rerun_of: null}
+      - {trial_id: t2, immutable_digest: "2222222222222222222222222222222222222222222222222222222222222222", status: FAILURE, selection_affecting: true, rerun_of: null}
+      - {trial_id: t3, immutable_digest: "3333333333333333333333333333333333333333333333333333333333333333", status: ABORTED, selection_affecting: true, rerun_of: null}
+      - {trial_id: rerun-t2, immutable_digest: "2222222222222222222222222222222222222222222222222222222222222222", status: FAILURE, selection_affecting: false, rerun_of: t2}
+    expected_disposition: "ABSTAIN"
+    expected_reason: "P0A_CONTENT_CLEAR_BUT_CANONICAL_W4_AUTHORITY_BINDING_NOT_IMPLEMENTED"
+
+  trial_count_laundering_attempt:
+    declared_trial_count: 1
+    expected_trial_digests:
+      t1: "1111111111111111111111111111111111111111111111111111111111111111"
+      t2: "2222222222222222222222222222222222222222222222222222222222222222"
+      t3: "3333333333333333333333333333333333333333333333333333333333333333"
+    expected_finding: "DECLARED_TRIAL_COUNT_MISMATCH"
+    denominator_source: "W4_IMMUTABLE_TRIAL_IDENTITIES"
+
+  missing_loser:
+    omitted_trial_id: "t2"
+    expected_disposition: "REJECT_INCOMPLETE_TRIAL_HISTORY"
+
+  caller_minted_all_pass_pit:
+    declared_statuses:
+      dataset_lineage: PASS
+      available_at_lineage: PASS
+      rule_version: PASS
+      revision_timing: PASS
+      universe_membership: PASS
+    governed_authority_binding: null
+    expected_effective_status: UNKNOWN
+    expected_finding: "PIT_CALLER_DECLARED_PASS_UNTRUSTED"
+    expected_disposition: "ABSTAIN"
+
+  governed_w2_pit_revalidation:
+    authority_source_ref: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src/offline_research/r143_rules.py"
+    authority_source_blob_sha: "18311ff30beab7ea97d54c09e44fd6e6ebe921ed"
+    dataset_artifact_ref: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/fixtures/synthetic_bars.jsonl"
+    dataset_artifact_blob_sha: "934b95414a41c003392f4dd870f401474affa839"
+    dataset_event_id: "json-demo-01"
+    symbol: "600000.SH"
+    exchange: "SSE"
+    board: "MAIN"
+    security_status: "NORMAL"
+    trading_day: "2026-01-05"
+    rule_snapshot_id: "SSE_MAIN_NORMAL_PRE_20260706"
+    expected_effective_statuses:
+      dataset_lineage: PASS
+      available_at_lineage: PASS
+      rule_version: PASS
+      revision_timing: PASS
+      universe_membership: PASS
+    overall_disposition_still: "ABSTAIN"
+    reason: "W4_CANONICAL_READ_BINDING_REMAINS_EXTERNAL"
+
+  governed_w2_blob_mutation:
+    mutate:
+      authority_source_blob_sha: "0000000000000000000000000000000000000000"
+    expected_positive_pass: false
+    expected_disposition: "ABSTAIN"
+
+  pit_future_available_at:
+    event_id: "json-demo-01"
+    decision_time_before_available_at: "2026-01-05T15:00:00Z"
+    expected_effective_available_at_lineage: FAIL
+    expected_disposition: "REJECT_POINT_IN_TIME_LEAKAGE"
+
+  pit_wrong_rule_snapshot:
+    claimed_rule_snapshot_id: "SSE_MAIN_NORMAL_POST_20260706"
+    trading_day: "2026-01-05"
+    expected_effective_rule_version: FAIL
+    expected_disposition: "REJECT_POINT_IN_TIME_LEAKAGE"
+
+  lockbox_bare_caller_receipt:
+    has_candidate_and_result_digest: true
+    has_governed_configuration_and_accessor_provenance: false
+    expected_lockbox_status: "IDENTITY_OR_ACCESS_HISTORY_UNKNOWN"
+    expected_finding: "LOCKBOX_CONFIGURATION_PROVENANCE_INCOMPLETE"
+
+  lockbox_governed_final_eval:
+    dataset_artifact_blob_sha: "934b95414a41c003392f4dd870f401474affa839"
+    code_artifact_blob_sha: "7c2ecacd1bebd62fd453d25d6374da5df193446e"
+    parameter_artifact_blob_sha: "7b19b75714701643006ac8d846ee934d764ca224"
+    cost_artifact_blob_sha: "7c2ecacd1bebd62fd453d25d6374da5df193446e"
+    rule_artifact_blob_sha: "18311ff30beab7ea97d54c09e44fd6e6ebe921ed"
+    accessor_claim_blob_sha: "0c210c6daff8352516f1f80d7b5de6aabb5597c3"
+    authorization_witness_blob_sha: "d75bce3a40835e63b7ef98196a3dbb7c747cfddc"
+    accessor_id: "GPT-WORKER-R183-DS10-RESEARCH-INTEGRITY-1"
+    task_id: "GPT-DS10-RESEARCH-INTEGRITY-P0A-R183"
+    expected_lockbox_status: "OPENED_ONCE_FINAL_EVAL"
+    overall_disposition_still: "ABSTAIN"
+
+  lockbox_configuration_mutation:
+    mutate_one_of:
+      - dataset_artifact_blob_sha
+      - code_artifact_blob_sha
+      - parameter_artifact_blob_sha
+      - cost_artifact_blob_sha
+      - rule_artifact_blob_sha
+      - accessor_id
+      - task_id
+      - configuration_frozen_at
+      - configuration_digest
+    expected_lockbox_status_not: "OPENED_ONCE_FINAL_EVAL"
+
+  lockbox_prompt_contamination:
+    purpose: "PROMPT_OPTIMIZATION"
+    selection_consumed_after: true
+    expected_disposition: "REJECT_LOCKBOX_CONTAMINATION"
+
+  pit_rule_leakage:
+    rule_version: "FAIL"
+    example: "current rule snapshot applied to pre-effective historical replay"
+    expected_disposition: "REJECT_POINT_IN_TIME_LEAKAGE"

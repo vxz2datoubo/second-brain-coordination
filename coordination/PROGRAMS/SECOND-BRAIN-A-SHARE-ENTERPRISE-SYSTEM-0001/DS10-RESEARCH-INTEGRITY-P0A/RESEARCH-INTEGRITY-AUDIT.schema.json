@@ -1,0 +1,199 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://second-brain.local/schemas/ResearchIntegrityAudit-v1.json",
+  "title": "ResearchIntegrityAudit/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "skill_id", "audit_version", "audit_id", "observed_at", "experiment_family_ref",
+    "w4_snapshot_digest", "w4_snapshot_digest_matches_expected", "w4_authority_state", "registered_family_digest", "computed_family_digest",
+    "trial_reconciliation", "lockbox_status", "lockbox_access_receipts", "pit_evidence", "method_results",
+    "selection_bias_risk", "adjusted_evidence_grade", "research_integrity_disposition", "blocking_findings",
+    "nonblocking_findings", "required_retest", "authority", "w7_handoff_is_acceptance", "audit_digest"
+  ],
+  "properties": {
+    "schema": {"const": "ResearchIntegrityAudit/v1"},
+    "skill_id": {"const": "RESEARCH-MULTIPLE-TESTING-OVERFITTING-AUDIT-SKILL-0012J"},
+    "audit_version": {"const": "P0A"},
+    "audit_id": {"type": "string", "minLength": 1},
+    "observed_at": {"type": "string", "format": "date-time"},
+    "experiment_family_ref": {"type": "string", "minLength": 1},
+    "w4_snapshot_digest": {"$ref": "#/$defs/sha256"},
+    "w4_snapshot_digest_matches_expected": {"type": "boolean"},
+    "w4_authority_state": {"const": "EXTERNAL_CANONICAL_BINDING_REQUIRED"},
+    "registered_family_digest": {"$ref": "#/$defs/sha256"},
+    "computed_family_digest": {"$ref": "#/$defs/sha256"},
+    "trial_reconciliation": {"$ref": "#/$defs/trialReconciliation"},
+    "lockbox_status": {"enum": ["SEALED_UNUSED", "OPENED_ONCE_FINAL_EVAL", "CONTAMINATED_REUSED_FOR_SELECTION", "IDENTITY_OR_ACCESS_HISTORY_UNKNOWN"]},
+    "lockbox_access_receipts": {"type": "array", "items": {"$ref": "#/$defs/lockboxReceipt"}},
+    "pit_evidence": {"$ref": "#/$defs/pitEvidence"},
+    "method_results": {"type": "array", "items": {"$ref": "#/$defs/methodResult"}},
+    "selection_bias_risk": {"enum": ["LOW_BOOKKEEPING_RISK", "ELEVATED", "HIGH", "UNKNOWN"]},
+    "adjusted_evidence_grade": {"enum": ["P0A_INTEGRITY_CLEAR", "P0A_INTEGRITY_WARNING", "BLOCKED", "UNKNOWN"]},
+    "research_integrity_disposition": {"enum": [
+      "ELIGIBLE_FOR_W7_VALIDATION", "RETEST_WITH_PREREGISTERED_FAMILY", "REJECT_INCOMPLETE_TRIAL_HISTORY",
+      "REJECT_LOCKBOX_CONTAMINATION", "REJECT_POINT_IN_TIME_LEAKAGE", "REJECT_SELECTION_BIAS",
+      "INSUFFICIENT_EVIDENCE", "ABSTAIN"
+    ]},
+    "blocking_findings": {"type": "array", "items": {"$ref": "#/$defs/finding"}},
+    "nonblocking_findings": {"type": "array", "items": {"$ref": "#/$defs/finding"}},
+    "required_retest": {"type": "boolean"},
+    "authority": {"$ref": "#/$defs/authority"},
+    "w7_handoff_is_acceptance": {"const": false},
+    "audit_digest": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "gitBlobOrNull": {"type": ["string", "null"], "pattern": "^[0-9a-f]{40}$"},
+    "finding": {
+      "type": "object", "additionalProperties": false,
+      "required": ["code", "severity", "path", "detail"],
+      "properties": {
+        "code": {"type": "string", "minLength": 1},
+        "severity": {"enum": ["BLOCKING", "WARNING", "UNKNOWN"]},
+        "path": {"type": "string", "minLength": 1},
+        "detail": {"type": "string", "minLength": 1}
+      }
+    },
+    "authority": {
+      "type": "object", "additionalProperties": false,
+      "required": ["experiment_registry_write_authority", "strategy_experiment_write_authority", "probability_authority",
+                   "final_validation_authority", "risk_override_authority", "position_authority", "order_authority", "trade_authority"],
+      "properties": {
+        "experiment_registry_write_authority": {"const": false},
+        "strategy_experiment_write_authority": {"const": false},
+        "probability_authority": {"const": false},
+        "final_validation_authority": {"const": false},
+        "risk_override_authority": {"const": false},
+        "position_authority": {"const": false},
+        "order_authority": {"const": false},
+        "trade_authority": {"const": false}
+      }
+    },
+    "trialReconciliation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["expected_trial_count", "declared_trial_count", "observed_trial_count", "successful_trial_count",
+                   "failed_trial_count", "aborted_trial_count", "error_trial_count", "reproducibility_rerun_count",
+                   "trial_id_set_digest", "expected_trial_manifest_digest", "missing_trial_ids", "unexpected_selection_trial_ids",
+                   "mutated_trial_ids", "invalid_rerun_ids"],
+      "properties": {
+        "expected_trial_count": {"type": "integer", "minimum": 0},
+        "declared_trial_count": {"type": ["integer", "null"], "minimum": 0},
+        "observed_trial_count": {"type": "integer", "minimum": 0},
+        "successful_trial_count": {"type": "integer", "minimum": 0},
+        "failed_trial_count": {"type": "integer", "minimum": 0},
+        "aborted_trial_count": {"type": "integer", "minimum": 0},
+        "error_trial_count": {"type": "integer", "minimum": 0},
+        "reproducibility_rerun_count": {"type": "integer", "minimum": 0},
+        "trial_id_set_digest": {"$ref": "#/$defs/sha256"},
+        "expected_trial_manifest_digest": {"$ref": "#/$defs/sha256"},
+        "missing_trial_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+        "unexpected_selection_trial_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+        "mutated_trial_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+        "invalid_rerun_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true}
+      }
+    },
+    "lockboxReceipt": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "schema", "access_id", "lockbox_id", "opened_at", "candidate_id", "candidate_digest", "purpose",
+        "result_digest", "selection_consumed_after",
+        "dataset_artifact_ref", "dataset_artifact_blob_sha",
+        "code_artifact_ref", "code_artifact_blob_sha",
+        "parameter_artifact_ref", "parameter_artifact_blob_sha",
+        "cost_artifact_ref", "cost_artifact_blob_sha",
+        "rule_artifact_ref", "rule_artifact_blob_sha", "rule_snapshot_id",
+        "accessor_claim_ref", "accessor_claim_blob_sha",
+        "authorization_witness_ref", "authorization_witness_blob_sha",
+        "accessor_id", "task_id", "configuration_frozen_at", "configuration_digest", "subsequent_action"
+      ],
+      "properties": {
+        "schema": {"const": "LockboxAccessReceipt/v1"},
+        "access_id": {"type": "string", "minLength": 1},
+        "lockbox_id": {"type": "string", "minLength": 1},
+        "opened_at": {"type": "string", "format": "date-time"},
+        "candidate_id": {"type": "string", "minLength": 1},
+        "candidate_digest": {"$ref": "#/$defs/sha256"},
+        "purpose": {"enum": ["FINAL_EVAL", "TUNING", "FEATURE_ENGINEERING", "PROMPT_OPTIMIZATION", "MODEL_SELECTION", "PARAMETER_SELECTION", "RESELECTION", "DIAGNOSTIC"]},
+        "result_digest": {"$ref": "#/$defs/sha256"},
+        "selection_consumed_after": {"type": "boolean"},
+        "dataset_artifact_ref": {"type": ["string", "null"], "minLength": 1},
+        "dataset_artifact_blob_sha": {"$ref": "#/$defs/gitBlobOrNull"},
+        "code_artifact_ref": {"type": ["string", "null"], "minLength": 1},
+        "code_artifact_blob_sha": {"$ref": "#/$defs/gitBlobOrNull"},
+        "parameter_artifact_ref": {"type": ["string", "null"], "minLength": 1},
+        "parameter_artifact_blob_sha": {"$ref": "#/$defs/gitBlobOrNull"},
+        "cost_artifact_ref": {"type": ["string", "null"], "minLength": 1},
+        "cost_artifact_blob_sha": {"$ref": "#/$defs/gitBlobOrNull"},
+        "rule_artifact_ref": {"type": ["string", "null"], "minLength": 1},
+        "rule_artifact_blob_sha": {"$ref": "#/$defs/gitBlobOrNull"},
+        "rule_snapshot_id": {"type": ["string", "null"], "minLength": 1},
+        "accessor_claim_ref": {"type": ["string", "null"], "minLength": 1},
+        "accessor_claim_blob_sha": {"$ref": "#/$defs/gitBlobOrNull"},
+        "authorization_witness_ref": {"type": ["string", "null"], "minLength": 1},
+        "authorization_witness_blob_sha": {"$ref": "#/$defs/gitBlobOrNull"},
+        "accessor_id": {"type": ["string", "null"], "minLength": 1},
+        "task_id": {"type": ["string", "null"], "minLength": 1},
+        "configuration_frozen_at": {"type": ["string", "null"], "format": "date-time"},
+        "configuration_digest": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+        "subsequent_action": {"type": ["string", "null"], "minLength": 1}
+      }
+    },
+    "pitStatus": {"enum": ["PASS", "FAIL", "UNKNOWN"]},
+    "declaredPITStatuses": {
+      "type": "object", "additionalProperties": false,
+      "required": ["dataset_lineage", "available_at_lineage", "rule_version", "revision_timing", "universe_membership"],
+      "properties": {
+        "dataset_lineage": {"$ref": "#/$defs/pitStatus"},
+        "available_at_lineage": {"$ref": "#/$defs/pitStatus"},
+        "rule_version": {"$ref": "#/$defs/pitStatus"},
+        "revision_timing": {"$ref": "#/$defs/pitStatus"},
+        "universe_membership": {"$ref": "#/$defs/pitStatus"}
+      }
+    },
+    "pitAuthorityBinding": {
+      "type": "object", "additionalProperties": false,
+      "required": ["authority_source_ref", "authority_source_blob_sha", "dataset_artifact_ref", "dataset_artifact_blob_sha",
+                   "dataset_event_id", "symbol", "exchange", "board", "security_status", "trading_day", "rule_snapshot_id", "decision_time"],
+      "properties": {
+        "authority_source_ref": {"type": ["string", "null"], "minLength": 1},
+        "authority_source_blob_sha": {"$ref": "#/$defs/gitBlobOrNull"},
+        "dataset_artifact_ref": {"type": ["string", "null"], "minLength": 1},
+        "dataset_artifact_blob_sha": {"$ref": "#/$defs/gitBlobOrNull"},
+        "dataset_event_id": {"type": ["string", "null"], "minLength": 1},
+        "symbol": {"type": ["string", "null"], "minLength": 1},
+        "exchange": {"type": ["string", "null"], "minLength": 1},
+        "board": {"type": ["string", "null"], "minLength": 1},
+        "security_status": {"type": ["string", "null"], "minLength": 1},
+        "trading_day": {"type": ["string", "null"], "minLength": 1},
+        "rule_snapshot_id": {"type": ["string", "null"], "minLength": 1},
+        "decision_time": {"type": "string", "format": "date-time"}
+      }
+    },
+    "pitEvidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["dataset_lineage", "available_at_lineage", "rule_version", "revision_timing", "universe_membership",
+                   "declared_statuses", "future_information_findings", "authority_binding"],
+      "properties": {
+        "dataset_lineage": {"$ref": "#/$defs/pitStatus"},
+        "available_at_lineage": {"$ref": "#/$defs/pitStatus"},
+        "rule_version": {"$ref": "#/$defs/pitStatus"},
+        "revision_timing": {"$ref": "#/$defs/pitStatus"},
+        "universe_membership": {"$ref": "#/$defs/pitStatus"},
+        "declared_statuses": {"$ref": "#/$defs/declaredPITStatuses"},
+        "future_information_findings": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "authority_binding": {"$ref": "#/$defs/pitAuthorityBinding"}
+      }
+    },
+    "methodResult": {
+      "type": "object", "additionalProperties": false,
+      "required": ["method_id", "status", "computation_ref", "applicability_reason"],
+      "properties": {
+        "method_id": {"type": "string", "minLength": 1},
+        "status": {"enum": ["PASS", "FAIL", "NOT_RUN", "NOT_APPLICABLE", "INSUFFICIENT_DATA", "NUMERICAL_FAILURE"]},
+        "computation_ref": {"type": ["string", "null"], "minLength": 1},
+        "applicability_reason": {"type": ["string", "null"], "minLength": 1}
+      }
+    }
+  }
+}
