@@ -163,6 +163,7 @@ def _baseline_from_projection(slot: Mapping[str, Any]) -> tuple[str, list[str]]:
     execution_allowed = slot.get("execution_allowed") is True
     findings: list[str] = []
 
+    # Terminal closure evidence outranks stale presentation fields.
     if closure == "RELEASED" or activation == "RELEASED":
         return LIFECYCLE_RELEASED, findings
     if activation == "FROZEN" or _contains_any(status, _STATUS_FROZEN):
@@ -173,10 +174,8 @@ def _baseline_from_projection(slot: Mapping[str, Any]) -> tuple[str, list[str]]:
         findings.append("LEGACY_CLOSED_NORMALIZED_TO_RELEASED_CLOSED")
         return LIFECYCLE_RELEASED, findings
 
-    if activation == "REVIEW_WAIT" or _contains_any(status, _STATUS_REVIEW_WAIT):
-        if execution_allowed:
-            findings.append("STALE_EXECUTION_FLAG_IGNORED_BY_REVIEW_WAIT")
-        return LIFECYCLE_REVIEW_WAIT, findings
+    # A newer terminal-review presentation must outrank an older REVIEW_WAIT activation
+    # projection. This is the key stale-projection rule for exact-head lifecycle state.
     if _contains_any(status, _STATUS_ACCEPTED):
         if execution_allowed:
             findings.append("STALE_EXECUTION_FLAG_IGNORED_BY_ACCEPTED_STATE")
@@ -189,6 +188,10 @@ def _baseline_from_projection(slot: Mapping[str, Any]) -> tuple[str, list[str]]:
         if execution_allowed:
             findings.append("STALE_EXECUTION_FLAG_IGNORED_BY_CANONICAL_MERGE")
         return LIFECYCLE_CANONICAL_MERGED, findings
+    if activation == "REVIEW_WAIT" or _contains_any(status, _STATUS_REVIEW_WAIT):
+        if execution_allowed:
+            findings.append("STALE_EXECUTION_FLAG_IGNORED_BY_REVIEW_WAIT")
+        return LIFECYCLE_REVIEW_WAIT, findings
 
     if activation in {"RESERVED", "PREWRITE_RESERVED"}:
         if execution_allowed:
@@ -233,7 +236,6 @@ def _event_sort_key(event: Mapping[str, Any]) -> tuple[int, str, str]:
 
 
 def _state_from_event(kind: str, event: Mapping[str, Any]) -> str | None:
-    del event
     if kind == "CLOSEOUT_RELEASED":
         return LIFECYCLE_RELEASED
     if kind == "FROZEN_SUPERSEDED":
@@ -429,9 +431,7 @@ def audit_worker_registry_lifecycle(repo_root: Path) -> WorkerRegistryLifecycleA
         findings.append("GPT_WORKER_OCCUPIED_CAPACITY_EXCEEDED")
 
     error_findings = [
-        item
-        for item in findings
-        if item not in {"WORKER_REGISTRY_LEGACY_SCHEMA_COMPATIBILITY"}
+        item for item in findings if item != "WORKER_REGISTRY_LEGACY_SCHEMA_COMPATIBILITY"
     ]
     payload = {
         "schema_version": str(version) if version is not None else None,
