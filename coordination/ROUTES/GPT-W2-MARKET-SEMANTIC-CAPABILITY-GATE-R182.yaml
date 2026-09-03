@@ -1,13 +1,14 @@
-schema_version: "1.0"
+schema_version: "1.1"
 route_id: "GPT-W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182"
 repository: "vxz2datoubo/second-brain-coordination"
-status: "ACTIVE_GOVERNED_PREWRITE"
-execution_allowed: true
-runtime_code_change_allowed: true
+status: "CLOSED_HISTORY_ONLY_CANONICALIZED"
+execution_allowed: false
+runtime_code_change_allowed: false
 merge_authorized: false
 self_review_forbidden: true
 self_accept_forbidden: true
 self_merge_forbidden: true
+reactivation_forbidden: true
 
 binding:
   task_id: "GPT-W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182"
@@ -15,17 +16,20 @@ binding:
   source_issue: 550
   parent_issue: 31
   implementation_branch: "gpt/r182-w2-market-semantic-capability-gate"
-  pull_request: null
-  pull_request_state: "TO_CREATE_AFTER_EFFECTIVE_SPEC_SNAPSHOT_AND_FIRST_SUBSTANTIVE_COMMIT"
+  pull_request: 551
   worker_slot_id: "GPT-WORKER-R182-W2-MARKET-SEMANTICS-1"
-  task_brief: "coordination/TASK-BRIEFS/GPT-W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182.yaml"
-  work_claim: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182/WORK-CLAIM.yaml"
-  authorization_witness: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182/AUTHORIZATION-WITNESS.yaml"
-  source_selection_provenance: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182/SOURCE-SELECTION-PROVENANCE.yaml"
-  task_lease: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182/TASK-LEASE.yaml"
-  executor_reservation: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182/EXECUTOR-RESERVATION.yaml"
-  activation_scan: "coordination/CONTROL-TOWER/R182-W2-MARKET-SEMANTIC-CAPABILITY-ACTIVATION-SCAN.yaml"
   review_queue_issue: 453
+
+terminalization:
+  accepted_exact_head: "fd66a90267faac1b3b6cb0dbe74824b070dac2e5"
+  independent_review: "pullrequestreview-5095449147"
+  review_result: "issuecomment-5516893526"
+  verdict: "ACCEPT"
+  premerge_main: "8589a5ffeee40108a82fc2ef6547c54b3e857436"
+  merge_commit: "a9669e31a9b59c72fff66d6d364c92d4eec51f49"
+  post_merge_closeout: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182/POST-MERGE-WORKER-CLOSEOUT.yaml"
+  historical_authorization_consumed: true
+  current_execution_authority: false
 
 executor:
   agent_type: "GPT_ENGINEERING_WORKER"
@@ -35,67 +39,36 @@ executor:
   independent_reviewer: "GPT_INDEPENDENT_REVIEWER"
   reviewer_separation: "EXECUTION_IDENTITY_NOT_ACCEPTANCE_AUTHORITY"
 
-mission:
+historical_mission:
   goal: >-
     Add one strict W2 market-data semantic type and provider-capability evidence gate so price/quantity/unit/direction/time/
-    missingness/provider-version meaning becomes machine-checkable and documented provider capability can never silently mint
+    missingness/provider-version meaning becomes machine-checkable and documented provider capability cannot silently mint
     local-runtime capability truth.
-  success_requires:
-    - "fixed-decimal canonical numeric semantics; no float guessing in new canonical semantic layer"
-    - "explicit units and no silent share/lot, fraction/percent, yuan/ten-thousand-yuan conversion"
-    - "source-enum to canonical-direction mapping with UNKNOWN preserved"
-    - "event/exchange/published/available/ingested time semantics remain distinct"
-    - "zero, missing, stale and entitlement-unverified remain distinct"
-    - "OFFICIAL_DOCUMENTED never upgrades to LOCAL_RUNTIME_VERIFIED without local evidence"
-    - "typed drift diagnostics for schema/semantic/unit/direction/precision/enum/time/adjustment/missingness/vendor/capability drift"
-    - "existing R143 W2 rule/replay runtime remains authoritative and untouched by the first slice"
-    - "no second probability, user-mastery, rule or market-data System of Record authority"
 
 write_scope:
-  allowed:
+  current_allowed: []
+  historical_allowed:
     - ".github/workflows/w2-market-semantic-capability-p0.yml"
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/MARKET-SEMANTIC-FIELD-SPEC.schema.json"
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/PROVIDER-CAPABILITY-OBSERVATION.schema.json"
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/fixtures/market-semantic-fields.synthetic.yaml"
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src/offline_research/market_semantics.py"
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/tests/test_market_semantics.py"
-  all_other_runtime_paths: "READ_ONLY"
-  r143_rules_py: "READ_ONLY_FIRST_SLICE"
-
-concurrency:
-  concurrent_gpt_r168: "GPT-CANONICAL-CI-STATE-ISOLATION-R168"
-  concurrent_codex_r181: "CODEX-A2-2-SHOT-BUNDLE-R181"
-  overlap_class: "O0_NO_MATERIAL_WRITE_OVERLAP"
-  same_canonical_object_writers_max: 1
-  nested_parallelism: "FORBIDDEN"
-
-substantive_write_gate:
-  state: "CLOSED_UNTIL_ISSUE_550_EFFECTIVE_SPEC_SNAPSHOT"
-  requires:
-    - "this exact canonical R182 route and task brief"
-    - "matching Work Claim, Authorization Witness, Source Selection Provenance, Task Lease and Executor Reservation"
-    - "canonical R182 worker slot and Lane-B projection"
-    - "fresh R182 activation scan"
-    - "Issue #550 EFFECTIVE_SPEC_SNAPSHOT/v1 published after all bindings"
-    - "declared branch absent before snapshot"
-  mismatch_action: "FAIL_CLOSED_NO_SUBSTANTIVE_WRITE"
+  all_runtime_paths: "NO_CURRENT_WRITE_AUTHORITY"
 
 hard_locks:
+  - "NO_REACTIVATION_FROM_HISTORICAL_ROUTE"
   - "NO_SECOND_A_SHARE_RULE_AUTHORITY"
   - "NO_SECOND_MARKET_DATA_SYSTEM_OF_RECORD"
   - "NO_DOCUMENTATION_EQUALS_LOCAL_CAPABILITY"
-  - "NO_FLOAT_OR_ENUM_SEMANTIC_GUESSING"
-  - "NO_SILENT_UNIT_CONVERSION"
-  - "NO_SILENT_MISSING_TO_ZERO"
   - "NO_SECOND_PROBABILITY_OR_USER_MASTERY_AUTHORITY"
   - "NO_TRADE_ACCOUNT_ORDER_FUND_ACCESS"
   - "NO_SELF_REVIEW_SELF_ACCEPT_SELF_MERGE"
 
 review_gate:
-  queue_issue: 453
-  exact_head_review_required: true
-  python_matrix: ["3.11", "3.13"]
+  terminal_result: "ACCEPT"
+  exact_head: "fd66a90267faac1b3b6cb0dbe74824b070dac2e5"
   green_ci_is_acceptance_authority: false
 
-completion_signal: "R182_W2_MARKET_SEMANTIC_CAPABILITY_GATE_READY_FOR_INDEPENDENT_REVIEW"
-next_command: "PUBLISH_ISSUE_550_EFFECTIVE_SPEC_SNAPSHOT_THEN_CREATE_BRANCH_AND_IMPLEMENT"
+completion_signal: "R182_CANONICAL_MERGED_WORKER_CLOSED"
+next_command: "HISTORY_ONLY_NO_EXECUTION"

@@ -8,37 +8,35 @@ executor_agent_type: "GPT_ENGINEERING_WORKER"
 executor_role: "GPT_ENGINEERING_WORKER"
 worker_slot_id: "GPT-WORKER-R182-W2-MARKET-SEMANTICS-1"
 model_id: "GPT-5.6 Sol"
-reservation_state: "RESERVED_PRE_SNAPSHOT"
+reservation_state: "RELEASED_AFTER_CANONICAL_MERGE"
 implementation_branch: "gpt/r182-w2-market-semantic-capability-gate"
-branch_must_not_exist_before_snapshot: true
-pull_request: null
+pull_request: 551
 
 capacity:
   gpt_parallel_routes_allowed: true
   gpt_active_slots_max: 2
-  r166_post_accept_execution_released: true
-  r168_reserved_or_active: true
-  r182_active_slot_count_after_registry_update: 2
-  concurrent_codex_r181: true
-  cross_agent_overlap: "O0_NO_MATERIAL_WRITE_OVERLAP"
+  r182_slot_currently_reserved: false
+  r182_slot_released: true
+  released_by_merge_commit: "a9669e31a9b59c72fff66d6d364c92d4eec51f49"
 
-reservation_scope: "W2_MARKET_SEMANTIC_AND_CAPABILITY_SIX_FILE_SURFACE_ONLY"
+reservation_scope: "NONE_HISTORY_ONLY"
+historical_reservation_scope: "W2_MARKET_SEMANTIC_AND_CAPABILITY_SIX_FILE_SURFACE_ONLY"
 reservation_exclusions:
   - "r143_rules.py / AShareRuleSnapshot authority"
-  - "W5 Event Coverage accepted candidate"
-  - "Control Tower R168 write surface"
-  - "creative runtime / CODEX R181 surfaces"
   - "W3 canonical truth and DS-02 probability authority"
   - "trading/production/credential/provider execution"
 
-activation_requires:
-  - "canonical ACTIVE-GPT-ENGINEERING-WORKERS R182 slot"
-  - "Lane-B R182 projection"
-  - "fresh R182 activation scan"
-  - "Issue #550 EFFECTIVE_SPEC_SNAPSHOT/v1 after all bindings"
+terminalization:
+  accepted_exact_head: "fd66a90267faac1b3b6cb0dbe74824b070dac2e5"
+  independent_review: "pullrequestreview-5095449147"
+  review_result: "issuecomment-5516893526"
+  merge_commit: "a9669e31a9b59c72fff66d6d364c92d4eec51f49"
+  execution_identity_reserved: false
+  historical_reservation_consumed: true
+  reactivation_from_this_reservation_forbidden: true
 
 reservation_effect:
-  execution_identity_reserved: true
+  execution_identity_reserved: false
   substantive_write_authorized_now: false
   review_authority: false
   merge_authority: false
