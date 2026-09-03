@@ -25,6 +25,7 @@ pr: null
 pr_binding_state: "PENDING_DRAFT_PR_BOOTSTRAP"
 user_authorization_comment: 5518053874
 prewrite_snapshot_comment: 5518085070
+scope_refinement_comment: 5518609051
 activation_parent_head: "a9669e31a9b59c72fff66d6d364c92d4eec51f49"
 canonical_main_at_authorization: "a9669e31a9b59c72fff66d6d364c92d4eec51f49"
 
@@ -42,6 +43,7 @@ fresh_exact_head_ci_required: true
 allowed_write_paths:
   - "coordination/CONTROL-TOWER/worker_lifecycle.py"
   - "coordination/CONTROL-TOWER/worker_slots.py"
+  - "coordination/CONTROL-TOWER/worker_slots_r5_compat.py"
   - "coordination/CONTROL-TOWER/tests/test_worker_lifecycle.py"
   - "coordination/CONTROL-TOWER/tests/test_worker_slots.py"
   - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R6.yaml"
@@ -71,14 +73,18 @@ required_invariants:
   stale_execution_artifacts_cannot_resurrect_newer_stop: true
   unknown_lifecycle_fails_closed: true
   deterministic_resolution_required: true
+  r5_compatibility_blob_immutable: "00a863a79a35524cb6db950529dabc9ff32761fa"
+  lifecycle_transition_authority_module: "coordination/CONTROL-TOWER/worker_lifecycle.py"
 
 provenance:
   source: "FRESH_USER_AUTHORIZED_CORRECTIVE_MAINTENANCE"
   source_issue: 565
   user_authorization_comment: 5518053874
   prewrite_snapshot_comment: 5518085070
+  scope_refinement_comment: 5518609051
   r5_terminal_predecessor: true
   r5_authority_id: "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R5-0001"
+  r5_compatibility_source_blob: "00a863a79a35524cb6db950529dabc9ff32761fa"
   r182_closeout_isolation_green_head: "af521a9a566871e9321806bffcdfdcf1529fa0ab"
   r182_closeout_pct_green_run: 33696295628
   r182_closeout_phase3_green_run: 33696295570
