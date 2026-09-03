@@ -42,16 +42,29 @@ KNOWN_LIFECYCLE_STATES = frozenset(
     }
 )
 
-_EVIDENCE_PRIORITY = {
+# Raw evidence passed to this foundation resolver is advisory only.  Events that
+# would assert an independent review, canonical merge, terminal closeout, or
+# supersession are external-authority facts and therefore cannot be minted by a
+# caller-provided mapping.  The later projection-migration slice must verify
+# those facts from governed sources before changing the canonical projection.
+_ADVISORY_EVENT_PRIORITY = {
     "PREWRITE_AUTHORIZATION": 10,
     "ROUTE_OR_LEASE_PROJECTION": 20,
     "ENGINEERING_STOP": 40,
     "CHANGES_REQUIRED": 50,
-    "INDEPENDENT_ACCEPT": 60,
-    "CANONICAL_MERGE": 70,
-    "CLOSEOUT_RELEASED": 80,
-    "FROZEN_SUPERSEDED": 80,
 }
+_EXTERNAL_AUTHORITY_EVENT_KINDS = frozenset(
+    {"INDEPENDENT_ACCEPT", "CANONICAL_MERGE", "CLOSEOUT_RELEASED", "FROZEN_SUPERSEDED"}
+)
+_KNOWN_EVENT_KINDS = frozenset({*_ADVISORY_EVENT_PRIORITY, *_EXTERNAL_AUTHORITY_EVENT_KINDS})
+_REQUIRED_EVENT_IDENTITY_FIELDS = (
+    "worker_slot_id",
+    "task_id",
+    "route_epoch",
+    "issue",
+    "pr",
+    "exact_head",
+)
 
 _STATUS_REVIEW_WAIT = (
     "ENGINEERING_STOPPED_WAITING_INDEPENDENT_REVIEW",
@@ -61,10 +74,7 @@ _STATUS_ACCEPTED = (
     "INDEPENDENTLY_ACCEPTED_AWAITING_SEPARATE_CANONICALIZATION",
     "INDEPENDENTLY_ACCEPTED_AWAITING_CANONICALIZATION",
 )
-_STATUS_CANONICAL_MERGED = (
-    "CANONICAL_MERGED_AWAITING_CLOSEOUT",
-    "CANONICAL_MERGED_WORKER_CLOSED",
-)
+_STATUS_CANONICAL_MERGED = ("CANONICAL_MERGED_AWAITING_CLOSEOUT",)
 _STATUS_FROZEN = ("FROZEN", "SUPERSEDED", "GOVERNANCE_INVALID")
 _STATUS_RELEASED = ("RELEASED", "WORKER_CLOSED")
 _STATUS_CHANGES_REQUIRED = ("CHANGES_REQUIRED",)
@@ -84,6 +94,7 @@ class WorkerLifecycleResolution:
     acceptance_authority: bool = False
     merge_authority: bool = False
     trade_authority: bool = False
+    successor_release_authority: bool = False
     fingerprint: str = ""
 
     def to_dict(self) -> dict[str, Any]:
@@ -97,10 +108,13 @@ class WorkerRegistryLifecycleAudit:
     agent_type: str | None
     slot_resolutions: tuple[dict[str, Any], ...]
     occupied_capacity_slots: tuple[str, ...]
-    occupied_capacity_count: int
+    occupied_capacity_count: int | None
     configured_capacity_limit: int | None
+    free_capacity_count: int | None
+    capacity_state: str
     findings: tuple[str, ...]
     valid_for_observability: bool
+    successor_release_authority: bool
     fingerprint: str
 
     def to_dict(self) -> dict[str, Any]:
@@ -150,6 +164,9 @@ def _state_semantics(state: str, execution_allowed: bool) -> tuple[bool, bool, b
         LIFECYCLE_CANONICAL_MERGED,
         LIFECYCLE_UNKNOWN,
     }:
+        # CHANGES_REQUIRED is terminal for the reviewed exact head, but its worker
+        # lifecycle remains capacity-occupying until a separately governed
+        # remediation/closeout transition occurs.
         return False, True, state == LIFECYCLE_CHANGES_REQUIRED, False
     if state in {LIFECYCLE_RELEASED, LIFECYCLE_FROZEN}:
         return False, False, True, False
@@ -163,19 +180,19 @@ def _baseline_from_projection(slot: Mapping[str, Any]) -> tuple[str, list[str]]:
     execution_allowed = slot.get("execution_allowed") is True
     findings: list[str] = []
 
-    # Terminal closure evidence outranks stale presentation fields.
+    # Canonical terminal projection beats stale status prose.
     if closure == "RELEASED" or activation == "RELEASED":
         return LIFECYCLE_RELEASED, findings
     if activation == "FROZEN" or _contains_any(status, _STATUS_FROZEN):
         return LIFECYCLE_FROZEN, findings
     if activation == "CLOSED":
-        if _contains_any(status, _STATUS_CANONICAL_MERGED + _STATUS_RELEASED):
+        if _contains_any(status, _STATUS_RELEASED) or _contains_any(closure, _STATUS_RELEASED):
             return LIFECYCLE_RELEASED, findings
-        findings.append("LEGACY_CLOSED_NORMALIZED_TO_RELEASED_CLOSED")
-        return LIFECYCLE_RELEASED, findings
+        if "CANONICAL_MERGED_AND_WORKER_RELEASED" in closure:
+            return LIFECYCLE_RELEASED, findings
+        findings.append("AMBIGUOUS_CLOSED_PROJECTION_FAILS_CLOSED")
+        return LIFECYCLE_UNKNOWN, findings
 
-    # A newer terminal-review presentation must outrank an older REVIEW_WAIT activation
-    # projection. This is the key stale-projection rule for exact-head lifecycle state.
     if _contains_any(status, _STATUS_ACCEPTED):
         if execution_allowed:
             findings.append("STALE_EXECUTION_FLAG_IGNORED_BY_ACCEPTED_STATE")
@@ -184,7 +201,7 @@ def _baseline_from_projection(slot: Mapping[str, Any]) -> tuple[str, list[str]]:
         if execution_allowed:
             findings.append("STALE_EXECUTION_FLAG_IGNORED_BY_CHANGES_REQUIRED")
         return LIFECYCLE_CHANGES_REQUIRED, findings
-    if _contains_any(status, ("CANONICAL_MERGED_AWAITING_CLOSEOUT",)):
+    if _contains_any(status, _STATUS_CANONICAL_MERGED):
         if execution_allowed:
             findings.append("STALE_EXECUTION_FLAG_IGNORED_BY_CANONICAL_MERGE")
         return LIFECYCLE_CANONICAL_MERGED, findings
@@ -215,79 +232,94 @@ def _baseline_from_projection(slot: Mapping[str, Any]) -> tuple[str, list[str]]:
     return LIFECYCLE_UNKNOWN, findings
 
 
-def _event_identity_matches(slot: Mapping[str, Any], event: Mapping[str, Any]) -> bool:
-    event_head = event.get("exact_head")
-    slot_head = slot.get("exact_head")
-    if event_head is not None and slot_head is not None and str(event_head) != str(slot_head):
-        return False
-    for field in ("worker_slot_id", "task_id", "issue", "pr", "route_epoch"):
+def _event_identity_findings(slot: Mapping[str, Any], event: Mapping[str, Any]) -> tuple[str, ...]:
+    findings: list[str] = []
+    for field in _REQUIRED_EVENT_IDENTITY_FIELDS:
         expected = slot.get(field)
         actual = event.get(field)
-        if actual is not None and expected is not None and str(actual) != str(expected):
-            return False
-    return True
+        if expected is None or actual is None or str(expected) != str(actual):
+            findings.append(f"LIFECYCLE_EVIDENCE_IDENTITY_INVALID:{field}")
+    return tuple(findings)
 
 
 def _event_sort_key(event: Mapping[str, Any]) -> tuple[int, str, str]:
     kind = str(event.get("kind") or "")
-    priority = _EVIDENCE_PRIORITY.get(kind, -1)
+    priority = _ADVISORY_EVENT_PRIORITY.get(kind, -1)
     observed_at = str(event.get("observed_at") or event.get("available_at") or "")
     return priority, observed_at, _canonical(dict(event))
 
 
-def _state_from_event(kind: str, event: Mapping[str, Any]) -> str | None:
-    if kind == "CLOSEOUT_RELEASED":
-        return LIFECYCLE_RELEASED
-    if kind == "FROZEN_SUPERSEDED":
-        return LIFECYCLE_FROZEN
-    if kind == "CANONICAL_MERGE":
-        return LIFECYCLE_CANONICAL_MERGED
-    if kind == "INDEPENDENT_ACCEPT":
-        return LIFECYCLE_ACCEPTED
+def _advisory_state_from_event(kind: str, event: Mapping[str, Any]) -> str | None:
     if kind == "CHANGES_REQUIRED":
         return LIFECYCLE_CHANGES_REQUIRED
     if kind == "ENGINEERING_STOP":
         return LIFECYCLE_REVIEW_WAIT
-    if kind == "PREWRITE_AUTHORIZATION":
-        return LIFECYCLE_ACTIVE if event.get("execution_allowed") is True else LIFECYCLE_RESERVED
-    if kind == "ROUTE_OR_LEASE_PROJECTION":
+    if kind in {"PREWRITE_AUTHORIZATION", "ROUTE_OR_LEASE_PROJECTION"}:
         return LIFECYCLE_ACTIVE if event.get("execution_allowed") is True else LIFECYCLE_RESERVED
     return None
+
+
+def _can_apply_advisory_transition(
+    baseline_state: str,
+    proposed_state: str,
+    execution_allowed: bool,
+) -> bool:
+    baseline_exec, baseline_occupies, baseline_terminal, _ = _state_semantics(
+        baseline_state, execution_allowed
+    )
+    proposed_exec, proposed_occupies, proposed_terminal, _ = _state_semantics(
+        proposed_state, execution_allowed
+    )
+    # Raw events are never allowed to mint execution, free capacity, or reopen a
+    # terminal canonical projection. They can only preserve or tighten safety.
+    if proposed_exec and not baseline_exec:
+        return False
+    if baseline_occupies and not proposed_occupies:
+        return False
+    if baseline_terminal and not proposed_terminal:
+        return False
+    return True
 
 
 def resolve_worker_lifecycle(
     slot: Mapping[str, Any],
     evidence_events: Sequence[Mapping[str, Any]] = (),
 ) -> WorkerLifecycleResolution:
-    state, findings = _baseline_from_projection(slot)
-    source_kind = "AGGREGATE_PROJECTION"
+    baseline_state, findings = _baseline_from_projection(slot)
+    state = baseline_state
+    source_kind = "CANONICAL_AGGREGATE_PROJECTION"
+    execution_allowed = slot.get("execution_allowed") is True
 
-    matching_events: list[Mapping[str, Any]] = []
+    advisory_events: list[Mapping[str, Any]] = []
     for event in evidence_events:
         kind = str(event.get("kind") or "")
-        if kind not in _EVIDENCE_PRIORITY:
+        if kind not in _KNOWN_EVENT_KINDS:
             findings.append("UNKNOWN_LIFECYCLE_EVIDENCE_KIND_IGNORED")
             continue
-        if not _event_identity_matches(slot, event):
-            findings.append("STALE_OR_FOREIGN_LIFECYCLE_EVIDENCE_IGNORED")
+        identity_findings = _event_identity_findings(slot, event)
+        if identity_findings:
+            findings.extend(identity_findings)
+            findings.append("INCOMPLETE_OR_FOREIGN_LIFECYCLE_EVIDENCE_IGNORED")
             continue
-        matching_events.append(event)
+        if kind in _EXTERNAL_AUTHORITY_EVENT_KINDS:
+            findings.append(f"EXTERNAL_AUTHORITY_EVENT_REQUIRES_GOVERNED_PROJECTION:{kind}")
+            continue
+        advisory_events.append(event)
 
-    if matching_events:
-        strongest = max(matching_events, key=_event_sort_key)
+    if advisory_events:
+        strongest = max(advisory_events, key=_event_sort_key)
         kind = str(strongest.get("kind") or "")
-        event_state = _state_from_event(kind, strongest)
-        if event_state is None:
+        proposed_state = _advisory_state_from_event(kind, strongest)
+        if proposed_state is None:
             findings.append("UNRESOLVED_LIFECYCLE_EVIDENCE_FAIL_CLOSED")
-            state = LIFECYCLE_UNKNOWN
-            source_kind = kind or "UNKNOWN_EVIDENCE"
-        else:
-            state = event_state
-            source_kind = kind
-            if state != LIFECYCLE_ACTIVE and slot.get("execution_allowed") is True:
+        elif _can_apply_advisory_transition(baseline_state, proposed_state, execution_allowed):
+            state = proposed_state
+            source_kind = f"ADVISORY_{kind}"
+            if state != LIFECYCLE_ACTIVE and execution_allowed:
                 findings.append("STALE_EXECUTION_FLAG_IGNORED_BY_STRONGER_EVIDENCE")
+        else:
+            findings.append("ADVISORY_EVENT_AUTHORITY_ESCALATION_BLOCKED")
 
-    execution_allowed = slot.get("execution_allowed") is True
     executable, occupies_capacity, terminal, current_write_authority = _state_semantics(
         state, execution_allowed
     )
@@ -310,9 +342,10 @@ def resolve_worker_lifecycle(
         "acceptance_authority": False,
         "merge_authority": False,
         "trade_authority": False,
+        "successor_release_authority": False,
     }
     return WorkerLifecycleResolution(
-        schema_version="WorkerLifecycleResolution/v1",
+        schema_version=payload["schema_version"],
         lifecycle_state=state,
         executable=executable,
         occupies_capacity=occupies_capacity,
@@ -324,6 +357,7 @@ def resolve_worker_lifecycle(
         acceptance_authority=False,
         merge_authority=False,
         trade_authority=False,
+        successor_release_authority=False,
         fingerprint=_fingerprint(payload),
     )
 
@@ -336,7 +370,8 @@ def occupied_capacity_count(
     count = 0
     for slot in slots:
         slot_id = str(slot.get("worker_slot_id") or "")
-        if resolve_worker_lifecycle(slot, evidence_by_slot.get(slot_id, ())).occupies_capacity:
+        resolution = resolve_worker_lifecycle(slot, evidence_by_slot.get(slot_id, ()))
+        if resolution.occupies_capacity:
             count += 1
     return count
 
@@ -348,38 +383,67 @@ def _load_yaml_mapping(path: Path) -> dict[str, Any]:
     return payload
 
 
+def _capacity_limit_from_program(path: Path) -> tuple[int | None, list[str]]:
+    findings: list[str] = []
+    try:
+        program = _load_yaml_mapping(path)
+    except (OSError, ValueError, TypeError, yaml.YAMLError):
+        return None, ["PROGRAM_LANES_CAPACITY_UNREADABLE"]
+    policy = program.get("portfolio_capacity_policy")
+    candidate = policy.get("gpt_engineering_worker_active_slots_max") if isinstance(policy, dict) else None
+    if isinstance(candidate, int) and not isinstance(candidate, bool) and candidate >= 1:
+        return candidate, findings
+    return None, ["GPT_WORKER_CAPACITY_LIMIT_UNKNOWN"]
+
+
+def _failed_audit(
+    capacity_limit: int | None,
+    findings: Sequence[str],
+) -> WorkerRegistryLifecycleAudit:
+    payload = {
+        "schema_version": None,
+        "registry_id": None,
+        "agent_type": None,
+        "slot_resolutions": [],
+        "occupied_capacity_slots": [],
+        "occupied_capacity_count": None,
+        "configured_capacity_limit": capacity_limit,
+        "free_capacity_count": None,
+        "capacity_state": "UNKNOWN_FAIL_CLOSED",
+        "findings": sorted(set(findings)),
+        "valid_for_observability": False,
+        "successor_release_authority": False,
+    }
+    return WorkerRegistryLifecycleAudit(
+        schema_version=None,
+        registry_id=None,
+        agent_type=None,
+        slot_resolutions=(),
+        occupied_capacity_slots=(),
+        occupied_capacity_count=None,
+        configured_capacity_limit=capacity_limit,
+        free_capacity_count=None,
+        capacity_state="UNKNOWN_FAIL_CLOSED",
+        findings=tuple(payload["findings"]),
+        valid_for_observability=False,
+        successor_release_authority=False,
+        fingerprint=_fingerprint(payload),
+    )
+
+
 def audit_worker_registry_lifecycle(repo_root: Path) -> WorkerRegistryLifecycleAudit:
     root = repo_root.resolve()
     findings: list[str] = []
     registry_path = root / WORKER_REGISTRY_PATH
     program_path = root / PROGRAM_LANES_PATH
+    capacity_limit, capacity_findings = _capacity_limit_from_program(program_path)
+    findings.extend(capacity_findings)
 
     try:
         registry = _load_yaml_mapping(registry_path)
     except (OSError, ValueError, TypeError, yaml.YAMLError):
-        payload = {
-            "schema_version": None,
-            "registry_id": None,
-            "agent_type": None,
-            "slot_resolutions": [],
-            "occupied_capacity_slots": [],
-            "occupied_capacity_count": 0,
-            "configured_capacity_limit": None,
-            "findings": ["WORKER_REGISTRY_UNREADABLE_FAIL_CLOSED"],
-            "valid_for_observability": False,
-        }
-        return WorkerRegistryLifecycleAudit(
-            schema_version=None,
-            registry_id=None,
-            agent_type=None,
-            slot_resolutions=(),
-            occupied_capacity_slots=(),
-            occupied_capacity_count=0,
-            configured_capacity_limit=None,
-            findings=("WORKER_REGISTRY_UNREADABLE_FAIL_CLOSED",),
-            valid_for_observability=False,
-            fingerprint=_fingerprint(payload),
-        )
+        findings.append("WORKER_REGISTRY_UNREADABLE_FAIL_CLOSED")
+        return _failed_audit(capacity_limit, findings)
 
     version = registry.get("schema_version")
     findings.extend(registry_schema_findings(version))
@@ -390,8 +454,8 @@ def audit_worker_registry_lifecycle(repo_root: Path) -> WorkerRegistryLifecycleA
 
     raw_slots = registry.get("worker_slots")
     if not isinstance(raw_slots, list):
-        raw_slots = []
         findings.append("WORKER_REGISTRY_SLOTS_NOT_LIST_FAIL_CLOSED")
+        return _failed_audit(capacity_limit, findings)
 
     slot_resolutions: list[dict[str, Any]] = []
     occupied: list[str] = []
@@ -414,25 +478,19 @@ def audit_worker_registry_lifecycle(repo_root: Path) -> WorkerRegistryLifecycleA
         if resolution.lifecycle_state == LIFECYCLE_UNKNOWN:
             findings.append(f"WORKER_SLOT_LIFECYCLE_UNKNOWN:{slot_id}")
 
-    capacity_limit: int | None = None
-    try:
-        program = _load_yaml_mapping(program_path)
-        policy = program.get("portfolio_capacity_policy")
-        if isinstance(policy, dict):
-            candidate = policy.get("gpt_engineering_worker_active_slots_max")
-            if isinstance(candidate, int) and not isinstance(candidate, bool) and candidate >= 1:
-                capacity_limit = candidate
-    except (OSError, ValueError, TypeError, yaml.YAMLError):
-        findings.append("PROGRAM_LANES_CAPACITY_UNREADABLE")
-
-    if capacity_limit is None:
-        findings.append("GPT_WORKER_CAPACITY_LIMIT_UNKNOWN")
-    elif len(occupied) > capacity_limit:
+    if capacity_limit is not None and len(occupied) > capacity_limit:
         findings.append("GPT_WORKER_OCCUPIED_CAPACITY_EXCEEDED")
 
     error_findings = [
         item for item in findings if item != "WORKER_REGISTRY_LEGACY_SCHEMA_COMPATIBILITY"
     ]
+    valid = not error_findings
+    free_capacity = (
+        max(0, capacity_limit - len(occupied))
+        if valid and capacity_limit is not None
+        else None
+    )
+    capacity_state = "KNOWN_OBSERVATION" if valid and capacity_limit is not None else "UNKNOWN_FAIL_CLOSED"
     payload = {
         "schema_version": str(version) if version is not None else None,
         "registry_id": registry.get("registry_id"),
@@ -441,8 +499,11 @@ def audit_worker_registry_lifecycle(repo_root: Path) -> WorkerRegistryLifecycleA
         "occupied_capacity_slots": occupied,
         "occupied_capacity_count": len(occupied),
         "configured_capacity_limit": capacity_limit,
+        "free_capacity_count": free_capacity,
+        "capacity_state": capacity_state,
         "findings": sorted(set(findings)),
-        "valid_for_observability": not error_findings,
+        "valid_for_observability": valid,
+        "successor_release_authority": False,
     }
     return WorkerRegistryLifecycleAudit(
         schema_version=payload["schema_version"],
@@ -452,7 +513,10 @@ def audit_worker_registry_lifecycle(repo_root: Path) -> WorkerRegistryLifecycleA
         occupied_capacity_slots=tuple(occupied),
         occupied_capacity_count=len(occupied),
         configured_capacity_limit=capacity_limit,
+        free_capacity_count=free_capacity,
+        capacity_state=capacity_state,
         findings=tuple(payload["findings"]),
-        valid_for_observability=payload["valid_for_observability"],
+        valid_for_observability=valid,
+        successor_release_authority=False,
         fingerprint=_fingerprint(payload),
     )
