@@ -3,13 +3,20 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import asdict, dataclass
+from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
+
+import yaml
 
 CANONICAL_REGISTRY_SCHEMA_VERSION = "1.5"
 LEGACY_REGISTRY_SCHEMA_VERSIONS = frozenset({"1.0"})
 SUPPORTED_REGISTRY_SCHEMA_VERSIONS = frozenset(
     {CANONICAL_REGISTRY_SCHEMA_VERSION, *LEGACY_REGISTRY_SCHEMA_VERSIONS}
 )
+EXPECTED_REGISTRY_ID = "ACTIVE-GPT-ENGINEERING-WORKERS-0001"
+EXPECTED_AGENT_TYPE = "GPT_ENGINEERING_WORKER"
+WORKER_REGISTRY_PATH = "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+PROGRAM_LANES_PATH = "coordination/ACTIVE-PROGRAM-LANES.yaml"
 
 LIFECYCLE_RESERVED = "RESERVED_NON_EXECUTABLE"
 LIFECYCLE_ACTIVE = "ACTIVE_EXECUTABLE"
@@ -35,8 +42,6 @@ KNOWN_LIFECYCLE_STATES = frozenset(
     }
 )
 
-# Evidence is deliberately ordered by authority, not by caller list order.
-# A matching exact-head terminal result outranks stale route/lease projection.
 _EVIDENCE_PRIORITY = {
     "PREWRITE_AUTHORIZATION": 10,
     "ROUTE_OR_LEASE_PROJECTION": 20,
@@ -85,6 +90,23 @@ class WorkerLifecycleResolution:
         return asdict(self)
 
 
+@dataclass(frozen=True)
+class WorkerRegistryLifecycleAudit:
+    schema_version: str | None
+    registry_id: str | None
+    agent_type: str | None
+    slot_resolutions: tuple[dict[str, Any], ...]
+    occupied_capacity_slots: tuple[str, ...]
+    occupied_capacity_count: int
+    configured_capacity_limit: int | None
+    findings: tuple[str, ...]
+    valid_for_observability: bool
+    fingerprint: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
 def _canonical(value: Any) -> str:
     return json.dumps(
         value,
@@ -117,8 +139,6 @@ def _contains_any(value: Any, tokens: Iterable[str]) -> bool:
 
 
 def _state_semantics(state: str, execution_allowed: bool) -> tuple[bool, bool, bool, bool]:
-    """Return executable, occupies_capacity, terminal, current_write_authority."""
-
     if state == LIFECYCLE_ACTIVE:
         executable = execution_allowed is True
         return executable, True, False, executable
@@ -130,7 +150,6 @@ def _state_semantics(state: str, execution_allowed: bool) -> tuple[bool, bool, b
         LIFECYCLE_CANONICAL_MERGED,
         LIFECYCLE_UNKNOWN,
     }:
-        # UNKNOWN occupies capacity to fail closed: ambiguity can never create a free slot.
         return False, True, state == LIFECYCLE_CHANGES_REQUIRED, False
     if state in {LIFECYCLE_RELEASED, LIFECYCLE_FROZEN}:
         return False, False, True, False
@@ -144,18 +163,16 @@ def _baseline_from_projection(slot: Mapping[str, Any]) -> tuple[str, list[str]]:
     execution_allowed = slot.get("execution_allowed") is True
     findings: list[str] = []
 
-    # Explicit terminal closure is stronger than an older presentation status.
     if closure == "RELEASED" or activation == "RELEASED":
         return LIFECYCLE_RELEASED, findings
-    if activation in {"FROZEN"} or _contains_any(status, _STATUS_FROZEN):
+    if activation == "FROZEN" or _contains_any(status, _STATUS_FROZEN):
         return LIFECYCLE_FROZEN, findings
-    if activation in {"CLOSED"}:
+    if activation == "CLOSED":
         if _contains_any(status, _STATUS_CANONICAL_MERGED + _STATUS_RELEASED):
             return LIFECYCLE_RELEASED, findings
         findings.append("LEGACY_CLOSED_NORMALIZED_TO_RELEASED_CLOSED")
         return LIFECYCLE_RELEASED, findings
 
-    # Newer human/projection states override stale ACTIVE/PREWRITE booleans.
     if activation == "REVIEW_WAIT" or _contains_any(status, _STATUS_REVIEW_WAIT):
         if execution_allowed:
             findings.append("STALE_EXECUTION_FLAG_IGNORED_BY_REVIEW_WAIT")
@@ -183,7 +200,6 @@ def _baseline_from_projection(slot: Mapping[str, Any]) -> tuple[str, list[str]]:
             return LIFECYCLE_RESERVED, findings
         return LIFECYCLE_ACTIVE, findings
 
-    # Some pre-R6 projections used only status/resource class for reservation.
     resource_class = str(slot.get("resource_class") or "").upper()
     if "REVIEW_WAIT_SLOT_OCCUPIED" in resource_class:
         findings.append("LIFECYCLE_RECOVERED_FROM_RESOURCE_CLASS")
@@ -217,6 +233,7 @@ def _event_sort_key(event: Mapping[str, Any]) -> tuple[int, str, str]:
 
 
 def _state_from_event(kind: str, event: Mapping[str, Any]) -> str | None:
+    del event
     if kind == "CLOSEOUT_RELEASED":
         return LIFECYCLE_RELEASED
     if kind == "FROZEN_SUPERSEDED":
@@ -240,13 +257,6 @@ def resolve_worker_lifecycle(
     slot: Mapping[str, Any],
     evidence_events: Sequence[Mapping[str, Any]] = (),
 ) -> WorkerLifecycleResolution:
-    """Resolve one worker lifecycle deterministically and fail closed.
-
-    Aggregate slot fields are a projection. Optional evidence events are stronger facts gathered
-    by callers from exact-head handoff/review/merge/closeout artifacts. Events with mismatching
-    exact-head/task/Issue/PR/epoch identity are retained only as findings and never mutate state.
-    """
-
     state, findings = _baseline_from_projection(slot)
     source_kind = "AGGREGATE_PROJECTION"
 
@@ -279,7 +289,6 @@ def resolve_worker_lifecycle(
     executable, occupies_capacity, terminal, current_write_authority = _state_semantics(
         state, execution_allowed
     )
-
     if state == LIFECYCLE_ACTIVE and not execution_allowed:
         executable = False
         current_write_authority = False
@@ -300,7 +309,6 @@ def resolve_worker_lifecycle(
         "merge_authority": False,
         "trade_authority": False,
     }
-    fingerprint = _fingerprint(payload)
     return WorkerLifecycleResolution(
         schema_version="WorkerLifecycleResolution/v1",
         lifecycle_state=state,
@@ -314,7 +322,7 @@ def resolve_worker_lifecycle(
         acceptance_authority=False,
         merge_authority=False,
         trade_authority=False,
-        fingerprint=fingerprint,
+        fingerprint=_fingerprint(payload),
     )
 
 
@@ -326,7 +334,125 @@ def occupied_capacity_count(
     count = 0
     for slot in slots:
         slot_id = str(slot.get("worker_slot_id") or "")
-        resolution = resolve_worker_lifecycle(slot, evidence_by_slot.get(slot_id, ()))
-        if resolution.occupies_capacity:
+        if resolve_worker_lifecycle(slot, evidence_by_slot.get(slot_id, ())).occupies_capacity:
             count += 1
     return count
+
+
+def _load_yaml_mapping(path: Path) -> dict[str, Any]:
+    payload = yaml.safe_load(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError(f"expected mapping: {path}")
+    return payload
+
+
+def audit_worker_registry_lifecycle(repo_root: Path) -> WorkerRegistryLifecycleAudit:
+    root = repo_root.resolve()
+    findings: list[str] = []
+    registry_path = root / WORKER_REGISTRY_PATH
+    program_path = root / PROGRAM_LANES_PATH
+
+    try:
+        registry = _load_yaml_mapping(registry_path)
+    except (OSError, ValueError, TypeError, yaml.YAMLError):
+        payload = {
+            "schema_version": None,
+            "registry_id": None,
+            "agent_type": None,
+            "slot_resolutions": [],
+            "occupied_capacity_slots": [],
+            "occupied_capacity_count": 0,
+            "configured_capacity_limit": None,
+            "findings": ["WORKER_REGISTRY_UNREADABLE_FAIL_CLOSED"],
+            "valid_for_observability": False,
+        }
+        return WorkerRegistryLifecycleAudit(
+            schema_version=None,
+            registry_id=None,
+            agent_type=None,
+            slot_resolutions=(),
+            occupied_capacity_slots=(),
+            occupied_capacity_count=0,
+            configured_capacity_limit=None,
+            findings=("WORKER_REGISTRY_UNREADABLE_FAIL_CLOSED",),
+            valid_for_observability=False,
+            fingerprint=_fingerprint(payload),
+        )
+
+    version = registry.get("schema_version")
+    findings.extend(registry_schema_findings(version))
+    if registry.get("registry_id") != EXPECTED_REGISTRY_ID:
+        findings.append("WORKER_REGISTRY_ID_INVALID")
+    if registry.get("agent_type") != EXPECTED_AGENT_TYPE:
+        findings.append("WORKER_REGISTRY_AGENT_TYPE_INVALID")
+
+    raw_slots = registry.get("worker_slots")
+    if not isinstance(raw_slots, list):
+        raw_slots = []
+        findings.append("WORKER_REGISTRY_SLOTS_NOT_LIST_FAIL_CLOSED")
+
+    slot_resolutions: list[dict[str, Any]] = []
+    occupied: list[str] = []
+    seen: set[str] = set()
+    for index, raw in enumerate(raw_slots):
+        if not isinstance(raw, dict):
+            findings.append(f"WORKER_SLOT_NOT_MAPPING:{index}")
+            continue
+        slot_id = str(raw.get("worker_slot_id") or "")
+        if not slot_id:
+            findings.append(f"WORKER_SLOT_ID_MISSING:{index}")
+            slot_id = f"UNKNOWN:{index}"
+        if slot_id in seen:
+            findings.append(f"WORKER_SLOT_ID_DUPLICATE:{slot_id}")
+        seen.add(slot_id)
+        resolution = resolve_worker_lifecycle(raw)
+        slot_resolutions.append({"worker_slot_id": slot_id, **resolution.to_dict()})
+        if resolution.occupies_capacity:
+            occupied.append(slot_id)
+        if resolution.lifecycle_state == LIFECYCLE_UNKNOWN:
+            findings.append(f"WORKER_SLOT_LIFECYCLE_UNKNOWN:{slot_id}")
+
+    capacity_limit: int | None = None
+    try:
+        program = _load_yaml_mapping(program_path)
+        policy = program.get("portfolio_capacity_policy")
+        if isinstance(policy, dict):
+            candidate = policy.get("gpt_engineering_worker_active_slots_max")
+            if isinstance(candidate, int) and not isinstance(candidate, bool) and candidate >= 1:
+                capacity_limit = candidate
+    except (OSError, ValueError, TypeError, yaml.YAMLError):
+        findings.append("PROGRAM_LANES_CAPACITY_UNREADABLE")
+
+    if capacity_limit is None:
+        findings.append("GPT_WORKER_CAPACITY_LIMIT_UNKNOWN")
+    elif len(occupied) > capacity_limit:
+        findings.append("GPT_WORKER_OCCUPIED_CAPACITY_EXCEEDED")
+
+    error_findings = [
+        item
+        for item in findings
+        if item not in {"WORKER_REGISTRY_LEGACY_SCHEMA_COMPATIBILITY"}
+    ]
+    payload = {
+        "schema_version": str(version) if version is not None else None,
+        "registry_id": registry.get("registry_id"),
+        "agent_type": registry.get("agent_type"),
+        "slot_resolutions": slot_resolutions,
+        "occupied_capacity_slots": occupied,
+        "occupied_capacity_count": len(occupied),
+        "configured_capacity_limit": capacity_limit,
+        "findings": sorted(set(findings)),
+        "valid_for_observability": not error_findings,
+    }
+    return WorkerRegistryLifecycleAudit(
+        schema_version=payload["schema_version"],
+        registry_id=payload["registry_id"],
+        agent_type=payload["agent_type"],
+        slot_resolutions=tuple(slot_resolutions),
+        occupied_capacity_slots=tuple(occupied),
+        occupied_capacity_count=len(occupied),
+        configured_capacity_limit=capacity_limit,
+        findings=tuple(payload["findings"]),
+        valid_for_observability=payload["valid_for_observability"],
+        fingerprint=_fingerprint(payload),
+    )

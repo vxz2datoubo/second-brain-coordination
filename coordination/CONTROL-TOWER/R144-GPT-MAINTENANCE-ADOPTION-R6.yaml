@@ -12,10 +12,11 @@ predecessor_authority:
   required_terminal_scope_status: "NO_FURTHER_MODIFIER_WRITES_AUTHORIZED_BY_THIS_ARTIFACT"
 
 purpose: >-
-  Bounded corrective maintenance for Issue #565 only: reconcile the canonical GPT worker registry schema/lifecycle model with
-  Control Tower validation and capacity semantics. Review-wait and accepted-awaiting-canonicalization are non-executable but
-  slot-occupying; stale execution artifacts cannot resurrect a newer stopped exact head; released/frozen historical records
-  retain provenance without execution or capacity authority.
+  First independently reviewable foundation slice for Issue #565. Define one deterministic GPT-worker lifecycle resolver and a
+  canonical-registry lifecycle audit that separates executable authority from occupied capacity, models review-wait and
+  canonicalization-wait explicitly, and prevents stale exact-head evidence from resurrecting a stopped worker. This R6 slice
+  intentionally does not replace the legacy worker_slots validator or mutate live worker/lane projections; those migrations
+  require a later fresh user-issued maintenance authority after this resolver is independently accepted/canonical.
 
 task_id: "GPT-CONTROL-TOWER-WORKER-LIFECYCLE-SCHEMA-R6"
 maintenance_generation: 6
@@ -23,6 +24,7 @@ issue: 565
 branch: "gpt/r565-control-tower-worker-lifecycle-r6"
 pr: 568
 pr_binding_state: "BOUND_DRAFT_PR"
+first_slice_mode: "RESOLVER_AUDIT_FOUNDATION_ONLY"
 user_authorization_comment: 5518053874
 prewrite_snapshot_comment: 5518085070
 scope_refinement_comment: 5518609051
@@ -42,15 +44,13 @@ fresh_exact_head_ci_required: true
 
 allowed_write_paths:
   - "coordination/CONTROL-TOWER/worker_lifecycle.py"
-  - "coordination/CONTROL-TOWER/worker_slots.py"
-  - "coordination/CONTROL-TOWER/worker_slots_r5_compat.py"
   - "coordination/CONTROL-TOWER/tests/test_worker_lifecycle.py"
-  - "coordination/CONTROL-TOWER/tests/test_worker_slots.py"
   - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R6.yaml"
   - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-TERMINAL-TOMBSTONES.yaml"
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R144/R6-LIFECYCLE-REPAIR-RECEIPT.md"
 
 explicitly_forbidden_write_paths:
+  - "coordination/CONTROL-TOWER/worker_slots.py"
   - "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
   - "coordination/ACTIVE-PROGRAM-LANES.yaml"
 
@@ -73,8 +73,9 @@ required_invariants:
   stale_execution_artifacts_cannot_resurrect_newer_stop: true
   unknown_lifecycle_fails_closed: true
   deterministic_resolution_required: true
-  r5_compatibility_blob_immutable: "00a863a79a35524cb6db950529dabc9ff32761fa"
+  pre_r6_worker_slots_blob_must_remain_unchanged: "00a863a79a35524cb6db950529dabc9ff32761fa"
   lifecycle_transition_authority_module: "coordination/CONTROL-TOWER/worker_lifecycle.py"
+  lifecycle_audit_is_observability_only: true
 
 provenance:
   source: "FRESH_USER_AUTHORIZED_CORRECTIVE_MAINTENANCE"
@@ -84,11 +85,14 @@ provenance:
   scope_refinement_comment: 5518609051
   r5_terminal_predecessor: true
   r5_authority_id: "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R5-0001"
-  r5_compatibility_source_blob: "00a863a79a35524cb6db950529dabc9ff32761fa"
+  pre_r6_worker_slots_blob: "00a863a79a35524cb6db950529dabc9ff32761fa"
   r182_closeout_isolation_green_head: "af521a9a566871e9321806bffcdfdcf1529fa0ab"
   r182_closeout_pct_green_run: 33696295628
   r182_closeout_phase3_green_run: 33696295570
   worker_registry_single_file_failure_head: "d87b5201448aa05a581c5e0bc17ba3d3726d4ae4"
+  first_integration_attempt_head: "1b25de453473ea803da12df0644d8ce00217bb9e"
+  first_integration_attempt_pct_run: 33701594998
+  first_integration_disposition: "SPLIT_FOUNDATION_FROM_COMMAND_OUTPUT_MIGRATION_TO_PRESERVE_R168_BASELINE_FINGERPRINTS"
   truth_rule: "R6_NEW_AUTHORITY_ID != R5_REACTIVATION"
 
 completion_gate:
@@ -97,3 +101,5 @@ completion_gate:
   no_merge_before_independent_accept: true
   no_domain_runtime_write: true
   no_live_projection_write_in_first_slice: true
+  no_worker_slots_validator_write_in_first_slice: true
+  next_validator_projection_migration_requires_new_user_issued_maintenance_authority: true
