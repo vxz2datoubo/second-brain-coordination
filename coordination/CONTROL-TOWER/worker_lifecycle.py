@@ -42,22 +42,28 @@ KNOWN_LIFECYCLE_STATES = frozenset(
     }
 )
 
-# Raw evidence passed to this foundation resolver is advisory only.  Events that
-# would assert an independent review, canonical merge, terminal closeout, or
-# supersession are external-authority facts and therefore cannot be minted by a
-# caller-provided mapping.  The later projection-migration slice must verify
-# those facts from governed sources before changing the canonical projection.
+# Raw evidence supplied to this foundation resolver is advisory only.
+# Independent review verdicts, canonical merges, closeout releases and
+# supersession are governed authority facts. They must already be reflected in
+# the canonical aggregate projection (or be verified by a later dedicated
+# verifier) before they may change lifecycle truth.
 _ADVISORY_EVENT_PRIORITY = {
     "PREWRITE_AUTHORIZATION": 10,
     "ROUTE_OR_LEASE_PROJECTION": 20,
     "ENGINEERING_STOP": 40,
-    "CHANGES_REQUIRED": 50,
 }
 _EXTERNAL_AUTHORITY_EVENT_KINDS = frozenset(
-    {"INDEPENDENT_ACCEPT", "CANONICAL_MERGE", "CLOSEOUT_RELEASED", "FROZEN_SUPERSEDED"}
+    {
+        "CHANGES_REQUIRED",
+        "INDEPENDENT_ACCEPT",
+        "CANONICAL_MERGE",
+        "CLOSEOUT_RELEASED",
+        "FROZEN_SUPERSEDED",
+    }
 )
 _KNOWN_EVENT_KINDS = frozenset({*_ADVISORY_EVENT_PRIORITY, *_EXTERNAL_AUTHORITY_EVENT_KINDS})
 _REQUIRED_EVENT_IDENTITY_FIELDS = (
+    "repository",
     "worker_slot_id",
     "task_id",
     "route_epoch",
@@ -65,6 +71,8 @@ _REQUIRED_EVENT_IDENTITY_FIELDS = (
     "pr",
     "exact_head",
 )
+_REVIEW_AUTHORITY_EVENT_KINDS = frozenset({"CHANGES_REQUIRED", "INDEPENDENT_ACCEPT"})
+_REVIEW_PROVENANCE_FIELDS = ("review_ref", "review_result_ref")
 
 _STATUS_REVIEW_WAIT = (
     "ENGINEERING_STOPPED_WAITING_INDEPENDENT_REVIEW",
@@ -164,9 +172,6 @@ def _state_semantics(state: str, execution_allowed: bool) -> tuple[bool, bool, b
         LIFECYCLE_CANONICAL_MERGED,
         LIFECYCLE_UNKNOWN,
     }:
-        # CHANGES_REQUIRED is terminal for the reviewed exact head, but its worker
-        # lifecycle remains capacity-occupying until a separately governed
-        # remediation/closeout transition occurs.
         return False, True, state == LIFECYCLE_CHANGES_REQUIRED, False
     if state in {LIFECYCLE_RELEASED, LIFECYCLE_FROZEN}:
         return False, False, True, False
@@ -180,7 +185,6 @@ def _baseline_from_projection(slot: Mapping[str, Any]) -> tuple[str, list[str]]:
     execution_allowed = slot.get("execution_allowed") is True
     findings: list[str] = []
 
-    # Canonical terminal projection beats stale status prose.
     if closure == "RELEASED" or activation == "RELEASED":
         return LIFECYCLE_RELEASED, findings
     if activation == "FROZEN" or _contains_any(status, _STATUS_FROZEN):
@@ -193,6 +197,7 @@ def _baseline_from_projection(slot: Mapping[str, Any]) -> tuple[str, list[str]]:
         findings.append("AMBIGUOUS_CLOSED_PROJECTION_FAILS_CLOSED")
         return LIFECYCLE_UNKNOWN, findings
 
+    # Stronger canonical projections beat older REVIEW_WAIT prose.
     if _contains_any(status, _STATUS_ACCEPTED):
         if execution_allowed:
             findings.append("STALE_EXECUTION_FLAG_IGNORED_BY_ACCEPTED_STATE")
@@ -242,6 +247,19 @@ def _event_identity_findings(slot: Mapping[str, Any], event: Mapping[str, Any]) 
     return tuple(findings)
 
 
+def _review_provenance_findings(slot: Mapping[str, Any], event: Mapping[str, Any]) -> tuple[str, ...]:
+    kind = str(event.get("kind") or "")
+    if kind not in _REVIEW_AUTHORITY_EVENT_KINDS:
+        return ()
+    findings: list[str] = []
+    for field in _REVIEW_PROVENANCE_FIELDS:
+        expected = slot.get(field)
+        actual = event.get(field)
+        if expected is None or actual is None or str(expected) != str(actual):
+            findings.append(f"LIFECYCLE_EVIDENCE_PROVENANCE_INVALID:{field}")
+    return tuple(findings)
+
+
 def _event_sort_key(event: Mapping[str, Any]) -> tuple[int, str, str]:
     kind = str(event.get("kind") or "")
     priority = _ADVISORY_EVENT_PRIORITY.get(kind, -1)
@@ -250,8 +268,6 @@ def _event_sort_key(event: Mapping[str, Any]) -> tuple[int, str, str]:
 
 
 def _advisory_state_from_event(kind: str, event: Mapping[str, Any]) -> str | None:
-    if kind == "CHANGES_REQUIRED":
-        return LIFECYCLE_CHANGES_REQUIRED
     if kind == "ENGINEERING_STOP":
         return LIFECYCLE_REVIEW_WAIT
     if kind in {"PREWRITE_AUTHORIZATION", "ROUTE_OR_LEASE_PROJECTION"}:
@@ -270,8 +286,6 @@ def _can_apply_advisory_transition(
     proposed_exec, proposed_occupies, proposed_terminal, _ = _state_semantics(
         proposed_state, execution_allowed
     )
-    # Raw events are never allowed to mint execution, free capacity, or reopen a
-    # terminal canonical projection. They can only preserve or tighten safety.
     if proposed_exec and not baseline_exec:
         return False
     if baseline_occupies and not proposed_occupies:
@@ -296,14 +310,23 @@ def resolve_worker_lifecycle(
         if kind not in _KNOWN_EVENT_KINDS:
             findings.append("UNKNOWN_LIFECYCLE_EVIDENCE_KIND_IGNORED")
             continue
+
         identity_findings = _event_identity_findings(slot, event)
         if identity_findings:
             findings.extend(identity_findings)
             findings.append("INCOMPLETE_OR_FOREIGN_LIFECYCLE_EVIDENCE_IGNORED")
             continue
+
+        provenance_findings = _review_provenance_findings(slot, event)
+        if provenance_findings:
+            findings.extend(provenance_findings)
+            findings.append("UNVERIFIED_OR_FOREIGN_REVIEW_EVIDENCE_IGNORED")
+            continue
+
         if kind in _EXTERNAL_AUTHORITY_EVENT_KINDS:
             findings.append(f"EXTERNAL_AUTHORITY_EVENT_REQUIRES_GOVERNED_PROJECTION:{kind}")
             continue
+
         advisory_events.append(event)
 
     if advisory_events:
@@ -384,7 +407,6 @@ def _load_yaml_mapping(path: Path) -> dict[str, Any]:
 
 
 def _capacity_limit_from_program(path: Path) -> tuple[int | None, list[str]]:
-    findings: list[str] = []
     try:
         program = _load_yaml_mapping(path)
     except (OSError, ValueError, TypeError, yaml.YAMLError):
@@ -392,7 +414,7 @@ def _capacity_limit_from_program(path: Path) -> tuple[int | None, list[str]]:
     policy = program.get("portfolio_capacity_policy")
     candidate = policy.get("gpt_engineering_worker_active_slots_max") if isinstance(policy, dict) else None
     if isinstance(candidate, int) and not isinstance(candidate, bool) and candidate >= 1:
-        return candidate, findings
+        return candidate, []
     return None, ["GPT_WORKER_CAPACITY_LIMIT_UNKNOWN"]
 
 
