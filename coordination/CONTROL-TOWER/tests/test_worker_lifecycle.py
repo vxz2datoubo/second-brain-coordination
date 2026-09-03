@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import sys
 import unittest
 from pathlib import Path
@@ -22,6 +23,7 @@ from worker_lifecycle import (  # noqa: E402
     registry_schema_supported,
     resolve_worker_lifecycle,
 )
+from worker_slots import R6_COMPAT_BLOB, R6_COMPAT_PATH, validate_worker_slots  # noqa: E402
 
 
 def _slot(**overrides):
@@ -171,6 +173,19 @@ class LifecycleProjectionTests(unittest.TestCase):
         self.assertEqual(result.lifecycle_state, LIFECYCLE_RELEASED)
         self.assertFalse(result.occupies_capacity)
 
+    def test_prewrite_reserved_stale_true_execution_is_not_executable(self) -> None:
+        result = resolve_worker_lifecycle(
+            _slot(
+                activation_state="PREWRITE_RESERVED",
+                status="ACTIVE_GOVERNED_PREWRITE",
+                execution_allowed=True,
+            )
+        )
+        self.assertEqual(result.lifecycle_state, LIFECYCLE_RESERVED)
+        self.assertFalse(result.executable)
+        self.assertTrue(result.occupies_capacity)
+        self.assertIn("RESERVED_EXECUTION_FLAG_IGNORED", result.findings)
+
     def test_unknown_state_fails_closed_and_occupies_capacity(self) -> None:
         result = resolve_worker_lifecycle(
             _slot(activation_state="ALIEN_FUTURE_STATE", status="ALIEN", execution_allowed=True)
@@ -311,6 +326,54 @@ class CapacityAndAuthorityTests(unittest.TestCase):
         right = resolve_worker_lifecycle(_slot(execution_allowed=False), list(reversed(events)))
         self.assertEqual(left, right)
         self.assertEqual(left.fingerprint, right.fingerprint)
+
+
+class R6RepositoryIntegrationTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.repo_root = Path(__file__).resolve().parents[3]
+
+    def test_r5_compatibility_file_is_exact_pre_r6_git_blob(self) -> None:
+        data = (self.repo_root / R6_COMPAT_PATH).read_bytes()
+        digest = hashlib.sha1(b"blob " + str(len(data)).encode("ascii") + b"\0" + data).hexdigest()
+        self.assertEqual(digest, R6_COMPAT_BLOB)
+
+    def test_canonical_registry_15_is_not_rejected_by_frozen_10_validator(self) -> None:
+        report = validate_worker_slots(self.repo_root)
+        error_codes = {item["code"] for item in report["errors"]}
+        self.assertNotIn("WORKER_REGISTRY_IDENTITY_INVALID", error_codes)
+        self.assertNotIn("WORKER_SLOT_ACTIVATION_STATE_INVALID", error_codes)
+        self.assertNotIn("WORKER_SLOT_CLOSURE_STATE_INVALID", error_codes)
+        self.assertNotIn("WORKER_SLOT_LIFECYCLE_UNKNOWN_FAIL_CLOSED", error_codes)
+
+    def test_current_historical_and_live_slots_resolve_to_expected_lifecycles(self) -> None:
+        report = validate_worker_slots(self.repo_root)
+        by_id = {item["worker_slot_id"]: item for item in report["worker_lifecycle_resolutions"]}
+        self.assertEqual(by_id["GPT-WORKER-R163-INTERACTIVE-FILM-REMEDIATION-1"]["lifecycle_state"], LIFECYCLE_FROZEN)
+        self.assertEqual(by_id["GPT-WORKER-R164-W5-EVENT-COVERAGE-2"]["lifecycle_state"], LIFECYCLE_FROZEN)
+        self.assertEqual(by_id["GPT-WORKER-R166-W5-EVENT-COVERAGE-2"]["lifecycle_state"], LIFECYCLE_RELEASED)
+        self.assertEqual(by_id["GPT-WORKER-R168-CANONICAL-CI-STATE-ISOLATION-1"]["lifecycle_state"], LIFECYCLE_RELEASED)
+        self.assertEqual(by_id["GPT-WORKER-R182-W2-MARKET-SEMANTICS-1"]["lifecycle_state"], LIFECYCLE_REVIEW_WAIT)
+        self.assertEqual(by_id["GPT-WORKER-R183-DS10-RESEARCH-INTEGRITY-1"]["lifecycle_state"], LIFECYCLE_RESERVED)
+
+    def test_current_capacity_counts_review_wait_and_prewrite_reservation(self) -> None:
+        report = validate_worker_slots(self.repo_root)
+        self.assertEqual(
+            set(report["occupied_capacity_slots"]),
+            {
+                "GPT-WORKER-R182-W2-MARKET-SEMANTICS-1",
+                "GPT-WORKER-R183-DS10-RESEARCH-INTEGRITY-1",
+            },
+        )
+        self.assertEqual(report["occupied_capacity_count"], 2)
+
+    def test_r6_authority_is_structurally_bound_and_maintenance_only(self) -> None:
+        report = validate_worker_slots(self.repo_root)
+        witness = report["r6_maintenance_adoption"]
+        self.assertTrue(witness["present"])
+        self.assertEqual(witness["structural_check"], "PASS")
+        self.assertEqual(report["r6_maintenance_authority_state"], "ACTIVE")
+        self.assertTrue(report["r6_maintenance_write_allowed"])
 
 
 if __name__ == "__main__":
