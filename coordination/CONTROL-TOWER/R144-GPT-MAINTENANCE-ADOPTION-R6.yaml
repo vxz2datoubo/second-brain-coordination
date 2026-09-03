@@ -1,0 +1,105 @@
+schema_version: "1.0"
+authority_id: "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R6-0001"
+authority_type: "GPT_ARCHITECTURE_OWNER_CORRECTIVE_MAINTENANCE_ADOPTION"
+issuer: "USER"
+actor: "GPT_ARCHITECTURE_OWNER"
+state: "ACTIVE"
+
+predecessor_authority:
+  path: "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R5.yaml"
+  authority_id: "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R5-0001"
+  required_state: "RELEASED"
+  required_terminal_scope_status: "NO_FURTHER_MODIFIER_WRITES_AUTHORIZED_BY_THIS_ARTIFACT"
+
+purpose: >-
+  First independently reviewable foundation slice for Issue #565. Define one deterministic GPT-worker lifecycle resolver and a
+  canonical-registry lifecycle audit that separates executable authority from occupied capacity, models review-wait and
+  canonicalization-wait explicitly, and prevents stale exact-head evidence from resurrecting a stopped worker. This R6 slice
+  intentionally does not replace the legacy worker_slots validator or mutate live worker/lane projections; those migrations
+  require a later fresh user-issued maintenance authority after this resolver is independently accepted/canonical.
+
+task_id: "GPT-CONTROL-TOWER-WORKER-LIFECYCLE-SCHEMA-R6"
+maintenance_generation: 6
+issue: 565
+branch: "gpt/r565-control-tower-worker-lifecycle-r6"
+pr: 568
+pr_binding_state: "BOUND_DRAFT_PR"
+first_slice_mode: "RESOLVER_AUDIT_FOUNDATION_ONLY"
+user_authorization_comment: 5518053874
+prewrite_snapshot_comment: 5518085070
+scope_refinement_comment: 5518609051
+activation_parent_head: "a9669e31a9b59c72fff66d6d364c92d4eec51f49"
+canonical_main_at_authorization: "a9669e31a9b59c72fff66d6d364c92d4eec51f49"
+
+execution_allowed: false
+runtime_write_allowed: false
+trade_allowed: false
+merge_authority: false
+acceptance_authority: false
+self_review_allowed: false
+retroactive_workbuddy_authorization: false
+independent_review_required: true
+same_pr_required: true
+fresh_exact_head_ci_required: true
+
+allowed_write_paths:
+  - "coordination/CONTROL-TOWER/worker_lifecycle.py"
+  - "coordination/CONTROL-TOWER/tests/test_worker_lifecycle.py"
+  - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R6.yaml"
+  - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-TERMINAL-TOMBSTONES.yaml"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R144/R6-LIFECYCLE-REPAIR-RECEIPT.md"
+
+explicitly_forbidden_write_paths:
+  - "coordination/CONTROL-TOWER/worker_slots.py"
+  - "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+  - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+
+state_machine:
+  active_scope_status: "BOUNDED_CORRECTIVE_MAINTENANCE_OPEN"
+  released_scope_status_required: "NO_FURTHER_MODIFIER_WRITES_AUTHORIZED_BY_THIS_ARTIFACT"
+  released_is_terminal_for_authority_id: true
+  next_activation_requires_new_user_issued_authority_id: true
+  terminality_must_not_depend_on_mutable_release_receipt_presence: true
+
+required_invariants:
+  executable_not_equal_occupies_capacity: true
+  canonical_registry_schema: "1.5"
+  legacy_registry_schema_compatibility: ["1.0"]
+  unknown_registry_schema_fails_closed: true
+  review_wait_non_executable_slot_occupying: true
+  accepted_awaiting_canonicalization_non_executable_slot_occupying: true
+  canonical_closeout_releases_capacity_exactly_once: true
+  frozen_superseded_non_executable_non_capacity: true
+  stale_execution_artifacts_cannot_resurrect_newer_stop: true
+  unknown_lifecycle_fails_closed: true
+  deterministic_resolution_required: true
+  pre_r6_worker_slots_blob_must_remain_unchanged: "00a863a79a35524cb6db950529dabc9ff32761fa"
+  lifecycle_transition_authority_module: "coordination/CONTROL-TOWER/worker_lifecycle.py"
+  lifecycle_audit_is_observability_only: true
+
+provenance:
+  source: "FRESH_USER_AUTHORIZED_CORRECTIVE_MAINTENANCE"
+  source_issue: 565
+  user_authorization_comment: 5518053874
+  prewrite_snapshot_comment: 5518085070
+  scope_refinement_comment: 5518609051
+  r5_terminal_predecessor: true
+  r5_authority_id: "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R5-0001"
+  pre_r6_worker_slots_blob: "00a863a79a35524cb6db950529dabc9ff32761fa"
+  r182_closeout_isolation_green_head: "af521a9a566871e9321806bffcdfdcf1529fa0ab"
+  r182_closeout_pct_green_run: 33696295628
+  r182_closeout_phase3_green_run: 33696295570
+  worker_registry_single_file_failure_head: "d87b5201448aa05a581c5e0bc17ba3d3726d4ae4"
+  first_integration_attempt_head: "1b25de453473ea803da12df0644d8ce00217bb9e"
+  first_integration_attempt_pct_run: 33701594998
+  first_integration_disposition: "SPLIT_FOUNDATION_FROM_COMMAND_OUTPUT_MIGRATION_TO_PRESERVE_R168_BASELINE_FINGERPRINTS"
+  truth_rule: "R6_NEW_AUTHORITY_ID != R5_REACTIVATION"
+
+completion_gate:
+  required_disposition: "SEPARATE_GPT_INDEPENDENT_REVIEW"
+  keep_draft_until_review: true
+  no_merge_before_independent_accept: true
+  no_domain_runtime_write: true
+  no_live_projection_write_in_first_slice: true
+  no_worker_slots_validator_write_in_first_slice: true
+  next_validator_projection_migration_requires_new_user_issued_maintenance_authority: true
