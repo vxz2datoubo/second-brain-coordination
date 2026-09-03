@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -30,6 +31,8 @@ from worker_lifecycle import (  # noqa: E402
 PRE_R6_WORKER_SLOTS_BLOB = "00a863a79a35524cb6db950529dabc9ff32761fa"
 R6_AUTHORITY = "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R6.yaml"
 WORKER_SLOTS = "coordination/CONTROL-TOWER/worker_slots.py"
+WORKER_REGISTRY = "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+PROGRAM_LANES = "coordination/ACTIVE-PROGRAM-LANES.yaml"
 
 
 def _slot(**overrides):
@@ -70,6 +73,12 @@ def _git_blob_sha(data: bytes) -> str:
     return hashlib.sha1(b"blob " + str(len(data)).encode("ascii") + b"\0" + data).hexdigest()
 
 
+def _write_yaml(root: Path, relpath: str, payload) -> None:
+    path = root / relpath
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
+
+
 class RegistrySchemaTests(unittest.TestCase):
     def test_canonical_15_is_supported(self) -> None:
         self.assertEqual(CANONICAL_REGISTRY_SCHEMA_VERSION, "1.5")
@@ -78,11 +87,17 @@ class RegistrySchemaTests(unittest.TestCase):
 
     def test_legacy_10_is_compatibility_only(self) -> None:
         self.assertTrue(registry_schema_supported("1.0"))
-        self.assertEqual(registry_schema_findings("1.0"), ("WORKER_REGISTRY_LEGACY_SCHEMA_COMPATIBILITY",))
+        self.assertEqual(
+            registry_schema_findings("1.0"),
+            ("WORKER_REGISTRY_LEGACY_SCHEMA_COMPATIBILITY",),
+        )
 
     def test_unknown_schema_fails_closed(self) -> None:
         self.assertFalse(registry_schema_supported("999"))
-        self.assertEqual(registry_schema_findings("999"), ("WORKER_REGISTRY_SCHEMA_UNSUPPORTED_FAIL_CLOSED",))
+        self.assertEqual(
+            registry_schema_findings("999"),
+            ("WORKER_REGISTRY_SCHEMA_UNSUPPORTED_FAIL_CLOSED",),
+        )
 
 
 class LifecycleProjectionTests(unittest.TestCase):
@@ -91,16 +106,24 @@ class LifecycleProjectionTests(unittest.TestCase):
         self.assertEqual(result.lifecycle_state, LIFECYCLE_ACTIVE)
         self.assertTrue(result.executable)
         self.assertTrue(result.occupies_capacity)
+        self.assertTrue(result.current_write_authority)
 
     def test_reserved_is_non_executable_but_occupies(self) -> None:
-        result = resolve_worker_lifecycle(_slot(activation_state="RESERVED", execution_allowed=False))
+        result = resolve_worker_lifecycle(
+            _slot(activation_state="RESERVED", execution_allowed=False)
+        )
         self.assertEqual(result.lifecycle_state, LIFECYCLE_RESERVED)
         self.assertFalse(result.executable)
         self.assertTrue(result.occupies_capacity)
+        self.assertFalse(result.current_write_authority)
 
     def test_prewrite_stale_true_is_still_non_executable(self) -> None:
         result = resolve_worker_lifecycle(
-            _slot(activation_state="PREWRITE_RESERVED", status="ACTIVE_GOVERNED_PREWRITE", execution_allowed=True)
+            _slot(
+                activation_state="PREWRITE_RESERVED",
+                status="ACTIVE_GOVERNED_PREWRITE",
+                execution_allowed=True,
+            )
         )
         self.assertEqual(result.lifecycle_state, LIFECYCLE_RESERVED)
         self.assertFalse(result.executable)
@@ -119,7 +142,7 @@ class LifecycleProjectionTests(unittest.TestCase):
         self.assertFalse(result.executable)
         self.assertTrue(result.occupies_capacity)
 
-    def test_accepted_occupies_until_later_closeout(self) -> None:
+    def test_accepted_projection_occupies_until_closeout_projection(self) -> None:
         result = resolve_worker_lifecycle(
             _slot(
                 activation_state="REVIEW_WAIT",
@@ -131,7 +154,18 @@ class LifecycleProjectionTests(unittest.TestCase):
         self.assertFalse(result.executable)
         self.assertTrue(result.occupies_capacity)
 
-    def test_explicit_released_beats_old_accepted_presentation(self) -> None:
+    def test_canonical_merged_projection_still_occupies(self) -> None:
+        result = resolve_worker_lifecycle(
+            _slot(
+                activation_state="REVIEW_WAIT",
+                status="CANONICAL_MERGED_AWAITING_CLOSEOUT",
+                execution_allowed=False,
+            )
+        )
+        self.assertEqual(result.lifecycle_state, LIFECYCLE_CANONICAL_MERGED)
+        self.assertTrue(result.occupies_capacity)
+
+    def test_explicit_released_projection_beats_old_accepted_status(self) -> None:
         result = resolve_worker_lifecycle(
             _slot(
                 activation_state="RELEASED",
@@ -144,7 +178,7 @@ class LifecycleProjectionTests(unittest.TestCase):
         self.assertFalse(result.occupies_capacity)
         self.assertTrue(result.terminal)
 
-    def test_frozen_is_historical_only(self) -> None:
+    def test_frozen_projection_is_historical_only(self) -> None:
         result = resolve_worker_lifecycle(
             _slot(
                 activation_state="FROZEN",
@@ -157,7 +191,7 @@ class LifecycleProjectionTests(unittest.TestCase):
         self.assertFalse(result.executable)
         self.assertFalse(result.occupies_capacity)
 
-    def test_legacy_closed_canonical_record_is_released(self) -> None:
+    def test_legacy_closed_released_record_is_released(self) -> None:
         result = resolve_worker_lifecycle(
             _slot(
                 activation_state="CLOSED",
@@ -169,52 +203,124 @@ class LifecycleProjectionTests(unittest.TestCase):
         self.assertEqual(result.lifecycle_state, LIFECYCLE_RELEASED)
         self.assertFalse(result.occupies_capacity)
 
+    def test_ambiguous_closed_fails_closed(self) -> None:
+        result = resolve_worker_lifecycle(
+            _slot(
+                activation_state="CLOSED",
+                closure_state="UNKNOWN_CLOSE",
+                status="CLOSED",
+                execution_allowed=False,
+            )
+        )
+        self.assertEqual(result.lifecycle_state, LIFECYCLE_UNKNOWN)
+        self.assertTrue(result.occupies_capacity)
+        self.assertIn("AMBIGUOUS_CLOSED_PROJECTION_FAILS_CLOSED", result.findings)
+
     def test_unknown_state_fails_closed_and_holds_capacity(self) -> None:
-        result = resolve_worker_lifecycle(_slot(activation_state="ALIEN", status="ALIEN", execution_allowed=True))
+        result = resolve_worker_lifecycle(
+            _slot(activation_state="ALIEN", status="ALIEN", execution_allowed=True)
+        )
         self.assertEqual(result.lifecycle_state, LIFECYCLE_UNKNOWN)
         self.assertFalse(result.executable)
         self.assertTrue(result.occupies_capacity)
         self.assertFalse(result.current_write_authority)
 
 
-class EvidencePrecedenceTests(unittest.TestCase):
-    def test_engineering_stop_beats_later_stale_route_projection(self) -> None:
+class AdvisoryEvidenceSafetyTests(unittest.TestCase):
+    def test_engineering_stop_beats_stale_route_projection(self) -> None:
         stop = _event("ENGINEERING_STOP", observed_at="2026-09-02T20:00:00Z")
-        stale_route = _event("ROUTE_OR_LEASE_PROJECTION", observed_at="2026-09-03T00:00:00Z", execution_allowed=True)
+        stale_route = _event(
+            "ROUTE_OR_LEASE_PROJECTION",
+            observed_at="2026-09-03T00:00:00Z",
+            execution_allowed=True,
+        )
         result = resolve_worker_lifecycle(_slot(), [stop, stale_route])
         self.assertEqual(result.lifecycle_state, LIFECYCLE_REVIEW_WAIT)
         self.assertFalse(result.executable)
-
-    def test_accept_does_not_release_capacity(self) -> None:
-        result = resolve_worker_lifecycle(_slot(execution_allowed=False), [_event("ENGINEERING_STOP"), _event("INDEPENDENT_ACCEPT")])
-        self.assertEqual(result.lifecycle_state, LIFECYCLE_ACCEPTED)
         self.assertTrue(result.occupies_capacity)
 
-    def test_merge_does_not_release_capacity(self) -> None:
-        result = resolve_worker_lifecycle(_slot(execution_allowed=False), [_event("INDEPENDENT_ACCEPT"), _event("CANONICAL_MERGE")])
-        self.assertEqual(result.lifecycle_state, LIFECYCLE_CANONICAL_MERGED)
-        self.assertTrue(result.occupies_capacity)
-
-    def test_closeout_releases(self) -> None:
-        result = resolve_worker_lifecycle(
-            _slot(execution_allowed=False),
-            [_event("ENGINEERING_STOP"), _event("INDEPENDENT_ACCEPT"), _event("CANONICAL_MERGE"), _event("CLOSEOUT_RELEASED")],
-        )
-        self.assertEqual(result.lifecycle_state, LIFECYCLE_RELEASED)
-        self.assertFalse(result.occupies_capacity)
-
-    def test_changes_required_freezes_reviewed_head(self) -> None:
+    def test_changes_required_stops_exact_head_but_keeps_capacity(self) -> None:
         result = resolve_worker_lifecycle(_slot(), [_event("CHANGES_REQUIRED")])
         self.assertEqual(result.lifecycle_state, LIFECYCLE_CHANGES_REQUIRED)
         self.assertFalse(result.executable)
         self.assertTrue(result.occupies_capacity)
         self.assertTrue(result.terminal)
 
-    def test_accept_for_old_head_is_inert_after_head_move(self) -> None:
-        moved = _slot(exact_head="b" * 40, activation_state="REVIEW_WAIT", execution_allowed=False)
-        result = resolve_worker_lifecycle(moved, [_event("INDEPENDENT_ACCEPT", exact_head="a" * 40)])
+    def test_complete_caller_accept_event_cannot_mint_acceptance(self) -> None:
+        baseline = _slot(
+            activation_state="REVIEW_WAIT",
+            status="ENGINEERING_STOPPED_WAITING_INDEPENDENT_REVIEW",
+            execution_allowed=False,
+        )
+        result = resolve_worker_lifecycle(baseline, [_event("INDEPENDENT_ACCEPT")])
         self.assertEqual(result.lifecycle_state, LIFECYCLE_REVIEW_WAIT)
-        self.assertIn("STALE_OR_FOREIGN_LIFECYCLE_EVIDENCE_IGNORED", result.findings)
+        self.assertIn(
+            "EXTERNAL_AUTHORITY_EVENT_REQUIRES_GOVERNED_PROJECTION:INDEPENDENT_ACCEPT",
+            result.findings,
+        )
+
+    def test_complete_caller_merge_event_cannot_mint_merge(self) -> None:
+        baseline = _slot(
+            activation_state="REVIEW_WAIT",
+            status="INDEPENDENTLY_ACCEPTED_AWAITING_CANONICALIZATION",
+            execution_allowed=False,
+        )
+        result = resolve_worker_lifecycle(baseline, [_event("CANONICAL_MERGE")])
+        self.assertEqual(result.lifecycle_state, LIFECYCLE_ACCEPTED)
+        self.assertTrue(result.occupies_capacity)
+        self.assertIn(
+            "EXTERNAL_AUTHORITY_EVENT_REQUIRES_GOVERNED_PROJECTION:CANONICAL_MERGE",
+            result.findings,
+        )
+
+    def test_complete_caller_closeout_event_cannot_free_capacity(self) -> None:
+        baseline = _slot(
+            activation_state="REVIEW_WAIT",
+            status="CANONICAL_MERGED_AWAITING_CLOSEOUT",
+            execution_allowed=False,
+        )
+        result = resolve_worker_lifecycle(baseline, [_event("CLOSEOUT_RELEASED")])
+        self.assertEqual(result.lifecycle_state, LIFECYCLE_CANONICAL_MERGED)
+        self.assertTrue(result.occupies_capacity)
+        self.assertIn(
+            "EXTERNAL_AUTHORITY_EVENT_REQUIRES_GOVERNED_PROJECTION:CLOSEOUT_RELEASED",
+            result.findings,
+        )
+
+    def test_complete_caller_frozen_event_cannot_free_capacity(self) -> None:
+        baseline = _slot(
+            activation_state="REVIEW_WAIT",
+            status="ENGINEERING_STOPPED_WAITING_INDEPENDENT_REVIEW",
+            execution_allowed=False,
+        )
+        result = resolve_worker_lifecycle(baseline, [_event("FROZEN_SUPERSEDED")])
+        self.assertEqual(result.lifecycle_state, LIFECYCLE_REVIEW_WAIT)
+        self.assertTrue(result.occupies_capacity)
+
+    def test_incomplete_closeout_identity_is_rejected_before_authority(self) -> None:
+        event = {"kind": "CLOSEOUT_RELEASED", "worker_slot_id": "SLOT-A"}
+        baseline = _slot(
+            activation_state="REVIEW_WAIT",
+            status="ENGINEERING_STOPPED_WAITING_INDEPENDENT_REVIEW",
+            execution_allowed=False,
+        )
+        result = resolve_worker_lifecycle(baseline, [event])
+        self.assertEqual(result.lifecycle_state, LIFECYCLE_REVIEW_WAIT)
+        self.assertTrue(result.occupies_capacity)
+        self.assertIn("INCOMPLETE_OR_FOREIGN_LIFECYCLE_EVIDENCE_IGNORED", result.findings)
+        self.assertIn("LIFECYCLE_EVIDENCE_IDENTITY_INVALID:exact_head", result.findings)
+
+    def test_accept_for_old_head_is_inert_after_head_move(self) -> None:
+        moved = _slot(
+            exact_head="b" * 40,
+            activation_state="REVIEW_WAIT",
+            execution_allowed=False,
+        )
+        result = resolve_worker_lifecycle(
+            moved, [_event("INDEPENDENT_ACCEPT", exact_head="a" * 40)]
+        )
+        self.assertEqual(result.lifecycle_state, LIFECYCLE_REVIEW_WAIT)
+        self.assertIn("INCOMPLETE_OR_FOREIGN_LIFECYCLE_EVIDENCE_IGNORED", result.findings)
 
     def test_foreign_issue_event_is_inert(self) -> None:
         result = resolve_worker_lifecycle(
@@ -222,6 +328,7 @@ class EvidencePrecedenceTests(unittest.TestCase):
             [_event("CLOSEOUT_RELEASED", issue=999)],
         )
         self.assertEqual(result.lifecycle_state, LIFECYCLE_REVIEW_WAIT)
+        self.assertTrue(result.occupies_capacity)
 
     def test_unknown_evidence_kind_is_inert(self) -> None:
         result = resolve_worker_lifecycle(
@@ -231,27 +338,126 @@ class EvidencePrecedenceTests(unittest.TestCase):
         self.assertEqual(result.lifecycle_state, LIFECYCLE_REVIEW_WAIT)
         self.assertIn("UNKNOWN_LIFECYCLE_EVIDENCE_KIND_IGNORED", result.findings)
 
+    def test_stale_route_alone_cannot_resurrect_review_wait(self) -> None:
+        baseline = _slot(
+            activation_state="REVIEW_WAIT",
+            status="ENGINEERING_STOPPED_WAITING_INDEPENDENT_REVIEW",
+            execution_allowed=True,
+        )
+        result = resolve_worker_lifecycle(
+            baseline, [_event("ROUTE_OR_LEASE_PROJECTION", execution_allowed=True)]
+        )
+        self.assertEqual(result.lifecycle_state, LIFECYCLE_REVIEW_WAIT)
+        self.assertFalse(result.executable)
+        self.assertIn("ADVISORY_EVENT_AUTHORITY_ESCALATION_BLOCKED", result.findings)
+
 
 class CapacityAndAuthorityTests(unittest.TestCase):
     def test_two_review_wait_slots_fill_two_slots(self) -> None:
         slots = [
-            _slot(worker_slot_id="A", task_id="A", activation_state="REVIEW_WAIT", execution_allowed=False),
-            _slot(worker_slot_id="B", task_id="B", activation_state="REVIEW_WAIT", execution_allowed=False),
+            _slot(
+                worker_slot_id="A",
+                task_id="A",
+                activation_state="REVIEW_WAIT",
+                execution_allowed=False,
+            ),
+            _slot(
+                worker_slot_id="B",
+                task_id="B",
+                activation_state="REVIEW_WAIT",
+                execution_allowed=False,
+            ),
         ]
         self.assertEqual(occupied_capacity_count(slots), 2)
 
-    def test_resolution_never_mints_accept_merge_or_trade_authority(self) -> None:
-        for kind in ("PREWRITE_AUTHORIZATION", "ENGINEERING_STOP", "INDEPENDENT_ACCEPT", "CANONICAL_MERGE", "CLOSEOUT_RELEASED"):
+    def test_resolution_never_mints_accept_merge_trade_or_successor_release(self) -> None:
+        for kind in (
+            "PREWRITE_AUTHORIZATION",
+            "ENGINEERING_STOP",
+            "CHANGES_REQUIRED",
+            "INDEPENDENT_ACCEPT",
+            "CANONICAL_MERGE",
+            "CLOSEOUT_RELEASED",
+        ):
             result = resolve_worker_lifecycle(_slot(), [_event(kind, execution_allowed=True)])
             self.assertFalse(result.acceptance_authority)
             self.assertFalse(result.merge_authority)
             self.assertFalse(result.trade_authority)
+            self.assertFalse(result.successor_release_authority)
 
     def test_resolution_is_deterministic_and_event_order_independent(self) -> None:
-        events = [_event("ENGINEERING_STOP"), _event("INDEPENDENT_ACCEPT"), _event("CANONICAL_MERGE")]
-        left = resolve_worker_lifecycle(_slot(execution_allowed=False), events)
-        right = resolve_worker_lifecycle(_slot(execution_allowed=False), list(reversed(events)))
+        events = [
+            _event("ROUTE_OR_LEASE_PROJECTION", execution_allowed=True),
+            _event("ENGINEERING_STOP"),
+            _event("CHANGES_REQUIRED"),
+        ]
+        left = resolve_worker_lifecycle(_slot(), events)
+        right = resolve_worker_lifecycle(_slot(), list(reversed(events)))
         self.assertEqual(left, right)
+
+
+class AuditFailClosedTests(unittest.TestCase):
+    def _program(self):
+        return {
+            "portfolio_capacity_policy": {
+                "gpt_engineering_worker_active_slots_max": 2,
+            }
+        }
+
+    def test_unreadable_or_missing_registry_never_reports_zero_free_truth(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _write_yaml(root, PROGRAM_LANES, self._program())
+            audit = audit_worker_registry_lifecycle(root)
+            self.assertFalse(audit.valid_for_observability)
+            self.assertIsNone(audit.occupied_capacity_count)
+            self.assertIsNone(audit.free_capacity_count)
+            self.assertEqual(audit.capacity_state, "UNKNOWN_FAIL_CLOSED")
+            self.assertFalse(audit.successor_release_authority)
+
+    def test_unknown_registry_schema_has_no_free_capacity_claim(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _write_yaml(root, PROGRAM_LANES, self._program())
+            _write_yaml(
+                root,
+                WORKER_REGISTRY,
+                {
+                    "schema_version": "9.9",
+                    "registry_id": "ACTIVE-GPT-ENGINEERING-WORKERS-0001",
+                    "agent_type": "GPT_ENGINEERING_WORKER",
+                    "worker_slots": [_slot()],
+                },
+            )
+            audit = audit_worker_registry_lifecycle(root)
+            self.assertFalse(audit.valid_for_observability)
+            self.assertIsNone(audit.free_capacity_count)
+            self.assertEqual(audit.capacity_state, "UNKNOWN_FAIL_CLOSED")
+            self.assertFalse(audit.successor_release_authority)
+            self.assertIn("WORKER_REGISTRY_SCHEMA_UNSUPPORTED_FAIL_CLOSED", audit.findings)
+
+    def test_duplicate_slot_id_blocks_free_capacity_claim(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _write_yaml(root, PROGRAM_LANES, self._program())
+            slot = _slot(
+                activation_state="REVIEW_WAIT",
+                execution_allowed=False,
+            )
+            _write_yaml(
+                root,
+                WORKER_REGISTRY,
+                {
+                    "schema_version": "1.5",
+                    "registry_id": "ACTIVE-GPT-ENGINEERING-WORKERS-0001",
+                    "agent_type": "GPT_ENGINEERING_WORKER",
+                    "worker_slots": [slot, dict(slot)],
+                },
+            )
+            audit = audit_worker_registry_lifecycle(root)
+            self.assertFalse(audit.valid_for_observability)
+            self.assertIsNone(audit.free_capacity_count)
+            self.assertIn("WORKER_SLOT_ID_DUPLICATE:SLOT-A", audit.findings)
 
 
 class RepositoryAuditTests(unittest.TestCase):
@@ -269,24 +475,53 @@ class RepositoryAuditTests(unittest.TestCase):
         self.assertEqual(audit.schema_version, "1.5")
         self.assertEqual(audit.configured_capacity_limit, 2)
         self.assertEqual(audit.occupied_capacity_count, 2)
+        self.assertEqual(audit.free_capacity_count, 0)
+        self.assertEqual(audit.capacity_state, "KNOWN_OBSERVATION")
+        self.assertFalse(audit.successor_release_authority)
         self.assertEqual(
             set(audit.occupied_capacity_slots),
-            {"GPT-WORKER-R182-W2-MARKET-SEMANTICS-1", "GPT-WORKER-R183-DS10-RESEARCH-INTEGRITY-1"},
+            {
+                "GPT-WORKER-R182-W2-MARKET-SEMANTICS-1",
+                "GPT-WORKER-R183-DS10-RESEARCH-INTEGRITY-1",
+            },
         )
 
     def test_current_slots_resolve_to_expected_lifecycles(self) -> None:
         audit = audit_worker_registry_lifecycle(self.repo_root)
         by_id = {item["worker_slot_id"]: item for item in audit.slot_resolutions}
-        self.assertEqual(by_id["GPT-WORKER-R163-INTERACTIVE-FILM-REMEDIATION-1"]["lifecycle_state"], LIFECYCLE_FROZEN)
-        self.assertEqual(by_id["GPT-WORKER-R164-W5-EVENT-COVERAGE-2"]["lifecycle_state"], LIFECYCLE_FROZEN)
-        self.assertEqual(by_id["GPT-WORKER-R166-W5-EVENT-COVERAGE-2"]["lifecycle_state"], LIFECYCLE_RELEASED)
-        self.assertEqual(by_id["GPT-WORKER-R168-CANONICAL-CI-STATE-ISOLATION-1"]["lifecycle_state"], LIFECYCLE_RELEASED)
-        self.assertEqual(by_id["GPT-WORKER-R182-W2-MARKET-SEMANTICS-1"]["lifecycle_state"], LIFECYCLE_REVIEW_WAIT)
-        self.assertEqual(by_id["GPT-WORKER-R183-DS10-RESEARCH-INTEGRITY-1"]["lifecycle_state"], LIFECYCLE_RESERVED)
+        self.assertEqual(
+            by_id["GPT-WORKER-R163-INTERACTIVE-FILM-REMEDIATION-1"]["lifecycle_state"],
+            LIFECYCLE_FROZEN,
+        )
+        self.assertEqual(
+            by_id["GPT-WORKER-R164-W5-EVENT-COVERAGE-2"]["lifecycle_state"],
+            LIFECYCLE_FROZEN,
+        )
+        self.assertEqual(
+            by_id["GPT-WORKER-R166-W5-EVENT-COVERAGE-2"]["lifecycle_state"],
+            LIFECYCLE_RELEASED,
+        )
+        self.assertEqual(
+            by_id["GPT-WORKER-R168-CANONICAL-CI-STATE-ISOLATION-1"]["lifecycle_state"],
+            LIFECYCLE_RELEASED,
+        )
+        self.assertEqual(
+            by_id["GPT-WORKER-R182-W2-MARKET-SEMANTICS-1"]["lifecycle_state"],
+            LIFECYCLE_REVIEW_WAIT,
+        )
+        self.assertEqual(
+            by_id["GPT-WORKER-R183-DS10-RESEARCH-INTEGRITY-1"]["lifecycle_state"],
+            LIFECYCLE_RESERVED,
+        )
 
     def test_r6_authority_is_narrow_non_runtime_non_merge(self) -> None:
-        authority = yaml.safe_load((self.repo_root / R6_AUTHORITY).read_text(encoding="utf-8"))
-        self.assertEqual(authority["authority_id"], "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R6-0001")
+        authority = yaml.safe_load(
+            (self.repo_root / R6_AUTHORITY).read_text(encoding="utf-8")
+        )
+        self.assertEqual(
+            authority["authority_id"],
+            "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R6-0001",
+        )
         self.assertEqual(authority["state"], "ACTIVE")
         for field in (
             "execution_allowed",
