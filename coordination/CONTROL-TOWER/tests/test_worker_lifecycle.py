@@ -236,6 +236,53 @@ class LifecycleProjectionTests(unittest.TestCase):
         self.assertFalse(result.executable)
         self.assertTrue(result.occupies_capacity)
 
+    def test_negated_release_text_cannot_free_capacity(self) -> None:
+        result = resolve_worker_lifecycle(
+            _slot(
+                activation_state="CLOSED",
+                closure_state="NOT_RELEASED",
+                status="NOT_WORKER_CLOSED",
+                execution_allowed=False,
+            )
+        )
+        self.assertEqual(result.lifecycle_state, LIFECYCLE_UNKNOWN)
+        self.assertTrue(result.occupies_capacity)
+        self.assertFalse(result.terminal)
+
+    def test_negated_frozen_text_cannot_free_capacity(self) -> None:
+        result = resolve_worker_lifecycle(
+            _slot(
+                activation_state="ALIEN",
+                status="NOT_FROZEN",
+                execution_allowed=False,
+            )
+        )
+        self.assertEqual(result.lifecycle_state, LIFECYCLE_UNKNOWN)
+        self.assertTrue(result.occupies_capacity)
+
+    def test_negated_accept_text_cannot_override_review_wait(self) -> None:
+        result = resolve_worker_lifecycle(
+            _slot(
+                activation_state="REVIEW_WAIT",
+                status="NOT_INDEPENDENTLY_ACCEPTED_AWAITING_CANONICALIZATION",
+                execution_allowed=False,
+            )
+        )
+        self.assertEqual(result.lifecycle_state, LIFECYCLE_REVIEW_WAIT)
+        self.assertTrue(result.occupies_capacity)
+
+    def test_almost_closed_status_cannot_release_closed_projection(self) -> None:
+        result = resolve_worker_lifecycle(
+            _slot(
+                activation_state="CLOSED",
+                closure_state="UNKNOWN_CLOSE",
+                status="ALMOST_CANONICAL_MERGED_WORKER_CLOSED",
+                execution_allowed=False,
+            )
+        )
+        self.assertEqual(result.lifecycle_state, LIFECYCLE_UNKNOWN)
+        self.assertTrue(result.occupies_capacity)
+
 
 class AdvisoryAndGovernedEvidenceSafetyTests(unittest.TestCase):
     def test_engineering_stop_can_only_tighten_to_review_wait(self) -> None:
