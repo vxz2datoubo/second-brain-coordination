@@ -299,7 +299,11 @@ class RepositoryAuditTests(unittest.TestCase):
             self.assertIs(authority[field], False)
         self.assertEqual(
             set(authority["explicitly_forbidden_write_paths"]),
-            {"coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml", "coordination/ACTIVE-PROGRAM-LANES.yaml"},
+            {
+                "coordination/CONTROL-TOWER/worker_slots.py",
+                "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml",
+                "coordination/ACTIVE-PROGRAM-LANES.yaml",
+            },
         )
 
 
