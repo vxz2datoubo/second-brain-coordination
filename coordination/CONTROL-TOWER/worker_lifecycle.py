@@ -106,6 +106,13 @@ _CLOSURE_RELEASED = frozenset(
 )
 _STATUS_FROZEN_EXACT = frozenset({"FROZEN", "SUPERSEDED", "GOVERNANCE_INVALID"})
 _STATUS_FROZEN_PREFIXES = ("FROZEN_", "SUPERSEDED_", "GOVERNANCE_INVALID_")
+_STATUS_POSITIVE_CURRENT_EXECUTION = frozenset(
+    {
+        "ACTIVE",
+        "ACTIVE_GOVERNED_EXECUTION",
+        "ACTIVE_GOVERNED_PREWRITE",
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -184,6 +191,21 @@ def _matches_projection_status(
     return upper in exact_values or any(upper.startswith(prefix) for prefix in prefixes)
 
 
+def _terminal_projection_conflict_findings(slot: Mapping[str, Any]) -> tuple[str, ...]:
+    activation = str(slot.get("activation_state") or "").upper()
+    status = str(slot.get("status") or "").upper()
+    findings: list[str] = []
+    if activation == "ACTIVE":
+        findings.append("TERMINAL_CONFLICTS_WITH_ACTIVE_ACTIVATION")
+    if status in _STATUS_POSITIVE_CURRENT_EXECUTION:
+        findings.append("TERMINAL_CONFLICTS_WITH_ACTIVE_STATUS")
+    if slot.get("execution_allowed") is True:
+        findings.append("TERMINAL_CONFLICTS_WITH_EXECUTION_ALLOWED")
+    if findings:
+        findings.append("CONTRADICTORY_TERMINAL_PROJECTION_FAILS_CLOSED")
+    return tuple(findings)
+
+
 def _state_semantics(state: str, execution_allowed: bool) -> tuple[bool, bool, bool, bool]:
     if state == LIFECYCLE_ACTIVE:
         executable = execution_allowed is True
@@ -210,13 +232,25 @@ def _baseline_from_projection(slot: Mapping[str, Any]) -> tuple[str, list[str]]:
     findings: list[str] = []
 
     if closure == "RELEASED" or activation == "RELEASED":
+        terminal_conflicts = _terminal_projection_conflict_findings(slot)
+        if terminal_conflicts:
+            findings.extend(terminal_conflicts)
+            return LIFECYCLE_UNKNOWN, findings
         return LIFECYCLE_RELEASED, findings
     if activation == "FROZEN" or _matches_projection_status(
         status, _STATUS_FROZEN_EXACT, _STATUS_FROZEN_PREFIXES
     ):
+        terminal_conflicts = _terminal_projection_conflict_findings(slot)
+        if terminal_conflicts:
+            findings.extend(terminal_conflicts)
+            return LIFECYCLE_UNKNOWN, findings
         return LIFECYCLE_FROZEN, findings
     if activation == "CLOSED":
         if _matches_projection_status(status, _STATUS_RELEASED) or closure in _CLOSURE_RELEASED:
+            terminal_conflicts = _terminal_projection_conflict_findings(slot)
+            if terminal_conflicts:
+                findings.extend(terminal_conflicts)
+                return LIFECYCLE_UNKNOWN, findings
             return LIFECYCLE_RELEASED, findings
         findings.append("AMBIGUOUS_CLOSED_PROJECTION_FAILS_CLOSED")
         return LIFECYCLE_UNKNOWN, findings
