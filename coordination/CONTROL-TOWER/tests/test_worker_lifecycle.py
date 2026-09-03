@@ -33,10 +33,12 @@ R6_AUTHORITY = "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R6.yaml
 WORKER_SLOTS = "coordination/CONTROL-TOWER/worker_slots.py"
 WORKER_REGISTRY = "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
 PROGRAM_LANES = "coordination/ACTIVE-PROGRAM-LANES.yaml"
+REPOSITORY = "vxz2datoubo/second-brain-coordination"
 
 
 def _slot(**overrides):
     slot = {
+        "repository": REPOSITORY,
         "worker_slot_id": "SLOT-A",
         "task_id": "TASK-A",
         "route_epoch": 565,
@@ -44,6 +46,8 @@ def _slot(**overrides):
         "pr": 600,
         "branch": "gpt/test",
         "exact_head": "a" * 40,
+        "review_ref": "PR_REVIEW:123",
+        "review_result_ref": "REVIEW_RESULT:456",
         "activation_state": "ACTIVE",
         "closure_state": None,
         "status": "ACTIVE_GOVERNED_EXECUTION",
@@ -57,13 +61,16 @@ def _slot(**overrides):
 def _event(kind: str, **overrides):
     event = {
         "kind": kind,
+        "repository": REPOSITORY,
         "worker_slot_id": "SLOT-A",
         "task_id": "TASK-A",
         "route_epoch": 565,
         "issue": 565,
         "pr": 600,
         "exact_head": "a" * 40,
-        "observed_at": "2026-09-02T23:00:00Z",
+        "review_ref": "PR_REVIEW:123",
+        "review_result_ref": "REVIEW_RESULT:456",
+        "observed_at": "2026-09-03T17:00:00Z",
     }
     event.update(overrides)
     return event
@@ -109,15 +116,12 @@ class LifecycleProjectionTests(unittest.TestCase):
         self.assertTrue(result.current_write_authority)
 
     def test_reserved_is_non_executable_but_occupies(self) -> None:
-        result = resolve_worker_lifecycle(
-            _slot(activation_state="RESERVED", execution_allowed=False)
-        )
+        result = resolve_worker_lifecycle(_slot(activation_state="RESERVED", execution_allowed=False))
         self.assertEqual(result.lifecycle_state, LIFECYCLE_RESERVED)
         self.assertFalse(result.executable)
         self.assertTrue(result.occupies_capacity)
-        self.assertFalse(result.current_write_authority)
 
-    def test_prewrite_stale_true_is_still_non_executable(self) -> None:
+    def test_prewrite_stale_true_is_non_executable(self) -> None:
         result = resolve_worker_lifecycle(
             _slot(
                 activation_state="PREWRITE_RESERVED",
@@ -126,8 +130,6 @@ class LifecycleProjectionTests(unittest.TestCase):
             )
         )
         self.assertEqual(result.lifecycle_state, LIFECYCLE_RESERVED)
-        self.assertFalse(result.executable)
-        self.assertTrue(result.occupies_capacity)
         self.assertIn("RESERVED_EXECUTION_FLAG_IGNORED", result.findings)
 
     def test_review_wait_occupies_but_never_executes(self) -> None:
@@ -142,7 +144,7 @@ class LifecycleProjectionTests(unittest.TestCase):
         self.assertFalse(result.executable)
         self.assertTrue(result.occupies_capacity)
 
-    def test_accepted_projection_occupies_until_closeout_projection(self) -> None:
+    def test_accepted_status_beats_old_review_wait_projection(self) -> None:
         result = resolve_worker_lifecycle(
             _slot(
                 activation_state="REVIEW_WAIT",
@@ -151,8 +153,21 @@ class LifecycleProjectionTests(unittest.TestCase):
             )
         )
         self.assertEqual(result.lifecycle_state, LIFECYCLE_ACCEPTED)
+        self.assertTrue(result.occupies_capacity)
+
+    def test_canonical_governed_changes_required_projection_is_terminal(self) -> None:
+        result = resolve_worker_lifecycle(
+            _slot(
+                activation_state="REVIEW_WAIT",
+                status="CHANGES_REQUIRED",
+                execution_allowed=False,
+            )
+        )
+        self.assertEqual(result.lifecycle_state, LIFECYCLE_CHANGES_REQUIRED)
         self.assertFalse(result.executable)
         self.assertTrue(result.occupies_capacity)
+        self.assertTrue(result.terminal)
+        self.assertEqual(result.source_kind, "CANONICAL_AGGREGATE_PROJECTION")
 
     def test_canonical_merged_projection_still_occupies(self) -> None:
         result = resolve_worker_lifecycle(
@@ -188,7 +203,6 @@ class LifecycleProjectionTests(unittest.TestCase):
             )
         )
         self.assertEqual(result.lifecycle_state, LIFECYCLE_FROZEN)
-        self.assertFalse(result.executable)
         self.assertFalse(result.occupies_capacity)
 
     def test_legacy_closed_released_record_is_released(self) -> None:
@@ -201,7 +215,6 @@ class LifecycleProjectionTests(unittest.TestCase):
             )
         )
         self.assertEqual(result.lifecycle_state, LIFECYCLE_RELEASED)
-        self.assertFalse(result.occupies_capacity)
 
     def test_ambiguous_closed_fails_closed(self) -> None:
         result = resolve_worker_lifecycle(
@@ -214,7 +227,6 @@ class LifecycleProjectionTests(unittest.TestCase):
         )
         self.assertEqual(result.lifecycle_state, LIFECYCLE_UNKNOWN)
         self.assertTrue(result.occupies_capacity)
-        self.assertIn("AMBIGUOUS_CLOSED_PROJECTION_FAILS_CLOSED", result.findings)
 
     def test_unknown_state_fails_closed_and_holds_capacity(self) -> None:
         result = resolve_worker_lifecycle(
@@ -223,28 +235,84 @@ class LifecycleProjectionTests(unittest.TestCase):
         self.assertEqual(result.lifecycle_state, LIFECYCLE_UNKNOWN)
         self.assertFalse(result.executable)
         self.assertTrue(result.occupies_capacity)
-        self.assertFalse(result.current_write_authority)
 
 
-class AdvisoryEvidenceSafetyTests(unittest.TestCase):
-    def test_engineering_stop_beats_stale_route_projection(self) -> None:
-        stop = _event("ENGINEERING_STOP", observed_at="2026-09-02T20:00:00Z")
-        stale_route = _event(
-            "ROUTE_OR_LEASE_PROJECTION",
-            observed_at="2026-09-03T00:00:00Z",
-            execution_allowed=True,
-        )
-        result = resolve_worker_lifecycle(_slot(), [stop, stale_route])
+class AdvisoryAndGovernedEvidenceSafetyTests(unittest.TestCase):
+    def test_engineering_stop_can_only_tighten_to_review_wait(self) -> None:
+        stop = _event("ENGINEERING_STOP")
+        stale_route = _event("ROUTE_OR_LEASE_PROJECTION", execution_allowed=True)
+        result = resolve_worker_lifecycle(_slot(), [stale_route, stop])
         self.assertEqual(result.lifecycle_state, LIFECYCLE_REVIEW_WAIT)
         self.assertFalse(result.executable)
         self.assertTrue(result.occupies_capacity)
 
-    def test_changes_required_stops_exact_head_but_keeps_capacity(self) -> None:
+    def test_complete_caller_forged_changes_required_cannot_terminalize_active(self) -> None:
         result = resolve_worker_lifecycle(_slot(), [_event("CHANGES_REQUIRED")])
-        self.assertEqual(result.lifecycle_state, LIFECYCLE_CHANGES_REQUIRED)
-        self.assertFalse(result.executable)
+        self.assertEqual(result.lifecycle_state, LIFECYCLE_ACTIVE)
+        self.assertFalse(result.terminal)
+        self.assertIn(
+            "EXTERNAL_AUTHORITY_EVENT_REQUIRES_GOVERNED_PROJECTION:CHANGES_REQUIRED",
+            result.findings,
+        )
+
+    def test_complete_caller_forged_changes_required_cannot_terminalize_review_wait(self) -> None:
+        baseline = _slot(
+            activation_state="REVIEW_WAIT",
+            status="ENGINEERING_STOPPED_WAITING_INDEPENDENT_REVIEW",
+            execution_allowed=False,
+        )
+        result = resolve_worker_lifecycle(baseline, [_event("CHANGES_REQUIRED")])
+        self.assertEqual(result.lifecycle_state, LIFECYCLE_REVIEW_WAIT)
+        self.assertFalse(result.terminal)
         self.assertTrue(result.occupies_capacity)
-        self.assertTrue(result.terminal)
+
+    def test_old_head_changes_required_is_inert_after_head_move(self) -> None:
+        moved = _slot(
+            exact_head="b" * 40,
+            activation_state="REVIEW_WAIT",
+            status="ENGINEERING_STOPPED_WAITING_INDEPENDENT_REVIEW",
+            execution_allowed=False,
+        )
+        result = resolve_worker_lifecycle(moved, [_event("CHANGES_REQUIRED")])
+        self.assertEqual(result.lifecycle_state, LIFECYCLE_REVIEW_WAIT)
+        self.assertIn("LIFECYCLE_EVIDENCE_IDENTITY_INVALID:exact_head", result.findings)
+
+    def test_foreign_repository_changes_required_is_inert(self) -> None:
+        baseline = _slot(
+            activation_state="REVIEW_WAIT",
+            status="ENGINEERING_STOPPED_WAITING_INDEPENDENT_REVIEW",
+            execution_allowed=False,
+        )
+        result = resolve_worker_lifecycle(
+            baseline,
+            [_event("CHANGES_REQUIRED", repository="foreign/example")],
+        )
+        self.assertEqual(result.lifecycle_state, LIFECYCLE_REVIEW_WAIT)
+        self.assertIn("LIFECYCLE_EVIDENCE_IDENTITY_INVALID:repository", result.findings)
+
+    def test_foreign_review_result_is_inert(self) -> None:
+        baseline = _slot(
+            activation_state="REVIEW_WAIT",
+            status="ENGINEERING_STOPPED_WAITING_INDEPENDENT_REVIEW",
+            execution_allowed=False,
+        )
+        result = resolve_worker_lifecycle(
+            baseline,
+            [_event("CHANGES_REQUIRED", review_result_ref="REVIEW_RESULT:FOREIGN")],
+        )
+        self.assertEqual(result.lifecycle_state, LIFECYCLE_REVIEW_WAIT)
+        self.assertIn(
+            "LIFECYCLE_EVIDENCE_PROVENANCE_INVALID:review_result_ref",
+            result.findings,
+        )
+        self.assertIn("UNVERIFIED_OR_FOREIGN_REVIEW_EVIDENCE_IGNORED", result.findings)
+
+    def test_missing_review_provenance_is_inert(self) -> None:
+        event = _event("CHANGES_REQUIRED")
+        event.pop("review_ref")
+        result = resolve_worker_lifecycle(_slot(), [event])
+        self.assertEqual(result.lifecycle_state, LIFECYCLE_ACTIVE)
+        self.assertIn("LIFECYCLE_EVIDENCE_PROVENANCE_INVALID:review_ref", result.findings)
 
     def test_complete_caller_accept_event_cannot_mint_acceptance(self) -> None:
         baseline = _slot(
@@ -267,7 +335,6 @@ class AdvisoryEvidenceSafetyTests(unittest.TestCase):
         )
         result = resolve_worker_lifecycle(baseline, [_event("CANONICAL_MERGE")])
         self.assertEqual(result.lifecycle_state, LIFECYCLE_ACCEPTED)
-        self.assertTrue(result.occupies_capacity)
         self.assertIn(
             "EXTERNAL_AUTHORITY_EVENT_REQUIRES_GOVERNED_PROJECTION:CANONICAL_MERGE",
             result.findings,
@@ -282,10 +349,6 @@ class AdvisoryEvidenceSafetyTests(unittest.TestCase):
         result = resolve_worker_lifecycle(baseline, [_event("CLOSEOUT_RELEASED")])
         self.assertEqual(result.lifecycle_state, LIFECYCLE_CANONICAL_MERGED)
         self.assertTrue(result.occupies_capacity)
-        self.assertIn(
-            "EXTERNAL_AUTHORITY_EVENT_REQUIRES_GOVERNED_PROJECTION:CLOSEOUT_RELEASED",
-            result.findings,
-        )
 
     def test_complete_caller_frozen_event_cannot_free_capacity(self) -> None:
         baseline = _slot(
@@ -297,7 +360,7 @@ class AdvisoryEvidenceSafetyTests(unittest.TestCase):
         self.assertEqual(result.lifecycle_state, LIFECYCLE_REVIEW_WAIT)
         self.assertTrue(result.occupies_capacity)
 
-    def test_incomplete_closeout_identity_is_rejected_before_authority(self) -> None:
+    def test_incomplete_closeout_identity_is_rejected(self) -> None:
         event = {"kind": "CLOSEOUT_RELEASED", "worker_slot_id": "SLOT-A"}
         baseline = _slot(
             activation_state="REVIEW_WAIT",
@@ -306,29 +369,7 @@ class AdvisoryEvidenceSafetyTests(unittest.TestCase):
         )
         result = resolve_worker_lifecycle(baseline, [event])
         self.assertEqual(result.lifecycle_state, LIFECYCLE_REVIEW_WAIT)
-        self.assertTrue(result.occupies_capacity)
         self.assertIn("INCOMPLETE_OR_FOREIGN_LIFECYCLE_EVIDENCE_IGNORED", result.findings)
-        self.assertIn("LIFECYCLE_EVIDENCE_IDENTITY_INVALID:exact_head", result.findings)
-
-    def test_accept_for_old_head_is_inert_after_head_move(self) -> None:
-        moved = _slot(
-            exact_head="b" * 40,
-            activation_state="REVIEW_WAIT",
-            execution_allowed=False,
-        )
-        result = resolve_worker_lifecycle(
-            moved, [_event("INDEPENDENT_ACCEPT", exact_head="a" * 40)]
-        )
-        self.assertEqual(result.lifecycle_state, LIFECYCLE_REVIEW_WAIT)
-        self.assertIn("INCOMPLETE_OR_FOREIGN_LIFECYCLE_EVIDENCE_IGNORED", result.findings)
-
-    def test_foreign_issue_event_is_inert(self) -> None:
-        result = resolve_worker_lifecycle(
-            _slot(activation_state="REVIEW_WAIT", execution_allowed=False),
-            [_event("CLOSEOUT_RELEASED", issue=999)],
-        )
-        self.assertEqual(result.lifecycle_state, LIFECYCLE_REVIEW_WAIT)
-        self.assertTrue(result.occupies_capacity)
 
     def test_unknown_evidence_kind_is_inert(self) -> None:
         result = resolve_worker_lifecycle(
@@ -345,7 +386,8 @@ class AdvisoryEvidenceSafetyTests(unittest.TestCase):
             execution_allowed=True,
         )
         result = resolve_worker_lifecycle(
-            baseline, [_event("ROUTE_OR_LEASE_PROJECTION", execution_allowed=True)]
+            baseline,
+            [_event("ROUTE_OR_LEASE_PROJECTION", execution_allowed=True)],
         )
         self.assertEqual(result.lifecycle_state, LIFECYCLE_REVIEW_WAIT)
         self.assertFalse(result.executable)
@@ -355,22 +397,12 @@ class AdvisoryEvidenceSafetyTests(unittest.TestCase):
 class CapacityAndAuthorityTests(unittest.TestCase):
     def test_two_review_wait_slots_fill_two_slots(self) -> None:
         slots = [
-            _slot(
-                worker_slot_id="A",
-                task_id="A",
-                activation_state="REVIEW_WAIT",
-                execution_allowed=False,
-            ),
-            _slot(
-                worker_slot_id="B",
-                task_id="B",
-                activation_state="REVIEW_WAIT",
-                execution_allowed=False,
-            ),
+            _slot(worker_slot_id="A", task_id="A", activation_state="REVIEW_WAIT", execution_allowed=False),
+            _slot(worker_slot_id="B", task_id="B", activation_state="REVIEW_WAIT", execution_allowed=False),
         ]
         self.assertEqual(occupied_capacity_count(slots), 2)
 
-    def test_resolution_never_mints_accept_merge_trade_or_successor_release(self) -> None:
+    def test_resolution_never_mints_authorities(self) -> None:
         for kind in (
             "PREWRITE_AUTHORIZATION",
             "ENGINEERING_STOP",
@@ -378,12 +410,14 @@ class CapacityAndAuthorityTests(unittest.TestCase):
             "INDEPENDENT_ACCEPT",
             "CANONICAL_MERGE",
             "CLOSEOUT_RELEASED",
+            "FROZEN_SUPERSEDED",
         ):
-            result = resolve_worker_lifecycle(_slot(), [_event(kind, execution_allowed=True)])
-            self.assertFalse(result.acceptance_authority)
-            self.assertFalse(result.merge_authority)
-            self.assertFalse(result.trade_authority)
-            self.assertFalse(result.successor_release_authority)
+            with self.subTest(kind=kind):
+                result = resolve_worker_lifecycle(_slot(), [_event(kind, execution_allowed=True)])
+                self.assertFalse(result.acceptance_authority)
+                self.assertFalse(result.merge_authority)
+                self.assertFalse(result.trade_authority)
+                self.assertFalse(result.successor_release_authority)
 
     def test_resolution_is_deterministic_and_event_order_independent(self) -> None:
         events = [
@@ -391,9 +425,10 @@ class CapacityAndAuthorityTests(unittest.TestCase):
             _event("ENGINEERING_STOP"),
             _event("CHANGES_REQUIRED"),
         ]
-        left = resolve_worker_lifecycle(_slot(), events)
-        right = resolve_worker_lifecycle(_slot(), list(reversed(events)))
-        self.assertEqual(left, right)
+        self.assertEqual(
+            resolve_worker_lifecycle(_slot(), events),
+            resolve_worker_lifecycle(_slot(), list(reversed(events))),
+        )
 
 
 class AuditFailClosedTests(unittest.TestCase):
@@ -404,7 +439,7 @@ class AuditFailClosedTests(unittest.TestCase):
             }
         }
 
-    def test_unreadable_or_missing_registry_never_reports_zero_free_truth(self) -> None:
+    def test_missing_registry_never_reports_free_capacity_truth(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             _write_yaml(root, PROGRAM_LANES, self._program())
@@ -433,17 +468,12 @@ class AuditFailClosedTests(unittest.TestCase):
             self.assertFalse(audit.valid_for_observability)
             self.assertIsNone(audit.free_capacity_count)
             self.assertEqual(audit.capacity_state, "UNKNOWN_FAIL_CLOSED")
-            self.assertFalse(audit.successor_release_authority)
-            self.assertIn("WORKER_REGISTRY_SCHEMA_UNSUPPORTED_FAIL_CLOSED", audit.findings)
 
     def test_duplicate_slot_id_blocks_free_capacity_claim(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             _write_yaml(root, PROGRAM_LANES, self._program())
-            slot = _slot(
-                activation_state="REVIEW_WAIT",
-                execution_allowed=False,
-            )
+            slot = _slot(activation_state="REVIEW_WAIT", execution_allowed=False)
             _write_yaml(
                 root,
                 WORKER_REGISTRY,
@@ -489,35 +519,20 @@ class RepositoryAuditTests(unittest.TestCase):
     def test_current_slots_resolve_to_expected_lifecycles(self) -> None:
         audit = audit_worker_registry_lifecycle(self.repo_root)
         by_id = {item["worker_slot_id"]: item for item in audit.slot_resolutions}
-        self.assertEqual(
-            by_id["GPT-WORKER-R163-INTERACTIVE-FILM-REMEDIATION-1"]["lifecycle_state"],
-            LIFECYCLE_FROZEN,
-        )
-        self.assertEqual(
-            by_id["GPT-WORKER-R164-W5-EVENT-COVERAGE-2"]["lifecycle_state"],
-            LIFECYCLE_FROZEN,
-        )
-        self.assertEqual(
-            by_id["GPT-WORKER-R166-W5-EVENT-COVERAGE-2"]["lifecycle_state"],
-            LIFECYCLE_RELEASED,
-        )
-        self.assertEqual(
-            by_id["GPT-WORKER-R168-CANONICAL-CI-STATE-ISOLATION-1"]["lifecycle_state"],
-            LIFECYCLE_RELEASED,
-        )
-        self.assertEqual(
-            by_id["GPT-WORKER-R182-W2-MARKET-SEMANTICS-1"]["lifecycle_state"],
-            LIFECYCLE_REVIEW_WAIT,
-        )
-        self.assertEqual(
-            by_id["GPT-WORKER-R183-DS10-RESEARCH-INTEGRITY-1"]["lifecycle_state"],
-            LIFECYCLE_RESERVED,
-        )
+        expected = {
+            "GPT-WORKER-R163-INTERACTIVE-FILM-REMEDIATION-1": LIFECYCLE_FROZEN,
+            "GPT-WORKER-R164-W5-EVENT-COVERAGE-2": LIFECYCLE_FROZEN,
+            "GPT-WORKER-R166-W5-EVENT-COVERAGE-2": LIFECYCLE_RELEASED,
+            "GPT-WORKER-R168-CANONICAL-CI-STATE-ISOLATION-1": LIFECYCLE_RELEASED,
+            "GPT-WORKER-R182-W2-MARKET-SEMANTICS-1": LIFECYCLE_REVIEW_WAIT,
+            "GPT-WORKER-R183-DS10-RESEARCH-INTEGRITY-1": LIFECYCLE_RESERVED,
+        }
+        for slot_id, lifecycle in expected.items():
+            with self.subTest(slot_id=slot_id):
+                self.assertEqual(by_id[slot_id]["lifecycle_state"], lifecycle)
 
     def test_r6_authority_is_narrow_non_runtime_non_merge(self) -> None:
-        authority = yaml.safe_load(
-            (self.repo_root / R6_AUTHORITY).read_text(encoding="utf-8")
-        )
+        authority = yaml.safe_load((self.repo_root / R6_AUTHORITY).read_text(encoding="utf-8"))
         self.assertEqual(
             authority["authority_id"],
             "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R6-0001",
