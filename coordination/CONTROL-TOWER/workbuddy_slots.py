@@ -3,12 +3,15 @@ from __future__ import annotations
 """Fail-closed admission facade for WorkBuddy multi-slot governance.
 
 The heavily tested collision/authorization engine remains byte-identical in
-``workbuddy_slots_core.py``.  This facade owns only input-boundary safety:
-registry lifecycle/identity, parser containment, scalar slot identity and
-executor-role admission.  It deliberately does not create a second collision
-or authorization state machine.
+``workbuddy_slots_core.py``. This facade owns input-boundary and final-admission
+safety that must wrap that single engine: registry lifecycle/identity, parser
+containment, scalar slot identity, executor-role admission, canonical path
+spelling, O2 single-writer preservation, and a stable validated-registry
+fingerprint. It does not create a second collision or authorization state
+machine.
 """
 
+import hashlib
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any
@@ -22,11 +25,12 @@ EXPECTED_EXECUTOR_ROLE = "WORKBUDDY_LOCAL_EXECUTOR"
 EXPECTED_REGISTRY_STATUS = "ACTIVE"
 EXPECTED_REPOSITORY_FULL_NAME = "vxz2datoubo/second-brain-coordination"
 
-# The pre-R579 loader correctly rejects non-mapping YAML but allowed parser
-# exceptions to escape.  Normalize parser failures to ValueError so all of the
-# core's existing fail-closed catches remain effective without modifying its
-# validated semantics.
+# Preserve the exact pre-facade engine functions before installing stricter
+# hooks. Core semantics remain the only collision/lifecycle engine; the hooks
+# only close reviewer-identified fail-open input/admission edges.
 _CORE_LOAD_YAML = _core.load_yaml
+_CORE_PATH_SCOPE_ERROR = _core._path_scope_error
+_CORE_CLASSIFY_WORKBUDDY_COLLISION = _core.classify_workbuddy_collision
 
 
 def _parser_contained_load_yaml(path: Path) -> dict[str, Any]:
@@ -36,7 +40,65 @@ def _parser_contained_load_yaml(path: Path) -> dict[str, Any]:
         raise ValueError(f"malformed YAML at {path}") from exc
 
 
+def _strict_path_scope_error(path: str) -> str | None:
+    original = _CORE_PATH_SCOPE_ERROR(path)
+    if original is not None:
+        return original
+    core = path
+    for suffix in ("/**", "/*"):
+        if core.endswith(suffix):
+            core = core[: -len(suffix)]
+            break
+    if any(char in core for char in ("?", "[", "]", "{", "}")):
+        return "UNSUPPORTED_GLOB_METACHARACTER"
+    return None
+
+
+def _interface_mode_map(slot: WorkBuddySlot) -> dict[str, str]:
+    result: dict[str, str] = {}
+    for item in slot.interfaces:
+        if isinstance(item, str):
+            result[item] = "read"
+        elif isinstance(item, dict) and isinstance(item.get("name"), str):
+            result[item["name"]] = str(item.get("mode", "read")).lower()
+    return result
+
+
+def classify_workbuddy_collision(left: WorkBuddySlot, right: WorkBuddySlot) -> dict[str, Any]:
+    collision = _CORE_CLASSIFY_WORKBUDDY_COLLISION(left, right)
+    if collision.get("level") != "O2":
+        return collision
+
+    double_write_domains = sorted(set(left.write_domains) & set(right.write_domains))
+    if double_write_domains:
+        return {
+            "level": "O3",
+            "reason": "O2_DOMAIN_SINGLE_WRITER_VIOLATION",
+            "overlap": double_write_domains,
+        }
+
+    left_interfaces = _interface_mode_map(left)
+    right_interfaces = _interface_mode_map(right)
+    double_write_interfaces = sorted(
+        name
+        for name in set(left_interfaces) & set(right_interfaces)
+        if left_interfaces[name] == "write" and right_interfaces[name] == "write"
+    )
+    if double_write_interfaces:
+        return {
+            "level": "O3",
+            "reason": "O2_INTERFACE_SINGLE_WRITER_VIOLATION",
+            "overlap": double_write_interfaces,
+        }
+
+    return collision
+
+
+# Install the fail-closed hooks into the one core engine so all existing core
+# admission loops and all facade consumers observe the same strengthened rules.
 _core.load_yaml = _parser_contained_load_yaml
+_core._path_scope_error = _strict_path_scope_error
+_core.classify_workbuddy_collision = classify_workbuddy_collision
 
 
 def _error(code: str, message: str, evidence: dict[str, Any]) -> Finding:
@@ -69,14 +131,16 @@ def _raw_slot_is_candidate_executable(raw: dict[str, Any]) -> bool:
     )
 
 
-def _guard_registry_input(repo_root: Path) -> tuple[dict[str, Any] | None, list[Finding], bool]:
-    """Return registry, guard findings and whether calling the core is unsafe.
+def _registry_sha256(repo_root: Path) -> str | None:
+    path = repo_root.resolve() / WORKBUDDY_REGISTRY
+    try:
+        return hashlib.sha256(path.read_bytes()).hexdigest()
+    except OSError:
+        return None
 
-    ``fatal_for_core`` is reserved for malformed parser/identity inputs that can
-    otherwise raise before the core has a chance to emit structured evidence.
-    Lifecycle/role violations are ordinary fail-closed findings and may still be
-    passed through the core for additional diagnostics.
-    """
+
+def _guard_registry_input(repo_root: Path) -> tuple[dict[str, Any] | None, list[Finding], bool]:
+    """Return registry, guard findings and whether calling the core is unsafe."""
 
     root = repo_root.resolve()
     registry_path = root / WORKBUDDY_REGISTRY
@@ -198,9 +262,6 @@ def _guard_registry_input(repo_root: Path) -> tuple[dict[str, Any] | None, list[
                 )
                 fatal_for_core = True
 
-    # The core's legacy compatibility read occurs after its ordinary guarded
-    # loads.  Pre-parse that file here so malformed YAML is also observable as a
-    # structured failure instead of escaping from the compatibility check.
     primary_declared = any(
         isinstance(raw, dict) and raw.get("primary_compatibility_projection") is True
         for raw in raw_slots
@@ -268,17 +329,33 @@ def workbuddy_slot_findings(repo_root: Path) -> list[Finding]:
 
 
 def validate_workbuddy_slots(repo_root: Path) -> dict[str, Any]:
-    findings = workbuddy_slot_findings(repo_root)
+    root = repo_root.resolve()
+    before_fingerprint = _registry_sha256(root)
+    findings = workbuddy_slot_findings(root)
     try:
-        slots = load_workbuddy_slots(repo_root)
+        slots = load_workbuddy_slots(root)
     except (OSError, ValueError, TypeError, UnicodeError):
         slots = []
+    after_fingerprint = _registry_sha256(root)
+
+    if before_fingerprint != after_fingerprint:
+        findings.append(
+            _error(
+                "WORKBUDDY_REGISTRY_CHANGED_DURING_VALIDATION",
+                "Canonical WorkBuddy registry changed while the validation snapshot was being built.",
+                {"before_sha256": before_fingerprint, "after_sha256": after_fingerprint},
+            )
+        )
+        slots = []
+
+    structural_pass = not any(item.severity == "ERROR" for item in findings)
     return {
         "schema_version": "1.0",
         "registry": WORKBUDDY_REGISTRY,
-        "active_slots_max": workbuddy_active_slots_max(repo_root),
-        "slots": [asdict(slot) for slot in slots],
+        "validated_registry_sha256": before_fingerprint if before_fingerprint == after_fingerprint else None,
+        "active_slots_max": workbuddy_active_slots_max(root) if structural_pass else 0,
+        "slots": [asdict(slot) for slot in slots] if structural_pass else [],
         "errors": [asdict(item) for item in findings if item.severity == "ERROR"],
         "warnings": [asdict(item) for item in findings if item.severity == "WARN"],
-        "structural_check": "PASS" if not any(item.severity == "ERROR" for item in findings) else "FAIL",
+        "structural_check": "PASS" if structural_pass else "FAIL",
     }
