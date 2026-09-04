@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import sys
 import unittest
+from dataclasses import asdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from run_workbuddy_slots import resolve_selection_from_validated_report  # noqa: E402
 from workbuddy_slot_selection import select_workbuddy_slot  # noqa: E402
 from workbuddy_slots import normalize_workbuddy_slot  # noqa: E402
 
@@ -129,6 +131,33 @@ class WorkBuddySlotSelectionTests(unittest.TestCase):
         selection = select_workbuddy_slot([_slot("WB-A", "TASK-A")], requested_worker_slot_id="")
         self.assertEqual(selection.status, "BLOCKED")
         self.assertEqual(selection.code, "INVALID_WORKBUDDY_SLOT_SELECTOR")
+
+    def test_cli_resolution_consumes_exact_validated_snapshot_only(self):
+        report = {
+            "structural_check": "PASS",
+            "validated_registry_sha256": "snapshot-a",
+            "slots": [asdict(_slot("WB-A", "TASK-A"))],
+        }
+        selection, exit_code = resolve_selection_from_validated_report(
+            report,
+            requested_worker_slot_id="WB-A",
+        )
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(selection["status"], "SELECTED")
+        self.assertEqual(selection["selected_worker_slot_id"], "WB-A")
+        self.assertFalse(selection["execution_authority_granted"])
+        self.assertFalse(selection["runtime_exclusivity_proven"])
+
+    def test_cli_resolution_rejects_malformed_validated_snapshot(self):
+        report = {
+            "structural_check": "PASS",
+            "validated_registry_sha256": "snapshot-a",
+            "slots": "not-a-list",
+        }
+        selection, exit_code = resolve_selection_from_validated_report(report)
+        self.assertEqual(exit_code, 3)
+        self.assertEqual(selection["status"], "BLOCKED")
+        self.assertEqual(selection["code"], "VALIDATED_WORKBUDDY_SLOT_SNAPSHOT_MALFORMED")
 
 
 if __name__ == "__main__":
