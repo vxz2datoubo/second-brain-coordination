@@ -11,9 +11,7 @@ on:
       - "coordination/CONTROL-TOWER/workbuddy_slots_core.py"
       - "coordination/CONTROL-TOWER/workbuddy_slot_selection.py"
       - "coordination/CONTROL-TOWER/run_workbuddy_slots.py"
-      - "coordination/CONTROL-TOWER/tests/test_workbuddy_slots.py"
-      - "coordination/CONTROL-TOWER/tests/test_workbuddy_slots_hardening.py"
-      - "coordination/CONTROL-TOWER/tests/test_workbuddy_slot_selection.py"
+      - "coordination/CONTROL-TOWER/tests/test_workbuddy_slot*.py"
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R579-WORKBUDDY-MULTISLOT/**"
   workflow_dispatch:
 
@@ -49,6 +47,7 @@ jobs:
           tests/test_workbuddy_slots.py
           tests/test_workbuddy_slots_hardening.py
           tests/test_workbuddy_slot_selection.py
+          tests/test_workbuddy_slot_o2_glob.py
       - name: Run WorkBuddy multi-slot adversarial tests
         working-directory: coordination/CONTROL-TOWER
         run: python -m unittest discover -s tests -p 'test_workbuddy_slot*.py' -v
