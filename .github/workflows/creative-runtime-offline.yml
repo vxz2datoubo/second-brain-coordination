@@ -1,0 +1,73 @@
+name: Creative runtime offline verification
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/creative-runtime-offline.yml'
+      - 'apps/cli/**'
+      - 'apps/web/**'
+      - 'coordination/GOVERNANCE/CREATIVE-RUNTIME-PUBLIC-SAFE-POLICY-FLOOR-v1.yaml'
+      - 'creative_runtime/**'
+      - 'tests/**'
+      - 'tools/**'
+      - 'tools/public_safe_boundary_rules.json'
+      - 'tools/verify_public_safe_boundary.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-head-offline-verification:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python: '3.11'
+          - os: windows-latest
+            python: '3.13'
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - name: Check out exact candidate head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Assert exact-head identity
+        shell: pwsh
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          $actual = git rev-parse HEAD
+          if ($actual -ne $env:EXPECTED_HEAD) { throw "exact-head mismatch: $actual" }
+
+      - name: Run complete creative suite
+        run: python -m unittest discover -s tests -p "test_creative_*.py"
+
+      - name: Verify canonical-floor public-safe boundary
+        shell: pwsh
+        env:
+          POLICY_FLOOR_REF: ${{ github.event.pull_request.base.sha || '740788a3847a402923bf2e89093d910eda0c89d0' }}
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          python tools/verify_public_safe_boundary.py --policy-floor-ref $env:POLICY_FLOOR_REF --expected-head $env:EXPECTED_HEAD --receipt ".creative-evidence/public-safe-$($env:RUNNER_OS).json"
+
+      - name: Verify diff and R175 scope
+        shell: pwsh
+        run: |
+          git diff --check 740788a3847a402923bf2e89093d910eda0c89d0...HEAD
+          python tools/verify_r175_scope.py
+
+      - name: Upload exact-head executor evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: r175-public-safe-${{ runner.os }}-${{ github.event.pull_request.head.sha || github.sha }}
+          path: .creative-evidence/*.json
