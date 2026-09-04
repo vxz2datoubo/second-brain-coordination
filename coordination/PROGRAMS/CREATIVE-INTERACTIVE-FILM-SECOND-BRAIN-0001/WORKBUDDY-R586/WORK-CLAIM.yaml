@@ -9,8 +9,8 @@ source_issue: 577
 source_pull_request: 578
 agent: "WORKBUDDY"
 branch: "workbuddy/r586-pr578-review-bounded-remediation"
-status_observed: "PREWRITE_RESERVED"
-execution_allowed_observed: false
+status_observed: "READY_AFTER_PREWRITE"
+execution_allowed_observed: true
 reviewed_or_base_head: "04124e233dc813cca4054851ef6a470b342d82fe"
 canonical_task_baseline: "04124e233dc813cca4054851ef6a470b342d82fe"
 branch_parent_required: "04124e233dc813cca4054851ef6a470b342d82fe"
@@ -19,11 +19,12 @@ independent_review_ref: "pullrequestreview-5108122069"
 completion_signal: "WORKBUDDY_R586_PR578_REMEDIATION_READY_FOR_GPT_REVIEW"
 
 dependencies:
-  - "canonical main equals 04124e233dc813cca4054851ef6a470b342d82fe at activation or route is reissued"
+  - "this release candidate exact head is independently accepted and separately present in canonical main"
+  - "fresh main readback matches the route-bound 04124e233dc813cca4054851ef6a470b342d82fe base; otherwise fail closed and reissue"
   - "PR #578 remains frozen at exact head 9d536357755a44ac50ea4352ac7c319d97101779"
   - "Issue #453 REVIEW_RESULT/v1 remains CHANGES_REQUIRED for that exact head"
   - "canonical ACTIVE-WORKBUDDY-TASK points to this route before execution"
-  - "implementation branch is created only after the prewrite snapshot"
+  - "implementation branch did not exist before the prewrite snapshot and is created by WorkBuddy exactly from branch_parent_required"
   - "no concurrent WorkBuddy writer owns the remediation surfaces"
 
 exact_source_port_allowlist:
@@ -68,4 +69,4 @@ hard_boundaries:
   - "NO_READY_SELF_REVIEW_SELF_ACCEPT_MERGE_HISTORY_REWRITE"
 
 read_claim_execute_protocol: "coordination/GOVERNANCE/AGENT-READ-TASK-CLAIM-AND-EXECUTE-COMMAND-SEMANTICS-v1.0.yaml"
-claim_state: "RESERVED_NON_EXECUTABLE"
+claim_state: "ACTIVE_ONLY_WHEN_CANONICAL_READBACK_MATCHES"
