@@ -1,0 +1,211 @@
+schema_version: "1.0"
+protocol_id: "GPT-WORKBUDDY-ENGINEERING-FACTORY-PROTOCOL-v1.0"
+repository: "vxz2datoubo/second-brain-coordination"
+status: "CANDIDATE_GOVERNANCE_ONLY"
+issue: 592
+
+purpose: >-
+  Establish the durable engineering operating model in which the user and GPT define goals,
+  architecture, contracts, acceptance and integration; GitHub carries canonical task/evidence
+  state; WorkBuddy/CodeBuddy performs authorized implementation and local verification; and GPT
+  reconciles results before independent review/canonicalization.
+
+truth_model:
+  conversation_is_not_execution_authority: true
+  github_canonical_main_is_control_plane_truth: true
+  active_workbuddy_source: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+  active_gpt_worker_source: "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+  candidate_pr_is_not_canonical: true
+  independent_accept_is_not_merge: true
+
+roles:
+  USER:
+    owns:
+      - "product intent"
+      - "experience goals"
+      - "priority decisions"
+      - "explicit user gates"
+  GPT:
+    owns:
+      - "research synthesis"
+      - "WHAT and WHY"
+      - "architecture and system boundaries"
+      - "contracts and schemas"
+      - "task decomposition and DAG design"
+      - "acceptance criteria and eval design"
+      - "model assignment for every WorkBuddy task"
+      - "cross-module coordination"
+      - "integration decision and review routing"
+    may_directly_implement_when:
+      - "small bounded change is cheaper to implement than dispatch"
+      - "roughly one to five files and low execution fanout"
+      - "governance/control-plane change requires GPT ownership"
+    must_not:
+      - "pretend a candidate is canonical"
+      - "self-attest independent acceptance"
+  WORKBUDDY:
+    owns:
+      - "authorized HOW"
+      - "implementation"
+      - "local environment truth"
+      - "testing and reproducible command evidence"
+      - "performance/debugging within authorized scope"
+      - "return package"
+    must_not:
+      - "silently change architecture or acceptance oracle"
+      - "widen write scope without GPT route update"
+      - "self-review, self-accept, Ready or merge when governance forbids it"
+  INDEPENDENT_REVIEWER:
+    owns:
+      - "exact-head independent verdict"
+
+new_window_bootstrap:
+  GPT:
+    required_reads_in_order:
+      - "fresh remote main"
+      - "AGENTS.md"
+      - "coordination/GOVERNANCE/GPT-WORKBUDDY-ENGINEERING-FACTORY-PROTOCOL-v1.0.yaml"
+      - "relevant project baton/index/route"
+      - "current Issue/PR/exact head/CI/review"
+      - "ACTIVE GPT/WorkBuddy sources when execution coordination is needed"
+    rule: "NEVER_REQUIRE_USER_TO_RESTATE_THIS_WORKFLOW_WHEN_CANONICAL_FILES_ARE_AVAILABLE"
+  WORKBUDDY:
+    required_reads_in_order:
+      - "fresh remote main"
+      - "AGENTS.md"
+      - "coordination/WORKBUDDY-TASK-ROUTER.md"
+      - "coordination/GOVERNANCE/GPT-WORKBUDDY-ENGINEERING-FACTORY-PROTOCOL-v1.0.yaml"
+      - "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+      - "bound route/claim/lease/snapshot/batch/Issue/comments"
+
+model_assignment:
+  governed_tasks_must_not_use_unstated_auto_mode: true
+  every_workbuddy_dispatch_requires:
+    - "model_profile"
+    - "primary_model_id"
+    - "reasoning_model_id"
+    - "lite_model_id"
+    - "assignment_rationale"
+    - "fallback_policy"
+    - "execution_carrier"
+  allowed_profiles:
+    DEEPSEEK_V4_PRO:
+      primary_model_id: "deepseek-v4-pro"
+      reasoning_model_id: "deepseek-v4-pro"
+      lite_model_id: "deepseek-v4-flash"
+      choose_when_any:
+        - "architecture-sensitive core implementation"
+        - "multi-module or long-horizon autonomous change"
+        - "complex debugging or difficult causal diagnosis"
+        - "ambiguous requirements requiring deep reasoning"
+        - "high-cost correctness failure"
+        - "nontrivial refactor/migration/runtime semantics"
+    DEEPSEEK_V4_FLASH:
+      primary_model_id: "deepseek-v4-flash"
+      reasoning_model_id: "deepseek-v4-flash"
+      lite_model_id: "deepseek-v4-flash"
+      choose_when_all:
+        - "bounded and mechanically specified"
+        - "low architecture risk"
+      typical_work:
+        - "fixtures and regression matrices"
+        - "boilerplate and repetitive edits"
+        - "schema/data transformations"
+        - "lint/type/docs cleanup"
+        - "broad low-risk verification"
+        - "simple adapters with exact contracts"
+    HYBRID_PRO_WITH_FLASH_LITE:
+      primary_model_id: "deepseek-v4-pro"
+      reasoning_model_id: "deepseek-v4-pro"
+      lite_model_id: "deepseek-v4-flash"
+      choose_when:
+        - "core task needs Pro but substantial repetitive/background work can be delegated to Flash"
+      rule: "PRO_RETAINS_PRIMARY_DECISION_AND_CORE_IMPLEMENTATION_AUTHORITY_WITHIN_WORKBUDDY_SCOPE"
+  user_facing_requirement: >-
+    Before every WorkBuddy dispatch, GPT must tell the user exactly which profile/model is being
+    assigned and why. Completion reports must repeat the actual model profile used.
+  model_drift_action: "FAIL_CLOSED_AND_RETURN_TO_GPT"
+
+cli_execution:
+  supported_model_ids:
+    - "deepseek-v4-pro"
+    - "deepseek-v4-flash"
+  canonical_binary_name: "codebuddy"
+  explicit_primary_model_flag: "--model"
+  model_environment_contract:
+    CODEBUDDY_MODEL: "primary model"
+    CODEBUDDY_BIG_SLOW_MODEL: "reasoning/complex model"
+    CODEBUDDY_SMALL_FAST_MODEL: "lite/background model"
+    CODEBUDDY_CODE_SUBAGENT_MODEL: "optional code-subagent override when deliberately used"
+  credentials_policy:
+    commit_api_keys_to_github: false
+    local_environment_or_local_config_only: true
+  noninteractive_note: >-
+    Noninteractive/yes flags do not override HIGH/CRITICAL safety prompts; a bridge must treat
+    an interactive safety stop as a real stop, not bypass it.
+
+github_to_local_bridge:
+  law: "GITHUB_TASK_PUBLICATION_IS_NOT_LOCAL_PROCESS_EXECUTION"
+  direct_local_start_without_bridge: false
+  preferred_mode: "LOCAL_CANONICAL_TASK_WATCHER"
+  alternative_mode: "EXPLICITLY_GOVERNED_SELF_HOSTED_RUNNER"
+  public_repo_default_self_hosted_runner: "NOT_RECOMMENDED"
+  watcher_required_checks_before_launch:
+    - "fetch fresh canonical main"
+    - "ACTIVE-WORKBUDDY-TASK status == READY"
+    - "execution_allowed == true"
+    - "route/claim/lease/snapshot/batch identities all match"
+    - "dispatch model profile and model IDs are present and allowed"
+    - "task lease is current and single-writer scope is valid"
+    - "implementation branch/base conditions match"
+    - "no credential material originates from GitHub task files"
+    - "no newer canonical task supersedes the observed task"
+  launch_semantics:
+    DEEPSEEK_V4_PRO: "codebuddy --model deepseek-v4-pro"
+    DEEPSEEK_V4_FLASH: "codebuddy --model deepseek-v4-flash"
+    HYBRID_PRO_WITH_FLASH_LITE: >-
+      primary codebuddy --model deepseek-v4-pro with local environment binding
+      CODEBUDDY_BIG_SLOW_MODEL=deepseek-v4-pro and CODEBUDDY_SMALL_FAST_MODEL=deepseek-v4-flash
+  duplicate_launch_guard: "ONE_TASK_ID_PLUS_ROUTE_EPOCH_PLUS_LEASE_FINGERPRINT_MAY_LAUNCH_ONCE"
+  launch_receipt_required: true
+  fail_closed_on_unknown: true
+
+work_unit_flow:
+  - "USER_INTENT"
+  - "GPT_RESEARCH_AND_ARCHITECTURE"
+  - "GPT_TASK_CONTRACT_AND_MODEL_ASSIGNMENT"
+  - "GITHUB_ROUTE_CLAIM_LEASE_SNAPSHOT_BATCH"
+  - "OPTIONAL_LOCAL_CLI_BRIDGE_LAUNCH"
+  - "WORKBUDDY_IMPLEMENT_AND_TEST"
+  - "WORKBUDDY_RETURN_PACKAGE"
+  - "GPT_RECONCILE_AND_INTEGRATE"
+  - "INDEPENDENT_EXACT_HEAD_REVIEW_WHEN_REQUIRED"
+  - "GOVERNED_CANONICALIZATION"
+
+architecture_change_protocol:
+  workbuddy_discovery_of_architecture_problem: "STOP_OR_RFC_TO_GPT"
+  workbuddy_may_propose: true
+  workbuddy_may_silently_redefine_architecture: false
+  gpt_action: "RESEARCH_RECONCILE_UPDATE_SPEC_AND_REISSUE_TASK_IF_ACCEPTED"
+
+return_package_minimum:
+  - "task_id and route_epoch"
+  - "actual model_profile and exact model IDs"
+  - "execution carrier"
+  - "exact branch/head/base"
+  - "changed files and scope proof"
+  - "commands/tests and results"
+  - "failed attempts and root-cause findings"
+  - "unknowns/blockers"
+  - "architecture-change proposals if any"
+  - "completion signal"
+
+hard_boundaries:
+  - "NO_MODEL_SELECTION_OMISSION"
+  - "NO_AUTO_MODE_FOR_GOVERNED_WORKBUDDY_TASK_WITHOUT_EXPLICIT_EXCEPTION"
+  - "NO_GITHUB_COMMITTED_API_KEYS"
+  - "NO_LOCAL_CLI_START_FROM_CANDIDATE_ONLY_STATE"
+  - "NO_SELF_HOSTED_PUBLIC_REPO_RUNNER_AS_UNRESTRICTED_DEFAULT"
+  - "NO_WORKBUDDY_ARCHITECTURE_DRIFT"
+  - "NO_SECOND_TRUTH_SOURCE"
+  - "NO_SELF_REVIEW_OR_MERGE_AUTHORITY_INVENTION"
