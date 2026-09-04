@@ -1,359 +1,253 @@
 from __future__ import annotations
 
-"""Fail-closed admission facade for WorkBuddy multi-slot governance.
+"""Second-layer fail-closed facade for WorkBuddy multi-slot governance.
 
-The heavily tested collision/authorization engine remains byte-identical in
-``workbuddy_slots_core.py``. This facade owns input-boundary and final-admission
-safety that must wrap that single engine: registry lifecycle/identity, parser
-containment, scalar slot identity, executor-role admission, canonical path
-spelling, O2 single-writer preservation, and a stable validated-registry
-fingerprint. It does not create a second collision or authorization state
-machine.
+The previously reviewed admission facade is preserved byte-for-byte in
+``workbuddy_slots_facade_v1.py``.  This successor layer closes the next exact-
+head T3 findings without replacing the existing collision/lifecycle engine:
+repository-root containment for every bound authorization reference, complete
+legacy compatibility projection binding for authority-bearing fields, and
+closed scalar typing for executable identity.
 """
 
-import hashlib
+import re
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
-import yaml
+import workbuddy_slots_facade_v1 as _v1
+from workbuddy_slots_facade_v1 import *  # noqa: F401,F403
 
-import workbuddy_slots_core as _core
-from workbuddy_slots_core import *  # noqa: F401,F403
+_WINDOWS_DRIVE_REF = re.compile(r"^[A-Za-z]:")
+_CORE = _v1._core
+_V1_WORKBUDDY_SLOT_FINDINGS = _v1.workbuddy_slot_findings
+_CORE_SLOT_IDENTITY = _CORE._slot_identity
+_CORE_LEGACY_IDENTITY = _CORE._legacy_identity
 
-EXPECTED_EXECUTOR_ROLE = "WORKBUDDY_LOCAL_EXECUTOR"
-EXPECTED_REGISTRY_STATUS = "ACTIVE"
-EXPECTED_REPOSITORY_FULL_NAME = "vxz2datoubo/second-brain-coordination"
-
-# Preserve the exact pre-facade engine functions before installing stricter
-# hooks. Core semantics remain the only collision/lifecycle engine; the hooks
-# only close reviewer-identified fail-open input/admission edges.
-_CORE_LOAD_YAML = _core.load_yaml
-_CORE_PATH_SCOPE_ERROR = _core._path_scope_error
-_CORE_CLASSIFY_WORKBUDDY_COLLISION = _core.classify_workbuddy_collision
+_BOUND_REF_FIELDS = (
+    "canonical_route",
+    "work_claim",
+    "task_lease",
+    "executor_reservation",
+    "prewrite_snapshot",
+    "executable_batch",
+)
 
 
-def _parser_contained_load_yaml(path: Path) -> dict[str, Any]:
+def _resolve_repo_bound_ref(repo_root: Path, relpath: str) -> Path:
+    """Resolve one governed ref only when it is contained by repository truth."""
+
+    if not isinstance(relpath, str) or not relpath.strip() or relpath != relpath.strip():
+        raise ValueError("BOUND_REF_MUST_BE_NONEMPTY_CANONICAL_STRING")
+    if "\\" in relpath or relpath.startswith(("/", "~")) or _WINDOWS_DRIVE_REF.match(relpath):
+        raise ValueError("BOUND_REF_ABSOLUTE_OR_PLATFORM_ALIAS_FORBIDDEN")
+    if "\x00" in relpath:
+        raise ValueError("BOUND_REF_NUL_FORBIDDEN")
+    segments = relpath.split("/")
+    if any(segment in {"", ".", ".."} for segment in segments):
+        raise ValueError("BOUND_REF_DOT_OR_EMPTY_SEGMENT_FORBIDDEN")
+
+    root = repo_root.resolve()
+    candidate = root.joinpath(*segments)
     try:
-        return _CORE_LOAD_YAML(path)
-    except yaml.YAMLError as exc:
-        raise ValueError(f"malformed YAML at {path}") from exc
+        resolved = candidate.resolve(strict=False)
+    except OSError as exc:
+        raise ValueError("BOUND_REF_RESOLUTION_FAILED") from exc
+    if resolved == root or root not in resolved.parents:
+        raise ValueError("BOUND_REF_ESCAPES_REPOSITORY_TRUST_ROOT")
+    return candidate
 
 
-def _strict_path_scope_error(path: str) -> str | None:
-    original = _CORE_PATH_SCOPE_ERROR(path)
-    if original is not None:
-        return original
-    core = path
-    for suffix in ("/**", "/*"):
-        if core.endswith(suffix):
-            core = core[: -len(suffix)]
-            break
-    if any(char in core for char in ("?", "[", "]", "{", "}")):
-        return "UNSUPPORTED_GLOB_METACHARACTER"
-    return None
-
-
-def _interface_mode_map(slot: WorkBuddySlot) -> dict[str, str]:
-    result: dict[str, str] = {}
-    for item in slot.interfaces:
-        if isinstance(item, str):
-            result[item] = "read"
-        elif isinstance(item, dict) and isinstance(item.get("name"), str):
-            result[item["name"]] = str(item.get("mode", "read")).lower()
-    return result
-
-
-def classify_workbuddy_collision(left: WorkBuddySlot, right: WorkBuddySlot) -> dict[str, Any]:
-    collision = _CORE_CLASSIFY_WORKBUDDY_COLLISION(left, right)
-    if collision.get("level") != "O2":
-        return collision
-
-    double_write_domains = sorted(set(left.write_domains) & set(right.write_domains))
-    if double_write_domains:
-        return {
-            "level": "O3",
-            "reason": "O2_DOMAIN_SINGLE_WRITER_VIOLATION",
-            "overlap": double_write_domains,
-        }
-
-    left_interfaces = _interface_mode_map(left)
-    right_interfaces = _interface_mode_map(right)
-    double_write_interfaces = sorted(
-        name
-        for name in set(left_interfaces) & set(right_interfaces)
-        if left_interfaces[name] == "write" and right_interfaces[name] == "write"
-    )
-    if double_write_interfaces:
-        return {
-            "level": "O3",
-            "reason": "O2_INTERFACE_SINGLE_WRITER_VIOLATION",
-            "overlap": double_write_interfaces,
-        }
-
-    return collision
-
-
-# Install the fail-closed hooks into the one core engine so all existing core
-# admission loops and all facade consumers observe the same strengthened rules.
-_core.load_yaml = _parser_contained_load_yaml
-_core._path_scope_error = _strict_path_scope_error
-_core.classify_workbuddy_collision = classify_workbuddy_collision
-
-
-def _error(code: str, message: str, evidence: dict[str, Any]) -> Finding:
-    return Finding(CHECK_ID, "ERROR", code, message, evidence)
-
-
-def _load_mapping_for_guard(path: Path) -> tuple[dict[str, Any] | None, str | None]:
+def _strict_load_bound_mapping(repo_root: Path, relpath: str) -> tuple[dict[str, Any] | None, str | None]:
+    try:
+        path = _resolve_repo_bound_ref(repo_root, relpath)
+    except (TypeError, ValueError):
+        return None, "OUTSIDE_TRUST_ROOT"
     if not path.exists():
         return None, "NOT_FOUND"
     try:
-        raw = _parser_contained_load_yaml(path)
+        return _v1._parser_contained_load_yaml(path), None
     except (OSError, ValueError, TypeError, UnicodeError):
         return None, "UNREADABLE"
-    return raw, None
 
 
-def _first_raw(mapping: dict[str, Any], *keys: str) -> Any:
-    for key in keys:
-        if key in mapping and mapping[key] is not None:
-            return mapping[key]
-    return None
+def _strict_slot_identity(slot: WorkBuddySlot) -> dict[str, Any]:
+    identity = dict(_CORE_SLOT_IDENTITY(slot))
+    identity.update(
+        {
+            "repository": EXPECTED_REPOSITORY_FULL_NAME,
+            "target_agent": AGENT_TYPE,
+            "canonical_route": slot.canonical_route,
+            "work_claim": slot.work_claim,
+            "task_lease": slot.task_lease,
+            "executor_reservation": slot.executor_reservation,
+            "prewrite_snapshot": slot.prewrite_snapshot,
+            "executable_batch": slot.executable_batch,
+            "authorized_paths": _CORE._normalized_paths(list(slot.write_paths)),
+        }
+    )
+    return identity
 
 
-def _raw_slot_is_candidate_executable(raw: dict[str, Any]) -> bool:
-    return (
-        raw.get("execution_allowed") is True
-        and str(raw.get("activation_state") or "").upper() == "ACTIVE"
-        and raw.get("closure_state") in (None, "", "OPEN")
-        and str(raw.get("status") or "").upper() == "READY"
+def _strict_legacy_identity(raw: dict[str, Any]) -> dict[str, Any]:
+    identity = dict(_CORE_LEGACY_IDENTITY(raw))
+    identity.update(
+        {
+            "repository": raw.get("repository"),
+            "target_agent": raw.get("target_agent"),
+            "canonical_route": raw.get("canonical_route"),
+            "work_claim": raw.get("work_claim"),
+            "task_lease": raw.get("task_lease"),
+            "executor_reservation": raw.get("executor_reservation"),
+            "prewrite_snapshot": raw.get("prewrite_snapshot"),
+            "executable_batch": raw.get("executable_batch"),
+            "authorized_paths": _CORE._normalized_paths(raw.get("authorized_paths")),
+        }
+    )
+    return identity
+
+
+# Install successor hardening into the same underlying engine.  There remains
+# one collision/lifecycle authority; this layer only constrains its inputs.
+_CORE._load_bound_mapping = _strict_load_bound_mapping
+_CORE._slot_identity = _strict_slot_identity
+_CORE._legacy_identity = _strict_legacy_identity
+
+
+def _identity_type_error(index: int, slot_id: Any, field: str, value: Any, expected: str) -> Finding:
+    return _v1._error(
+        "WORKBUDDY_SLOT_IDENTITY_TYPE_INVALID",
+        "Executable WorkBuddy identity fields must use the closed scalar types required by schema v1.",
+        {
+            "index": index,
+            "slot": slot_id,
+            "field": field,
+            "expected": expected,
+            "actual_type": type(value).__name__,
+        },
     )
 
 
-def _registry_sha256(repo_root: Path) -> str | None:
-    path = repo_root.resolve() / WORKBUDDY_REGISTRY
-    try:
-        return hashlib.sha256(path.read_bytes()).hexdigest()
-    except OSError:
-        return None
-
-
-def _guard_registry_input(repo_root: Path) -> tuple[dict[str, Any] | None, list[Finding], bool]:
-    """Return registry, guard findings and whether calling the core is unsafe."""
-
+def _successor_guard_findings(repo_root: Path) -> tuple[list[Finding], bool]:
     root = repo_root.resolve()
-    registry_path = root / WORKBUDDY_REGISTRY
-    registry, load_error = _load_mapping_for_guard(registry_path)
-    if load_error == "NOT_FOUND":
-        return None, [
-            _error(
-                "WORKBUDDY_REGISTRY_MISSING",
-                "Canonical WorkBuddy multi-slot registry is missing.",
-                {"path": WORKBUDDY_REGISTRY},
-            )
-        ], True
-    if load_error:
-        return None, [
-            _error(
-                "WORKBUDDY_REGISTRY_UNREADABLE",
-                "Canonical WorkBuddy multi-slot registry is unreadable or malformed YAML.",
-                {"path": WORKBUDDY_REGISTRY, "error": load_error},
-            )
-        ], True
-
-    assert registry is not None
-    findings: list[Finding] = []
-    fatal_for_core = False
-
-    if registry.get("status") != EXPECTED_REGISTRY_STATUS:
-        findings.append(
-            _error(
-                "WORKBUDDY_REGISTRY_STATUS_INVALID",
-                "The canonical WorkBuddy registry must be explicitly ACTIVE before any child slot can be admitted.",
-                {"expected": EXPECTED_REGISTRY_STATUS, "actual": registry.get("status")},
-            )
-        )
-
-    if registry.get("repository") != EXPECTED_REPOSITORY_FULL_NAME:
-        findings.append(
-            _error(
-                "WORKBUDDY_REGISTRY_REPOSITORY_MISMATCH",
-                "The WorkBuddy registry is bound to a different or missing repository identity.",
-                {"expected": EXPECTED_REPOSITORY_FULL_NAME, "actual": registry.get("repository")},
-            )
-        )
-
+    try:
+        registry = _v1.load_workbuddy_registry(root)
+    except (OSError, ValueError, TypeError, UnicodeError):
+        return [], False
     raw_slots = registry.get("worker_slots")
     if not isinstance(raw_slots, list):
-        return registry, findings, fatal_for_core
+        return [], False
 
+    findings: list[Finding] = []
+    fatal = False
     for index, raw in enumerate(raw_slots):
-        if not isinstance(raw, dict):
+        if not isinstance(raw, dict) or not _v1._raw_slot_is_candidate_executable(raw):
             continue
+        slot_id = _v1._first_raw(raw, "worker_slot_id", "slot_id")
 
-        slot_id = _first_raw(raw, "worker_slot_id", "slot_id")
-        if not isinstance(slot_id, str) or not slot_id.strip():
-            findings.append(
-                _error(
-                    "WORKBUDDY_SLOT_ID_INVALID_OR_DUPLICATE",
-                    "WorkBuddy slot IDs must be non-empty strings before uniqueness checks.",
-                    {"index": index, "slot_id_type": type(slot_id).__name__},
-                )
-            )
-            fatal_for_core = True
+        route_epoch = _v1._first_raw(raw, "route_epoch", "epoch")
+        if not isinstance(route_epoch, int) or isinstance(route_epoch, bool) or route_epoch < 1:
+            findings.append(_identity_type_error(index, slot_id, "route_epoch", route_epoch, "positive integer"))
+            fatal = True
 
-        task_id = _first_raw(raw, "task_id", "active_task_id")
-        if task_id is not None and not isinstance(task_id, str):
-            findings.append(
-                _error(
-                    "WORKBUDDY_SLOT_IDENTITY_TYPE_INVALID",
-                    "WorkBuddy task identity must be a string when present.",
-                    {"index": index, "field": "task_id", "value_type": type(task_id).__name__},
-                )
-            )
-            fatal_for_core = True
+        issue = _v1._first_raw(raw, "active_issue", "issue")
+        if not isinstance(issue, int) or isinstance(issue, bool) or issue < 1:
+            findings.append(_identity_type_error(index, slot_id, "issue", issue, "positive integer"))
+            fatal = True
 
-        if raw.get("agent_type") != AGENT_TYPE:
-            findings.append(
-                _error(
-                    "WORKBUDDY_SLOT_AGENT_TYPE_INVALID",
-                    "Every WorkBuddy registry slot must carry the canonical WorkBuddy agent identity.",
-                    {"index": index, "slot": slot_id, "actual": raw.get("agent_type")},
-                )
-            )
-
-        if raw.get("executor_role") != EXPECTED_EXECUTOR_ROLE:
-            findings.append(
-                _error(
-                    "WORKBUDDY_SLOT_EXECUTOR_ROLE_INVALID",
-                    "Every WorkBuddy slot must bind the canonical local-executor role.",
-                    {
-                        "index": index,
-                        "slot": slot_id,
-                        "expected": EXPECTED_EXECUTOR_ROLE,
-                        "actual": raw.get("executor_role"),
-                    },
-                )
-            )
-
-        if not _raw_slot_is_candidate_executable(raw):
-            continue
-
-        for field, ref_name in (
-            ("canonical_route", "canonical_route"),
-            ("work_claim", "work_claim"),
-            ("task_lease", "task_lease"),
-            ("executor_reservation", "executor_reservation"),
-            ("prewrite_snapshot", "prewrite_snapshot"),
-            ("executable_batch", "executable_batch"),
+        source_issue = raw.get("source_issue")
+        if source_issue is not None and (
+            not isinstance(source_issue, int) or isinstance(source_issue, bool) or source_issue < 1
         ):
+            findings.append(_identity_type_error(index, slot_id, "source_issue", source_issue, "positive integer or null"))
+            fatal = True
+
+        pull_request = _v1._first_raw(raw, "pull_request", "pr", "implementation_pr")
+        if pull_request is not None and (
+            not isinstance(pull_request, int) or isinstance(pull_request, bool) or pull_request < 1
+        ):
+            findings.append(_identity_type_error(index, slot_id, "pull_request", pull_request, "positive integer or null"))
+            fatal = True
+
+        branch = _v1._first_raw(raw, "branch", "implementation_branch")
+        if not isinstance(branch, str) or not branch.strip() or branch != branch.strip():
+            findings.append(_identity_type_error(index, slot_id, "branch", branch, "non-empty canonical string"))
+            fatal = True
+
+        completion_signal = raw.get("completion_signal")
+        if not isinstance(completion_signal, str) or not completion_signal.strip():
+            findings.append(
+                _identity_type_error(index, slot_id, "completion_signal", completion_signal, "non-empty string")
+            )
+            fatal = True
+
+        for field in _BOUND_REF_FIELDS:
             relpath = raw.get(field)
             if not isinstance(relpath, str) or not relpath.strip():
+                findings.append(_identity_type_error(index, slot_id, field, relpath, "repository-relative file string"))
+                fatal = True
                 continue
-            _, bound_error = _load_mapping_for_guard(root / relpath)
-            if bound_error == "UNREADABLE":
+            try:
+                _resolve_repo_bound_ref(root, relpath)
+            except (TypeError, ValueError) as exc:
                 findings.append(
-                    _error(
-                        "WORKBUDDY_BOUND_REF_UNREADABLE",
-                        "Executable WorkBuddy slot bound document is unreadable or malformed YAML.",
-                        {"slot": slot_id, "ref": ref_name, "path": relpath},
+                    _v1._error(
+                        "WORKBUDDY_BOUND_REF_OUTSIDE_TRUST_ROOT",
+                        "Executable WorkBuddy bound references must remain inside the resolved repository trust root.",
+                        {"index": index, "slot": slot_id, "field": field, "path": relpath, "reason": str(exc)},
                     )
                 )
-                fatal_for_core = True
+                fatal = True
 
-    primary_declared = any(
-        isinstance(raw, dict) and raw.get("primary_compatibility_projection") is True
-        for raw in raw_slots
-    )
-    if primary_declared:
-        legacy_path = root / LEGACY_WORKBUDDY_PROJECTION
-        if legacy_path.exists():
-            _, legacy_error = _load_mapping_for_guard(legacy_path)
-            if legacy_error:
-                findings.append(
-                    _error(
-                        "WORKBUDDY_LEGACY_PROJECTION_UNREADABLE",
-                        "Legacy WorkBuddy compatibility projection is unreadable or malformed YAML.",
-                        {"path": LEGACY_WORKBUDDY_PROJECTION},
-                    )
-                )
-                fatal_for_core = True
-
-    return registry, findings, fatal_for_core
-
-
-def load_workbuddy_registry(repo_root: Path) -> dict[str, Any]:
-    """Load canonical registry with YAML parser failures normalized."""
-
-    return _parser_contained_load_yaml(repo_root.resolve() / WORKBUDDY_REGISTRY)
-
-
-def load_workbuddy_slots(repo_root: Path) -> list[WorkBuddySlot]:
-    """Return no candidate slots when the registry lifecycle is not ACTIVE."""
-
-    registry = load_workbuddy_registry(repo_root)
-    if registry.get("status") != EXPECTED_REGISTRY_STATUS:
-        return []
-    raw_slots = registry.get("worker_slots")
-    if not isinstance(raw_slots, list):
-        return []
-    safe_slots: list[WorkBuddySlot] = []
-    for raw in raw_slots:
-        if not isinstance(raw, dict):
-            continue
-        slot_id = _first_raw(raw, "worker_slot_id", "slot_id")
-        if not isinstance(slot_id, str) or not slot_id.strip():
-            continue
-        safe_slots.append(_core.normalize_workbuddy_slot(raw))
-    return safe_slots
-
-
-def workbuddy_active_slots_max(repo_root: Path) -> int:
-    try:
-        registry = load_workbuddy_registry(repo_root)
-    except (OSError, ValueError, TypeError, UnicodeError):
-        return 0
-    if registry.get("status") != EXPECTED_REGISTRY_STATUS:
-        return 0
-    raw = registry.get("active_slots_max")
-    return raw if isinstance(raw, int) and not isinstance(raw, bool) and raw >= 1 else 0
+    return findings, fatal
 
 
 def workbuddy_slot_findings(repo_root: Path) -> list[Finding]:
-    registry, guard_findings, fatal_for_core = _guard_registry_input(repo_root)
-    if registry is None or fatal_for_core:
-        return guard_findings
-    core_findings = _core.workbuddy_slot_findings(repo_root)
-    return guard_findings + core_findings
+    successor_findings, fatal = _successor_guard_findings(repo_root)
+    if fatal:
+        return successor_findings
+    return successor_findings + _V1_WORKBUDDY_SLOT_FINDINGS(repo_root)
 
 
 def validate_workbuddy_slots(repo_root: Path) -> dict[str, Any]:
     root = repo_root.resolve()
-    before_fingerprint = _registry_sha256(root)
+    before_fingerprint = _v1._registry_sha256(root)
     findings = workbuddy_slot_findings(root)
-    try:
-        slots = load_workbuddy_slots(root)
-    except (OSError, ValueError, TypeError, UnicodeError):
-        slots = []
-    after_fingerprint = _registry_sha256(root)
+    structural_pass = not any(item.severity == "ERROR" for item in findings)
 
+    slots: list[WorkBuddySlot] = []
+    if structural_pass:
+        try:
+            slots = _v1.load_workbuddy_slots(root)
+        except (OSError, ValueError, TypeError, UnicodeError):
+            slots = []
+            findings.append(
+                _v1._error(
+                    "WORKBUDDY_VALIDATED_SLOT_SNAPSHOT_UNREADABLE",
+                    "Validated WorkBuddy slot snapshot could not be materialized.",
+                    {},
+                )
+            )
+            structural_pass = False
+
+    after_fingerprint = _v1._registry_sha256(root)
     if before_fingerprint != after_fingerprint:
         findings.append(
-            _error(
+            _v1._error(
                 "WORKBUDDY_REGISTRY_CHANGED_DURING_VALIDATION",
                 "Canonical WorkBuddy registry changed while the validation snapshot was being built.",
                 {"before_sha256": before_fingerprint, "after_sha256": after_fingerprint},
             )
         )
         slots = []
+        structural_pass = False
 
-    structural_pass = not any(item.severity == "ERROR" for item in findings)
+    structural_pass = structural_pass and not any(item.severity == "ERROR" for item in findings)
     return {
         "schema_version": "1.0",
         "registry": WORKBUDDY_REGISTRY,
         "validated_registry_sha256": before_fingerprint if before_fingerprint == after_fingerprint else None,
-        "active_slots_max": workbuddy_active_slots_max(root) if structural_pass else 0,
+        "active_slots_max": _v1.workbuddy_active_slots_max(root) if structural_pass else 0,
         "slots": [asdict(slot) for slot in slots] if structural_pass else [],
         "errors": [asdict(item) for item in findings if item.severity == "ERROR"],
         "warnings": [asdict(item) for item in findings if item.severity == "WARN"],
