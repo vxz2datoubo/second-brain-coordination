@@ -1,0 +1,37 @@
+schema: "ExecutorReservation/v1"
+project: "CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001"
+repository: "vxz2datoubo/second-brain-coordination"
+task_id: "WORKBUDDY-R586-PR578-REMEDIATION"
+route_epoch: 586
+source_issue: 577
+active_issue: 586
+source_pull_request: 578
+executor_agent_type: "WORKBUDDY"
+executor_role: "BOUNDED_REMEDIATION_EXECUTOR"
+reservation_state: "RESERVED_NON_EXECUTABLE"
+implementation_branch: "workbuddy/r586-pr578-review-bounded-remediation"
+branch_must_not_exist_before_activation: true
+pull_request: null
+
+reservation_scope:
+  - ".github/workflows/creative-runtime-offline.yml"
+  - "tools/verify_r175_scope.py"
+  - "tests/test_creative_public_safe_boundary.py"
+reservation_exclusions:
+  - "coordination/GOVERNANCE/CREATIVE-RUNTIME-PUBLIC-SAFE-POLICY-FLOOR-v1.yaml"
+  - "codex/r175-workbuddy-dependency-closed-integration"
+  - "unrelated creative runtime semantics"
+  - "network/provider/credential/real-user/paid-generation/deployment/trade surfaces"
+
+activation_requires:
+  - "route-release package receives fresh independent ACCEPT and separate canonicalization"
+  - "GPT creates a fresh activation snapshot from then-current canonical main"
+  - "ACTIVE-WORKBUDDY-TASK and ACTIVE-PROGRAM-LANES become consistent in the activation candidate"
+  - "activation is separately canonicalized and freshly read back"
+  - "only after readback may WorkBuddy create the implementation branch"
+
+reservation_effect:
+  execution_identity_reserved: true
+  substantive_write_authorized_now: false
+  review_authority: false
+  merge_authority: false

@@ -1,0 +1,69 @@
+schema: "WorkBuddyPrewriteReconciliationSnapshot/v1"
+snapshot_id: "WORKBUDDY-R586-PR578-REMEDIATION-SNAPSHOT-001"
+project: "CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001"
+repository: "vxz2datoubo/second-brain-coordination"
+created_by: "GPT_GITHUB_INTEGRATOR"
+canonical_main_before_release: "04124e233dc813cca4054851ef6a470b342d82fe"
+source_issue: 577
+active_issue: 586
+source_pull_request: 578
+task_id: "WORKBUDDY-R586-PR578-REMEDIATION"
+route_epoch: 586
+implementation_branch: "workbuddy/r586-pr578-review-bounded-remediation"
+implementation_branch_observed_absent: true
+
+review_binding:
+  frozen_exact_head: "9d536357755a44ac50ea4352ac7c319d97101779"
+  independent_review: "pullrequestreview-5108122069"
+  queue_issue: 453
+  verdict: "CHANGES_REQUIRED"
+  mandatory_findings:
+    - "P1-01 EXACT_HEAD_CI_SCOPE_GATE_USES_STALE_BASELINE"
+    - "P1-02 CALLER_SELECTED_BASELINE_CAN_REDEFINE_SCOPE_UNIVERSE"
+
+predecessor_workbuddy:
+  task_id: "WORKBUDDY-R175-ORDERED-BATCH"
+  issue: 532
+  route_epoch: 175
+  canonical_active_pointer_observation: "READY_EXECUTION_ALLOWED_BUT_STALE_AFTER_COMPLETION"
+  completion_package_ref: "PR578@9d536357755a44ac50ea4352ac7c319d97101779:coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/RETURN-PACKAGE/WORKBUDDY-RETURN-PACKAGE.json"
+  completion_result: "PASS"
+  completed_workbuddy_head: "2c229eaa1228580e80e130f628dc11c56ee6df8d"
+  completion_signal: "WORKBUDDY_R175_ORDERED_BATCH_COMPLETE_RETURN_TO_CODEX"
+  lease_expiry_rule_observed: "ON_BATCH_RETURN_BLOCKING_FINDING_OR_GOVERNANCE_SUPERSESSION"
+  disposition: "COMPLETED_PREDECESSOR_ELIGIBLE_FOR_ACTIVE_POINTER_SUCCESSION"
+
+multislot_reconciliation:
+  pr: 585
+  head: "333e9c2b97ccd6720a521fdb81851223d8349709"
+  independent_state: "CHANGES_REQUIRED"
+  canonical: false
+  may_mint_second_slot: false
+
+codex_reconciliation:
+  r577_state: "FROZEN_AFTER_INDEPENDENT_CHANGES_REQUIRED"
+  further_engineering: false
+  self_review: false
+  ready: false
+  merge: false
+
+scope_reconciliation:
+  exact_e577_allowlist_preserved: true
+  semantic_remediation_files:
+    - ".github/workflows/creative-runtime-offline.yml"
+    - "tools/verify_r175_scope.py"
+    - "tests/test_creative_public_safe_boundary.py"
+  canonical_policy_floor_write: false
+  source_branch_write: false
+  unrelated_runtime_change: false
+
+activation_gate:
+  snapshot_precedes_implementation_branch: true
+  execution_allowed_now: false
+  requires_release_candidate_independent_acceptance: true
+  requires_release_candidate_separate_canonicalization: true
+  requires_post_canonical_readback: true
+  workbuddy_first_branch_action: "CREATE_IMPLEMENTATION_BRANCH_EXACTLY_FROM_BOUND_CANONICAL_BASE"
+  main_drift_before_canonicalization_action: "FAIL_CLOSED_REISSUE_FROM_NEW_MAIN"
+
+return_target: "GPT"
