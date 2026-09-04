@@ -2,7 +2,20 @@
 
 agent_id: CODEX
 
-状态：候选架构与验证包；实际独立复核者：尚未复核。指定复核角色：GPT。
+状态：`SUCCESS_WITH_FINDINGS`（本轮候选架构/技能/合成验证完成；完整交易系统未验收）。实际独立复核者：尚未复核。指定复核角色：GPT。
+
+## 实际执行结果
+
+验证代码版本：`db7bbbe78e1d0e71eae714a3f531e95fa1f22269`。其后的本包结果归档仅增加文档/证据，不应冒称后续整个提交已重新做独立验收。
+
+- [GitHub 云运行成功回执](https://github.com/vxz2datoubo/second-brain-coordination/actions/runs/33926390665)：在干净 Linux runner 检出上述 SHA，163 个原 P2 测试、5 个验证器测试及两次真实回放均成功。
+- Windows 本地同一 SHA、Python 3.13.3 两次真实回放成功。
+- 下载云端工件后，逐项重算 JSON 内容哈希；本地/云端源码、锁、验证器、Python 版本和 **13 个结果工件全部一致**。
+- 结果集合 SHA-256：`c52ea3a7fb489d47311b5b9ee2d147a977f61847a96b79b3250cffe05102c3a6`。
+- [候选 Draft PR #588](https://github.com/vxz2datoubo/second-brain-coordination/pull/588)，未合并。
+- [精简长期验证记录](VERIFICATION.json)；完整公开合成工件在上述 Actions run（保留 14 天），本机同时留存副本。
+
+这证明 GitHub 上的既有离线研究程序可以真正执行，并与本机一致；不是证明 GPT 当前会话能触发该程序，也不是 WB 服务上线或真实 A 股策略有效。
 
 这次用户希望 GPT 制定方向、Codex 工程架构、WB 实施运行，并在 Codex 不可用时由 GPT 承担详细架构。目标是软件从 GitHub 下载后实际运行，数据和数值可追溯，知识与技能可持续复用。
 
