@@ -1,1201 +1,283 @@
 from __future__ import annotations
 
-import re
-from dataclasses import asdict, dataclass
+"""Fail-closed admission facade for WorkBuddy multi-slot governance.
+
+The heavily tested collision/authorization engine remains byte-identical in
+``workbuddy_slots_core.py``.  This facade owns only input-boundary safety:
+registry lifecycle/identity, parser containment, scalar slot identity and
+executor-role admission.  It deliberately does not create a second collision
+or authorization state machine.
+"""
+
+from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
-from control_tower import Finding, NON_EXECUTABLE_STATUSES, classify_collision, load_yaml
+import yaml
 
-WORKBUDDY_REGISTRY = "coordination/ACTIVE-WORKBUDDY-TASKS.yaml"
-LEGACY_WORKBUDDY_PROJECTION = "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
-EXPECTED_SCHEMA_VERSION = "1.0"
-EXPECTED_REGISTRY_ID = "ACTIVE-WORKBUDDY-TASKS-0001"
-AGENT_TYPE = "WORKBUDDY"
-CHECK_ID = "CT-WB-SLOTS"
+import workbuddy_slots_core as _core
+from workbuddy_slots_core import *  # noqa: F401,F403
 
-EXECUTABLE_STATUSES = frozenset({"READY"})
-KNOWN_SLOT_STATUSES = frozenset(set(NON_EXECUTABLE_STATUSES) | set(EXECUTABLE_STATUSES))
-STRING_LIST_FIELDS = (
-    "write_paths",
-    "read_paths",
-    "read_domains",
-    "write_domains",
-    "authority_claims",
-    "exclusive_resources",
-    "shared_read_resources",
-    "mutable_runtime_resources",
-    "credential_surfaces",
-    "real_data_surfaces",
-)
-PATH_SCOPE_FIELDS = ("write_paths", "read_paths")
-FORBIDDEN_AUTHORITY_FIELDS = (
-    "order_or_trade_authority",
-    "review_authority",
-    "merge_authority",
-    "acceptance_authority",
-    "canonical_truth_authority",
-    "canonical_knowledge_authority",
-    "account_authority",
-    "credential_authority",
-    "broker_authority",
-    "funds_authority",
-    "position_authority",
-)
-BOUND_FORBIDDEN_TRUE_KEYS = frozenset(
-    set(FORBIDDEN_AUTHORITY_FIELDS)
-    | {
-        "merge_authorized",
-        "trade_allowed",
-        "trade_authorized",
-        "trading_authorized",
-        "account_access_authorized",
-        "credential_access_authorized",
-        "broker_access_authorized",
-        "funds_access_authorized",
-        "position_access_authorized",
-        "auto_merge",
-        "direct_main_write",
-    }
-)
-ALLOWED_SLOT_FIELDS = frozenset(
-    {
-        "worker_slot_id",
-        "slot_id",
-        "agent_type",
-        "executor_role",
-        "task_id",
-        "active_task_id",
-        "route_epoch",
-        "epoch",
-        "active_issue",
-        "issue",
-        "source_issue",
-        "pull_request",
-        "pr",
-        "implementation_pr",
-        "branch",
-        "implementation_branch",
-        "status",
-        "execution_allowed",
-        "activation_state",
-        "closure_state",
-        "mode",
-        "canonical_route",
-        "work_claim",
-        "task_lease",
-        "executor_reservation",
-        "prewrite_snapshot",
-        "executable_batch",
-        "completion_signal",
-        "interfaces",
-        "primary_compatibility_projection",
-        "provenance",
-        *STRING_LIST_FIELDS,
-        *FORBIDDEN_AUTHORITY_FIELDS,
-    }
-)
-ALLOWED_REGISTRY_FIELDS = frozenset(
-    {
-        "schema_version",
-        "registry_id",
-        "repository",
-        "canonical_agent_type",
-        "status",
-        "parallel_routes_allowed",
-        "active_slots_max",
-        "nested_parallelism",
-        "same_task_multiple_active_slots_allowed",
-        "same_mutable_surface_writers_max",
-        "unknown_collision_disposition",
-        "compatibility_projection",
-        "worker_slots",
-        "migration_boundary",
-    }
-)
-EXPECTED_COMPATIBILITY_PROJECTION = {
-    "path": LEGACY_WORKBUDDY_PROJECTION,
-    "mode": "PRIMARY_SLOT_COMPATIBILITY_PROJECTION",
-    "canonical_authority_after_r579": False,
-    "mismatch_disposition": "FAIL_CLOSED",
-}
-LEGACY_PRIMARY_UNBOUND_RISK_FIELDS = (
-    "exclusive_resources",
-    "shared_read_resources",
-    "mutable_runtime_resources",
-    "credential_surfaces",
-    "real_data_surfaces",
-)
-_WINDOWS_DRIVE = re.compile(r"^[A-Za-z]:")
+EXPECTED_EXECUTOR_ROLE = "WORKBUDDY_LOCAL_EXECUTOR"
+EXPECTED_REGISTRY_STATUS = "ACTIVE"
+EXPECTED_REPOSITORY_FULL_NAME = "vxz2datoubo/second-brain-coordination"
+
+# The pre-R579 loader correctly rejects non-mapping YAML but allowed parser
+# exceptions to escape.  Normalize parser failures to ValueError so all of the
+# core's existing fail-closed catches remain effective without modifying its
+# validated semantics.
+_CORE_LOAD_YAML = _core.load_yaml
 
 
-@dataclass(frozen=True)
-class WorkBuddySlot:
-    worker_slot_id: str | None
-    agent_type: str | None
-    executor_role: str | None
-    task_id: str | None
-    route_epoch: int | str | None
-    issue: int | str | None
-    pr: int | str | None
-    branch: str | None
-    status: str | None
-    execution_allowed: bool
-    activation_state: str | None
-    closure_state: str | None
-    canonical_route: str | None
-    work_claim: str | None
-    task_lease: str | None
-    executor_reservation: str | None
-    prewrite_snapshot: str | None
-    executable_batch: str | None
-    completion_signal: str | None
-    write_paths: tuple[str, ...]
-    read_paths: tuple[str, ...]
-    interfaces: tuple[Any, ...]
-    read_domains: tuple[str, ...]
-    write_domains: tuple[str, ...]
-    authority_claims: tuple[str, ...]
-    exclusive_resources: tuple[str, ...]
-    shared_read_resources: tuple[str, ...]
-    mutable_runtime_resources: tuple[str, ...]
-    credential_surfaces: tuple[str, ...]
-    real_data_surfaces: tuple[str, ...]
-    order_or_trade_authority: bool
-    review_authority: bool
-    merge_authority: bool
-    acceptance_authority: bool
-    canonical_truth_authority: bool
-    canonical_knowledge_authority: bool
-    account_authority: bool
-    credential_authority: bool
-    broker_authority: bool
-    funds_authority: bool
-    position_authority: bool
-    primary_compatibility_projection: bool
-
-
-def _first(mapping: dict[str, Any], *keys: str) -> Any:
-    for key in keys:
-        if key in mapping and mapping[key] is not None:
-            return mapping[key]
-    return None
-
-
-def _nested(mapping: dict[str, Any], *keys: str) -> Any:
-    current: Any = mapping
-    for key in keys:
-        if not isinstance(current, dict) or key not in current:
-            return None
-        current = current[key]
-    return current
-
-
-def _string_list(raw: dict[str, Any], key: str) -> tuple[str, ...]:
-    value = raw.get(key)
-    if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
-        return ()
-    return tuple(value)
-
-
-def _interfaces(raw: dict[str, Any]) -> tuple[Any, ...]:
-    value = raw.get("interfaces")
-    return tuple(value) if isinstance(value, list) else ()
-
-
-def normalize_workbuddy_slot(raw: dict[str, Any]) -> WorkBuddySlot:
-    return WorkBuddySlot(
-        worker_slot_id=_first(raw, "worker_slot_id", "slot_id"),
-        agent_type=_first(raw, "agent_type"),
-        executor_role=_first(raw, "executor_role"),
-        task_id=_first(raw, "task_id", "active_task_id"),
-        route_epoch=_first(raw, "route_epoch", "epoch"),
-        issue=_first(raw, "active_issue", "issue"),
-        pr=_first(raw, "pull_request", "pr", "implementation_pr"),
-        branch=_first(raw, "branch", "implementation_branch"),
-        status=_first(raw, "status"),
-        execution_allowed=raw.get("execution_allowed") is True,
-        activation_state=_first(raw, "activation_state"),
-        closure_state=_first(raw, "closure_state"),
-        canonical_route=_first(raw, "canonical_route"),
-        work_claim=_first(raw, "work_claim"),
-        task_lease=_first(raw, "task_lease"),
-        executor_reservation=_first(raw, "executor_reservation"),
-        prewrite_snapshot=_first(raw, "prewrite_snapshot"),
-        executable_batch=_first(raw, "executable_batch"),
-        completion_signal=_first(raw, "completion_signal"),
-        write_paths=_string_list(raw, "write_paths"),
-        read_paths=_string_list(raw, "read_paths"),
-        interfaces=_interfaces(raw),
-        read_domains=_string_list(raw, "read_domains"),
-        write_domains=_string_list(raw, "write_domains"),
-        authority_claims=_string_list(raw, "authority_claims"),
-        exclusive_resources=_string_list(raw, "exclusive_resources"),
-        shared_read_resources=_string_list(raw, "shared_read_resources"),
-        mutable_runtime_resources=_string_list(raw, "mutable_runtime_resources"),
-        credential_surfaces=_string_list(raw, "credential_surfaces"),
-        real_data_surfaces=_string_list(raw, "real_data_surfaces"),
-        order_or_trade_authority=raw.get("order_or_trade_authority") is True,
-        review_authority=raw.get("review_authority") is True,
-        merge_authority=raw.get("merge_authority") is True,
-        acceptance_authority=raw.get("acceptance_authority") is True,
-        canonical_truth_authority=raw.get("canonical_truth_authority") is True,
-        canonical_knowledge_authority=raw.get("canonical_knowledge_authority") is True,
-        account_authority=raw.get("account_authority") is True,
-        credential_authority=raw.get("credential_authority") is True,
-        broker_authority=raw.get("broker_authority") is True,
-        funds_authority=raw.get("funds_authority") is True,
-        position_authority=raw.get("position_authority") is True,
-        primary_compatibility_projection=raw.get("primary_compatibility_projection") is True,
-    )
-
-
-def load_workbuddy_registry(repo_root: Path) -> dict[str, Any]:
-    return load_yaml(repo_root.resolve() / WORKBUDDY_REGISTRY)
-
-
-def load_workbuddy_slots(repo_root: Path) -> list[WorkBuddySlot]:
-    registry = load_workbuddy_registry(repo_root)
-    raw_slots = registry.get("worker_slots")
-    if not isinstance(raw_slots, list):
-        return []
-    return [normalize_workbuddy_slot(item) for item in raw_slots if isinstance(item, dict)]
-
-
-def workbuddy_active_slots_max(repo_root: Path) -> int:
+def _parser_contained_load_yaml(path: Path) -> dict[str, Any]:
     try:
-        registry = load_workbuddy_registry(repo_root)
-    except (OSError, ValueError, TypeError):
-        return 0
-    raw = registry.get("active_slots_max")
-    return raw if isinstance(raw, int) and not isinstance(raw, bool) and raw >= 1 else 0
+        return _CORE_LOAD_YAML(path)
+    except yaml.YAMLError as exc:
+        raise ValueError(f"malformed YAML at {path}") from exc
 
 
-def workbuddy_slot_is_executable(slot: WorkBuddySlot) -> bool:
-    return (
-        slot.execution_allowed
-        and str(slot.activation_state or "").upper() == "ACTIVE"
-        and slot.closure_state in (None, "", "OPEN")
-        and str(slot.status or "").upper() in EXECUTABLE_STATUSES
-    )
-
-
-def _path_scope_error(path: str) -> str | None:
-    if path != path.strip():
-        return "LEADING_OR_TRAILING_WHITESPACE"
-    if not path:
-        return "EMPTY"
-    if "\\" in path:
-        return "BACKSLASH_NOT_CANONICAL"
-    if path.startswith("/") or path.startswith("~") or _WINDOWS_DRIVE.match(path):
-        return "ABSOLUTE_OR_HOME_PATH_FORBIDDEN"
-    if "//" in path:
-        return "DUPLICATE_SEPARATOR"
-    core = path
-    for suffix in ("/**", "/*"):
-        if core.endswith(suffix):
-            core = core[: -len(suffix)]
-            break
-    if "*" in core:
-        return "WILDCARD_ONLY_ALLOWED_AS_TERMINAL_SCOPE"
-    segments = core.split("/") if core else []
-    if not segments or any(segment in {"", ".", ".."} for segment in segments):
-        return "DOT_OR_EMPTY_SEGMENT"
-    return None
-
-
-def _normalize_scope(path: str) -> str:
-    if _path_scope_error(path) is not None:
-        return path
-    value = path
-    for suffix in ("/**", "/*"):
-        if value.endswith(suffix):
-            value = value[: -len(suffix)]
-            break
-    return value.rstrip("/") or "."
-
-
-def _normalized_paths(values: Any) -> list[str] | None:
-    if not isinstance(values, list) or not all(isinstance(item, str) and item.strip() for item in values):
-        return None
-    if any(_path_scope_error(item) is not None for item in values):
-        return None
-    return sorted(_normalize_scope(item) for item in values)
-
-
-def _canonical_surface_value(value: Any) -> Any:
-    if isinstance(value, dict):
-        return {key: _canonical_surface_value(value[key]) for key in sorted(value)}
-    if isinstance(value, list):
-        if all(isinstance(item, str) for item in value):
-            return sorted(value)
-        return [_canonical_surface_value(item) for item in value]
-    return value
-
-
-def _slot_collision_surface(slot: WorkBuddySlot) -> dict[str, Any]:
-    return {
-        "write_paths": list(slot.write_paths),
-        "read_paths": list(slot.read_paths),
-        "interfaces": list(slot.interfaces),
-        "read_domains": list(slot.read_domains),
-        "write_domains": list(slot.write_domains),
-        "authority_claims": list(slot.authority_claims),
-        "exclusive_resources": list(slot.exclusive_resources),
-        "shared_read_resources": list(slot.shared_read_resources),
-        "mutable_runtime_resources": list(slot.mutable_runtime_resources),
-        "credential_surfaces": list(slot.credential_surfaces),
-        "real_data_surfaces": list(slot.real_data_surfaces),
-    }
-
-
-def _collision_input(slot: WorkBuddySlot) -> dict[str, Any]:
-    return {
-        "write_paths": [_normalize_scope(item) for item in slot.write_paths],
-        "read_paths": [_normalize_scope(item) for item in slot.read_paths],
-        "interfaces": list(slot.interfaces),
-        "read_domains": list(slot.read_domains),
-        "write_domains": list(slot.write_domains),
-        "authority_claims": list(slot.authority_claims),
-    }
-
-
-def classify_workbuddy_collision(left: WorkBuddySlot, right: WorkBuddySlot) -> dict[str, Any]:
-    if left.branch and right.branch and left.branch == right.branch:
-        return {"level": "O3", "reason": "SAME_MUTABLE_BRANCH_OWNERSHIP", "overlap": [left.branch]}
-    overlap = set(left.credential_surfaces) & set(right.credential_surfaces)
-    if overlap:
-        return {"level": "O4", "reason": "CREDENTIAL_SURFACE_COLLISION", "overlap": sorted(overlap)}
-    overlap = set(left.real_data_surfaces) & set(right.real_data_surfaces)
-    if overlap:
-        return {
-            "level": "O3",
-            "reason": "REAL_DATA_SURFACE_COLLISION_REQUIRES_EXPLICIT_SHARED_READ_POLICY",
-            "overlap": sorted(overlap),
-        }
-    left_exclusive, right_exclusive = set(left.exclusive_resources), set(right.exclusive_resources)
-    left_shared, right_shared = set(left.shared_read_resources), set(right.shared_read_resources)
-    left_mutable, right_mutable = set(left.mutable_runtime_resources), set(right.mutable_runtime_resources)
-    overlap = (left_exclusive & (right_exclusive | right_shared | right_mutable)) | (
-        right_exclusive & (left_exclusive | left_shared | left_mutable)
-    )
-    if overlap:
-        return {"level": "O3", "reason": "EXCLUSIVE_RESOURCE_COLLISION", "overlap": sorted(overlap)}
-    overlap = (left_mutable & (right_mutable | right_shared)) | (
-        right_mutable & (left_mutable | left_shared)
-    )
-    if overlap:
-        return {"level": "O3", "reason": "MUTABLE_RUNTIME_RESOURCE_COLLISION", "overlap": sorted(overlap)}
-    return classify_collision(_collision_input(left), _collision_input(right))
-
-
-def _slot_identity(slot: WorkBuddySlot) -> dict[str, Any]:
-    return {
-        "task_id": slot.task_id,
-        "route_epoch": slot.route_epoch,
-        "issue": slot.issue,
-        "pr": slot.pr,
-        "branch": slot.branch,
-        "status": slot.status,
-        "execution_allowed": slot.execution_allowed,
-        "completion_signal": slot.completion_signal,
-    }
-
-
-def _legacy_identity(raw: dict[str, Any]) -> dict[str, Any]:
-    return {
-        "task_id": _first(raw, "task_id", "active_task_id"),
-        "route_epoch": _first(raw, "route_epoch", "epoch"),
-        "issue": _first(raw, "active_issue", "issue"),
-        "pr": _first(raw, "pull_request", "pr", "implementation_pr"),
-        "branch": _first(raw, "implementation_branch", "branch"),
-        "status": _first(raw, "status"),
-        "execution_allowed": raw.get("execution_allowed") is True,
-        "completion_signal": _first(raw, "completion_signal"),
-    }
+_core.load_yaml = _parser_contained_load_yaml
 
 
 def _error(code: str, message: str, evidence: dict[str, Any]) -> Finding:
     return Finding(CHECK_ID, "ERROR", code, message, evidence)
 
 
-def _slot_shape_findings(raw: dict[str, Any], index: int) -> list[Finding]:
-    findings: list[Finding] = []
-    unknown = sorted(set(raw) - ALLOWED_SLOT_FIELDS)
-    if unknown:
-        findings.append(
-            _error(
-                "WORKBUDDY_SLOT_UNKNOWN_FIELD",
-                "WorkBuddy slot contains fields outside the closed v1 schema.",
-                {"index": index, "unknown_fields": unknown},
-            )
-        )
-
-    for key in STRING_LIST_FIELDS:
-        value = raw.get(key)
-        if not isinstance(value, list) or not all(isinstance(item, str) and item.strip() for item in value):
-            findings.append(
-                _error(
-                    "WORKBUDDY_COLLISION_FIELD_MALFORMED",
-                    "Collision/security list fields must be explicit lists of non-empty strings.",
-                    {"index": index, "field": key, "value_type": type(value).__name__},
-                )
-            )
-            continue
-        if key in PATH_SCOPE_FIELDS:
-            for path_index, path in enumerate(value):
-                path_error = _path_scope_error(path)
-                if path_error:
-                    findings.append(
-                        _error(
-                            "WORKBUDDY_PATH_SCOPE_NONCANONICAL",
-                            "WorkBuddy filesystem scopes must use one canonical repository-relative spelling.",
-                            {
-                                "index": index,
-                                "field": key,
-                                "path_index": path_index,
-                                "path": path,
-                                "reason": path_error,
-                            },
-                        )
-                    )
-
-    interfaces = raw.get("interfaces")
-    if not isinstance(interfaces, list):
-        findings.append(
-            _error(
-                "WORKBUDDY_INTERFACES_MALFORMED",
-                "interfaces must be a list.",
-                {"index": index, "value_type": type(interfaces).__name__},
-            )
-        )
-    else:
-        seen_interface_names: dict[str, int] = {}
-        for item_index, item in enumerate(interfaces):
-            name: str | None = None
-            if isinstance(item, str):
-                if not item.strip():
-                    findings.append(
-                        _error(
-                            "WORKBUDDY_INTERFACE_ENTRY_MALFORMED",
-                            "String interface entries must be non-empty.",
-                            {"index": index, "interface_index": item_index},
-                        )
-                    )
-                else:
-                    name = item
-            elif isinstance(item, dict) and isinstance(item.get("name"), str) and item["name"].strip():
-                name = item["name"]
-                if item.get("mode", "read") not in {"read", "write"}:
-                    findings.append(
-                        _error(
-                            "WORKBUDDY_INTERFACE_MODE_UNKNOWN",
-                            "Interface mode must be read or write.",
-                            {"index": index, "interface_index": item_index, "mode": item.get("mode")},
-                        )
-                    )
-                if "frozen" in item and not isinstance(item.get("frozen"), bool):
-                    findings.append(
-                        _error(
-                            "WORKBUDDY_INTERFACE_FROZEN_FLAG_INVALID",
-                            "Interface frozen must be boolean when present.",
-                            {"index": index, "interface_index": item_index},
-                        )
-                    )
-            else:
-                findings.append(
-                    _error(
-                        "WORKBUDDY_INTERFACE_ENTRY_MALFORMED",
-                        "Interface entries must be strings or mappings with a non-empty name.",
-                        {"index": index, "interface_index": item_index},
-                    )
-                )
-
-            if name is not None:
-                if name in seen_interface_names:
-                    findings.append(
-                        _error(
-                            "WORKBUDDY_INTERFACE_NAME_DUPLICATE",
-                            "Each interface name may appear at most once per WorkBuddy slot.",
-                            {
-                                "index": index,
-                                "interface_name": name,
-                                "first_index": seen_interface_names[name],
-                                "duplicate_index": item_index,
-                            },
-                        )
-                    )
-                else:
-                    seen_interface_names[name] = item_index
-
-    for field in FORBIDDEN_AUTHORITY_FIELDS:
-        if field not in raw or not isinstance(raw.get(field), bool):
-            findings.append(
-                _error(
-                    "WORKBUDDY_AUTHORITY_FIELD_MISSING_OR_INVALID",
-                    "Authority fields are schema-required booleans in v1.",
-                    {"index": index, "field": field},
-                )
-            )
-        elif raw.get(field) is True:
-            findings.append(
-                _error(
-                    "WORKBUDDY_FORBIDDEN_AUTHORITY_MINT",
-                    "The WorkBuddy routing registry cannot mint privileged business or governance authority.",
-                    {"index": index, "field": field},
-                )
-            )
-    if not isinstance(raw.get("primary_compatibility_projection"), bool):
-        findings.append(
-            _error(
-                "WORKBUDDY_PRIMARY_COMPATIBILITY_FLAG_INVALID",
-                "primary_compatibility_projection must be an explicit boolean.",
-                {"index": index},
-            )
-        )
-    return findings
-
-
-def _required_slot_identity_findings(slot: WorkBuddySlot) -> list[Finding]:
-    required = {
-        "worker_slot_id": slot.worker_slot_id,
-        "agent_type": slot.agent_type,
-        "executor_role": slot.executor_role,
-        "task_id": slot.task_id,
-        "route_epoch": slot.route_epoch,
-        "issue": slot.issue,
-        "branch": slot.branch,
-        "status": slot.status,
-        "canonical_route": slot.canonical_route,
-        "work_claim": slot.work_claim,
-        "task_lease": slot.task_lease,
-        "executor_reservation": slot.executor_reservation,
-        "prewrite_snapshot": slot.prewrite_snapshot,
-        "executable_batch": slot.executable_batch,
-        "completion_signal": slot.completion_signal,
-    }
-    missing = [
-        key
-        for key, value in required.items()
-        if value is None or (isinstance(value, str) and not value.strip())
-    ]
-    if not missing:
-        return []
-    return [
-        _error(
-            "WORKBUDDY_EXECUTABLE_SLOT_IDENTITY_INCOMPLETE",
-            "Executable WorkBuddy slot is missing required identity or governed binding fields.",
-            {"slot": slot.worker_slot_id, "missing": missing},
-        )
-    ]
-
-
-def _load_bound_mapping(repo_root: Path, relpath: str) -> tuple[dict[str, Any] | None, str | None]:
-    path = repo_root / relpath
+def _load_mapping_for_guard(path: Path) -> tuple[dict[str, Any] | None, str | None]:
     if not path.exists():
         return None, "NOT_FOUND"
     try:
-        return load_yaml(path), None
-    except (OSError, ValueError, TypeError):
+        raw = _parser_contained_load_yaml(path)
+    except (OSError, ValueError, TypeError, UnicodeError):
         return None, "UNREADABLE"
+    return raw, None
 
 
-def _bound_doc_identity(ref_name: str, raw: dict[str, Any]) -> dict[str, Any]:
-    if ref_name == "canonical_route":
-        return {
-            "task_id": _first(raw, "task_id", "active_task_id"),
-            "route_epoch": _first(raw, "route_epoch", "epoch"),
-            "issue": _first(raw, "active_issue", "issue"),
-            "branch": _first(raw, "implementation_branch", "branch")
-            or _nested(raw, "execution", "implementation_branch"),
-        }
-    if ref_name == "work_claim":
-        return {
-            "task_id": _first(raw, "task_id", "active_task_id"),
-            "route_epoch": _first(raw, "route_epoch", "epoch"),
-            "issue": _first(raw, "active_issue", "issue"),
-            "branch": _first(raw, "branch", "implementation_branch"),
-        }
-    if ref_name in {"task_lease", "executor_reservation"}:
-        return {
-            "task_id": _first(raw, "task_id", "active_task_id"),
-            "route_epoch": _first(raw, "route_epoch", "epoch"),
-            "issue": _first(raw, "active_issue", "issue"),
-            "branch": _first(raw, "implementation_branch", "branch"),
-        }
-    if ref_name == "prewrite_snapshot":
-        return {
-            "task_id": _first(raw, "task_id", "active_task_id"),
-            "route_epoch": _first(raw, "route_epoch", "epoch"),
-            "issue": _first(raw, "active_issue", "issue"),
-        }
-    if ref_name == "executable_batch":
-        auth = raw.get("route_authority") if isinstance(raw.get("route_authority"), dict) else {}
-        return {
-            "task_id": _first(auth, "task_id", "active_task_id"),
-            "route_epoch": _first(auth, "route_epoch", "epoch"),
-            "issue": _first(auth, "active_issue", "issue"),
-        }
-    return {}
+def _first_raw(mapping: dict[str, Any], *keys: str) -> Any:
+    for key in keys:
+        if key in mapping and mapping[key] is not None:
+            return mapping[key]
+    return None
 
 
-def _reservation_bool(raw: dict[str, Any], field: str) -> tuple[Any, bool]:
-    nested = _nested(raw, "reservation_effect", field)
-    top = raw.get(field)
-    if nested is not None and top is not None and nested != top:
-        return None, True
-    return (nested if nested is not None else top), False
+def _raw_slot_is_candidate_executable(raw: dict[str, Any]) -> bool:
+    return (
+        raw.get("execution_allowed") is True
+        and str(raw.get("activation_state") or "").upper() == "ACTIVE"
+        and raw.get("closure_state") in (None, "", "OPEN")
+        and str(raw.get("status") or "").upper() == "READY"
+    )
 
 
-def _doc_slot_id(ref_name: str, raw: dict[str, Any]) -> Any:
-    return _nested(raw, "route_authority", "worker_slot_id") if ref_name == "executable_batch" else raw.get("worker_slot_id")
+def _guard_registry_input(repo_root: Path) -> tuple[dict[str, Any] | None, list[Finding], bool]:
+    """Return registry, guard findings and whether calling the core is unsafe.
 
+    ``fatal_for_core`` is reserved for malformed parser/identity inputs that can
+    otherwise raise before the core has a chance to emit structured evidence.
+    Lifecycle/role violations are ordinary fail-closed findings and may still be
+    passed through the core for additional diagnostics.
+    """
 
-def _doc_collision_surface(ref_name: str, raw: dict[str, Any]) -> Any:
-    return _nested(raw, "route_authority", "slot_collision_surface") if ref_name == "executable_batch" else raw.get("slot_collision_surface")
-
-
-def _true_forbidden_authority_paths(value: Any, path: str = "$") -> list[dict[str, str]]:
-    findings: list[dict[str, str]] = []
-    if isinstance(value, dict):
-        for key, child in value.items():
-            child_path = f"{path}.{key}"
-            if key in BOUND_FORBIDDEN_TRUE_KEYS and child is True:
-                findings.append({"path": child_path, "field": key})
-            findings.extend(_true_forbidden_authority_paths(child, child_path))
-    elif isinstance(value, list):
-        for index, child in enumerate(value):
-            findings.extend(_true_forbidden_authority_paths(child, f"{path}[{index}]"))
-    return findings
-
-
-def _bound_authority_findings(slot: WorkBuddySlot, ref_name: str, relpath: str, raw: dict[str, Any]) -> list[Finding]:
-    violations = _true_forbidden_authority_paths(raw)
-    if not violations:
-        return []
-    return [
-        _error(
-            "WORKBUDDY_BOUND_REF_FORBIDDEN_AUTHORITY",
-            "A governed WorkBuddy authorization document attempts to grant forbidden business or governance authority.",
-            {
-                "slot": slot.worker_slot_id,
-                "ref": ref_name,
-                "path": relpath,
-                "violations": violations,
-            },
-        )
-    ]
-
-
-def _bound_surface_findings(slot: WorkBuddySlot, ref_name: str, relpath: str, raw: dict[str, Any]) -> list[Finding]:
-    findings: list[Finding] = []
-    expected_write = sorted(_normalize_scope(item) for item in slot.write_paths)
-    write_locations = {
-        "canonical_route": _nested(raw, "write_ownership", "workbuddy_exclusive"),
-        "work_claim": raw.get("authorized_paths"),
-        "task_lease": raw.get("exclusive_write_surface"),
-        "executor_reservation": raw.get("reservation_scope"),
-    }
-    if ref_name in write_locations:
-        actual_write = _normalized_paths(write_locations[ref_name])
-        if actual_write != expected_write:
-            findings.append(
-                _error(
-                    "WORKBUDDY_BOUND_WRITE_SURFACE_DRIFT",
-                    "Registry write_paths must exactly match the governed authorization document write surface.",
-                    {
-                        "slot": slot.worker_slot_id,
-                        "ref": ref_name,
-                        "path": relpath,
-                        "expected": expected_write,
-                        "actual": actual_write,
-                    },
-                )
-            )
-
-    if slot.primary_compatibility_projection:
-        dangerous = {
-            field: list(getattr(slot, field))
-            for field in LEGACY_PRIMARY_UNBOUND_RISK_FIELDS
-            if getattr(slot, field)
-        }
-        if dangerous:
-            findings.append(
-                _error(
-                    "WORKBUDDY_LEGACY_PRIMARY_UNBOUND_RESOURCE_CLAIM",
-                    "Legacy primary slot cannot introduce unbound local-resource, credential, or real-data collision claims.",
-                    {"slot": slot.worker_slot_id, "claims": dangerous},
-                )
-            )
-        return findings
-
-    actual_slot_id = _doc_slot_id(ref_name, raw)
-    if actual_slot_id != slot.worker_slot_id:
-        findings.append(
-            _error(
-                "WORKBUDDY_BOUND_REF_SLOT_ID_MISMATCH",
-                "Every non-primary authorization document must bind the selected worker_slot_id.",
-                {"slot": slot.worker_slot_id, "ref": ref_name, "path": relpath, "actual": actual_slot_id},
-            )
-        )
-    expected_surface = _canonical_surface_value(_slot_collision_surface(slot))
-    actual_surface = _doc_collision_surface(ref_name, raw)
-    if not isinstance(actual_surface, dict) or _canonical_surface_value(actual_surface) != expected_surface:
-        findings.append(
-            _error(
-                "WORKBUDDY_BOUND_COLLISION_SURFACE_DRIFT",
-                "Every non-primary authorization document must bind the complete collision surface used for admission.",
-                {"slot": slot.worker_slot_id, "ref": ref_name, "path": relpath},
-            )
-        )
-    return findings
-
-
-def _bound_state_findings(slot: WorkBuddySlot, ref_name: str, relpath: str, raw: dict[str, Any]) -> list[Finding]:
-    findings: list[Finding] = []
-
-    def require_equal(field: str, actual: Any, expected: Any) -> None:
-        if actual != expected:
-            findings.append(
-                _error(
-                    "WORKBUDDY_BOUND_REF_STATE_INVALID",
-                    "Bound WorkBuddy authorization document is missing or has an invalid active-state field.",
-                    {
-                        "slot": slot.worker_slot_id,
-                        "ref": ref_name,
-                        "path": relpath,
-                        "field": field,
-                        "expected": expected,
-                        "actual": actual,
-                    },
-                )
-            )
-
-    if ref_name == "canonical_route":
-        require_equal("target_agent", raw.get("target_agent"), AGENT_TYPE)
-        require_equal("status", raw.get("status"), "READY")
-        require_equal("execution_allowed", raw.get("execution_allowed"), True)
-        require_equal("release_state", raw.get("release_state"), "ACTIVE_READBACK_CONFIRMED")
-        require_equal("execution.implementation_branch", _nested(raw, "execution", "implementation_branch"), slot.branch)
-        require_equal("execution.executable_batch", _nested(raw, "execution", "executable_batch"), slot.executable_batch)
-        bindings = raw.get("bindings") if isinstance(raw.get("bindings"), dict) else {}
-        for key, expected in (
-            ("work_claim", slot.work_claim),
-            ("task_lease", slot.task_lease),
-            ("executor_reservation", slot.executor_reservation),
-            ("prewrite_snapshot", slot.prewrite_snapshot),
-        ):
-            require_equal(f"bindings.{key}", bindings.get(key), expected)
-        if slot.primary_compatibility_projection:
-            require_equal("bindings.active_task", bindings.get("active_task"), LEGACY_WORKBUDDY_PROJECTION)
-    elif ref_name == "work_claim":
-        require_equal("agent", raw.get("agent"), AGENT_TYPE)
-        require_equal("claim_state", raw.get("claim_state"), "ACTIVE")
-        require_equal("status_observed", raw.get("status_observed"), "READY")
-        require_equal("execution_allowed_observed", raw.get("execution_allowed_observed"), True)
-    elif ref_name == "task_lease":
-        require_equal("agent_type", raw.get("agent_type"), AGENT_TYPE)
-        require_equal("lease_state", raw.get("lease_state"), "ACTIVE")
-        require_equal("execution_allowed", raw.get("execution_allowed"), True)
-        require_equal("substantive_write_allowed", raw.get("substantive_write_allowed"), True)
-        freshness = raw.get("freshness") if isinstance(raw.get("freshness"), dict) else {}
-        for key, expected in (
-            ("route", slot.canonical_route),
-            ("work_claim", slot.work_claim),
-            ("executor_reservation", slot.executor_reservation),
-            ("prewrite_snapshot", slot.prewrite_snapshot),
-            ("executable_batch", slot.executable_batch),
-        ):
-            require_equal(f"freshness.{key}", freshness.get(key), expected)
-        if slot.primary_compatibility_projection:
-            require_equal("freshness.active_task", freshness.get("active_task"), LEGACY_WORKBUDDY_PROJECTION)
-        else:
-            require_equal("freshness.active_registry", freshness.get("active_registry"), WORKBUDDY_REGISTRY)
-    elif ref_name == "executor_reservation":
-        require_equal("executor_agent_type", raw.get("executor_agent_type"), AGENT_TYPE)
-        require_equal("reservation_state", raw.get("reservation_state"), "ACTIVE")
-        require_equal(
-            "reservation_effect.execution_identity_reserved",
-            _nested(raw, "reservation_effect", "execution_identity_reserved"),
-            True,
-        )
-        require_equal(
-            "reservation_effect.substantive_write_authorized_now",
-            _nested(raw, "reservation_effect", "substantive_write_authorized_now"),
-            True,
-        )
-        for field in ("review_authority", "merge_authority"):
-            actual, contradictory = _reservation_bool(raw, field)
-            if contradictory:
-                findings.append(
-                    _error(
-                        "WORKBUDDY_BOUND_REF_STATE_INVALID",
-                        "Executor reservation contains contradictory authority projections.",
-                        {"slot": slot.worker_slot_id, "ref": ref_name, "path": relpath, "field": field},
-                    )
-                )
-            else:
-                require_equal(f"reservation_effect_or_legacy.{field}", actual, False)
-    elif ref_name == "prewrite_snapshot":
-        require_equal(
-            "activation_gate.snapshot_precedes_workbuddy_branch",
-            _nested(raw, "activation_gate", "snapshot_precedes_workbuddy_branch"),
-            True,
-        )
-        require_equal(
-            "activation_gate.requires_post_branch_fresh_readback",
-            _nested(raw, "activation_gate", "requires_post_branch_fresh_readback"),
-            True,
-        )
-        require_equal(
-            "activation_gate.activation_commit_required",
-            _nested(raw, "activation_gate", "activation_commit_required"),
-            True,
-        )
-        require_equal("ordered_batch.executable_ref", _nested(raw, "ordered_batch", "executable_ref"), slot.executable_batch)
-    elif ref_name == "executable_batch":
-        require_equal("authority", raw.get("authority"), "CANONICAL_BOUND_BATCH_EXECUTABLE")
-        require_equal("route_authority.execution_allowed", _nested(raw, "route_authority", "execution_allowed"), True)
-        for key, expected in (
-            ("route_ref", slot.canonical_route),
-            ("claim_ref", slot.work_claim),
-            ("lease_ref", slot.task_lease),
-            ("snapshot_ref", slot.prewrite_snapshot),
-        ):
-            require_equal(f"route_authority.{key}", _nested(raw, "route_authority", key), expected)
-    return findings
-
-
-def _bound_identity_findings(repo_root: Path, slot: WorkBuddySlot) -> list[Finding]:
-    findings: list[Finding] = []
-    refs = {
-        "canonical_route": slot.canonical_route,
-        "work_claim": slot.work_claim,
-        "task_lease": slot.task_lease,
-        "executor_reservation": slot.executor_reservation,
-        "prewrite_snapshot": slot.prewrite_snapshot,
-        "executable_batch": slot.executable_batch,
-    }
-    expected_identity = {
-        "task_id": slot.task_id,
-        "route_epoch": slot.route_epoch,
-        "issue": slot.issue,
-        "branch": slot.branch,
-    }
-    for ref_name, relpath in refs.items():
-        if not isinstance(relpath, str) or not relpath.strip():
-            findings.append(
-                _error(
-                    "WORKBUDDY_BOUND_REF_MISSING",
-                    "Executable WorkBuddy slot lacks a required governed reference.",
-                    {"slot": slot.worker_slot_id, "ref": ref_name},
-                )
-            )
-            continue
-        raw, load_error = _load_bound_mapping(repo_root, relpath)
-        if load_error:
-            findings.append(
-                _error(
-                    f"WORKBUDDY_BOUND_REF_{load_error}",
-                    "Executable WorkBuddy slot bound document is unavailable or unreadable.",
-                    {"slot": slot.worker_slot_id, "ref": ref_name, "path": relpath},
-                )
-            )
-            continue
-        assert raw is not None
-        actual_identity = _bound_doc_identity(ref_name, raw)
-        required_keys = ["task_id", "route_epoch", "issue"]
-        if ref_name in {"canonical_route", "work_claim", "task_lease", "executor_reservation"}:
-            required_keys.append("branch")
-        missing = [key for key in required_keys if actual_identity.get(key) is None]
-        if missing:
-            findings.append(
-                _error(
-                    "WORKBUDDY_BOUND_REF_IDENTITY_INCOMPLETE",
-                    "Bound WorkBuddy document is missing required identity fields.",
-                    {"slot": slot.worker_slot_id, "ref": ref_name, "path": relpath, "missing": missing},
-                )
-            )
-        drift = {
-            key: {"slot": expected_identity[key], "ref": actual_identity.get(key)}
-            for key in required_keys
-            if actual_identity.get(key) is not None and actual_identity.get(key) != expected_identity[key]
-        }
-        if drift:
-            findings.append(
-                _error(
-                    "WORKBUDDY_BOUND_REF_IDENTITY_DRIFT",
-                    "Bound WorkBuddy document identity disagrees with the registry slot.",
-                    {"slot": slot.worker_slot_id, "ref": ref_name, "path": relpath, "drift": drift},
-                )
-            )
-        findings.extend(_bound_authority_findings(slot, ref_name, relpath, raw))
-        findings.extend(_bound_state_findings(slot, ref_name, relpath, raw))
-        findings.extend(_bound_surface_findings(slot, ref_name, relpath, raw))
-    return findings
-
-
-def _registry_contract_findings(registry: dict[str, Any]) -> list[Finding]:
-    findings: list[Finding] = []
-    unknown = sorted(set(registry) - ALLOWED_REGISTRY_FIELDS)
-    if unknown:
-        findings.append(
-            _error(
-                "WORKBUDDY_REGISTRY_UNKNOWN_FIELD",
-                "WorkBuddy registry contains fields outside the closed v1 schema.",
-                {"unknown_fields": unknown},
-            )
-        )
-    if registry.get("parallel_routes_allowed") is not True:
-        findings.append(_error("WORKBUDDY_PARALLEL_ROUTES_NOT_ENABLED", "Multi-slot registry must explicitly enable bounded parallel routes.", {}))
-    if registry.get("nested_parallelism") is not False:
-        findings.append(
-            _error(
-                "WORKBUDDY_NESTED_PARALLELISM_UNAUTHORIZED",
-                "Schema v1 does not authorize nested parallelism.",
-                {"nested_parallelism": registry.get("nested_parallelism")},
-            )
-        )
-    if registry.get("same_task_multiple_active_slots_allowed") is not False:
-        findings.append(
-            _error(
-                "WORKBUDDY_SAME_TASK_OVERRIDE_FORBIDDEN",
-                "Schema v1 cannot enable duplicate active slots for the same task through a caller-editable flag.",
-                {"same_task_multiple_active_slots_allowed": registry.get("same_task_multiple_active_slots_allowed")},
-            )
-        )
-    if registry.get("same_mutable_surface_writers_max") != 1:
-        findings.append(
-            _error(
-                "WORKBUDDY_MUTABLE_WRITER_LIMIT_INVALID",
-                "Schema v1 requires a single writer for each mutable surface.",
-                {"same_mutable_surface_writers_max": registry.get("same_mutable_surface_writers_max")},
-            )
-        )
-    if registry.get("unknown_collision_disposition") != "FAIL_CLOSED":
-        findings.append(
-            _error(
-                "WORKBUDDY_UNKNOWN_COLLISION_NOT_FAIL_CLOSED",
-                "Unknown collision disposition must fail closed.",
-                {"unknown_collision_disposition": registry.get("unknown_collision_disposition")},
-            )
-        )
-    compatibility = registry.get("compatibility_projection")
-    if not isinstance(compatibility, dict):
-        findings.append(_error("WORKBUDDY_COMPATIBILITY_METADATA_INVALID", "compatibility_projection must be a mapping.", {}))
-    else:
-        for key, expected in EXPECTED_COMPATIBILITY_PROJECTION.items():
-            if compatibility.get(key) != expected:
-                findings.append(
-                    _error(
-                        "WORKBUDDY_COMPATIBILITY_METADATA_INVALID",
-                        "Compatibility projection metadata does not match the governed migration contract.",
-                        {"field": key, "expected": expected, "actual": compatibility.get(key)},
-                    )
-                )
-        if not isinstance(compatibility.get("primary_slot_id"), str) or not compatibility["primary_slot_id"].strip():
-            findings.append(
-                _error(
-                    "WORKBUDDY_COMPATIBILITY_PRIMARY_SLOT_ID_INVALID",
-                    "compatibility_projection.primary_slot_id must be a non-empty slot id.",
-                    {"actual": compatibility.get("primary_slot_id")},
-                )
-            )
-    return findings
-
-
-def workbuddy_slot_findings(repo_root: Path) -> list[Finding]:
     root = repo_root.resolve()
-    findings: list[Finding] = []
-    try:
-        registry = load_workbuddy_registry(root)
-    except FileNotFoundError:
-        return [_error("WORKBUDDY_REGISTRY_MISSING", "Canonical WorkBuddy multi-slot registry is missing.", {"path": WORKBUDDY_REGISTRY})]
-    except (OSError, ValueError, TypeError) as exc:
-        return [
+    registry_path = root / WORKBUDDY_REGISTRY
+    registry, load_error = _load_mapping_for_guard(registry_path)
+    if load_error == "NOT_FOUND":
+        return None, [
+            _error(
+                "WORKBUDDY_REGISTRY_MISSING",
+                "Canonical WorkBuddy multi-slot registry is missing.",
+                {"path": WORKBUDDY_REGISTRY},
+            )
+        ], True
+    if load_error:
+        return None, [
             _error(
                 "WORKBUDDY_REGISTRY_UNREADABLE",
-                "Canonical WorkBuddy multi-slot registry is unreadable.",
-                {"path": WORKBUDDY_REGISTRY, "error": type(exc).__name__},
+                "Canonical WorkBuddy multi-slot registry is unreadable or malformed YAML.",
+                {"path": WORKBUDDY_REGISTRY, "error": load_error},
             )
-        ]
+        ], True
 
-    if registry.get("schema_version") != EXPECTED_SCHEMA_VERSION:
+    assert registry is not None
+    findings: list[Finding] = []
+    fatal_for_core = False
+
+    if registry.get("status") != EXPECTED_REGISTRY_STATUS:
         findings.append(
             _error(
-                "WORKBUDDY_REGISTRY_SCHEMA_UNSUPPORTED",
-                "WorkBuddy registry schema version is not supported.",
-                {"expected": EXPECTED_SCHEMA_VERSION, "actual": registry.get("schema_version")},
+                "WORKBUDDY_REGISTRY_STATUS_INVALID",
+                "The canonical WorkBuddy registry must be explicitly ACTIVE before any child slot can be admitted.",
+                {"expected": EXPECTED_REGISTRY_STATUS, "actual": registry.get("status")},
             )
         )
-    if registry.get("registry_id") != EXPECTED_REGISTRY_ID:
+
+    if registry.get("repository") != EXPECTED_REPOSITORY_FULL_NAME:
         findings.append(
             _error(
-                "WORKBUDDY_REGISTRY_ID_MISMATCH",
-                "WorkBuddy registry identity is not canonical.",
-                {"expected": EXPECTED_REGISTRY_ID, "actual": registry.get("registry_id")},
+                "WORKBUDDY_REGISTRY_REPOSITORY_MISMATCH",
+                "The WorkBuddy registry is bound to a different or missing repository identity.",
+                {"expected": EXPECTED_REPOSITORY_FULL_NAME, "actual": registry.get("repository")},
             )
         )
-    if registry.get("canonical_agent_type") != AGENT_TYPE:
-        findings.append(
-            _error(
-                "WORKBUDDY_AGENT_TYPE_MISMATCH",
-                "WorkBuddy registry canonical agent type is invalid.",
-                {"actual": registry.get("canonical_agent_type")},
-            )
-        )
-    findings.extend(_registry_contract_findings(registry))
+
     raw_slots = registry.get("worker_slots")
     if not isinstance(raw_slots, list):
-        findings.append(_error("WORKBUDDY_SLOTS_NOT_LIST", "WorkBuddy worker_slots must be a list.", {}))
-        return findings
+        return registry, findings, fatal_for_core
 
     for index, raw in enumerate(raw_slots):
         if not isinstance(raw, dict):
-            findings.append(_error("WORKBUDDY_SLOT_NOT_MAPPING", "Every WorkBuddy slot must be a mapping.", {"index": index}))
-        else:
-            findings.extend(_slot_shape_findings(raw, index))
+            continue
 
-    slots = [normalize_workbuddy_slot(item) for item in raw_slots if isinstance(item, dict)]
-    ids = [slot.worker_slot_id for slot in slots]
-    if any(not item for item in ids) or len(set(ids)) != len(ids):
-        findings.append(
-            _error(
-                "WORKBUDDY_SLOT_ID_INVALID_OR_DUPLICATE",
-                "WorkBuddy slot IDs must be present and unique.",
-                {"slot_ids": ids},
-            )
-        )
-    for slot in slots:
-        if str(slot.status or "").upper() not in KNOWN_SLOT_STATUSES:
+        slot_id = _first_raw(raw, "worker_slot_id", "slot_id")
+        if not isinstance(slot_id, str) or not slot_id.strip():
             findings.append(
                 _error(
-                    "WORKBUDDY_SLOT_STATUS_UNKNOWN",
-                    "Unknown WorkBuddy slot status is invalid under the closed v1 lifecycle contract.",
-                    {"slot": slot.worker_slot_id, "status": slot.status},
+                    "WORKBUDDY_SLOT_ID_INVALID_OR_DUPLICATE",
+                    "WorkBuddy slot IDs must be non-empty strings before uniqueness checks.",
+                    {"index": index, "slot_id_type": type(slot_id).__name__},
                 )
             )
+            fatal_for_core = True
 
-    executable = [slot for slot in slots if workbuddy_slot_is_executable(slot)]
-    max_slots = workbuddy_active_slots_max(root)
-    if max_slots < 1:
-        findings.append(
-            _error(
-                "WORKBUDDY_ACTIVE_SLOT_LIMIT_INVALID",
-                "WorkBuddy active slot capacity must be a positive integer.",
-                {"active_slots_max": registry.get("active_slots_max")},
-            )
-        )
-    elif len(executable) > max_slots:
-        findings.append(
-            _error(
-                "WORKBUDDY_ACTIVE_SLOT_CAPACITY_EXCEEDED",
-                "Executable WorkBuddy slots exceed the governed registry capacity.",
-                {"active": [slot.worker_slot_id for slot in executable], "limit": max_slots},
-            )
-        )
-
-    seen: dict[str, list[str]] = {}
-    for slot in executable:
-        if slot.task_id:
-            seen.setdefault(slot.task_id, []).append(str(slot.worker_slot_id))
-    for task_id, slot_ids in seen.items():
-        if len(slot_ids) > 1:
+        task_id = _first_raw(raw, "task_id", "active_task_id")
+        if task_id is not None and not isinstance(task_id, str):
             findings.append(
                 _error(
-                    "WORKBUDDY_SAME_TASK_DOUBLE_SLOT",
-                    "One WorkBuddy task occupies multiple executable slots; schema v1 has no nested-parallel authority.",
-                    {"task_id": task_id, "slots": slot_ids},
+                    "WORKBUDDY_SLOT_IDENTITY_TYPE_INVALID",
+                    "WorkBuddy task identity must be a string when present.",
+                    {"index": index, "field": "task_id", "value_type": type(task_id).__name__},
                 )
             )
+            fatal_for_core = True
 
-    for slot in executable:
-        findings.extend(_required_slot_identity_findings(slot))
-        if slot.agent_type != AGENT_TYPE:
+        if raw.get("agent_type") != AGENT_TYPE:
             findings.append(
                 _error(
                     "WORKBUDDY_SLOT_AGENT_TYPE_INVALID",
-                    "Executable WorkBuddy slot has the wrong agent type.",
-                    {"slot": slot.worker_slot_id, "agent_type": slot.agent_type},
+                    "Every WorkBuddy registry slot must carry the canonical WorkBuddy agent identity.",
+                    {"index": index, "slot": slot_id, "actual": raw.get("agent_type")},
                 )
             )
-        findings.extend(_bound_identity_findings(root, slot))
 
-    for index, left in enumerate(executable):
-        for right in executable[index + 1 :]:
-            collision = classify_workbuddy_collision(left, right)
-            if collision.get("level") in {"O3", "O4"}:
-                findings.append(
-                    _error(
-                        "WORKBUDDY_EXECUTABLE_SLOT_COLLISION",
-                        "Two executable WorkBuddy slots collide on a mutable/resource/authority surface.",
-                        {"left": left.worker_slot_id, "right": right.worker_slot_id, "collision": collision},
-                    )
-                )
-
-    primary = [slot for slot in slots if slot.primary_compatibility_projection]
-    if len(primary) != 1:
-        findings.append(
-            _error(
-                "WORKBUDDY_PRIMARY_COMPATIBILITY_SLOT_INVALID",
-                "Exactly one slot must project to the legacy singular WorkBuddy task file during migration.",
-                {"primary_slots": [slot.worker_slot_id for slot in primary]},
-            )
-        )
-    else:
-        compatibility = registry.get("compatibility_projection")
-        if isinstance(compatibility, dict) and compatibility.get("primary_slot_id") != primary[0].worker_slot_id:
+        if raw.get("executor_role") != EXPECTED_EXECUTOR_ROLE:
             findings.append(
                 _error(
-                    "WORKBUDDY_COMPATIBILITY_PRIMARY_SLOT_DRIFT",
-                    "Compatibility metadata primary_slot_id disagrees with the designated primary slot.",
-                    {"metadata": compatibility.get("primary_slot_id"), "slot": primary[0].worker_slot_id},
+                    "WORKBUDDY_SLOT_EXECUTOR_ROLE_INVALID",
+                    "Every WorkBuddy slot must bind the canonical local-executor role.",
+                    {
+                        "index": index,
+                        "slot": slot_id,
+                        "expected": EXPECTED_EXECUTOR_ROLE,
+                        "actual": raw.get("executor_role"),
+                    },
                 )
             )
+
+        if not _raw_slot_is_candidate_executable(raw):
+            continue
+
+        for field, ref_name in (
+            ("canonical_route", "canonical_route"),
+            ("work_claim", "work_claim"),
+            ("task_lease", "task_lease"),
+            ("executor_reservation", "executor_reservation"),
+            ("prewrite_snapshot", "prewrite_snapshot"),
+            ("executable_batch", "executable_batch"),
+        ):
+            relpath = raw.get(field)
+            if not isinstance(relpath, str) or not relpath.strip():
+                continue
+            _, bound_error = _load_mapping_for_guard(root / relpath)
+            if bound_error == "UNREADABLE":
+                findings.append(
+                    _error(
+                        "WORKBUDDY_BOUND_REF_UNREADABLE",
+                        "Executable WorkBuddy slot bound document is unreadable or malformed YAML.",
+                        {"slot": slot_id, "ref": ref_name, "path": relpath},
+                    )
+                )
+                fatal_for_core = True
+
+    # The core's legacy compatibility read occurs after its ordinary guarded
+    # loads.  Pre-parse that file here so malformed YAML is also observable as a
+    # structured failure instead of escaping from the compatibility check.
+    primary_declared = any(
+        isinstance(raw, dict) and raw.get("primary_compatibility_projection") is True
+        for raw in raw_slots
+    )
+    if primary_declared:
         legacy_path = root / LEGACY_WORKBUDDY_PROJECTION
-        if not legacy_path.exists():
-            findings.append(
-                _error(
-                    "WORKBUDDY_LEGACY_PROJECTION_MISSING",
-                    "Legacy WorkBuddy compatibility projection is missing during migration.",
-                    {"path": LEGACY_WORKBUDDY_PROJECTION},
-                )
-            )
-        else:
-            legacy = load_yaml(legacy_path)
-            expected = _slot_identity(primary[0])
-            actual = _legacy_identity(legacy)
-            drift = {
-                key: {"registry": expected[key], "legacy": actual[key]}
-                for key in expected
-                if expected[key] != actual[key]
-            }
-            if drift:
+        if legacy_path.exists():
+            _, legacy_error = _load_mapping_for_guard(legacy_path)
+            if legacy_error:
                 findings.append(
                     _error(
-                        "WORKBUDDY_COMPATIBILITY_PROJECTION_DRIFT",
-                        "Legacy singular WorkBuddy projection disagrees with the canonical primary slot.",
-                        {"slot": primary[0].worker_slot_id, "drift": drift},
+                        "WORKBUDDY_LEGACY_PROJECTION_UNREADABLE",
+                        "Legacy WorkBuddy compatibility projection is unreadable or malformed YAML.",
+                        {"path": LEGACY_WORKBUDDY_PROJECTION},
                     )
                 )
-    return findings
+                fatal_for_core = True
+
+    return registry, findings, fatal_for_core
 
 
-def workbuddy_slot_witness(slot: WorkBuddySlot) -> dict[str, Any]:
-    return asdict(slot)
+def load_workbuddy_registry(repo_root: Path) -> dict[str, Any]:
+    """Load canonical registry with YAML parser failures normalized."""
+
+    return _parser_contained_load_yaml(repo_root.resolve() / WORKBUDDY_REGISTRY)
+
+
+def load_workbuddy_slots(repo_root: Path) -> list[WorkBuddySlot]:
+    """Return no candidate slots when the registry lifecycle is not ACTIVE."""
+
+    registry = load_workbuddy_registry(repo_root)
+    if registry.get("status") != EXPECTED_REGISTRY_STATUS:
+        return []
+    raw_slots = registry.get("worker_slots")
+    if not isinstance(raw_slots, list):
+        return []
+    safe_slots: list[WorkBuddySlot] = []
+    for raw in raw_slots:
+        if not isinstance(raw, dict):
+            continue
+        slot_id = _first_raw(raw, "worker_slot_id", "slot_id")
+        if not isinstance(slot_id, str) or not slot_id.strip():
+            continue
+        safe_slots.append(_core.normalize_workbuddy_slot(raw))
+    return safe_slots
+
+
+def workbuddy_active_slots_max(repo_root: Path) -> int:
+    try:
+        registry = load_workbuddy_registry(repo_root)
+    except (OSError, ValueError, TypeError, UnicodeError):
+        return 0
+    if registry.get("status") != EXPECTED_REGISTRY_STATUS:
+        return 0
+    raw = registry.get("active_slots_max")
+    return raw if isinstance(raw, int) and not isinstance(raw, bool) and raw >= 1 else 0
+
+
+def workbuddy_slot_findings(repo_root: Path) -> list[Finding]:
+    registry, guard_findings, fatal_for_core = _guard_registry_input(repo_root)
+    if registry is None or fatal_for_core:
+        return guard_findings
+    core_findings = _core.workbuddy_slot_findings(repo_root)
+    return guard_findings + core_findings
 
 
 def validate_workbuddy_slots(repo_root: Path) -> dict[str, Any]:
     findings = workbuddy_slot_findings(repo_root)
     try:
         slots = load_workbuddy_slots(repo_root)
-    except (OSError, ValueError, TypeError):
+    except (OSError, ValueError, TypeError, UnicodeError):
         slots = []
     return {
         "schema_version": "1.0",
         "registry": WORKBUDDY_REGISTRY,
         "active_slots_max": workbuddy_active_slots_max(repo_root),
-        "slots": [workbuddy_slot_witness(slot) for slot in slots],
+        "slots": [asdict(slot) for slot in slots],
         "errors": [asdict(item) for item in findings if item.severity == "ERROR"],
         "warnings": [asdict(item) for item in findings if item.severity == "WARN"],
         "structural_check": "PASS" if not any(item.severity == "ERROR" for item in findings) else "FAIL",
