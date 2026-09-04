@@ -8,8 +8,10 @@ on:
       - "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
       - "coordination/WORKBUDDY-TASK-ROUTER.md"
       - "coordination/CONTROL-TOWER/workbuddy_slots.py"
+      - "coordination/CONTROL-TOWER/workbuddy_slot_selection.py"
       - "coordination/CONTROL-TOWER/run_workbuddy_slots.py"
       - "coordination/CONTROL-TOWER/tests/test_workbuddy_slots.py"
+      - "coordination/CONTROL-TOWER/tests/test_workbuddy_slot_selection.py"
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R579-WORKBUDDY-MULTISLOT/**"
   workflow_dispatch:
 
@@ -36,13 +38,29 @@ jobs:
         run: python -m pip install --disable-pip-version-check PyYAML==6.0.2
       - name: Compile WorkBuddy multi-slot governance
         working-directory: coordination/CONTROL-TOWER
-        run: python -m py_compile workbuddy_slots.py run_workbuddy_slots.py tests/test_workbuddy_slots.py
+        run: >-
+          python -m py_compile
+          workbuddy_slots.py
+          workbuddy_slot_selection.py
+          run_workbuddy_slots.py
+          tests/test_workbuddy_slots.py
+          tests/test_workbuddy_slot_selection.py
       - name: Run WorkBuddy multi-slot adversarial tests
         working-directory: coordination/CONTROL-TOWER
-        run: python -m unittest discover -s tests -p 'test_workbuddy_slots.py' -v
+        run: python -m unittest discover -s tests -p 'test_workbuddy_slot*.py' -v
       - name: Validate candidate registry against current R175 compatibility projection
         working-directory: coordination/CONTROL-TOWER
         run: python run_workbuddy_slots.py --repo-root ../..
+      - name: Resolve current R175 primary slot explicitly
+        working-directory: coordination/CONTROL-TOWER
+        run: >-
+          python run_workbuddy_slots.py
+          --repo-root ../..
+          --resolve-execution-target
+          --select-slot WORKBUDDY-R175-ORDERED-BATCH-1
+      - name: Prove bare selector is currently unambiguous with one executable slot
+        working-directory: coordination/CONTROL-TOWER
+        run: python run_workbuddy_slots.py --repo-root ../.. --resolve-execution-target
       - name: Verify candidate diff whitespace
         if: ${{ github.event_name == 'pull_request' }}
         run: |
