@@ -21,6 +21,7 @@ if str(ROOT) not in sys.path:
 from creative_runtime.contracts import PlayerAction, StoryState, canonical_json
 from creative_runtime.ledger import CreativeLedger, LedgerViolation
 from creative_runtime.knowledge import KnowledgeBridgeViolation, KnowledgeReviewBridge
+from creative_runtime.migration import MigrationViolation, migrate_legacy_session
 
 
 SCHEMA = "CreativeSession/v1"
@@ -200,6 +201,8 @@ def run(argv: list[str]) -> dict[str, Any]:
     say_parser.add_argument("text")
     subparsers.add_parser("resume")
     subparsers.add_parser("replay")
+    migrate_parser = subparsers.add_parser("migrate")
+    migrate_parser.add_argument("--slot", default="default")
     knowledge_parser = subparsers.add_parser("knowledge")
     knowledge_subparsers = knowledge_parser.add_subparsers(dest="knowledge_command", required=True)
     knowledge_search = knowledge_subparsers.add_parser("search")
@@ -225,6 +228,15 @@ def run(argv: list[str]) -> dict[str, Any]:
     if args.command == "replay":
         ledger = _load_session(args.workspace)
         return {**_view(ledger), "status": "replayed", "event_count": len(ledger.events)}
+    if args.command == "migrate":
+        target = migrate_legacy_session(args.workspace, args.slot)
+        return {
+            "status": "migrated",
+            "session": str(target),
+            "slot": args.slot,
+            "source_preserved": True,
+            "publication_binding": "descriptor_lock_identity_pre_and_post_publish",
+        }
     if args.command == "knowledge":
         bridge = _load_knowledge(args.workspace)
         if args.knowledge_command == "search":
@@ -243,7 +255,7 @@ def run(argv: list[str]) -> dict[str, Any]:
 def main() -> int:
     try:
         print(json.dumps(run(sys.argv[1:]), ensure_ascii=False, sort_keys=True, indent=2))
-    except (LedgerViolation, KnowledgeBridgeViolation, KeyError, json.JSONDecodeError) as error:
+    except (LedgerViolation, KnowledgeBridgeViolation, MigrationViolation, KeyError, json.JSONDecodeError) as error:
         print(json.dumps({"status": "error", "message": str(error)}, ensure_ascii=False, sort_keys=True))
         return 2
     return 0
