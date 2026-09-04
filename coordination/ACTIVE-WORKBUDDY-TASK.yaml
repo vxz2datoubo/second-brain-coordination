@@ -5,63 +5,88 @@ repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "WORKBUDDY"
 trigger_phrases: ["读取任务", "执行任务", "开始任务"]
 
-active_issue: 532
-source_issue: 528
+active_issue: 586
+source_issue: 577
+source_pull_request: 578
 pull_request: null
-task_id: "WORKBUDDY-R175-ORDERED-BATCH"
-route_epoch: 175
-mode: "ordered_bounded_batch"
-mode_label: "R175 WorkBuddy immutable-checkpoint ordered batch"
+task_id: "WORKBUDDY-R586-PR578-REMEDIATION"
+route_epoch: 586
+mode: "review_bounded_remediation"
+mode_label: "PR #578 independent-review P1-01/P1-02 bounded successor"
 status: "READY"
 execution_allowed: true
 active: true
 blocked_by: null
 automatic_resume: true
 automatic_resume_within_task: true
-automatic_resume_within_batch: true
 second_user_start_command_required: false
 
-canonical_route: "coordination/ROUTES/WORKBUDDY-R175-ORDERED-BATCH.yaml"
-task_brief: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/WORKBUDDY-ORDERED-BATCH-R175.yaml"
-work_claim: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/WORK-CLAIM.yaml"
-task_lease: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/TASK-LEASE.yaml"
-executor_reservation: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/EXECUTOR-RESERVATION.yaml"
-prewrite_snapshot: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/PREWRITE-RECONCILIATION-SNAPSHOT.yaml"
-executable_batch: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/EXECUTABLE-BATCH.json"
-coordination_baton: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/EXECUTOR-COORDINATION-BATON.yaml"
-release_request: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/WORKBUDDY-ROUTE-RELEASE-REQUEST.yaml"
-execution_policy: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/CODEX-WORKBUDDY-EXECUTION-POLICY.yaml"
+canonical_route: "coordination/ROUTES/WORKBUDDY-R586-PR578-REMEDIATION.yaml"
+task_brief: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R586/TASK-BRIEF.yaml"
+work_claim: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R586/WORK-CLAIM.yaml"
+task_lease: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R586/TASK-LEASE.yaml"
+executor_reservation: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R586/EXECUTOR-RESERVATION.yaml"
+prewrite_snapshot: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R586/PREWRITE-RECONCILIATION-SNAPSHOT.yaml"
+executable_batch: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R586/EXECUTABLE-BATCH.json"
+
+canonicalization_gate:
+  candidate_branch: "gpt/r586-workbuddy-successor-route-release"
+  candidate_state_is_not_execution_authority: true
+  require_exact_release_head_independent_acceptance: true
+  require_separate_canonicalization_to_main: true
+  require_fresh_main_readback_before_execution: true
+
+source_review:
+  frozen_pr: 578
+  frozen_exact_head: "9d536357755a44ac50ea4352ac7c319d97101779"
+  independent_review: "pullrequestreview-5108122069"
+  verdict: "CHANGES_REQUIRED"
+  sole_mandatory_findings:
+    - "P1-01 EXACT_HEAD_CI_SCOPE_GATE_USES_STALE_BASELINE"
+    - "P1-02 CALLER_SELECTED_BASELINE_CAN_REDEFINE_SCOPE_UNIVERSE"
 
 source_checkpoint:
-  branch: "codex/r175-capability-policy-confinement-remediation"
-  checkpoint_remote_ref: "refs/remotes/origin/codex/checkpoint-r175-mapping-7d8ac1f"
-  exact_head: "7d8ac1fdaf724bed75c8da3e1dbdf4212e108133"
-  baseline: "740788a3847a402923bf2e89093d910eda0c89d0"
-implementation_branch: "workbuddy/r175-ordered-batch-execution"
+  branch: "main"
+  exact_head: "04124e233dc813cca4054851ef6a470b342d82fe"
+  frozen_source_head: "9d536357755a44ac50ea4352ac7c319d97101779"
+  drift_action: "FAIL_CLOSED_REISSUE_ROUTE_FROM_NEW_MAIN"
+implementation_branch: "workbuddy/r586-pr578-review-bounded-remediation"
+implementation_branch_owner: "WORKBUDDY"
+implementation_branch_must_be_created_after_snapshot: true
 
-fixed_order: ["WB-V1", "WB-V2", "WB-V3", "WB-V4", "WB-S1", "WB-S2", "WB-S3"]
+predecessor_closeout:
+  task_id: "WORKBUDDY-R175-ORDERED-BATCH"
+  issue: 532
+  completed: true
+  return_result: "PASS"
+  completed_head: "2c229eaa1228580e80e130f628dc11c56ee6df8d"
+  completion_signal: "WORKBUDDY_R175_ORDERED_BATCH_COMPLETE_RETURN_TO_CODEX"
+  old_active_pointer_disposition: "SUPERSEDED_AFTER_PROVEN_BATCH_RETURN"
+
 continue_without_user_message: true
 intermediate_codex_audit_required: false
-return_target: "CODEX"
-return_package_template: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/WORKBUDDY-RETURN-PACKAGE-TEMPLATE.yaml"
-completion_signal: "WORKBUDDY_R175_ORDERED_BATCH_COMPLETE_RETURN_TO_CODEX"
+return_target: "GPT"
+completion_signal: "WORKBUDDY_R586_PR578_REMEDIATION_READY_FOR_GPT_REVIEW"
 
-authorized_paths:
-  - "tests/workbuddy/**"
-  - "tools/workbuddy/**"
-  - "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/**"
+authorized_semantic_paths:
+  - ".github/workflows/creative-runtime-offline.yml"
+  - "tools/verify_r175_scope.py"
+  - "tests/test_creative_public_safe_boundary.py"
+source_port_authority: "EXACT_E577_ALLOWLIST_IN_WORK_CLAIM_ONLY"
+
 hard_boundaries:
-  - "NO_ARCHITECTURE_CHANGE"
-  - "NO_ACCEPTANCE_ORACLE_CHANGE"
-  - "NO_CODEX_RETAINED_SURFACE_WRITE"
-  - "NO_REORDER_SKIP_OR_PARALLELIZE_BATCH_ITEMS"
-  - "NO_INTERMEDIATE_REVIEW_AUTHORITY"
-  - "NO_SELF_MERGE"
-  - "NO_CREDENTIAL_REAL_DATA_EXTERNAL_PAID_GENERATION_DEPLOYMENT_TRADE_CANONICAL_KNOWLEDGE"
-  - "NO_FORCE_PUSH_REBASE_RESET_AMEND_HISTORY_REWRITE"
+  - "NO_EXECUTION_FROM_CANDIDATE_BRANCH; CANONICAL_MAIN_READBACK_REQUIRED"
+  - "NO_FROZEN_PR578_BRANCH_WRITE"
+  - "NO_CODEX_R577_AUTHORITY_REUSE"
+  - "NO_E577_ALLOWLIST_WIDENING"
+  - "NO_CANONICAL_PUBLIC_SAFE_POLICY_FLOOR_EDIT"
+  - "NO_UNRELATED_RUNTIME_CONTENT_CHANGE"
+  - "NO_NONCANONICAL_MULTISLOT_AUTHORITY"
+  - "NO_NETWORK_PROVIDER_CREDENTIAL_REAL_USER_PAID_GENERATION_DEPLOYMENT_TRADE"
+  - "NO_READY_SELF_REVIEW_SELF_ACCEPT_MERGE_HISTORY_REWRITE"
 
 read_behavior:
-  on_read_task: "CLAIM_VALID_LEASE_AND_EXECUTE_IMMEDIATELY"
-after_read: "BEGIN_WB_V1_AND_CONTINUE_FIXED_BATCH_WITHOUT_SECOND_USER_COMMAND"
+  on_read_task: "REQUIRE_CANONICAL_MAIN_READBACK_THEN_CLAIM_VALID_LEASE_AND_EXECUTE_IMMEDIATELY"
+after_read: "CREATE_BOUND_IMPLEMENTATION_BRANCH_FROM_EXACT_CANONICAL_BASE_THEN_EXECUTE_WB_R586_V1_TO_V2_BATCH"
 updated_by: "GPT_GITHUB_INTEGRATOR"
-updated_at: "2026-09-01T16:20:00-05:00"
+updated_at: "2026-09-04T17:09:00-05:00"
