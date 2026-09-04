@@ -66,15 +66,18 @@
 
 1. 固定协调仓库为 `vxz2datoubo/second-brain-coordination`。
 2. 必须区分`WorkBuddy执行者`与Issue #7的Codex调度器维护者；用户说`读取任务`时禁止进入Issue #7。
-3. 先同步或直接读取远端最新`main`，再读取`coordination/WORKBUDDY-TASK-ROUTER.md`和`coordination/ACTIVE-WORKBUDDY-TASK.yaml`。
-4. 读取并遵守RTCE协议。若任务`READY`且`execution_allowed: true`，领取后立即执行；若PAUSED或false，硬停止并提交精确阻塞状态，不得自动恢复。
-5. 只执行WorkBuddy活动任务，不得读取Codex/QCLAW路由代替。
-6. 必须读取Issue、评论、影响预测、AMED/PMA-BIG/WPDCR/PDER、路径允许列表与安全边界。
-7. 主动发现本地能力、权限、接口、路径、服务、性能、数据质量、部署偏差和可观测性问题；A/B可按授权实施，C只提案，D停止升级。
-8. 检查点和完成报告必须包含工作过程、难度、失败、发现、扩展、未解问题、精确协同和系统反馈。
-9. 不自行合并、改变服务权威、导出秘密、准入真实数据或触碰交易。
+3. 先同步或直接读取远端最新`main`，再读取`coordination/WORKBUDDY-TASK-ROUTER.md`、canonical复数任务真源`coordination/ACTIVE-WORKBUDDY-TASKS.yaml`和迁移期primary兼容投影`coordination/ACTIVE-WORKBUDDY-TASK.yaml`。
+4. 必须先按router和`coordination/CONTROL-TOWER/workbuddy_slots.py`验证复数registry、授权链、capacity和碰撞；若存在多个可执行slot，当前启动/交接上下文或用户命令必须唯一绑定task/`worker_slot_id`，否则以`AMBIGUOUS_WORKBUDDY_SLOT_SELECTION`硬停止，不得按registry顺序猜测。
+5. 读取并遵守RTCE协议。唯一目标slot若为`READY`且`execution_allowed: true`，领取后立即执行；若PAUSED、false、slot选择不唯一或授权链/碰撞验证失败，硬停止该实例并提交精确阻塞状态，不得自动恢复。
+6. 只执行明确绑定的WorkBuddy活动slot，不得读取Codex/QCLAW路由代替，也不得因primary兼容投影存在而忽略其他canonical slot。
+7. 必须读取目标slot的Issue、评论、影响预测、AMED/PMA-BIG/WPDCR/PDER、路径允许列表与安全边界。
+8. 主动发现本地能力、权限、接口、路径、服务、性能、数据质量、部署偏差和可观测性问题；A/B可按授权实施，C只提案，D停止升级。
+9. 检查点和完成报告必须包含工作过程、难度、失败、发现、扩展、未解问题、精确协同和系统反馈，并且只允许释放/更新自身slot，不能覆盖其他WorkBuddy slot。
+10. 不自行合并、改变服务权威、导出秘密、准入真实数据或触碰交易。多槽只扩展调度并发，不扩展任何业务权限。
 
-唯一WorkBuddy任务真源：远端最新 `main` 上的 `coordination/ACTIVE-WORKBUDDY-TASK.yaml`。
+canonical WorkBuddy任务真源：远端最新 `main` 上的 `coordination/ACTIVE-WORKBUDDY-TASKS.yaml`。
+
+迁移期primary兼容投影：`coordination/ACTIVE-WORKBUDDY-TASK.yaml`，不得覆盖、删除、暂停、释放或隐藏复数registry中的其他slot，也不得单独创造执行权限。
 
 ## QCLAW短命令路由
 
