@@ -1,0 +1,303 @@
+schema_version: "1.0"
+protocol_id: "GPT-WORKBUDDY-ENGINEERING-OPERATING-MODE-0001"
+name: "GPT Architecture -> WorkBuddy Engineering -> GPT Independent Review"
+status: "CANDIDATE_UNTIL_INDEPENDENTLY_ACCEPTED_AND_CANONICALIZED"
+owner: "USER"
+repository: "vxz2datoubo/second-brain-coordination"
+source_issue: 591
+
+objective: >-
+  Make GPT the default architecture/governance/orchestration layer, GitHub main the canonical engineering
+  synchronization and coordination truth, WorkBuddy the default local engineering executor for non-trivial
+  implementation, a separate GPT context the independent exact-head reviewer, and a separate canonicalizer the
+  governed merge authority. Increase throughput without weakening single-writer, exact-head CI, scope, evidence,
+  review, or canonicalization guarantees.
+
+truth_and_authority:
+  github_engineering_truth:
+    statement: >-
+      Remote GitHub main is the canonical engineering synchronization and coordination truth for accepted source,
+      governance, task routes, evidence, and system state.
+    rules:
+      - "Local WorkBuddy checkouts are disposable execution workspaces, never canonical by themselves."
+      - "A pushed branch or PR is candidate engineering state until independently accepted and canonicalized."
+      - "ACCEPT is not canonical."
+      - "No executor writes main directly."
+  runtime_data_truth:
+    statement: >-
+      Runtime/data systems with an existing declared System of Record retain that authority. GitHub does not replace
+      W3 MemoryStore, trading authorities, or other runtime SoRs merely because engineering artifacts are synchronized
+      through GitHub.
+  user_chat_truth:
+    statement: >-
+      Temporary chat context does not mutate engineering authority. Durable task/architecture decisions must be
+      recorded into Issue/route/spec/snapshot or another governed GitHub artifact.
+
+roles:
+  OWNER_USER:
+    owns:
+      - "product direction"
+      - "priority"
+      - "explicit authority expansion"
+      - "high-risk irreversible gates"
+  GPT_ARCHITECTURE_OWNER:
+    owns:
+      - "requirements discovery"
+      - "external research when needed"
+      - "architecture and System-of-Record decisions"
+      - "task decomposition and task-size classification"
+      - "single-writer/collision planning"
+      - "Issue/spec/acceptance criteria"
+      - "GPT_TO_WORKBUDDY_HANDOFF publication"
+      - "post-review routing and remediation authorization"
+    defaults:
+      - "Prefer delegation for S2/S3 implementation."
+      - "Do not burn GPT context on repetitive local compile/test/edit loops when WorkBuddy can execute them safely."
+  WORKBUDDY_ENGINEERING_WORKER:
+    owns:
+      - "safe clone/fetch of exact GitHub state"
+      - "local repository archaeology within authorized task"
+      - "bounded implementation"
+      - "local focused/full regression loops"
+      - "scope verification"
+      - "credential-secret scan"
+      - "push of candidate branch"
+      - "PR update/create when authorized"
+      - "WORKBUDDY_RETURN_PACKAGE"
+    forbidden:
+      - "self-review"
+      - "self-accept"
+      - "self-merge"
+      - "direct-main writes"
+      - "force-push/rebase/reset/amend that destroys governed evidence"
+      - "silent architecture or acceptance-oracle redefinition"
+      - "silent scope widening"
+      - "credential export or persistence"
+  GPT_INDEPENDENT_REVIEWER:
+    separation_rule: >-
+      Must be a separate review context/lane from the GPT architecture/engineering actor that authored or steered the
+      candidate. Fresh evidence is required; engineering handoff claims are not trusted as acceptance evidence.
+    owns:
+      - "fresh current-main reconciliation"
+      - "PR exact-head identity"
+      - "full diff/scope review"
+      - "CI and test evidence review"
+      - "architecture/acceptance conformance"
+      - "adversarial blocker discovery"
+      - "exact-head verdict: ACCEPT | CHANGES_REQUIRED | BLOCKED"
+      - "matching REVIEW_RESULT/v1 when required"
+  CANONICALIZER:
+    owns:
+      - "fresh pre-merge main/head/CI/review/mergeability reconciliation"
+      - "separate governed merge/canonicalization"
+      - "post-merge ancestry/readback"
+    forbidden:
+      - "merging an unaccepted or moved head"
+
+execution_profiles:
+  FAST:
+    purpose:
+      - "repository reconnaissance"
+      - "dependency mapping"
+      - "mechanical edits"
+      - "fixture/test generation"
+      - "lint/type/static checks"
+      - "regression execution"
+      - "evidence collection"
+    current_preferred_model: "DeepSeek V4 Flash"
+    authority_note: "Model name is a replaceable implementation preference, not governance authority."
+  DEEP:
+    purpose:
+      - "cross-module implementation"
+      - "complex refactor"
+      - "concurrency/persistence/migration"
+      - "difficult root-cause remediation"
+      - "multi-step agent/runtime integration"
+    current_preferred_model: "DeepSeek V4 Pro"
+    authority_note: "Model name is a replaceable implementation preference, not governance authority."
+  MIXED:
+    purpose:
+      - "FAST reconnaissance/tests around a DEEP implementation lead"
+    rule: >-
+      Multiple model profiles may collaborate only under one declared WorkBuddy single-writer task. They must not
+      create competing branches or concurrent writers on the same files unless the task explicitly defines disjoint
+      sub-slices and an integration owner.
+
+task_size_classifier:
+  S0:
+    definition: "analysis/research/explanation; no repository write"
+    default_executor: "GPT"
+  S1:
+    definition: >-
+      Bounded governance or tiny patch where delegation/setup cost plausibly exceeds the implementation/test loop.
+      Typical shape: 1-2 files, limited surface, no substantial repo archaeology or repeated local test cycle.
+    default_executor: "GPT_OR_WORKBUDDY_BY_ARCHITECTURE_OWNER"
+    review_rule: "Existing exact-head/review rules still apply when the change requires governed acceptance."
+  S2:
+    definition: >-
+      Standard non-trivial implementation, multi-file change, or any task likely to benefit materially from repeated
+      local edit/test cycles.
+    default_executor: "WORKBUDDY"
+    default_profile: "FAST_OR_DEEP"
+  S3:
+    definition: >-
+      Complex, cross-module, migration, persistence, concurrency, runtime, or integration-heavy implementation.
+    default_executor: "WORKBUDDY"
+    default_profile: "DEEP_OR_MIXED"
+  S4:
+    definition: "Architecture/requirements remain materially ambiguous."
+    default_executor: "GPT_ARCHITECTURE_OWNER_ONLY"
+    implementation_allowed: false
+    exit_gate: "Freeze architecture, SoR, interfaces, acceptance criteria, and write surface first."
+  S5:
+    definition: "High-risk, irreversible, authority-sensitive, account/funds/credential, or other explicit Owner-gated work."
+    default_executor: "EXPLICIT_ROUTE_ONLY"
+    implementation_allowed: false
+    exit_gate: "Obtain the task-specific additional authority required by existing governance."
+
+routing_algorithm:
+  - step: 1
+    action: "Fresh-read remote main and stable repository entrypoints."
+  - step: 2
+    action: "Fresh-reconcile current active routes, Issues/PRs, writer ownership, and collisions."
+  - step: 3
+    action: "Classify task S0-S5 and state the reason."
+  - step: 4
+    action: "For S4/S5, stop implementation until the required architecture/authority gate closes."
+  - step: 5
+    action: >-
+      For S2/S3, default to WorkBuddy unless a concrete reason shows delegation would increase total coordination cost
+      or violate a task-specific boundary.
+  - step: 6
+    action: "Publish machine-readable GPT_TO_WORKBUDDY_HANDOFF/v1 and any task-specific route/claim/lease/snapshot required by current Control Tower governance."
+  - step: 7
+    action: "WorkBuddy reads remote task truth, safely syncs/clones exact base, claims valid lease, and begins immediately when READY/execution_allowed=true."
+  - step: 8
+    action: "WorkBuddy performs local implementation and iterative tests until pass or a real stop condition occurs."
+  - step: 9
+    action: "WorkBuddy verifies scope, secrets, diff, and return evidence, pushes candidate branch, and freezes exact head for review."
+  - step: 10
+    action: "GitHub exact-head CI runs."
+  - step: 11
+    action: "Separate GPT reviewer performs fresh independent review of that exact head."
+  - step: 12
+    action: >-
+      CHANGES_REQUIRED returns only exact blockers to a newly authorized bounded remediation cycle; any new head requires
+      new CI and new exact-head review. ACCEPT advances to separate canonicalization.
+  - step: 13
+    action: "Separate canonicalizer fresh-reconciles and merges only the accepted exact head."
+  - step: 14
+    action: "Post-merge closeout/readback records canonical state and releases the writer/lease/capacity according to existing governance."
+
+single_writer_rules:
+  - "One task slice has exactly one declared engineering writer authority."
+  - "FAST and DEEP model profiles inside one WorkBuddy task are collaborators under one writer identity, not separate competing writers."
+  - "Parallelism is allowed only for disjoint tasks/write surfaces with explicit collision analysis."
+  - "A reviewed exact head is frozen. Movement invalidates review and requires a new ticket."
+  - "Do not modify another executor's active branch."
+
+workbuddy_local_bootstrap:
+  mandatory:
+    - "Detect existing checkout vs fresh clone; never destroy uncommitted local work."
+    - "git fetch origin and identify remote main exact SHA."
+    - "Read root AGENTS.md."
+    - "Read coordination/WORKBUDDY-TASK-ROUTER.md."
+    - "Read coordination/ACTIVE-WORKBUDDY-TASK.yaml."
+    - "Read this protocol."
+    - "Read active Issue and all task-bound comments/artifacts."
+    - "Verify route/claim/lease/snapshot/base/branch/status/execution_allowed."
+    - "Check authorized/forbidden paths before write."
+  branch_safety:
+    - "Never implement on main."
+    - "Never reset/rebase/force-push a governed branch unless an explicit task-specific authority says so."
+    - "Before first write, confirm HEAD/base and working-tree cleanliness or preserve unrelated local changes safely."
+
+implementation_loop:
+  - "Reconnaissance is read-only until the route authorizes write."
+  - "Prefer local focused tests after each meaningful change."
+  - "Run broader regression before handoff when required by task/route."
+  - "Treat failures as evidence: isolate root cause, record failed attempts, do not simply weaken tests/guards to obtain green."
+  - "Architecture or acceptance-oracle conflicts are escalation points, not opportunities for the executor to redefine the task."
+  - "A/B bounded initiative remains allowed only where the active task grants it; C is proposal-only; D/Owner-gate stops."
+
+handoff_and_return:
+  gpt_to_workbuddy_schema: "coordination/GOVERNANCE/GPT-WORKBUDDY-ENGINEERING-INTERFACE-SCHEMAS-v1.0.yaml#GPT_TO_WORKBUDDY_HANDOFF"
+  workbuddy_return_schema: "coordination/GOVERNANCE/GPT-WORKBUDDY-ENGINEERING-INTERFACE-SCHEMAS-v1.0.yaml#WORKBUDDY_RETURN_PACKAGE"
+  independent_review_request_schema: "coordination/GOVERNANCE/GPT-WORKBUDDY-ENGINEERING-INTERFACE-SCHEMAS-v1.0.yaml#GPT_INDEPENDENT_REVIEW_REQUEST"
+  productivity_receipt_schema: "coordination/GOVERNANCE/GPT-WORKBUDDY-ENGINEERING-INTERFACE-SCHEMAS-v1.0.yaml#ENGINEERING_PRODUCTIVITY_RECEIPT"
+
+security_and_publication:
+  owner_publication_policy: >-
+    Owner-authorized personal/private memory content may be persisted in public GitHub; sensitivity alone is not a
+    global publication veto.
+  global_content_exclusion:
+    - "passwords/passphrases"
+    - "API/client secrets"
+    - "private keys"
+    - "authentication/session/access/refresh tokens"
+    - "authentication cookies/session secrets"
+    - "MFA/recovery codes"
+    - "equivalent account-authentication credential values"
+  mixed_content_rule: >-
+    If ordinary authorized content and an authentication secret occur together, remove/redact the secret value and
+    preserve the remaining authorized content when safe separation is possible.
+  task_specific_security: >-
+    Existing project/task boundaries for trading, accounts, funds, deployment, private services, paid resources, or
+    regulated data remain in force and are not weakened by this publication policy.
+
+stop_and_escalation_conditions:
+  - "remote main/task truth cannot be fresh-confirmed"
+  - "active task is not READY or execution_allowed is false"
+  - "route/claim/lease/snapshot/base/branch disagree"
+  - "write surface overlaps another active writer"
+  - "required architecture/acceptance criterion is ambiguous"
+  - "required path lies outside authorized scope"
+  - "a proposed repair would weaken a safety/acceptance oracle"
+  - "credential-secret exposure cannot be safely redacted/contained"
+  - "task requires missing Owner/high-risk authority"
+  - "reviewed exact head would need movement"
+
+productivity_measurement:
+  purpose: "Measure actual throughput/cost delta between GPT-direct and WorkBuddy-local execution."
+  fields_when_known:
+    - "task_size_class"
+    - "executor_profile"
+    - "model_name"
+    - "local_implementation_cycles"
+    - "local_test_cycles"
+    - "remote_push_count"
+    - "github_ci_cycles"
+    - "reviewer_blocker_count"
+    - "changed_files"
+    - "lines_added"
+    - "lines_deleted"
+    - "elapsed_wall_time_seconds"
+    - "input_tokens"
+    - "output_tokens"
+    - "api_cost"
+    - "final_review_verdict"
+    - "canonicalized"
+  honesty_rule: "Unknown/unmeasurable fields remain UNKNOWN; do not fabricate timing or cost."
+
+future_window_bootstrap:
+  gpt: >-
+    A fresh GPT project window must read current remote main, root AGENTS.md, this protocol, current active routes and
+    relevant project baton/Issue before acting. It must not ask the Owner to restate this workflow if canonical GitHub
+    already answers it.
+  workbuddy: >-
+    A fresh WorkBuddy session must use coordination/WORKBUDDY-ENGINEERING-START-HERE.md plus the current active
+    WorkBuddy task truth. The onboarding prompt is navigation/bootstrap only and never substitutes for an active route.
+
+compatibility:
+  preserves:
+    - "existing WorkBuddy short-command semantics"
+    - "ACTIVE-WORKBUDDY-TASK.yaml as WorkBuddy task truth"
+    - "Control Tower single-writer and capacity rules"
+    - "AMED/PMA-BIG/WPDCR/PDER bounded initiative/reporting"
+    - "exact-head CI"
+    - "independent #453-style review"
+    - "separate canonicalization"
+  does_not_modify_in_this_slice:
+    - "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+    - "current R175 WorkBuddy execution authority"
+    - "runtime data System-of-Record contracts"
