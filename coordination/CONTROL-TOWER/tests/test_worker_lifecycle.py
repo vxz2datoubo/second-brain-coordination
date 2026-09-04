@@ -30,6 +30,7 @@ from worker_lifecycle import (  # noqa: E402
 
 PRE_R6_WORKER_SLOTS_BLOB = "00a863a79a35524cb6db950529dabc9ff32761fa"
 R6_AUTHORITY = "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R6.yaml"
+R6_TOMBSTONES = "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-TERMINAL-TOMBSTONES.yaml"
 WORKER_SLOTS = "coordination/CONTROL-TOWER/worker_slots.py"
 WORKER_REGISTRY = "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
 PROGRAM_LANES = "coordination/ACTIVE-PROGRAM-LANES.yaml"
@@ -662,7 +663,24 @@ class RepositoryAuditTests(unittest.TestCase):
             authority["authority_id"],
             "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R6-0001",
         )
-        self.assertEqual(authority["state"], "ACTIVE")
+        self.assertEqual(authority["state"], "RELEASED")
+        self.assertEqual(
+            authority["release_reason"],
+            "R6_LIFECYCLE_FOUNDATION_INDEPENDENTLY_ACCEPTED_AND_CANONICALIZED",
+        )
+        self.assertEqual(
+            authority["released_scope_status"],
+            "NO_FURTHER_MODIFIER_WRITES_AUTHORIZED_BY_THIS_ARTIFACT",
+        )
+        self.assertEqual(
+            authority["release_transition"],
+            {
+                "from_state": "ACTIVE",
+                "to_state": "RELEASED",
+                "terminal_for_authority_id": True,
+                "next_activation_requires_new_user_issued_authority_id": True,
+            },
+        )
         for field in (
             "execution_allowed",
             "runtime_write_allowed",
@@ -678,6 +696,35 @@ class RepositoryAuditTests(unittest.TestCase):
                 "coordination/CONTROL-TOWER/worker_slots.py",
                 "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml",
                 "coordination/ACTIVE-PROGRAM-LANES.yaml",
+            },
+        )
+        tombstones = yaml.safe_load((self.repo_root / R6_TOMBSTONES).read_text(encoding="utf-8"))
+        matches = [
+            item
+            for item in tombstones["terminal_authorities"]
+            if item.get("authority_id")
+            == "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R6-0001"
+        ]
+        self.assertEqual(len(matches), 1)
+        self.assertEqual(
+            {
+                key: matches[0][key]
+                for key in (
+                    "authority_file",
+                    "terminal_state",
+                    "release_parent_head",
+                    "released_scope_status",
+                    "reactivation_allowed",
+                    "terminality_source_review",
+                )
+            },
+            {
+                "authority_file": "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R6.yaml",
+                "terminal_state": "RELEASED",
+                "release_parent_head": "04124e233dc813cca4054851ef6a470b342d82fe",
+                "released_scope_status": "NO_FURTHER_MODIFIER_WRITES_AUTHORIZED_BY_THIS_ARTIFACT",
+                "reactivation_allowed": False,
+                "terminality_source_review": 5108092436,
             },
         )
 

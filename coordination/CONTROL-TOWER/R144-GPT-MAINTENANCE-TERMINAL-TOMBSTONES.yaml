@@ -26,3 +26,17 @@ terminal_authorities:
       R5 is terminalized atomically with this tombstone and the validator's expected-terminal set.
       release_parent_head binds the exact pre-release parent because the final release commit cannot self-reference its own SHA.
       The same R5 authority ID may never become ACTIVE again, even if every mutable release receipt field is removed.
+
+  - authority_id: "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R6-0001"
+    authority_file: "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R6.yaml"
+    terminal_state: "RELEASED"
+    release_parent_head: "04124e233dc813cca4054851ef6a470b342d82fe"
+    released_scope_status: "NO_FURTHER_MODIFIER_WRITES_AUTHORIZED_BY_THIS_ARTIFACT"
+    reactivation_allowed: false
+    terminality_source_review: 5108092436
+    note: >-
+      R6 lifecycle-foundation authority is terminalized only after independently accepted exact head
+      8ecdf4ba6909873096b6360055c7632c3b892fc0 became canonical as merge
+      04124e233dc813cca4054851ef6a470b342d82fe. release_parent_head binds that exact
+      canonical pre-closeout foundation state. The R6 authority ID may never become ACTIVE again;
+      any post-R6 validator/live-projection migration requires the new user-issued R7 authority.
