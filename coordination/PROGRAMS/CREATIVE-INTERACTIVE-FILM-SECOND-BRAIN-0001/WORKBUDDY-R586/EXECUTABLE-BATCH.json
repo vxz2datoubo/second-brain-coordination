@@ -1,0 +1,109 @@
+{
+  "schema": "CreativeExecutorWorkBatch/v1",
+  "batch_id": "CIF-R586-PR578-REVIEW-BOUNDED-REMEDIATION-001",
+  "project_id": "CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001",
+  "authority": "CANONICAL_BOUND_BATCH_EXECUTABLE_AFTER_ROUTE_RELEASE_CANONICALIZATION",
+  "route_authority": {
+    "execution_allowed": false,
+    "task_id": "WORKBUDDY-R586-PR578-REMEDIATION",
+    "active_issue": 586,
+    "source_issue": 577,
+    "source_pull_request": 578,
+    "route_epoch": 586,
+    "route_ref": "coordination/ROUTES/WORKBUDDY-R586-PR578-REMEDIATION.yaml",
+    "claim_ref": "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R586/WORK-CLAIM.yaml",
+    "lease_ref": "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R586/TASK-LEASE.yaml",
+    "snapshot_ref": "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R586/PREWRITE-RECONCILIATION-SNAPSHOT.yaml"
+  },
+  "canonical_base": "04124e233dc813cca4054851ef6a470b342d82fe",
+  "frozen_source": {
+    "pr": 578,
+    "exact_head": "9d536357755a44ac50ea4352ac7c319d97101779",
+    "write_authority": false
+  },
+  "independent_review": {
+    "ref": "pullrequestreview-5108122069",
+    "verdict": "CHANGES_REQUIRED",
+    "mandatory_findings": [
+      "P1-01 EXACT_HEAD_CI_SCOPE_GATE_USES_STALE_BASELINE",
+      "P1-02 CALLER_SELECTED_BASELINE_CAN_REDEFINE_SCOPE_UNIVERSE"
+    ]
+  },
+  "automatic_resume_within_batch": true,
+  "items": [
+    {
+      "item_id": "WB-R586-V1",
+      "kind": "FRESH_IDENTITY_PREFLIGHT",
+      "status": "PLANNED",
+      "depends_on": [],
+      "write_paths": [],
+      "requirements": [
+        "remote main equals the route-bound base or execution stops for route reissue",
+        "frozen PR #578 still equals 9d536357755a44ac50ea4352ac7c319d97101779",
+        "Issue #453 result and pullrequestreview-5108122069 still bind that head with CHANGES_REQUIRED",
+        "implementation branch did not exist before the prewrite snapshot"
+      ]
+    },
+    {
+      "item_id": "WB-R586-S1",
+      "kind": "EXACT_SOURCE_PORT",
+      "status": "PLANNED",
+      "depends_on": ["WB-R586-V1"],
+      "write_paths": ["E577_EXACT_ALLOWLIST_ONLY"],
+      "outcome": "Port the frozen PR #578 payload path-by-path from exact head 9d536357... onto the current-main successor branch with provenance. Do not merge/cherry-pick the frozen branch and do not semantically alter unrelated payload."
+    },
+    {
+      "item_id": "WB-R586-S2",
+      "kind": "P1_01_TRUSTED_PR_BASE_BINDING",
+      "status": "PLANNED",
+      "depends_on": ["WB-R586-S1"],
+      "write_paths": [".github/workflows/creative-runtime-offline.yml"],
+      "outcome": "Derive one trusted base identity from the pull_request event and use that exact identity for both git diff --check and the R175 scope verifier. Remove the stale historical baseline fallback from the authoritative PR path; fail closed when trusted PR-base evidence is unavailable."
+    },
+    {
+      "item_id": "WB-R586-S3",
+      "kind": "P1_02_NON_CALLER_MINTABLE_SCOPE_BASE",
+      "status": "PLANNED",
+      "depends_on": ["WB-R586-S2"],
+      "write_paths": ["tools/verify_r175_scope.py"],
+      "outcome": "Make authoritative verification consume a trusted expected baseline and reject any diagnostic/caller baseline that differs. A caller must not be able to select HEAD, a later ancestor, or another baseline to shrink the changed-path universe. Preserve explicit allowlist and policy-floor hard deny."
+    },
+    {
+      "item_id": "WB-R586-S4",
+      "kind": "ADVERSARIAL_BASELINE_REGRESSIONS",
+      "status": "PLANNED",
+      "depends_on": ["WB-R586-S3"],
+      "write_paths": ["tests/test_creative_public_safe_boundary.py"],
+      "outcome": "Add regressions proving wrong baseline, HEAD-as-baseline, unrelated ancestor and caller substitution fail closed while the exact trusted PR base succeeds for an otherwise valid candidate."
+    },
+    {
+      "item_id": "WB-R586-V2",
+      "kind": "FULL_OFFLINE_REGRESSION",
+      "status": "PLANNED",
+      "depends_on": ["WB-R586-S4"],
+      "write_paths": [],
+      "acceptance_commands": [
+        "python -m unittest discover -s tests/workbuddy/campaign_benchmark -p test_*.py",
+        "python -m unittest discover -s tests/workbuddy/director_matrix -p test_*.py",
+        "python -m unittest discover -s tests/workbuddy/operator_dry_run -p test_*.py",
+        "python tools/validate_interactive_cinematic_mapping.py",
+        "python -m unittest tests.test_creative_public_safe_boundary tests.test_creative_migration_confinement",
+        "python -m unittest tests.test_creative_s00_governance tests.test_creative_s01_ledger tests.test_creative_s02_cli tests.test_creative_s03_director tests.test_creative_s04_knowledge tests.test_creative_s05_generation tests.test_creative_s06_end_to_end",
+        "git diff --check <TRUSTED_SUCCESSOR_BASE>...HEAD"
+      ],
+      "outcome": "All focused and retained offline regressions pass before WorkBuddy publishes its return package."
+    }
+  ],
+  "stop_conditions": [
+    "canonical main moved from the bound base before branch creation",
+    "frozen PR #578 exact head or independent review identity drift",
+    "an unlisted semantic write is needed",
+    "E577 allowlist widening is needed",
+    "canonical public-safe policy floor modification is needed",
+    "network/provider/credential/real-user/paid-generation/deployment/trade surface is encountered",
+    "Ready, merge, self-review, self-acceptance or history rewrite would be required"
+  ],
+  "return_package_required": true,
+  "return_target": "GPT",
+  "completion_signal": "WORKBUDDY_R586_PR578_REMEDIATION_READY_FOR_GPT_REVIEW"
+}
