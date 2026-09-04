@@ -1,18 +1,11 @@
 name: WorkBuddy multi-slot governance
 
+# Deliberately unfiltered: admission reads canonical Route/Claim/Lease/
+# Reservation/Prewrite/ExecutableBatch documents across governed program paths.
+# Any PR can mutate one of those authority-bearing documents, so a path filter
+# would be a security boundary that can drift away from the admission schema.
 on:
   pull_request:
-    paths:
-      - ".github/workflows/workbuddy-multislot.yml"
-      - "coordination/ACTIVE-WORKBUDDY-TASKS.yaml"
-      - "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
-      - "coordination/WORKBUDDY-TASK-ROUTER.md"
-      - "coordination/CONTROL-TOWER/workbuddy_slots.py"
-      - "coordination/CONTROL-TOWER/workbuddy_slots_core.py"
-      - "coordination/CONTROL-TOWER/workbuddy_slot_selection.py"
-      - "coordination/CONTROL-TOWER/run_workbuddy_slots.py"
-      - "coordination/CONTROL-TOWER/tests/test_workbuddy_slot*.py"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R579-WORKBUDDY-MULTISLOT/**"
   workflow_dispatch:
 
 permissions:
@@ -41,13 +34,16 @@ jobs:
         run: >-
           python -m py_compile
           workbuddy_slots.py
+          workbuddy_slots_facade_v1.py
           workbuddy_slots_core.py
           workbuddy_slot_selection.py
           run_workbuddy_slots.py
+          tests/_workbuddy_slots_tests_v1.py
           tests/test_workbuddy_slots.py
           tests/test_workbuddy_slots_hardening.py
           tests/test_workbuddy_slot_selection.py
           tests/test_workbuddy_slot_o2_glob.py
+          tests/test_workbuddy_slots_trust_root.py
       - name: Run WorkBuddy multi-slot adversarial tests
         working-directory: coordination/CONTROL-TOWER
         run: python -m unittest discover -s tests -p 'test_workbuddy_slot*.py' -v
