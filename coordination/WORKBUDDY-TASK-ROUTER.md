@@ -10,6 +10,31 @@
 
 例外：当活动索引为`PAUSED`、非READY或`execution_allowed: false`时，必须硬停止，不得因主动性规则自动恢复。此时提交精确状态报告，而不是执行。
 
+## GPT Architecture → WorkBuddy Engineering 永久运行模式
+
+通用工程协议：
+
+- `coordination/GOVERNANCE/GPT-WORKBUDDY-ENGINEERING-OPERATING-MODE-v1.0.yaml`
+- `coordination/GOVERNANCE/GPT-WORKBUDDY-ENGINEERING-INTERFACE-SCHEMAS-v1.0.yaml`
+- `coordination/WORKBUDDY-ENGINEERING-START-HERE.md`
+
+默认工程链：
+
+`Owner/用户 -> GPT Architecture/Governance -> GitHub task truth -> WorkBuddy local engineering -> GitHub PR/exact-head CI -> separate GPT independent review -> separate canonicalization -> main`
+
+长期规则：
+
+1. GPT负责需求澄清、研究、架构、SoR、接口、任务切片、single-writer规划、acceptance、路由与独立验算调度；WorkBuddy默认承接S2/S3非trivial实现和本地连续测试循环。
+2. GitHub远端`main`是canonical工程同步/控制真源；WorkBuddy本地checkout只是执行工作区。已有独立runtime/data SoR（例如W3 MemoryStore）不会因为GitHub同步而被替换。
+3. 本通用协议不自行创建执行权。每个WorkBuddy任务仍必须由远端最新`coordination/ACTIVE-WORKBUDDY-TASK.yaml`及其route/claim/lease/snapshot/Issue精确授权。
+4. WorkBuddy必须从exact GitHub base安全clone/fetch，在授权branch和paths施工；禁止direct-main、self-review、self-accept、self-merge、silent scope widening、force-push/rebase/reset/amend历史抹除。
+5. 推荐稳定执行档位：`FAST`用于repo扫描、机械修改、测试/回归、evidence；`DEEP`用于复杂跨模块、migration/persistence/concurrency/runtime/root-cause实现；当前可分别映射DeepSeek V4 Flash/Pro，但模型名不是治理权威。
+6. FAST/DEEP若协作，仍属于一个WorkBuddy single-writer task，不能形成竞争branch或同时改同一写入面。
+7. 完成后必须提交`WORKBUDDY_RETURN_PACKAGE/v1`；送review的exact head冻结，任何head movement必须重新CI和独立review。
+8. 独立GPT Reviewer只接受fresh current main + PR exact head + full diff + CI + Issue/spec证据；WorkBuddy handoff本身不是验收事实。
+9. `ACCEPT`不等于canonical；必须由separate canonicalizer fresh reconcile后merge。
+10. Owner授权的普通私人/个人记忆内容可进入公开GitHub，敏感性本身不是全局publication veto；全局内容级硬排除仅为密码、API/client secret、private key、auth/session/access/refresh token、认证cookie、MFA/recovery code及等价账户认证秘密值。任务级交易/账户/资金/部署等安全边界仍保持。
+
 ## 本地问题预防门
 
 跨Agent本地执行问题登记表：
@@ -23,7 +48,7 @@ WorkBuddy是本地环境事实验证者，因此除匹配当前任务的已知�
 1. 固定仓库为`vxz2datoubo/second-brain-coordination`。
 2. 明确身份为WorkBuddy执行者；Issue #7只用于Codex调度基础设施，永远不是WorkBuddy收件箱。
 3. 安全同步或远程读取最新`main`，不得覆盖本地未提交内容。
-4. 读取本协议、RTCE、租约/新鲜度、AMED、PMA-BIG、WPDCR、PDER、双层主观能动性、`LOCAL-EXECUTION-ISSUE-PATTERNS.yaml`和`coordination/ACTIVE-WORKBUDDY-TASK.yaml`。
+4. 读取本协议、`coordination/WORKBUDDY-ENGINEERING-START-HERE.md`、GPT-WorkBuddy operating mode/interface schemas、RTCE、租约/新鲜度、AMED、PMA-BIG、WPDCR、PDER、双层主观能动性、`LOCAL-EXECUTION-ISSUE-PATTERNS.yaml`和`coordination/ACTIVE-WORKBUDDY-TASK.yaml`。
 5. 读取活动Issue、全部评论、影响预测、任务简报、允许路径、权限与安全边界。
 6. 根据实际OS、终端、shell、语言/runtime、格式/parser、编码、Unicode/path和网络传输面匹配适用问题模式，并声明`PERMANENT_FIX`、`CONTAIN_AND_MEASURE`或`NOT_APPLICABLE_WITH_REASON`。
 7. 精确回显仓库、远端main head、task_id、route_epoch、Issue、PR、branch、status、completion_signal和base，提交租约声明。
@@ -32,8 +57,9 @@ WorkBuddy是本地环境事实验证者，因此除匹配当前任务的已知�
 10. 主动发现本地能力、接口、权限、许可、路径、服务、数据质量、性能、部署、可观测性和云端设计与本地现实偏差。
 11. 授权现场路径内的A/B改良应实施并测试；C只提案；D/用户门停止升级。
 12. 重复本地问题必须区分根因、workaround与永久修复；若只能规避，记录触发条件和验证，不能把重复重试当修复。
-13. 检查点、阻塞、交接和完成必须按WPDCR报告过程、难度、失败、发现、扩展、未解问题、精确协同和系统反馈。
-14. 完成后提交累计AMED/WPDCR、命令/测试、UNKNOWN、AI_HANDOFF、结果校准，以及适用的本地问题模式证据与永久修复/containment结果，不自行合并或改变服务权威。
+13. 在push前完成本地focused/adversarial/regression、`git diff --check`、authorized-path proof、credential-secret scan和工程return package；未知字段写UNKNOWN，不得编造。
+14. 检查点、阻塞、交接和完成必须按WPDCR报告过程、难度、失败、发现、扩展、未解问题、精确协同和系统反馈。
+15. 完成后提交累计AMED/WPDCR、命令/测试、UNKNOWN、AI_HANDOFF、`WORKBUDDY_RETURN_PACKAGE/v1`、适用的`ENGINEERING_PRODUCTIVITY_RECEIPT/v1`、结果校准，以及本地问题模式证据与永久修复/containment结果，不自行合并或改变服务权威。
 
 ## 不可执行状态
 
@@ -49,7 +75,7 @@ PAUSED、execution_allowed false、依赖缺失、路径/权限不明或路由�
 
 ## 安全与所有权
 
-主动发现和RTCE不授予跨模块接管、服务生命周期变更、凭证导出、真实数据准入、账户、订单、交易或自动恢复权限。不得修改其他Agent分支，不得自行合并、直接写main、强推或改写历史。
+主动发现和RTCE不授予跨模块接管、服务生命周期变更、凭证导出、账户、订单、交易或自动恢复权限。Owner授权私人记忆公开不等于自动授权真实交易/账户/资金/部署路径。不得修改其他Agent分支，不得自行合并、直接写main、强推或改写历史。
 
 固定仓库：`vxz2datoubo/second-brain-coordination`
 
