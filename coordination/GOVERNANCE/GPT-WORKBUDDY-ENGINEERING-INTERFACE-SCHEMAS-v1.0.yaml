@@ -1,0 +1,226 @@
+schema_version: "1.0"
+contract_id: "GPT-WORKBUDDY-ENGINEERING-INTERFACE-SCHEMAS-0001"
+source_issue: 591
+repository: "vxz2datoubo/second-brain-coordination"
+status: "CANDIDATE_UNTIL_INDEPENDENTLY_ACCEPTED_AND_CANONICALIZED"
+
+common_rules:
+  - "All SHAs are exact Git commit identities, never human labels."
+  - "UNKNOWN is preferable to fabricated evidence."
+  - "Handoff artifacts do not mint authority beyond the active route/claim/lease/snapshot."
+  - "Any reviewed head movement invalidates the prior exact-head review."
+  - "No executor may self-accept or self-canonicalize."
+
+GPT_TO_WORKBUDDY_HANDOFF:
+  schema_name: "GPT_TO_WORKBUDDY_HANDOFF/v1"
+  purpose: "Machine-readable architecture-owner release package for one bounded WorkBuddy engineering slice."
+  required_fields:
+    identity:
+      - "handoff_id"
+      - "created_at"
+      - "created_by"
+      - "repository"
+      - "task_id"
+      - "task_size_class"
+      - "issue"
+    execution_binding:
+      - "canonical_main_at_release"
+      - "exact_base_sha"
+      - "implementation_branch"
+      - "target_executor=WORKBUDDY"
+      - "execution_profile=FAST|DEEP|MIXED"
+      - "status=READY"
+      - "execution_allowed=true"
+      - "work_claim_ref"
+      - "task_lease_ref"
+      - "effective_spec_snapshot_ref"
+    scope:
+      - "authorized_paths"
+      - "forbidden_paths"
+      - "single_writer_surface"
+      - "explicit_non_goals"
+    architecture:
+      - "root_goal"
+      - "system_position"
+      - "system_of_record_decisions"
+      - "frozen_architecture_decisions"
+      - "interfaces_to_reuse"
+      - "interfaces_to_add_or_change"
+      - "authority_boundaries"
+    acceptance:
+      - "acceptance_stories"
+      - "required_tests"
+      - "required_adversarial_tests"
+      - "success_conditions"
+      - "stop_conditions"
+    execution_guidance:
+      - "must_read"
+      - "preferred_first_actions"
+      - "allowed_A_B_initiative"
+      - "proposal_only_C"
+      - "forbidden_D_or_owner_gate"
+    return_contract:
+      - "return_package_schema=WORKBUDDY_RETURN_PACKAGE/v1"
+      - "completion_signal"
+      - "return_target"
+  optional_fields:
+    - "known_failures_or_blockers"
+    - "expected_changed_files"
+    - "test_command_hints"
+    - "model_name_preference"
+    - "productivity_baseline"
+  validation_rules:
+    - "exact_base_sha must be reachable from canonical_main_at_release unless the route explicitly documents a governed non-main base."
+    - "authorized_paths and forbidden_paths must not overlap."
+    - "S4/S5 tasks cannot be READY without their specific exit gate already satisfied."
+    - "Handoff may recommend a model but cannot make model identity an authority source."
+    - "A handoff cannot override a newer canonical active task truth."
+
+WORKBUDDY_RETURN_PACKAGE:
+  schema_name: "WORKBUDDY_RETURN_PACKAGE/v1"
+  purpose: "Engineering evidence package returned by WorkBuddy after local implementation/test execution."
+  required_fields:
+    identity:
+      - "return_id"
+      - "handoff_id"
+      - "task_id"
+      - "repository"
+      - "issue"
+      - "implementation_branch"
+    git_identity:
+      - "base_sha_observed"
+      - "exact_head_sha"
+      - "changed_files"
+      - "diff_scope_status=PASS|FAIL|UNKNOWN"
+    execution:
+      - "executor=WORKBUDDY"
+      - "execution_profile"
+      - "worktree_state_before"
+      - "first_meaningful_action"
+      - "implementation_summary"
+      - "failed_attempts"
+      - "repairs"
+    tests:
+      - "commands_run"
+      - "focused_test_result"
+      - "full_regression_result"
+      - "static_or_lint_result_if_required"
+      - "credential_secret_scan_result"
+    discoveries:
+      - "new_findings"
+      - "unknowns"
+      - "out_of_scope_opportunities"
+      - "architecture_conflicts"
+    safety:
+      - "authorized_path_proof"
+      - "forbidden_path_proof"
+      - "no_direct_main_write"
+      - "no_force_history_rewrite"
+      - "no_self_review_or_merge"
+    github:
+      - "pushed=true|false"
+      - "pull_request"
+      - "github_ci_state"
+    completion:
+      - "status=READY_FOR_CI|READY_FOR_INDEPENDENT_REVIEW|BLOCKED|INCOMPLETE"
+      - "completion_signal_or_blocker"
+      - "recommended_next_gate"
+  optional_fields:
+    - "commands_stdout_digest"
+    - "test_artifact_refs"
+    - "local_environment_summary"
+    - "dependency_changes"
+    - "migration_or_rollback_notes"
+    - "ENGINEERING_PRODUCTIVITY_RECEIPT/v1"
+  blocker_requirements:
+    - "A BLOCKED status must include exact failing field/dependency, attempts, evidence, minimum missing action, affected scope, unaffected scope, and recovery condition."
+    - "Do not replace a missing exact head/CI result with narrative confidence."
+
+GPT_INDEPENDENT_REVIEW_REQUEST:
+  schema_name: "GPT_INDEPENDENT_REVIEW_REQUEST/v1"
+  purpose: "Exact-head review ticket for a separate GPT reviewer."
+  required_fields:
+    - "review_request_id"
+    - "repository"
+    - "issue"
+    - "pull_request"
+    - "candidate_exact_head"
+    - "known_base_or_current_main"
+    - "expected_changed_paths_or_scope"
+    - "architecture_contract_refs"
+    - "acceptance_criteria_refs"
+    - "engineering_handoff_ref"
+    - "exact_head_ci_refs_or_state"
+    - "required_verdict=ACCEPT|CHANGES_REQUIRED|BLOCKED"
+    - "matching_review_result_location"
+  reviewer_must_fresh_read:
+    - "remote current main"
+    - "Issue body and relevant comments"
+    - "PR metadata"
+    - "all current reviews/comments/threads"
+    - "candidate exact head"
+    - "full diff"
+    - "exact-head CI"
+    - "mergeability/ancestry where relevant"
+    - "architecture/acceptance contract"
+  forbidden:
+    - "Trusting WORKBUDDY_RETURN_PACKAGE as acceptance evidence without independent verification"
+    - "Reviewing a different head"
+    - "Implementing remediation in the same independent-review role"
+    - "Merging"
+
+ENGINEERING_PRODUCTIVITY_RECEIPT:
+  schema_name: "ENGINEERING_PRODUCTIVITY_RECEIPT/v1"
+  purpose: "Comparable telemetry for GPT-direct vs WorkBuddy-local engineering throughput."
+  required_fields:
+    - "task_id"
+    - "task_size_class"
+    - "executor_type=GPT_DIRECT|WORKBUDDY"
+    - "executor_profile"
+    - "measurement_completeness"
+  optional_numeric_fields:
+    - "local_implementation_cycles"
+    - "local_test_cycles"
+    - "remote_push_count"
+    - "github_ci_cycles"
+    - "reviewer_blocker_count"
+    - "changed_files_count"
+    - "lines_added"
+    - "lines_deleted"
+    - "elapsed_wall_time_seconds"
+    - "input_tokens"
+    - "output_tokens"
+    - "api_cost_amount"
+  optional_context_fields:
+    - "model_name"
+    - "api_cost_currency"
+    - "final_review_verdict"
+    - "canonicalized"
+    - "notes"
+  measurement_rules:
+    - "Never fabricate wall time, token use, or cost."
+    - "When measurement is missing, emit UNKNOWN with reason."
+    - "Do not compare tasks across different size classes without labeling the confound."
+    - "Use rolling medians/percentiles over multiple tasks before changing the default routing policy."
+
+example_handoff_skeleton:
+  schema: "GPT_TO_WORKBUDDY_HANDOFF/v1"
+  handoff_id: "EXAMPLE-ONLY"
+  repository: "vxz2datoubo/second-brain-coordination"
+  task_id: "EXAMPLE"
+  task_size_class: "S2"
+  issue: 0
+  canonical_main_at_release: "<exact_sha>"
+  exact_base_sha: "<exact_sha>"
+  implementation_branch: "workbuddy/<task>"
+  target_executor: "WORKBUDDY"
+  execution_profile: "DEEP"
+  status: "READY"
+  execution_allowed: true
+  authorized_paths: ["<paths>"]
+  forbidden_paths: ["<paths>"]
+  root_goal: "<goal>"
+  acceptance_stories: ["<story>"]
+  required_tests: ["<test>"]
+  stop_conditions: ["<stop>"]
+  return_package_schema: "WORKBUDDY_RETURN_PACKAGE/v1"
