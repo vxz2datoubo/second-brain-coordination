@@ -32,7 +32,7 @@ agent_id: CODEX
 在此分支的干净仓库根执行，输出目录必须此前不存在：
 
 ```powershell
-python -X utf8 coordination/RESEARCH/TRADING-RELAY-20260904/scripts/prove_replay.py --output F:/aidanao/交易系统/协作验证-唯一运行编号 --challenge 调用者本次提供的新编号
+python -X utf8 coordination/RESEARCH/TRADING-RELAY-20260904/scripts/prove_replay.py --output F:/aidanao/交易系统/协作验证-唯一运行编号 --agent-id WORKBUDDY --challenge 调用者本次提供的新编号
 ```
 
 输出包括两个真实子进程的命令与退出码、13 个业务/检查点 JSON、`execution-receipt.json`。运行不需要 LLM、实时行情或券商接口。固定合成输入为 8 个事件；无治理日历时正确拒绝模拟成交。它证明离线研究链执行，不证明完整实盘或盈利。

@@ -26,7 +26,7 @@ jobs:
       - name: Verifier negative tests
         run: python3 -X utf8 -m unittest discover -s coordination/RESEARCH/TRADING-RELAY-20260904/tests -p 'test_*.py'
       - name: Two real synthetic replays
-        run: python3 -X utf8 coordination/RESEARCH/TRADING-RELAY-20260904/scripts/prove_replay.py --output "$RUNNER_TEMP/trading-relay-proof" --challenge "actions-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+        run: python3 -X utf8 coordination/RESEARCH/TRADING-RELAY-20260904/scripts/prove_replay.py --output "$RUNNER_TEMP/trading-relay-proof" --agent-id CODEX --challenge "actions-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: trading-relay-proof

@@ -82,6 +82,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Run the existing synthetic P2 replay twice and attest content equality; NO_TRADE.")
     parser.add_argument("--output", required=True, type=Path, help="New output directory; existing paths are refused")
     parser.add_argument("--challenge", required=True, help="Caller supplied run correlation value, not a signature")
+    parser.add_argument("--agent-id", required=True, choices=["CODEX", "WORKBUDDY", "GPT"], help="Actual invoking agent; declared identity is not independent attestation")
     args = parser.parse_args()
     lock = json.loads(LOCK.read_text(encoding="utf-8"))
     validate_lock(lock)
@@ -110,7 +111,7 @@ def main() -> int:
     validate_lock(lock)
     if git("rev-parse", "HEAD") != commit or git("status", "--porcelain", "--untracked-files=all", "--", P2_REL, str(PACKAGE)):
         raise ValueError("SOURCE_CHANGED_DURING_RUN")
-    receipt = {"schema_version": "1.0.0", "agent_id": "CODEX", "status": "PASS",
+    receipt = {"schema_version": "1.0.0", "agent_id": args.agent_id, "status": "PASS",
         "evidence_class": "EXECUTOR_VERIFIED_SYNTHETIC_ONLY", "source_commit": commit,
         "challenge": args.challenge, "started_at": started, "finished_at": datetime.now(timezone.utc).isoformat(),
         "python": platform.python_version(), "platform": platform.platform(),
