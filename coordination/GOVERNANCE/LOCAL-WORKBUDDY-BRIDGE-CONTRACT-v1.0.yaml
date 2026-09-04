@@ -1,0 +1,105 @@
+schema_version: "1.0"
+protocol_id: "LOCAL-WORKBUDDY-BRIDGE-CONTRACT-v1"
+status: "CANDIDATE_PENDING_INDEPENDENT_REVIEW"
+source_issue: 596
+
+purpose: >-
+  Safely reconcile GitHub-governed desired execution state with a local WorkBuddy/CodeBuddy
+  runtime without granting a public repository broad command execution over the host.
+
+preferred_implementation:
+  primary: "OFFICIAL_CODEBUDDY_PYTHON_SDK"
+  alternatives:
+    - "CODEBUDDY_CLI_SUBPROCESS"
+    - "AUTHENTICATED_LOCALHOST_CODEBUDDY_HTTP_API"
+  forbidden_default: "UNRESTRICTED_PUBLIC_REPO_SELF_HOSTED_GITHUB_RUNNER"
+  gui_automation: "NOT_REQUIRED_AND_NOT_PREFERRED"
+
+admission_gate:
+  required:
+    - "remote main fresh read"
+    - "active route status READY"
+    - "execution_allowed true"
+    - "task_id/route_epoch match"
+    - "exact base/main match or explicit governed rebase/reconcile"
+    - "valid work claim/lease/reservation when task type requires them"
+    - "project adapter resolved"
+    - "carrier resolved"
+    - "model profile resolved"
+    - "implementation branch resolved"
+    - "authorized paths resolved"
+    - "collision domain available"
+    - "credential-secret scan policy loaded"
+  on_any_ambiguity: "FAIL_CLOSED_NO_PROCESS_START"
+
+local_workspace:
+  strategy: "ONE_ISOLATED_GIT_WORKTREE_OR_CLONE_PER_ACTIVE_WRITE_TASK"
+  dirty_primary_workspace_protection: true
+  task_branch_only: true
+  no_force_push: true
+  no_history_rewrite: true
+  cleanup_after_safe_checkpoint: true
+
+launch_modes:
+  SDK:
+    permission_mode_preference: "acceptEdits"
+    use_can_use_tool_callback: true
+    explicit_model: true
+    cwd_task_worktree: true
+  CLI_HEADLESS:
+    allowed: true
+    explicit_model: true
+    noninteractive_permission_note: >-
+      Official headless mode may require -y for tool use. Do not set CODEBUDDY_IS_SANDBOX=1
+      unless the process is truly inside an isolated disposable sandbox. Keep HIGH/CRITICAL
+      confirmations and explicit tool allow/deny rules on an ordinary host.
+  CLI_SERVE:
+    allowed: true
+    bind_default: "127.0.0.1"
+    auth_default: "password"
+    auth_none_on_normal_host: "FORBIDDEN"
+    purpose: "interactive Web UI / background sessions / HTTP telemetry"
+  DESKTOP:
+    bridge_auto_launch_required: false
+    rule: "HUMAN_INTERACTIVE_CARRIER_READS_SAME_GITHUB_CONTRACT"
+
+runtime_model_resolution:
+  do_not_invent_cli_model_id: true
+  resolve_from_current_product_when_possible: true
+  record_display_name_and_resolved_id: true
+  governed_nontrivial_auto_mode_default: "FORBIDDEN_UNLESS_HANDOFF_EXPLICITLY_ALLOWS_AUTO"
+
+execution_loop:
+  - "acquire_local_task_and_collision_lock"
+  - "prepare_isolated_worktree"
+  - "record exact pre-execution git state"
+  - "launch selected carrier/model"
+  - "run bounded implementation/test loops"
+  - "collect stdout/stderr/test/tool/cost/session telemetry without credential values"
+  - "perform changed-path and secret-value scan"
+  - "commit/push authorized branch"
+  - "emit WORKBUDDY_RETURN_PACKAGE"
+  - "release local execution lock only after reproducible checkpoint"
+
+github_write_policy:
+  allowed:
+    - "authorized task branch"
+    - "task PR/evidence surfaces"
+  forbidden:
+    - "direct main"
+    - "force push"
+    - "unrelated branches"
+    - "credentials/secrets"
+  private_personal_memory_rule: "OWNER_AUTHORIZED_CONTENT_MAY_BE_PUBLIC_EXCEPT_AUTHENTICATION_SECRET_VALUES"
+
+security:
+  codebuddy_serve_authentication_required: true
+  expose_to_non_loopback_default: false
+  untrusted_public_PR_code_must_not_gain_host_execution: true
+  local_credential_store_never_committed: true
+  secret_values_redacted_from_logs_and_return_packages: true
+
+availability:
+  candidate_contract_only: true
+  does_not_install_or_start_bridge: true
+  bridge_implementation_should_be_delegated_after_protocol_canonicalization: true
