@@ -1,0 +1,86 @@
+schema_version: "1.0"
+registry_id: "ACTIVE-WORKBUDDY-TASKS-0001"
+repository: "vxz2datoubo/second-brain-coordination"
+canonical_agent_type: "WORKBUDDY"
+status: "ACTIVE"
+parallel_routes_allowed: true
+active_slots_max: 2
+nested_parallelism: false
+same_task_multiple_active_slots_allowed: false
+same_mutable_surface_writers_max: 1
+unknown_collision_disposition: "FAIL_CLOSED"
+
+compatibility_projection:
+  path: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+  mode: "PRIMARY_SLOT_COMPATIBILITY_PROJECTION"
+  canonical_authority_after_r579: false
+  mismatch_disposition: "FAIL_CLOSED"
+  primary_slot_id: "WORKBUDDY-R175-ORDERED-BATCH-1"
+
+worker_slots:
+  - worker_slot_id: "WORKBUDDY-R175-ORDERED-BATCH-1"
+    agent_type: "WORKBUDDY"
+    executor_role: "WORKBUDDY_LOCAL_EXECUTOR"
+    task_id: "WORKBUDDY-R175-ORDERED-BATCH"
+    route_epoch: 175
+    active_issue: 532
+    source_issue: 528
+    pull_request: null
+    branch: "workbuddy/r175-ordered-batch-execution"
+    status: "READY"
+    execution_allowed: true
+    activation_state: "ACTIVE"
+    closure_state: null
+    mode: "ordered_bounded_batch"
+    canonical_route: "coordination/ROUTES/WORKBUDDY-R175-ORDERED-BATCH.yaml"
+    work_claim: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/WORK-CLAIM.yaml"
+    task_lease: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/TASK-LEASE.yaml"
+    executor_reservation: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/EXECUTOR-RESERVATION.yaml"
+    prewrite_snapshot: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/PREWRITE-RECONCILIATION-SNAPSHOT.yaml"
+    executable_batch: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/EXECUTABLE-BATCH.json"
+    completion_signal: "WORKBUDDY_R175_ORDERED_BATCH_COMPLETE_RETURN_TO_CODEX"
+    write_paths:
+      - "tests/workbuddy/**"
+      - "tools/workbuddy/**"
+      - "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/**"
+    read_paths:
+      - "coordination/ROUTES/WORKBUDDY-R175-ORDERED-BATCH.yaml"
+      - "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/**"
+    interfaces: []
+    read_domains:
+      - "CREATIVE_INTERACTIVE_FILM_R175"
+    write_domains:
+      - "CREATIVE_INTERACTIVE_FILM_R175_WORKBUDDY_SURFACE"
+    authority_claims:
+      - "WORKBUDDY_R175_BOUNDED_IMPLEMENTATION"
+    exclusive_resources: []
+    shared_read_resources: []
+    mutable_runtime_resources: []
+    credential_surfaces: []
+    real_data_surfaces: []
+    order_or_trade_authority: false
+    review_authority: false
+    merge_authority: false
+    acceptance_authority: false
+    canonical_truth_authority: false
+    canonical_knowledge_authority: false
+    account_authority: false
+    credential_authority: false
+    broker_authority: false
+    funds_authority: false
+    position_authority: false
+    primary_compatibility_projection: true
+    provenance:
+      migrated_from: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+      source_blob_sha: "47a0baf4b49caa96defe2ae68eb41487483204aa"
+      source_main_head: "b373fbf66c4b9be5c96cd75ed4951b866c1e5d05"
+      issue: 579
+      preservation_rule: "R175_IDENTITY_AND_EXECUTION_AUTHORITY_UNCHANGED"
+
+migration_boundary:
+  r175_preempted: false
+  r175_reordered: false
+  business_runtime_modified: false
+  trading_authority_granted: false
+  credentials_authority_granted: false
+  registry_only_does_not_release_new_slot_authority: true
