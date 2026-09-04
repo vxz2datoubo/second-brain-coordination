@@ -1,0 +1,100 @@
+schema_version: "1.0"
+route_id: "SECOND-BRAIN-R586-PR578-REVIEW-BOUNDED-REMEDIATION"
+repository: "vxz2datoubo/second-brain-coordination"
+project: "CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001"
+target_agent: "WORKBUDDY"
+task_id: "WORKBUDDY-R586-PR578-REMEDIATION"
+route_epoch: 586
+source_issue: 577
+active_issue: 586
+source_pull_request: 578
+source_exact_head: "9d536357755a44ac50ea4352ac7c319d97101779"
+independent_review: "pullrequestreview-5108122069"
+review_verdict: "CHANGES_REQUIRED"
+status: "PREWRITE_RESERVED"
+execution_allowed: false
+release_state: "WAITING_CANONICAL_ACTIVE_POINTER_AND_POST_BRANCH_READBACK"
+automatic_resume_within_task: true
+second_user_start_command_required: false
+direct_main_write: false
+merge_authorized: false
+review_authority: false
+acceptance_authority: false
+
+canonical_base:
+  branch: "main"
+  exact_head_at_snapshot: "04124e233dc813cca4054851ef6a470b342d82fe"
+  drift_action: "FAIL_CLOSED_RECONCILE_AND_REISSUE_SNAPSHOT"
+
+frozen_source:
+  pr: 578
+  branch_write_authority: false
+  exact_head: "9d536357755a44ac50ea4352ac7c319d97101779"
+  import_mode: "EXACT_PATH_SOURCE_PORT_WITH_PROVENANCE_ONLY"
+  codex_further_engineering: false
+
+sole_remediation_basis:
+  - "P1-01 EXACT_HEAD_CI_SCOPE_GATE_USES_STALE_BASELINE"
+  - "P1-02 CALLER_SELECTED_BASELINE_CAN_REDEFINE_SCOPE_UNIVERSE"
+
+execution:
+  implementation_branch: "workbuddy/r586-pr578-review-bounded-remediation"
+  executable_batch: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R586/EXECUTABLE-BATCH.json"
+  reorder_allowed: false
+  skip_allowed: false
+  parallelize_items: false
+  continue_after_item_pass: true
+  blocking_finding_action: "STOP_AND_RETURN_TO_GPT"
+  batch_complete_action: "PUBLISH_RETURN_PACKAGE_AND_HAND_BATON_TO_GPT"
+
+write_ownership:
+  exact_source_port_surface:
+    - ".github/workflows/creative-runtime-offline.yml"
+    - "apps/cli/creativectl.py"
+    - "apps/web/README.md"
+    - "creative_runtime/migration.py"
+    - "tests/workbuddy/**"
+    - "tools/workbuddy/**"
+    - "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/**"
+    - "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/INTERACTIVE-CINEMATIC-SYSTEM-MAP.yaml"
+    - "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/NUMERIC-ANCHOR-AND-DRIFT-REGISTRY.yaml"
+    - "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/RESEARCH-SOURCE-LEDGER.yaml"
+    - "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/CANDIDATE-LINEAGE-AND-INTEGRATION-MAP.yaml"
+    - "tools/validate_interactive_cinematic_mapping.py"
+    - "tests/test_interactive_cinematic_mapping.py"
+    - "tools/verify_public_safe_boundary.py"
+    - "tools/public_safe_boundary_rules.json"
+    - "tools/verify_r175_scope.py"
+    - "tests/test_creative_public_safe_boundary.py"
+    - "tests/test_creative_migration_confinement.py"
+  semantic_modification_surface:
+    - ".github/workflows/creative-runtime-offline.yml"
+    - "tools/verify_r175_scope.py"
+    - "tests/test_creative_public_safe_boundary.py"
+  forbidden:
+    - "coordination/GOVERNANCE/CREATIVE-RUNTIME-PUBLIC-SAFE-POLICY-FLOOR-v1.yaml"
+    - "frozen PR #578 branch"
+  overlap_rule: "ONE_WORKBUDDY_WRITER_ONLY; ANY UNLISTED OR CONCURRENT WRITE FAILS_CLOSED"
+
+bindings:
+  work_claim: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R586/WORK-CLAIM.yaml"
+  task_lease: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R586/TASK-LEASE.yaml"
+  executor_reservation: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R586/EXECUTOR-RESERVATION.yaml"
+  prewrite_snapshot: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R586/PREWRITE-RECONCILIATION-SNAPSHOT.yaml"
+  active_task: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+
+hard_stops:
+  - "canonical main differs from snapshot before activation"
+  - "frozen PR #578 exact head differs from 9d536357755a44ac50ea4352ac7c319d97101779"
+  - "independent review or Queue #453 result does not match CHANGES_REQUIRED exact head"
+  - "implementation branch exists before governed branch-creation step"
+  - "route claim lease reservation snapshot batch or active-task identity mismatch"
+  - "any semantic edit outside the three review-bounded remediation files"
+  - "E577 allowlist widening"
+  - "canonical public-safe policy floor modification"
+  - "network provider credential real-user paid-generation deployment or trade expansion"
+  - "Ready self-review self-accept merge or history rewrite"
+
+return_target: "GPT"
+completion_signal: "WORKBUDDY_R586_PR578_REMEDIATION_READY_FOR_GPT_REVIEW"
+next_command_when_active: "READ_LATEST_ROUTE_CLAIM_VALID_LEASE_AND_EXECUTE_IMMEDIATELY"
