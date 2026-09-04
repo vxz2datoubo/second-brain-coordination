@@ -1,57 +1,146 @@
 # R579 WorkBuddy Multi-slot Overlap Reconciliation
 
+> Legacy filename retained to preserve review-history continuity. The contents below are the live reconciliation record, not a planning placeholder.
+
 ## Fresh baseline
 
-- canonical main observed at branch creation: `b373fbf66c4b9be5c96cd75ed4951b866c1e5d05`
+- canonical main: `04124e233dc813cca4054851ef6a470b342d82fe`
+- canonical main meaning: R565/R6 worker-lifecycle foundation has been independently ACCEPTED and separately canonicalized
+- R6 accepted exact head: `8ecdf4ba6909873096b6360055c7632c3b892fc0`
 - R579 Issue: #579
-- R579 Draft PR: #580
+- R579 PR: #580
+- R579 implementation head immediately before this evidence refresh: `a3cdf78003686bf151c3efd0a410c92248b4b1f1`
 - independent review anchor: #581
-- WorkBuddy current legacy projection: `coordination/ACTIVE-WORKBUDDY-TASK.yaml`
-- current WorkBuddy task: `WORKBUDDY-R175-ORDERED-BATCH`, route epoch `175`
+- WorkBuddy plural canonical candidate: `coordination/ACTIVE-WORKBUDDY-TASKS.yaml`
+- WorkBuddy singular compatibility projection: `coordination/ACTIVE-WORKBUDDY-TASK.yaml`
+- current primary WorkBuddy task: `WORKBUDDY-R175-ORDERED-BATCH`, route epoch `175`
 
-## Active Control Tower work checked
+## R6 lifecycle foundation
 
-### R6 lifecycle foundation
+R6 is no longer an open predecessor candidate. It is canonical on current main.
 
-Issue #565 / PR #568 current exact head:
-
-`8ecdf4ba6909873096b6360055c7632c3b892fc0`
-
-R6 changed files are exactly:
+R6 implementation files were:
 
 1. `coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R6.yaml`
 2. `coordination/CONTROL-TOWER/worker_lifecycle.py`
 3. `coordination/CONTROL-TOWER/tests/test_worker_lifecycle.py`
 
-R579 does not modify those files.
+R579 does not modify those files. The current-main-vs-R579 exact-candidate Control Tower delta workflow on the pre-evidence-refresh head `a3cdf780...` completed SUCCESS on Python 3.11 and 3.13.
 
-### Post-R6 R7 planning
+## R7 post-R6 lifecycle-projection migration
 
-Issue #572 is still pre-activation planning. Its future atomic migration surface is primarily:
+Issue #572 is now **ACTIVATED**, not planning-only.
 
+Fresh activation authority is bound by Issue #572 comment `5537507432`:
+
+`R7_ACTIVATION_AUTHORITY_AND_FRESH_OVERLAP_SCAN/v1`
+
+The activation contract binds canonical base:
+
+`04124e233dc813cca4054851ef6a470b342d82fe`
+
+and grants the separate R7 engineering lane bounded single-writer authority over its own migration surface, including:
+
+- `coordination/CONTROL-TOWER/worker_slots.py`
 - `coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml`
 - `coordination/ACTIVE-PROGRAM-LANES.yaml`
-- optional task-local migration receipt/tests
+- associated R7 tests / authority / receipt artifacts
 
-R579 intentionally does not modify either GPT projection file in the current implementation slice.
+R579 modifies none of those surfaces.
 
-## R579 additive implementation surface
+The R7 activation scan explicitly classified WorkBuddy PR #580 as:
 
-Current intended/implemented surface:
+`O0 on R7 core surfaces`
 
-- `coordination/ACTIVE-WORKBUDDY-TASKS.yaml` new plural WorkBuddy registry
-- `coordination/CONTROL-TOWER/workbuddy_slots.py` new WorkBuddy slot validator/collision resolver
-- `coordination/CONTROL-TOWER/run_workbuddy_slots.py` validation entrypoint
-- `coordination/CONTROL-TOWER/tests/test_workbuddy_slots.py` focused adversarial tests
-- `coordination/WORKBUDDY-TASK-ROUTER.md` migrate routing semantics to plural registry with singular compatibility projection
-- `.github/workflows/workbuddy-multislot.yml` exact-head CI
-- task-local R579 evidence files only
+Fresh branch-ref readback at this reconciliation point shows `gpt/r572-worker-lifecycle-projection-migration-r7` still resolves to canonical base `04124e233dc813cca4054851ef6a470b342d82fe`. Therefore the precise current statement is:
 
-The existing `coordination/ACTIVE-WORKBUDDY-TASK.yaml` is not modified in this slice. It remains the R175 compatibility projection.
+- R7 execution authority: **ACTIVATED**
+- R7 dedicated branch: **EXISTS**
+- R7 branch substantive divergence from canonical main at this readback: **NONE OBSERVED**
+- R7 / R579 file-level overlap on declared core write surfaces: **O0**
 
-## R175 preservation check
+R579 must still fresh-reconcile if the R7 branch later advances before R579 canonicalization.
 
-The new plural registry seeds one primary slot from the current R175 task without changing:
+## R579 implementation surface
+
+Current R579 surface includes:
+
+- `.github/workflows/workbuddy-multislot.yml`
+- `AGENTS.md`
+- `coordination/ACTIVE-WORKBUDDY-TASKS.yaml`
+- `coordination/WORKBUDDY-TASK-ROUTER.md`
+- `coordination/CONTROL-TOWER/workbuddy_slots.py`
+- `coordination/CONTROL-TOWER/workbuddy_slots_core.py`
+- `coordination/CONTROL-TOWER/workbuddy_slot_selection.py`
+- `coordination/CONTROL-TOWER/run_workbuddy_slots.py`
+- `coordination/CONTROL-TOWER/tests/test_workbuddy_slots.py`
+- `coordination/CONTROL-TOWER/tests/test_workbuddy_slots_hardening.py`
+- `coordination/CONTROL-TOWER/tests/test_workbuddy_slot_selection.py`
+- `coordination/CONTROL-TOWER/tests/test_workbuddy_slot_o2_glob.py`
+- task-local R579 evidence files under this directory
+
+The existing `coordination/ACTIVE-WORKBUDDY-TASK.yaml` remains the R175 primary-slot compatibility projection and is not granted canonical authority over secondary slots.
+
+## R579 current architecture boundary
+
+The plural registry is governance / routing infrastructure only. It does not itself release any new WorkBuddy task.
+
+Current bounded model:
+
+- `active_slots_max: 2`
+- positive executable lifecycle admission (`READY` only)
+- top-level registry lifecycle must be `ACTIVE`
+- repository identity must match `vxz2datoubo/second-brain-coordination`
+- every new slot requires its own Route / Work Claim / Task Lease / Executor Reservation / Prewrite Snapshot / Executable Batch
+- non-primary authorization evidence binds exact `worker_slot_id` and complete collision surface
+- selector resolves identity only; it does not grant execution authority or prove runtime exclusivity
+- multiple executable slots require explicit slot/task selection; bare selection is allowed only when exactly one executable slot exists
+
+Fail-closed collision/admission protections include:
+
+- canonical write/read path scopes and rejection of unsupported glob aliases/metacharacters;
+- write/write and write/read mutable path overlap;
+- same mutable branch ownership;
+- interface/domain authority overlap;
+- O2 frozen-sharing single-writer preservation;
+- authority-claim overlap;
+- exclusive local-resource overlap;
+- mutable runtime/service/config overlap;
+- credential-surface overlap;
+- unapproved real-data surface sharing;
+- duplicate active task occupancy;
+- registry capacity overflow;
+- route/claim/lease/reservation/snapshot/batch identity and state drift;
+- legacy singular projection disagreement;
+- malformed YAML / malformed slot identities / executor-role mismatch;
+- recursive privileged-authority rejection in bound authorization documents;
+- registry SHA-256 stability across validation;
+- selection from the exact validated slot snapshot rather than a post-validation registry reload.
+
+## Exact-head verification immediately before this evidence refresh
+
+Pre-refresh exact head:
+
+`a3cdf78003686bf151c3efd0a410c92248b4b1f1`
+
+Latest exact-head workflows were all SUCCESS:
+
+- WorkBuddy multi-slot governance run `33876814225`
+  - Python 3.11 SUCCESS
+  - Python 3.13 SUCCESS
+  - compile / adversarial suite / R175 canonical readback / explicit selector / bare selector / diff whitespace SUCCESS
+- Program Control Tower foundation run `33876814213`
+  - Python 3.11 SUCCESS
+  - Python 3.13 SUCCESS
+  - current-main-vs-exact-candidate delta proof SUCCESS
+- Phase 3 integrated offline memory run `33876814199`
+  - completed SUCCESS
+
+Because this evidence refresh itself moves the branch head, these runs are predecessor evidence only. A fresh exact-head workflow set is required before independent review.
+
+## R175 preservation
+
+The plural registry primary slot preserves current R175 identity and authority:
 
 - task id
 - route epoch
@@ -62,50 +151,50 @@ The new plural registry seeds one primary slot from the current R175 task withou
 - Task Lease
 - Executor Reservation
 - canonical route
-- authorized write paths
+- governed write paths
 - completion signal
 
-R175 continues to forbid credential, real-data, deployment, trade, review and merge authority.
+R175 still carries no broker/account/order/trade/credential/review/merge/canonical authority.
 
-## Collision model
+## Downstream A-share #553 parallel target
 
-R579 adds fail-closed checks for:
+The immediate intended second-slot case remains A-share Issue #553 local TdxQuant capability witnessing.
 
-- write/write and write/read path overlap, including `/**` scope normalization;
-- mutable interface/domain authority overlap;
-- authority-claim overlap;
-- exclusive local-resource overlap;
-- mutable runtime/service/config overlap;
-- credential-surface overlap;
-- unapproved real-data surface sharing;
-- duplicate task occupying multiple active slots;
-- registry capacity overflow;
-- route/claim/lease/reservation identity drift;
-- legacy singular projection disagreement;
-- any attempt for the WorkBuddy registry itself to grant order/trade authority.
+Frozen downstream pre-release evidence now includes:
 
-## Immediate intended parallel case
+- `POST_R579_WORKBUDDY_SLOT_RELEASE_CONTRACT/v1` — Issue #553 comment `5535472278`
+- `P0B_EXECUTION_COMPILER_PRE_RELEASE/v1` — Issue #553 comment `5540897125`
 
-The required acceptance example is:
+Future target slot:
 
-- Slot A: existing interactive-film R175 task
-- Slot B: future A-share Issue #553 local TdxQuant capability witness
+`WORKBUDDY-W2-P0B-TDXQ-HISTORICAL-TICK-1`
 
-The pair is eligible only when Slot B has its own route/claim/lease/reservation and a fresh resource collision scan proves disjoint mutable surfaces. Merely adding the registry does not release Slot B.
+That slot remains **UNRELEASED**. R579 canonicalization alone does not create it. A future #553 release still requires a fresh collision/resource scan and its own governed Route / Claim / Lease / Reservation / Snapshot.
 
-## Overlap disposition
+The first local-provider task remains read-only `TDXQ.HISTORICAL_TRADE_TICK / get_tick_data`, with no broker/account/position/order/cancel/credential-discovery/package-install/service-restart/config-mutation/trade authority.
 
-`R6_FILE_OVERLAP = O0`
+## Fresh overlap disposition
 
-`R7_CURRENT_ACTIVE_WRITER_OVERLAP = NONE_OBSERVED` because #572 remains planning-only and no R7 implementation branch/write authority is active at this reconciliation point.
+`R6_FILE_OVERLAP = O0 / R6_CANONICAL`
 
-`R579_SHARED_GOVERNANCE_SEMANTIC_DEPENDENCY = YES` because all slices share the broader Control Tower architecture, but R579 uses a separate additive WorkBuddy seam and does not mutate the current R6 lifecycle resolver or GPT lifecycle projections.
+`R7_ACTIVATION_STATE = ACTIVATED`
 
-## Gate
+`R7_BRANCH_SUBSTANTIVE_DIVERGENCE_AT_LATEST_READBACK = NONE_OBSERVED`
 
-Substantive R579 implementation may proceed on its isolated Draft PR, but canonicalization still requires:
+`R7_R579_CORE_WRITE_SURFACE_OVERLAP = O0`
 
-1. exact-head CI;
-2. independent exact-head review through #581;
-3. confirmation that any later R6/R7 head movement has not introduced a new file/authority collision;
-4. no self-review and no self-merge.
+`R579_SHARED_GOVERNANCE_SEMANTIC_DEPENDENCY = YES`
+
+The semantic dependency is architectural only: R579 consumes the broader Control Tower governance model but does not write R7 lifecycle projections or `worker_slots.py`.
+
+## Final gate
+
+Before R579 can canonicalize, all of the following remain mandatory:
+
+1. fresh exact-head WorkBuddy multi-slot CI on the post-evidence-refresh head;
+2. fresh exact-head Program Control Tower current-main delta proof;
+3. fresh exact-head Phase 3 retained regression;
+4. fresh PR head / mergeability / current-main / R7-overlap readback;
+5. independent exact-head T3 through Issue #581 and #453 review queue;
+6. no self-review and no self-merge;
+7. no second WorkBuddy task release and no trade authority implied by R579 acceptance.
