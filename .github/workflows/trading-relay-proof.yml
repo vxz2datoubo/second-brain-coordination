@@ -1,0 +1,35 @@
+name: Trading relay synthetic proof
+on:
+  push:
+    branches: ['codex/trading-reproducible-relay-20260904']
+    paths:
+      - 'coordination/RESEARCH/TRADING-RELAY-20260904/scripts/**'
+      - 'coordination/RESEARCH/TRADING-RELAY-20260904/tests/**'
+      - 'coordination/RESEARCH/TRADING-RELAY-20260904/replay-lock.json'
+      - '.github/workflows/trading-relay-proof.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  existing-p2-proof:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.13.3'
+      - name: Existing P2 regressions
+        run: python3 -X utf8 -m unittest discover -s coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/tests -p 'test_*.py'
+      - name: Verifier negative tests
+        run: python3 -X utf8 -m unittest discover -s coordination/RESEARCH/TRADING-RELAY-20260904/tests -p 'test_*.py'
+      - name: Two real synthetic replays
+        run: python3 -X utf8 coordination/RESEARCH/TRADING-RELAY-20260904/scripts/prove_replay.py --output "$RUNNER_TEMP/trading-relay-proof" --challenge "actions-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: trading-relay-proof
+          path: ${{ runner.temp }}/trading-relay-proof
+          if-no-files-found: error
+          retention-days: 14
