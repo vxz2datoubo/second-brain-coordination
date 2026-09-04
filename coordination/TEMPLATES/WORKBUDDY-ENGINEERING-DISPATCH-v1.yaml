@@ -1,0 +1,73 @@
+schema_version: "1.0"
+template_id: "WORKBUDDY-ENGINEERING-DISPATCH-v1"
+status: "TEMPLATE_NON_EXECUTABLE"
+
+# Fill every field before a governed WorkBuddy task becomes executable.
+identity:
+  task_id: "REQUIRED"
+  route_epoch: "REQUIRED"
+  project: "REQUIRED"
+  repository: "REQUIRED"
+  source_issue: "REQUIRED"
+  active_issue: "REQUIRED"
+  implementation_branch: "REQUIRED"
+  canonical_base: "REQUIRED_FRESH_EXACT_SHA"
+  completion_signal: "REQUIRED"
+
+mission:
+  user_goal: "REQUIRED"
+  gpt_architecture_intent: "REQUIRED"
+  required_outcome: "REQUIRED"
+  non_goals: []
+
+model_assignment:
+  # EXACTLY ONE profile must be chosen. AUTO is not allowed unless a separate explicit exception is governed.
+  model_profile: "DEEPSEEK_V4_PRO | DEEPSEEK_V4_FLASH | HYBRID_PRO_WITH_FLASH_LITE"
+  primary_model_id: "deepseek-v4-pro | deepseek-v4-flash"
+  reasoning_model_id: "deepseek-v4-pro | deepseek-v4-flash"
+  lite_model_id: "deepseek-v4-flash"
+  assignment_rationale: "REQUIRED_USER_VISIBLE_REASON"
+  fallback_policy: "FAIL_CLOSED_RETURN_TO_GPT | EXPLICIT_GPT_APPROVED_FALLBACK"
+  actual_model_must_be_reported_in_return_package: true
+
+execution:
+  carrier: "WORKBUDDY_CLI | WORKBUDDY_APP"
+  cli_dispatch_ref: "OPTIONAL_BOUND_DISPATCH_FILE"
+  automatic_resume_within_task: true
+  second_user_start_command_required: false
+  branch_creation_authority: "ONLY_WHEN_CANONICAL_ROUTE_LEASE_AND_BASE_MATCH"
+
+scope:
+  write_paths: []
+  read_paths: []
+  forbidden_paths: []
+  architecture_authority: false
+  acceptance_oracle_write_authority: false
+  direct_main_write: false
+  merge_authority: false
+
+acceptance:
+  required_tests: []
+  adversarial_tests: []
+  performance_or_quality_gates: []
+  exact_head_ci_required: true
+  independent_review_required: true
+
+architecture_exception:
+  on_architecture_problem: "STOP_OR_PUBLISH_RFC_TO_GPT"
+  silent_redesign_allowed: false
+
+return_package:
+  required:
+    - "actual_model_profile"
+    - "actual_primary_model_id"
+    - "actual_reasoning_model_id"
+    - "actual_lite_model_id"
+    - "execution_carrier"
+    - "exact_branch_base_head"
+    - "changed_files"
+    - "commands_and_tests"
+    - "failures_and_root_causes"
+    - "unknowns_and_blockers"
+    - "architecture_rfc_if_any"
+    - "completion_signal"
