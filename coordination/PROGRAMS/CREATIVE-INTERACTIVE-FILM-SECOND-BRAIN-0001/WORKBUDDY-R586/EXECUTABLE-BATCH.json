@@ -2,9 +2,10 @@
   "schema": "CreativeExecutorWorkBatch/v1",
   "batch_id": "CIF-R586-PR578-REVIEW-BOUNDED-REMEDIATION-001",
   "project_id": "CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001",
-  "authority": "CANONICAL_BOUND_BATCH_EXECUTABLE_AFTER_ROUTE_RELEASE_CANONICALIZATION",
+  "authority": "CANONICAL_BOUND_BATCH_EXECUTABLE_ONLY_AFTER_ROUTE_RELEASE_CANONICAL_READBACK",
   "route_authority": {
-    "execution_allowed": false,
+    "execution_allowed": true,
+    "canonical_readback_required": true,
     "task_id": "WORKBUDDY-R586-PR578-REMEDIATION",
     "active_issue": 586,
     "source_issue": 577,
@@ -38,7 +39,8 @@
       "depends_on": [],
       "write_paths": [],
       "requirements": [
-        "remote main equals the route-bound base or execution stops for route reissue",
+        "remote main contains the independently accepted exact route-release head and the bound R586 active pointer",
+        "remote main still matches the route-bound implementation base or execution stops for route reissue",
         "frozen PR #578 still equals 9d536357755a44ac50ea4352ac7c319d97101779",
         "Issue #453 result and pullrequestreview-5108122069 still bind that head with CHANGES_REQUIRED",
         "implementation branch did not exist before the prewrite snapshot"
@@ -50,7 +52,7 @@
       "status": "PLANNED",
       "depends_on": ["WB-R586-V1"],
       "write_paths": ["E577_EXACT_ALLOWLIST_ONLY"],
-      "outcome": "Port the frozen PR #578 payload path-by-path from exact head 9d536357... onto the current-main successor branch with provenance. Do not merge/cherry-pick the frozen branch and do not semantically alter unrelated payload."
+      "outcome": "Create the implementation branch exactly from the bound canonical base, then port the frozen PR #578 payload path-by-path from exact head 9d536357... with provenance. Do not merge/cherry-pick the frozen branch and do not semantically alter unrelated payload."
     },
     {
       "item_id": "WB-R586-S2",
@@ -95,7 +97,8 @@
     }
   ],
   "stop_conditions": [
-    "canonical main moved from the bound base before branch creation",
+    "route-release exact head is not independently accepted and present in canonical main",
+    "canonical main moved from the bound implementation base before branch creation",
     "frozen PR #578 exact head or independent review identity drift",
     "an unlisted semantic write is needed",
     "E577 allowlist widening is needed",
