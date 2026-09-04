@@ -10,9 +10,11 @@ that the singular compatibility projection bind authority-bearing references.
 
 import _workbuddy_slots_tests_v1 as _v1
 
+_ORIGINAL_LEGACY = _v1._legacy
+
 
 def _legacy(slot):
-    payload = _v1._legacy(slot)
+    payload = _ORIGINAL_LEGACY(slot)
     payload.update(
         {
             "repository": "vxz2datoubo/second-brain-coordination",
