@@ -8,7 +8,7 @@ active_issue: 586
 source_pull_request: 578
 executor_agent_type: "WORKBUDDY"
 executor_role: "BOUNDED_REMEDIATION_EXECUTOR"
-reservation_state: "RESERVED_NON_EXECUTABLE"
+reservation_state: "ACTIVE_ONLY_WHEN_CANONICAL_READBACK_MATCHES"
 implementation_branch: "workbuddy/r586-pr578-review-bounded-remediation"
 branch_must_not_exist_before_snapshot: true
 pull_request: null
@@ -25,13 +25,13 @@ reservation_exclusions:
 
 activation_requires:
   - "prewrite snapshot predates implementation-branch creation"
-  - "release candidate receives fresh independent acceptance and separate canonicalization"
+  - "this release candidate receives fresh independent acceptance and separate canonicalization"
   - "fresh canonical readback of route, claim, lease, reservation, active task, snapshot and executable batch"
   - "all identities match route_epoch 586, Issue 586, base 04124e233dc813cca4054851ef6a470b342d82fe and frozen source 9d536357755a44ac50ea4352ac7c319d97101779"
   - "WorkBuddy creates the implementation branch from the bound canonical base"
 
 reservation_effect:
   execution_identity_reserved: true
-  substantive_write_authorized_now: false
+  substantive_write_authorized_only_after_canonical_readback: true
   review_authority: false
   merge_authority: false
