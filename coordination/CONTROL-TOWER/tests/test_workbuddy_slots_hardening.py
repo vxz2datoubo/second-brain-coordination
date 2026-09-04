@@ -103,6 +103,101 @@ class WorkBuddyMultiSlotHardeningTests(unittest.TestCase):
         report = validate_workbuddy_slots(root)
         self.assertIn("WORKBUDDY_BOUND_REF_FORBIDDEN_AUTHORITY", self._codes(report), report["errors"])
 
+    def test_registry_pause_blocks_all_child_slot_admission(self):
+        slot = base._slot("WB-A", "A", 1, 1, "workbuddy/a", "path/a/**", primary=True)
+        tmp, root = self._repo([slot])
+        self.addCleanup(tmp.cleanup)
+        registry = base._registry([slot])
+        registry["status"] = "PAUSED"
+        base._write_yaml(root, base.WORKBUDDY_REGISTRY, registry)
+        report = validate_workbuddy_slots(root)
+        self.assertEqual(report["structural_check"], "FAIL")
+        self.assertIn("WORKBUDDY_REGISTRY_STATUS_INVALID", self._codes(report), report["errors"])
+        self.assertEqual(report["active_slots_max"], 0)
+        self.assertEqual(report["slots"], [])
+
+    def test_registry_missing_or_unknown_status_fails_closed(self):
+        for status in (None, "ACTIVEE"):
+            with self.subTest(status=status):
+                slot = base._slot("WB-A", "A", 1, 1, "workbuddy/a", "path/a/**", primary=True)
+                tmp, root = self._repo([slot])
+                try:
+                    registry = base._registry([slot])
+                    if status is None:
+                        registry.pop("status", None)
+                    else:
+                        registry["status"] = status
+                    base._write_yaml(root, base.WORKBUDDY_REGISTRY, registry)
+                    report = validate_workbuddy_slots(root)
+                    self.assertIn("WORKBUDDY_REGISTRY_STATUS_INVALID", self._codes(report), report["errors"])
+                finally:
+                    tmp.cleanup()
+
+    def test_registry_repository_identity_mismatch_fails_closed(self):
+        slot = base._slot("WB-A", "A", 1, 1, "workbuddy/a", "path/a/**", primary=True)
+        tmp, root = self._repo([slot])
+        self.addCleanup(tmp.cleanup)
+        registry = base._registry([slot])
+        registry["repository"] = "attacker/other-repository"
+        base._write_yaml(root, base.WORKBUDDY_REGISTRY, registry)
+        report = validate_workbuddy_slots(root)
+        self.assertIn("WORKBUDDY_REGISTRY_REPOSITORY_MISMATCH", self._codes(report), report["errors"])
+
+    def test_registry_yaml_syntax_error_is_structured_failure(self):
+        slot = base._slot("WB-A", "A", 1, 1, "workbuddy/a", "path/a/**", primary=True)
+        tmp, root = self._repo([slot])
+        self.addCleanup(tmp.cleanup)
+        (root / base.WORKBUDDY_REGISTRY).write_text("schema_version: [\n", encoding="utf-8")
+        report = validate_workbuddy_slots(root)
+        self.assertEqual(report["structural_check"], "FAIL")
+        self.assertIn("WORKBUDDY_REGISTRY_UNREADABLE", self._codes(report), report["errors"])
+        self.assertEqual(report["slots"], [])
+
+    def test_bound_yaml_syntax_error_is_structured_failure(self):
+        slot = base._slot("WB-A", "A", 1, 1, "workbuddy/a", "path/a/**", primary=True)
+        tmp, root = self._repo([slot])
+        self.addCleanup(tmp.cleanup)
+        (root / slot["work_claim"]).write_text("claim_state: [\n", encoding="utf-8")
+        report = validate_workbuddy_slots(root)
+        self.assertEqual(report["structural_check"], "FAIL")
+        self.assertIn("WORKBUDDY_BOUND_REF_UNREADABLE", self._codes(report), report["errors"])
+
+    def test_legacy_projection_yaml_syntax_error_is_structured_failure(self):
+        slot = base._slot("WB-A", "A", 1, 1, "workbuddy/a", "path/a/**", primary=True)
+        tmp, root = self._repo([slot])
+        self.addCleanup(tmp.cleanup)
+        (root / base.LEGACY_WORKBUDDY_PROJECTION).write_text("task_id: [\n", encoding="utf-8")
+        report = validate_workbuddy_slots(root)
+        self.assertEqual(report["structural_check"], "FAIL")
+        self.assertIn("WORKBUDDY_LEGACY_PROJECTION_UNREADABLE", self._codes(report), report["errors"])
+
+    def test_non_string_worker_slot_id_is_structured_failure(self):
+        slot = base._slot("WB-A", "A", 1, 1, "workbuddy/a", "path/a/**", primary=True)
+        slot["worker_slot_id"] = {"bad": "id"}
+        tmp, root = self._repo([slot])
+        self.addCleanup(tmp.cleanup)
+        report = validate_workbuddy_slots(root)
+        self.assertEqual(report["structural_check"], "FAIL")
+        self.assertIn("WORKBUDDY_SLOT_ID_INVALID_OR_DUPLICATE", self._codes(report), report["errors"])
+
+    def test_non_string_task_id_is_structured_failure(self):
+        slot = base._slot("WB-A", "A", 1, 1, "workbuddy/a", "path/a/**", primary=True)
+        slot["task_id"] = {"bad": "task"}
+        tmp, root = self._repo([slot])
+        self.addCleanup(tmp.cleanup)
+        report = validate_workbuddy_slots(root)
+        self.assertEqual(report["structural_check"], "FAIL")
+        self.assertIn("WORKBUDDY_SLOT_IDENTITY_TYPE_INVALID", self._codes(report), report["errors"])
+
+    def test_executor_role_must_be_workbuddy_local_executor(self):
+        slot = base._slot("WB-A", "A", 1, 1, "workbuddy/a", "path/a/**", primary=True)
+        slot["executor_role"] = "CODEX"
+        tmp, root = self._repo([slot])
+        self.addCleanup(tmp.cleanup)
+        report = validate_workbuddy_slots(root)
+        self.assertEqual(report["structural_check"], "FAIL")
+        self.assertIn("WORKBUDDY_SLOT_EXECUTOR_ROLE_INVALID", self._codes(report), report["errors"])
+
 
 if __name__ == "__main__":
     unittest.main()
