@@ -9,9 +9,9 @@ source_pull_request: 578
 agent_type: "WORKBUDDY"
 implementation_branch: "workbuddy/r586-pr578-review-bounded-remediation"
 pull_request: null
-lease_state: "RESERVED_NON_EXECUTABLE"
-execution_allowed: false
-substantive_write_allowed: false
+lease_state: "ACTIVE_ONLY_WHEN_CANONICAL_READBACK_MATCHES"
+execution_allowed: true
+substantive_write_allowed: true
 canonical_base: "04124e233dc813cca4054851ef6a470b342d82fe"
 frozen_source_head: "9d536357755a44ac50ea4352ac7c319d97101779"
 independent_review_ref: "pullrequestreview-5108122069"
@@ -31,6 +31,7 @@ concurrency:
   predecessor_r175_completion_proven: true
   predecessor_return_head: "2c229eaa1228580e80e130f628dc11c56ee6df8d"
   predecessor_completion_signal: "WORKBUDDY_R175_ORDERED_BATCH_COMPLETE_RETURN_TO_CODEX"
+  predecessor_lease_expired_by_batch_return: true
   noncanonical_multislot_pr_585_usable: false
   same_surface_second_writer_forbidden: true
   overlap_disposition: "FAIL_CLOSED_AND_RETURN_FINDING_TO_GPT"
@@ -45,10 +46,11 @@ freshness:
   mismatch_action: "LEASE_INVALID_FAIL_CLOSED"
 
 activation_requires:
-  - "route-release candidate is independently accepted and separately canonicalized"
+  - "this exact route-release head is independently accepted and separately canonicalized"
   - "canonical main readback contains matching R586 route/claim/lease/reservation/snapshot/batch/active-task"
-  - "implementation branch is absent before WorkBuddy starts"
-  - "WorkBuddy creates implementation branch exactly from canonical_base as first governed branch action"
+  - "canonical main still equals the bound base at implementation-branch creation; otherwise stop for route reissue"
+  - "implementation branch did not exist before the prewrite snapshot"
+  - "WorkBuddy creates implementation branch exactly from canonical_base as its first branch action"
 
 review_authority: false
 merge_authority: false
