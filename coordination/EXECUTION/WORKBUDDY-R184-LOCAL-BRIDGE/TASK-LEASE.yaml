@@ -1,0 +1,37 @@
+schema: "TaskLease/v1"
+project: "SECOND_BRAIN"
+repository: "vxz2datoubo/second-brain-coordination"
+task_id: "WORKBUDDY-R184-LOCAL-WORKBUDDY-BRIDGE"
+route_epoch: 184
+source_issue: 595
+active_issue: 595
+agent_type: "WORKBUDDY"
+implementation_branch: "workbuddy/r184-local-workbuddy-bridge"
+pull_request: null
+lease_state: "ACTIVE"
+execution_allowed: true
+substantive_write_allowed: true
+source_checkpoint: "bf4e722540f92ed560b29f884b3ac7c1c8d8895d"
+checkpoint_remote_ref: "refs/heads/main"
+exclusive_write_surface:
+  - "tools/local_workbuddy_bridge/**"
+  - "tests/test_unified_execution_local_bridge.py"
+  - "tests/fixtures/local_workbuddy_bridge/**"
+  - "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/**"
+concurrency:
+  r175_active: true
+  r175_may_continue_non_overlapping_work: true
+  same_surface_second_writer_forbidden: true
+  registry_wide_conflict_admission_required: true
+  overlap_disposition: "FAIL_CLOSED_AND_RETURN_FINDING_TO_GPT"
+freshness:
+  route: "coordination/ROUTES/WORKBUDDY-R184-LOCAL-WORKBUDDY-BRIDGE.yaml"
+  work_claim: "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/WORK-CLAIM.yaml"
+  executor_reservation: "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/EXECUTOR-RESERVATION.yaml"
+  prewrite_snapshot: "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/PREWRITE-RECONCILIATION-SNAPSHOT.yaml"
+  executable_batch: "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/EXECUTABLE-BATCH.json"
+  active_task: "coordination/EXECUTION/ACTIVE-WORKBUDDY-R184-LOCAL-BRIDGE.yaml"
+  mismatch_action: "LEASE_INVALID_FAIL_CLOSED"
+review_authority: false
+merge_authority: false
+lease_expiry: "ON_RETURN_BLOCKING_FINDING_GOVERNANCE_SUPERSESSION_OR_POST_REVIEW_HANDOFF"
