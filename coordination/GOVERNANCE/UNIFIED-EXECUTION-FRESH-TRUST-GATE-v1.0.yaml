@@ -1,4 +1,4 @@
-schema_version: "1.1"
+schema_version: "1.2"
 contract_id: "UNIFIED-EXECUTION-FRESH-TRUST-GATE-v1"
 status: "CANDIDATE_REMEDIATED_PENDING_INDEPENDENT_REVIEW"
 source_issue: 596
@@ -6,8 +6,8 @@ source_pr: 597
 
 purpose: >-
   Make fresh canonical GitHub readback the sole process-start/handoff trust root,
-  while preventing caller/user Git configuration from redefining the supposedly
-  fixed canonical repository.
+  while preventing caller/user Git configuration, environment or Git templates from
+  redefining the supposedly fixed canonical repository.
 
 normative_precedence:
   applies_to:
@@ -18,8 +18,8 @@ normative_precedence:
   rule: >-
     Any older wording that could be read as trusting Python verified-object identity,
     module-private issuer identity, cached receipts, caller-supplied typed snapshots,
-    or Git reads executed inside caller/executor Git configuration is overridden by
-    this contract.
+    or Git reads executed with caller/executor Git configuration, Git execution
+    environment or template inheritance is overridden by this contract.
 
 security_boundary:
   sole_trust_root: "PROTECTED_BRIDGE_OWNED_CANONICAL_GIT_TRANSPORT"
@@ -31,25 +31,36 @@ security_boundary:
   caller_cloned_snapshot_is_authority: false
   cached_verified_snapshot_is_sufficient_for_process_start: false
   caller_or_executor_git_config_is_trust_input: false
+  inherited_git_environment_is_trust_input: false
+  caller_git_template_is_trust_input: false
 
 protected_git_transport:
   module: "coordination/GOVERNANCE/unified_execution_trusted_transport.py"
   bridge_owned_ephemeral_bare_repo: true
   caller_repo_path_ignored_for_remote_resolution: true
-  inherited_git_config_environment_sanitized: true
+  inherited_git_environment_policy: "DROP_ALL_GIT_STAR_THEN_REINTRODUCE_ONLY_BRIDGE_OWNED_KEYS"
   repo_local_config_inherited: false
   worktree_config_inherited: false
   global_config_inherited: false
   system_config_inherited: false
   url_insteadof_rewrites_inherited: false
+  inherited_git_template_dir_allowed: false
+  bridge_owned_empty_template_required: true
+  explicit_init_template_argument_required: true
+  post_init_local_config_attestation_required: true
+  same_sanitized_environment_for_init_ls_remote_fetch_show_and_terminal_recheck: true
   requirements:
     - "fresh empty HOME/XDG_CONFIG_HOME"
+    - "remove every inherited GIT_* environment variable before protected Git execution"
+    - "reintroduce only bridge-owned GIT_CONFIG_NOSYSTEM/GIT_CONFIG_GLOBAL/GIT_TEMPLATE_DIR/GIT_TERMINAL_PROMPT"
     - "GIT_CONFIG_NOSYSTEM=1"
     - "GIT_CONFIG_GLOBAL points to null device"
-    - "remove inherited GIT_CONFIG_* variables before invoking git"
-    - "remove inherited GIT_DIR/GIT_WORK_TREE/common/object alternate variables"
+    - "GIT_TEMPLATE_DIR points to bridge-owned empty template"
+    - "git init --bare receives an explicit bridge-owned --template path"
+    - "new bare trust repo local config contains only allowed init-time repository-format metadata"
     - "perform ls-remote and fetch only inside isolated bridge-owned bare repository"
-    - "read governed files only by fetched exact SHA"
+    - "read governed files only by fetched exact SHA using the same sanitized environment"
+    - "terminal remote-main recheck uses the same protected transport rules"
   failure_behavior: "FAIL_CLOSED_NO_PROCESS_START"
 
 executable_gate:
@@ -70,7 +81,7 @@ canonical_authority_reauthentication:
     - "protected fetch of the exact observed main into isolated bare repo"
     - "validate full Active/Route/Claim/Lease/Reservation/Prewrite/Batch semantic chain"
     - "re-run project-specific adapter semantic floor at exact canonical_main_sha"
-    - "reject duplicate protected Adapter YAML keys before semantic parsing"
+    - "reject duplicate top-level Adapter YAML keys and duplicate protected nested semantic keys before regex parsing"
     - "compare claimed snapshot byte-semantically to fresh canonical projection"
     - "terminal protected ls-remote recheck after governed document reads"
     - "fail closed if main moved, transport was ambiguous, or any semantic mismatch exists"
@@ -80,6 +91,8 @@ canonical_authority_reauthentication:
   issuer_reuse_attack: "FAIL_CLOSED_UNLESS_EXACTLY_EQUAL_TO_FRESH_CANONICAL_STATE"
   local_git_insteadof_attack: "FAIL_CLOSED_OR_IGNORED_BY_ISOLATED_TRANSPORT"
   environment_git_insteadof_attack: "FAIL_CLOSED_OR_IGNORED_BY_ISOLATED_TRANSPORT"
+  git_template_dir_insteadof_attack: "FAIL_CLOSED_OR_IGNORED_BY_BRIDGE_OWNED_EMPTY_TEMPLATE"
+  inherited_git_exec_or_ssh_environment_attack: "REMOVED_FROM_PROTECTED_ENVIRONMENT"
 
 release_reauthentication:
   required_for_carrier_handoff: true
@@ -93,7 +106,8 @@ release_reauthentication:
 project_adapter_runtime_floor:
   revalidate_on_authority_consumption: true
   exact_sha: "canonical_main_sha from fresh authority"
-  duplicate_protected_keys: "FAIL_CLOSED"
+  duplicate_top_level_keys: "FAIL_CLOSED"
+  duplicate_protected_nested_keys: "FAIL_CLOSED"
   all_registered_project_adapters_parsed: true
   matched_project_must_be_unique: true
   execution_repository_must_match_semantically_validated_adapter: true
@@ -120,8 +134,11 @@ ci_adversarial_requirements:
   - "dataclasses.replace release clone cannot preserve trust"
   - "repo-local url.*.insteadOf cannot redirect initial canonical readback/fetch"
   - "inherited GIT_CONFIG_* url rewrite cannot redirect canonical transport"
-  - "repo-local url.*.insteadOf cannot redirect terminal remote-main recheck"
-  - "duplicate protected Adapter YAML keys fail closed"
+  - "malicious inherited GIT_TEMPLATE_DIR cannot seed url.*.insteadOf into trust repo"
+  - "inherited GIT_EXEC_PATH/GIT_SSH_COMMAND and other GIT_* behavior variables are not inherited"
+  - "repo-local or template-seeded rewrite cannot redirect terminal remote-main recheck"
+  - "duplicate top-level Adapter authority/list/section keys fail closed"
+  - "duplicate protected nested Adapter YAML keys fail closed"
   - "runtime project adapter semantic-floor downgrade fails closed"
   - "carrier handoff substitutes fresh canonical release and fresh new authority"
 
@@ -132,5 +149,6 @@ hard_boundaries:
   - "NO_CALLER_MINTED_AUTHORITY"
   - "NO_CALLER_MINTED_RELEASE_PROOF"
   - "NO_USER_OR_EXECUTOR_GIT_CONFIG_AS_TRUST_ROOT"
+  - "NO_INHERITED_GIT_TEMPLATE_OR_GIT_EXECUTION_ENV_AS_TRUST_ROOT"
   - "NO_LIVE_TRADE_OR_ORDER_AUTHORITY"
   - "NO_ACTIVE_WORKBUDDY_TASK_MUTATION_FROM_THIS_REMEDIATION"
