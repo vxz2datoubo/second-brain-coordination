@@ -30,6 +30,7 @@ helper_spec.loader.exec_module(auth_fixture)
 base = registry.base
 MAIN = "a" * 40
 SECOND_INDEX = "coordination/EXECUTION/ACTIVE-TASKS/TASK-1.yaml"
+THIRD_INDEX = "coordination/EXECUTION/ACTIVE-TASKS/TASK-2.yaml"
 
 
 def _registry_bytes(*refs):
@@ -64,6 +65,35 @@ def _files_with_second_index():
             files[path] = raw.replace(old, new)
     files[registry.REGISTRY_REF] = _registry_bytes(legacy, SECOND_INDEX)
     return files
+
+
+def _snapshot(
+    task_id,
+    collision_domain,
+    authorized_paths=None,
+    execution_repository="vxz2datoubo/second-brain-coordination",
+    implementation_branch=None,
+    marker=None,
+):
+    if authorized_paths is None:
+        authorized_paths = [f"tests/{task_id.lower()}/**"]
+    if implementation_branch is None:
+        implementation_branch = f"workbuddy/{task_id.lower()}"
+    payload = {
+        "control_plane_repository": base.TRUSTED_CONTROL_PLANE_REPOSITORY,
+        "execution_repository": execution_repository,
+        "project_id": "SECOND_BRAIN",
+        "task_id": task_id,
+        "route_epoch": 1,
+        "exact_base_sha": "c" * 40,
+        "implementation_branch": implementation_branch,
+        "collision_domain": collision_domain,
+        "canonical_main_sha": MAIN,
+        "authorized_paths": authorized_paths,
+    }
+    if marker is not None:
+        payload["marker"] = marker
+    return base._issue_authority(payload)
 
 
 class RegistryParsingTests(unittest.TestCase):
@@ -180,24 +210,29 @@ class ExplicitRegisteredAuthorityTests(unittest.TestCase):
 
 
 class RegisteredProcessStartTests(unittest.TestCase):
-    def _snapshot(self, marker):
-        return base._issue_authority(
-            {
-                "canonical_main_sha": MAIN,
-                "marker": marker,
-            }
-        )
-
-    def test_process_start_substitutes_fresh_registered_authority(self):
-        fresh = self._snapshot("fresh")
-        claimed = self._snapshot("fresh")
+    def _run_set(self, first, second, claimed=None):
+        if claimed is None:
+            claimed = first
         admission = {"admission": True}
         dispatch = {"dispatch": True}
-        with patch.object(
+        return patch.object(
+            registry,
+            "registered_task_index_refs",
+            return_value=(MAIN, (SECOND_INDEX, THIRD_INDEX)),
+        ), patch.object(
             registry,
             "build_verified_canonical_authority_for_task_index",
-            return_value=fresh,
-        ), patch.object(base, "validate_local_admission") as validate:
+            side_effect=[first, second],
+        ), patch.object(base, "validate_local_admission"), admission, dispatch, claimed
+
+    def test_process_start_substitutes_registry_wide_fresh_target(self):
+        fresh = _snapshot("TASK-X", "WRITESET_SHA256:a", marker="fresh")
+        peer = _snapshot("TASK-Y", "WRITESET_SHA256:b", marker="peer")
+        claimed = _snapshot("TASK-X", "WRITESET_SHA256:a", marker="fresh")
+        read_registry, build, validate, admission, dispatch, _ = self._run_set(
+            fresh, peer, claimed
+        )
+        with read_registry, build, validate:
             returned = registry.validate_process_start_for_task_index(
                 ".", SECOND_INDEX, admission, dispatch, claimed
             )
@@ -205,44 +240,94 @@ class RegisteredProcessStartTests(unittest.TestCase):
         validate.assert_called_once_with(admission, dispatch, fresh)
 
     def test_process_start_rejects_caller_snapshot_that_differs_from_fresh(self):
-        fresh = self._snapshot("fresh")
-        forged = self._snapshot("caller-forged")
-        with patch.object(
-            registry,
-            "build_verified_canonical_authority_for_task_index",
-            return_value=fresh,
-        ), patch.object(base, "validate_local_admission") as validate:
+        fresh = _snapshot("TASK-X", "WRITESET_SHA256:a", marker="fresh")
+        peer = _snapshot("TASK-Y", "WRITESET_SHA256:b", marker="peer")
+        forged = _snapshot("TASK-X", "WRITESET_SHA256:a", marker="caller-forged")
+        read_registry, build, validate, _, _, _ = self._run_set(
+            fresh, peer, forged
+        )
+        with read_registry, build, validate:
             with self.assertRaises(base.ExecutionContractError):
                 registry.validate_process_start_for_task_index(
                     ".", SECOND_INDEX, {}, {}, forged
                 )
         validate.assert_not_called()
 
+    def test_process_start_rejects_registry_duplicate_task_identity(self):
+        first = _snapshot("TASK-X", "WRITESET_SHA256:a")
+        second = _snapshot("TASK-X", "WRITESET_SHA256:b")
+        read_registry, build, validate, _, _, claimed = self._run_set(first, second)
+        with read_registry, build, validate:
+            with self.assertRaises(base.ExecutionContractError):
+                registry.validate_process_start_for_task_index(
+                    ".", SECOND_INDEX, {}, {}, claimed
+                )
+        validate.assert_not_called()
+
+    def test_process_start_rejects_registry_collision_domain_conflict(self):
+        first = _snapshot("TASK-X", "WRITESET_SHA256:same")
+        second = _snapshot("TASK-Y", "WRITESET_SHA256:same")
+        read_registry, build, validate, _, _, claimed = self._run_set(first, second)
+        with read_registry, build, validate:
+            with self.assertRaises(base.ExecutionContractError):
+                registry.validate_process_start_for_task_index(
+                    ".", SECOND_INDEX, {}, {}, claimed
+                )
+        validate.assert_not_called()
+
+    def test_process_start_rejects_registry_overlapping_write_surfaces(self):
+        first = _snapshot(
+            "TASK-X", "WRITESET_SHA256:a", ["tests/workbuddy/**"]
+        )
+        second = _snapshot(
+            "TASK-Y", "WRITESET_SHA256:b", ["tests/workbuddy/unit/**"]
+        )
+        read_registry, build, validate, _, _, claimed = self._run_set(first, second)
+        with read_registry, build, validate:
+            with self.assertRaises(base.ExecutionContractError):
+                registry.validate_process_start_for_task_index(
+                    ".", SECOND_INDEX, {}, {}, claimed
+                )
+        validate.assert_not_called()
+
+    def test_process_start_rejects_registry_ambiguous_write_surface(self):
+        first = _snapshot(
+            "TASK-X", "WRITESET_SHA256:a", ["tests/*/generated"]
+        )
+        second = _snapshot("TASK-Y", "WRITESET_SHA256:b", ["docs/**"])
+        read_registry, build, validate, _, _, claimed = self._run_set(first, second)
+        with read_registry, build, validate:
+            with self.assertRaises(base.ExecutionContractError):
+                registry.validate_process_start_for_task_index(
+                    ".", SECOND_INDEX, {}, {}, claimed
+                )
+        validate.assert_not_called()
+
+    def test_process_start_allows_isolated_cross_repository_peer(self):
+        first = _snapshot(
+            "TASK-X",
+            "WRITESET_SHA256:a",
+            ["src/**"],
+            "owner/repo-a",
+        )
+        second = _snapshot(
+            "TASK-Y",
+            "WRITESET_SHA256:b",
+            ["src/**"],
+            "owner/repo-b",
+        )
+        read_registry, build, validate, admission, dispatch, claimed = self._run_set(
+            first, second
+        )
+        with read_registry, build, validate:
+            returned = registry.validate_process_start_for_task_index(
+                ".", SECOND_INDEX, admission, dispatch, claimed
+            )
+        self.assertIs(returned, first)
+        validate.assert_called_once_with(admission, dispatch, first)
+
 
 class MultiTaskCollisionTests(unittest.TestCase):
-    def _snapshot(
-        self,
-        task_id,
-        collision_domain,
-        authorized_paths=None,
-        execution_repository="vxz2datoubo/second-brain-coordination",
-    ):
-        if authorized_paths is None:
-            authorized_paths = [f"tests/{task_id.lower()}/**"]
-        payload = {
-            "control_plane_repository": base.TRUSTED_CONTROL_PLANE_REPOSITORY,
-            "execution_repository": execution_repository,
-            "project_id": "SECOND_BRAIN",
-            "task_id": task_id,
-            "route_epoch": 1,
-            "exact_base_sha": "c" * 40,
-            "implementation_branch": f"workbuddy/{task_id.lower()}",
-            "collision_domain": collision_domain,
-            "canonical_main_sha": MAIN,
-            "authorized_paths": authorized_paths,
-        }
-        return base._issue_authority(payload)
-
     def _enumerate(self, first, second):
         return patch.object(
             registry,
@@ -255,26 +340,26 @@ class MultiTaskCollisionTests(unittest.TestCase):
         )
 
     def test_duplicate_task_identity_fails_closed(self):
-        first = self._snapshot("TASK-X", "WRITESET_SHA256:a")
-        second = self._snapshot("TASK-X", "WRITESET_SHA256:b")
+        first = _snapshot("TASK-X", "WRITESET_SHA256:a")
+        second = _snapshot("TASK-X", "WRITESET_SHA256:b")
         read_registry, build = self._enumerate(first, second)
         with read_registry, build:
             with self.assertRaises(base.ExecutionContractError):
                 registry.build_registered_authorities(".")
 
     def test_distinct_tasks_same_collision_domain_fail_closed(self):
-        first = self._snapshot("TASK-X", "WRITESET_SHA256:same")
-        second = self._snapshot("TASK-Y", "WRITESET_SHA256:same")
+        first = _snapshot("TASK-X", "WRITESET_SHA256:same")
+        second = _snapshot("TASK-Y", "WRITESET_SHA256:same")
         read_registry, build = self._enumerate(first, second)
         with read_registry, build:
             with self.assertRaises(base.ExecutionContractError):
                 registry.build_registered_authorities(".")
 
     def test_distinct_hashes_but_overlapping_write_surfaces_fail_closed(self):
-        first = self._snapshot(
+        first = _snapshot(
             "TASK-X", "WRITESET_SHA256:a", ["tests/workbuddy/**"]
         )
-        second = self._snapshot(
+        second = _snapshot(
             "TASK-Y", "WRITESET_SHA256:b", ["tests/workbuddy/unit/**"]
         )
         read_registry, build = self._enumerate(first, second)
@@ -283,11 +368,27 @@ class MultiTaskCollisionTests(unittest.TestCase):
                 registry.build_registered_authorities(".")
 
     def test_ambiguous_glob_surface_fails_closed_against_parallel_writer(self):
-        first = self._snapshot(
+        first = _snapshot(
             "TASK-X", "WRITESET_SHA256:a", ["tests/*/generated"]
         )
-        second = self._snapshot(
-            "TASK-Y", "WRITESET_SHA256:b", ["docs/**"]
+        second = _snapshot("TASK-Y", "WRITESET_SHA256:b", ["docs/**"])
+        read_registry, build = self._enumerate(first, second)
+        with read_registry, build:
+            with self.assertRaises(base.ExecutionContractError):
+                registry.build_registered_authorities(".")
+
+    def test_same_execution_repo_and_branch_fails_closed(self):
+        first = _snapshot(
+            "TASK-X",
+            "WRITESET_SHA256:a",
+            ["src/a/**"],
+            implementation_branch="workbuddy/shared-branch",
+        )
+        second = _snapshot(
+            "TASK-Y",
+            "WRITESET_SHA256:b",
+            ["src/b/**"],
+            implementation_branch="workbuddy/shared-branch",
         )
         read_registry, build = self._enumerate(first, second)
         with read_registry, build:
@@ -295,18 +396,18 @@ class MultiTaskCollisionTests(unittest.TestCase):
                 registry.build_registered_authorities(".")
 
     def test_distinct_tasks_distinct_collisions_can_coexist(self):
-        first = self._snapshot("TASK-X", "WRITESET_SHA256:a")
-        second = self._snapshot("TASK-Y", "WRITESET_SHA256:b")
+        first = _snapshot("TASK-X", "WRITESET_SHA256:a")
+        second = _snapshot("TASK-Y", "WRITESET_SHA256:b")
         read_registry, build = self._enumerate(first, second)
         with read_registry, build:
             result = registry.build_registered_authorities(".")
         self.assertEqual(len(result), 2)
 
     def test_same_surface_in_different_execution_repositories_can_coexist(self):
-        first = self._snapshot(
+        first = _snapshot(
             "TASK-X", "WRITESET_SHA256:a", ["src/**"], "owner/repo-a"
         )
-        second = self._snapshot(
+        second = _snapshot(
             "TASK-Y", "WRITESET_SHA256:b", ["src/**"], "owner/repo-b"
         )
         read_registry, build = self._enumerate(first, second)
