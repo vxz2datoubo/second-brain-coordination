@@ -12,6 +12,7 @@ import json
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
+from coordination.EXECUTION import canonical_write_paths as write_paths
 from coordination.GOVERNANCE import unified_execution_trust_gate as gate
 
 base = gate.base
@@ -95,6 +96,15 @@ def registered_task_index_refs(repo_path: str | Path) -> tuple[str, tuple[str, .
     return canonical_main_sha, refs
 
 
+def _canonicalize_authorized_paths(paths: Sequence[str]) -> list[str]:
+    try:
+        return list(write_paths.canonicalize_authorized_paths(paths))
+    except write_paths.CanonicalWritePathError as exc:
+        raise ExecutionContractError(
+            f"active_task_registry: non-canonical write surface: {exc}"
+        ) from exc
+
+
 def _build_authority_from_open(
     canonical_main_sha: str,
     read,
@@ -141,6 +151,7 @@ def _build_authority_from_open(
         exact_base_sha=exact_base_sha,
         canonical_project_key=canonical_project_key,
     )
+    authorized_paths = _canonicalize_authorized_paths(authorized_paths)
     collision_domain = "WRITESET_SHA256:" + sha256(
         json.dumps(sorted(authorized_paths), separators=(",", ":")).encode("utf-8")
     ).hexdigest()
@@ -220,20 +231,14 @@ def build_verified_canonical_authority_for_task_index(
 
 
 def _write_pattern(path: str) -> tuple[str, bool, bool]:
-    """Return (root, recursive_tree, ambiguous_pattern).
-
-    A terminal '/**' is the only glob form we interpret as a recursive tree. Other
-    wildcard forms are conservatively treated as ambiguous so parallel writers fail
-    closed instead of relying on an incomplete glob-overlap oracle.
-    """
-    normalized = path.replace("\\", "/").strip().strip("/")
-    recursive = normalized.endswith("/**")
-    root = normalized[:-3].rstrip("/") if recursive else normalized
-    wildcard_chars = "*?["
-    ambiguous = any(char in root for char in wildcard_chars)
-    if not recursive and any(char in normalized for char in wildcard_chars):
-        ambiguous = True
-    return root, recursive, ambiguous
+    """Return a canonical (root, recursive_tree, ambiguous_pattern) tuple."""
+    try:
+        root, recursive = write_paths.parse_write_pattern(path)
+    except write_paths.CanonicalWritePathError as exc:
+        raise ExecutionContractError(
+            f"active_task_registry: non-canonical write surface: {exc}"
+        ) from exc
+    return root, recursive, False
 
 
 def _write_paths_may_overlap(left: str, right: str) -> bool:
@@ -253,8 +258,6 @@ def _write_paths_may_overlap(left: str, right: str) -> bool:
 def _authority_write_surfaces_overlap(
     left: Mapping[str, Any], right: Mapping[str, Any]
 ) -> bool:
-    if left["execution_repository"] != right["execution_repository"]:
-        return False
     left_paths = left.get("authorized_paths")
     right_paths = right.get("authorized_paths")
     if not isinstance(left_paths, (list, tuple)) or not isinstance(
@@ -263,10 +266,14 @@ def _authority_write_surfaces_overlap(
         return True
     if not left_paths or not right_paths:
         return True
+    canonical_left = _canonicalize_authorized_paths(left_paths)
+    canonical_right = _canonicalize_authorized_paths(right_paths)
+    if left["execution_repository"] != right["execution_repository"]:
+        return False
     return any(
-        _write_paths_may_overlap(str(lpath), str(rpath))
-        for lpath in left_paths
-        for rpath in right_paths
+        _write_paths_may_overlap(lpath, rpath)
+        for lpath in canonical_left
+        for rpath in canonical_right
     )
 
 
@@ -287,6 +294,13 @@ def _build_registered_authority_set(
             raise ExecutionContractError(
                 "active_task_registry: canonical main moved while enumerating tasks"
             )
+        paths = current.get("authorized_paths")
+        if not isinstance(paths, (list, tuple)):
+            raise ExecutionContractError(
+                "active_task_registry: authority has malformed authorized_paths"
+            )
+        _canonicalize_authorized_paths(paths)
+
         task_identity = (str(current["task_id"]), current["route_epoch"])
         if task_identity in seen_task_identity:
             raise ExecutionContractError(
