@@ -1,4 +1,4 @@
-schema_version: "1.2"
+schema_version: "1.3"
 schema_family: "UNIFIED-EXECUTION-INTERFACES-v1"
 status: "CANDIDATE_REMEDIATED_PENDING_INDEPENDENT_REVIEW"
 source_issue: 596
@@ -38,16 +38,26 @@ CANONICAL_EXECUTION_AUTHORITY_CHAIN_v1:
   derivation:
     digest_each_source_document: true
     receipt_recomputed_over_common_identity_main_refs_digests_and_authority_projection: true
-    authorized_paths_derived_from_canonical_write_surfaces: true
+    semantic_validation_closes_over_every_authority_bearing_document: true
+    cross_document_refs_and_backrefs_must_match: true
+    authorized_paths_derived_from_all_canonical_write_surfaces: true
+    all_authority_bearing_write_surfaces_must_agree: true
+    write_surface_disagreement_or_narrowing: "FAIL_CLOSED"
     collision_domain_derived_from_canonical_write_surface: true
     project_id_resolved_from_canonical_project_adapter_alias: true
+    writer_lease_identity_derived_from_canonical_task_lease_ref_digest_and_common_identity: true
     caller_assertion_is_authority: false
   fail_closed_when:
     - "route_not_READY"
     - "execution_allowed_not_true"
+    - "claim_not_ACTIVE_READY"
     - "lease_not_ACTIVE"
-    - "route_or_lease_identity_mismatch"
-    - "write_surfaces_disagree"
+    - "reservation_not_ACTIVE"
+    - "route_claim_lease_reservation_prewrite_or_batch_identity_mismatch"
+    - "authority_document_cross_ref_mismatch"
+    - "write_surfaces_disagree_or_narrow"
+    - "prewrite_checkpoint_mismatch"
+    - "batch_route_authority_mismatch"
     - "required_authority_document_missing"
     - "canonical_main_moves_during_readback"
     - "caller_supplies_unverified_authority_mapping"
@@ -75,6 +85,7 @@ GPT_TO_EXECUTOR_DISPATCH_v1:
     - authority_chain_receipt_digest
     - authority_refs
     - authority_digests
+    - writer_lease_identity
     - authorized_paths
     - forbidden_paths
     - collision_domain
@@ -90,6 +101,7 @@ GPT_TO_EXECUTOR_DISPATCH_v1:
     - "dispatch_must_validate_against_VerifiedCanonicalAuthority_not_a_mapping"
     - "dispatch_identity_exactly_matches_trusted_authority"
     - "authority_refs_and_digests_exactly_match_trusted_authority"
+    - "writer_lease_identity_exactly_matches_trusted_authority"
     - "authorized_paths_must_be_subset_of_canonical_authorized_paths"
     - "authority_grants_must_be_subset_of_canonical_authority_grants"
     - "canonical_authority_denials_must_be_preserved_or_strengthened"
@@ -141,14 +153,15 @@ EXECUTION_CARRIER_RELEASE_v1:
     - collision_domain
     - writer_lease_ref
     - released_lease_digest
-    - writer_lease_id
-    - writer_lease_generation
+    - writer_lease_identity
     - release_status
   derivation:
+    writer_lease_identity_recomputed_from_common_identity_ref_and_digest: true
     release_status_required: "RELEASED"
     release_document_digest_recomputed: true
     release_receipt_digest_recomputed: true
     caller_supplied_release_mapping_is_authority: false
+    legacy_writer_lease_id_generation: "NON_AUTHORITY_METADATA_IF_PRESENT"
 
 EXECUTION_CARRIER_HANDOFF_v1:
   purpose: "safe transfer between CLI Headless, CLI WebUI, Desktop or another governed executor"
@@ -160,8 +173,10 @@ EXECUTION_CARRIER_HANDOFF_v1:
     - "old_dispatch_must_validate_against_trusted_old_authority"
     - "release_witness_must_be_VerifiedReleaseWitness_from_fresh_canonical_main"
     - "released_lease_ref_and_digest_must_match_old_trusted_authority"
+    - "released_writer_lease_identity_must_match_old_trusted_authority"
     - "release_witness_common_identity_must_match_handoff"
     - "new_writer_must_pass_full_validate_local_admission_against_new_trusted_authority"
+    - "new_writer_lease_identity_must_match_new_trusted_authority"
     - "release_main_must_equal_new_admission_authority_main"
     - "new_lease_document_digest_must_differ_from_old_lease_document_digest"
     - "old_writer_lease_cannot_be_replayed"
@@ -202,12 +217,33 @@ LOCAL_BRIDGE_ADMISSION_v1:
   common_identity_required: true
   authority_input_type: "VerifiedCanonicalAuthority"
   caller_supplied_authority_mapping: "REJECT"
+  required:
+    - control_plane_repository
+    - execution_repository
+    - project_id
+    - task_id
+    - route_epoch
+    - exact_base_sha
+    - implementation_branch
+    - collision_domain
+    - canonical_main_sha
+    - route_status
+    - execution_allowed
+    - authority_chain_receipt_digest
+    - authority_refs
+    - authority_digests
+    - writer_lease_identity
+    - authorized_paths
+    - authority_grants
+    - authority_denials
   admit_only_when:
     - "trusted_builder_fresh_readback_succeeds"
+    - "full_authority_chain_semantics_validate"
     - "dispatch_validates_against_trusted_authority"
     - "route_status_READY"
     - "execution_allowed_true"
     - "all_common_identity_fields_match"
+    - "writer_lease_identity_matches_canonical_task_lease"
     - "authorized_paths_and_grants_are_canonical_subsets"
     - "canonical_denials_are_preserved"
     - "collision_domain_available"
@@ -218,6 +254,8 @@ LOCAL_BRIDGE_ADMISSION_v1:
 PROJECT_EXECUTION_ADAPTER_VALIDATION_v1:
   executable_validator: "parse_and_validate_project_adapter"
   actual_adapter_files_must_be_executed_in_CI: true
+  known_project_registry_is_closed: true
+  unknown_project_adapter: "FAIL_CLOSED_UNTIL_SEMANTIC_FLOOR_IS_REGISTERED"
   required_semantic_sections:
     - repositories
     - canonical_entrypoints
@@ -229,10 +267,18 @@ PROJECT_EXECUTION_ADAPTER_VALIDATION_v1:
     - hard_boundaries
     - acceptance
     - handoff
+  semantic_floor_rules:
+    - "NO_SELF_REVIEW_AND_NO_SELF_MERGE_REQUIRED_IN_EVERY_ADAPTER"
+    - "TRADING_ORDER_AUTHORITY_MUST_EQUAL_SEPARATE_EXPLICIT_OWNER_GATE"
+    - "TRADING_MARKET_DATA_TOOL_MUST_REMAIN_READ_ONLY_AND_PLACE_ORDER_FALSE"
+    - "SECOND_BRAIN_EXISTING_SOR_BOUNDARIES_MUST_REMAIN"
+    - "INTERACTIVE_FILM_PROJECT_BATON_REMAINS_NAVIGATION_ONLY"
+    - "AI_DIRECTOR_PROJECT_INDEX_REMAINS_SOURCE_AUTHORITY"
   forbidden_widening_examples:
     - "unbounded shell carrier"
     - "merge/review/direct-main authority"
     - "generic place_order_allowed true"
+    - "rewording a protected authority enum to a permissive value"
 
 executable_validation:
   module: "coordination/GOVERNANCE/unified_execution_validation.py"
