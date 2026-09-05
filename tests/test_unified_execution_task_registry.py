@@ -215,24 +215,32 @@ class RegisteredProcessStartTests(unittest.TestCase):
             claimed = first
         admission = {"admission": True}
         dispatch = {"dispatch": True}
-        return patch.object(
-            registry,
-            "registered_task_index_refs",
-            return_value=(MAIN, (SECOND_INDEX, THIRD_INDEX)),
-        ), patch.object(
-            registry,
-            "build_verified_canonical_authority_for_task_index",
-            side_effect=[first, second],
-        ), patch.object(base, "validate_local_admission"), admission, dispatch, claimed
+        return (
+            patch.object(
+                registry,
+                "registered_task_index_refs",
+                return_value=(MAIN, (SECOND_INDEX, THIRD_INDEX)),
+            ),
+            patch.object(
+                registry,
+                "build_verified_canonical_authority_for_task_index",
+                side_effect=[first, second],
+            ),
+            admission,
+            dispatch,
+            claimed,
+        )
 
     def test_process_start_substitutes_registry_wide_fresh_target(self):
         fresh = _snapshot("TASK-X", "WRITESET_SHA256:a", marker="fresh")
         peer = _snapshot("TASK-Y", "WRITESET_SHA256:b", marker="peer")
         claimed = _snapshot("TASK-X", "WRITESET_SHA256:a", marker="fresh")
-        read_registry, build, validate, admission, dispatch, _ = self._run_set(
+        read_registry, build, admission, dispatch, _ = self._run_set(
             fresh, peer, claimed
         )
-        with read_registry, build, validate:
+        with read_registry, build, patch.object(
+            base, "validate_local_admission"
+        ) as validate:
             returned = registry.validate_process_start_for_task_index(
                 ".", SECOND_INDEX, admission, dispatch, claimed
             )
@@ -243,10 +251,10 @@ class RegisteredProcessStartTests(unittest.TestCase):
         fresh = _snapshot("TASK-X", "WRITESET_SHA256:a", marker="fresh")
         peer = _snapshot("TASK-Y", "WRITESET_SHA256:b", marker="peer")
         forged = _snapshot("TASK-X", "WRITESET_SHA256:a", marker="caller-forged")
-        read_registry, build, validate, _, _, _ = self._run_set(
-            fresh, peer, forged
-        )
-        with read_registry, build, validate:
+        read_registry, build, _, _, _ = self._run_set(fresh, peer, forged)
+        with read_registry, build, patch.object(
+            base, "validate_local_admission"
+        ) as validate:
             with self.assertRaises(base.ExecutionContractError):
                 registry.validate_process_start_for_task_index(
                     ".", SECOND_INDEX, {}, {}, forged
@@ -256,8 +264,10 @@ class RegisteredProcessStartTests(unittest.TestCase):
     def test_process_start_rejects_registry_duplicate_task_identity(self):
         first = _snapshot("TASK-X", "WRITESET_SHA256:a")
         second = _snapshot("TASK-X", "WRITESET_SHA256:b")
-        read_registry, build, validate, _, _, claimed = self._run_set(first, second)
-        with read_registry, build, validate:
+        read_registry, build, _, _, claimed = self._run_set(first, second)
+        with read_registry, build, patch.object(
+            base, "validate_local_admission"
+        ) as validate:
             with self.assertRaises(base.ExecutionContractError):
                 registry.validate_process_start_for_task_index(
                     ".", SECOND_INDEX, {}, {}, claimed
@@ -267,8 +277,10 @@ class RegisteredProcessStartTests(unittest.TestCase):
     def test_process_start_rejects_registry_collision_domain_conflict(self):
         first = _snapshot("TASK-X", "WRITESET_SHA256:same")
         second = _snapshot("TASK-Y", "WRITESET_SHA256:same")
-        read_registry, build, validate, _, _, claimed = self._run_set(first, second)
-        with read_registry, build, validate:
+        read_registry, build, _, _, claimed = self._run_set(first, second)
+        with read_registry, build, patch.object(
+            base, "validate_local_admission"
+        ) as validate:
             with self.assertRaises(base.ExecutionContractError):
                 registry.validate_process_start_for_task_index(
                     ".", SECOND_INDEX, {}, {}, claimed
@@ -282,8 +294,10 @@ class RegisteredProcessStartTests(unittest.TestCase):
         second = _snapshot(
             "TASK-Y", "WRITESET_SHA256:b", ["tests/workbuddy/unit/**"]
         )
-        read_registry, build, validate, _, _, claimed = self._run_set(first, second)
-        with read_registry, build, validate:
+        read_registry, build, _, _, claimed = self._run_set(first, second)
+        with read_registry, build, patch.object(
+            base, "validate_local_admission"
+        ) as validate:
             with self.assertRaises(base.ExecutionContractError):
                 registry.validate_process_start_for_task_index(
                     ".", SECOND_INDEX, {}, {}, claimed
@@ -295,8 +309,10 @@ class RegisteredProcessStartTests(unittest.TestCase):
             "TASK-X", "WRITESET_SHA256:a", ["tests/*/generated"]
         )
         second = _snapshot("TASK-Y", "WRITESET_SHA256:b", ["docs/**"])
-        read_registry, build, validate, _, _, claimed = self._run_set(first, second)
-        with read_registry, build, validate:
+        read_registry, build, _, _, claimed = self._run_set(first, second)
+        with read_registry, build, patch.object(
+            base, "validate_local_admission"
+        ) as validate:
             with self.assertRaises(base.ExecutionContractError):
                 registry.validate_process_start_for_task_index(
                     ".", SECOND_INDEX, {}, {}, claimed
@@ -316,10 +332,12 @@ class RegisteredProcessStartTests(unittest.TestCase):
             ["src/**"],
             "owner/repo-b",
         )
-        read_registry, build, validate, admission, dispatch, claimed = self._run_set(
+        read_registry, build, admission, dispatch, claimed = self._run_set(
             first, second
         )
-        with read_registry, build, validate:
+        with read_registry, build, patch.object(
+            base, "validate_local_admission"
+        ) as validate:
             returned = registry.validate_process_start_for_task_index(
                 ".", SECOND_INDEX, admission, dispatch, claimed
             )
