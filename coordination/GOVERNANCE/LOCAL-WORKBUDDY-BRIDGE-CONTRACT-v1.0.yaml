@@ -1,6 +1,6 @@
-schema_version: "1.0"
+schema_version: "1.1"
 protocol_id: "LOCAL-WORKBUDDY-BRIDGE-CONTRACT-v1"
-status: "CANDIDATE_PENDING_INDEPENDENT_REVIEW"
+status: "CANDIDATE_REMEDIATED_PENDING_INDEPENDENT_REVIEW"
 source_issue: 596
 
 purpose: >-
@@ -15,25 +15,65 @@ preferred_implementation:
   forbidden_default: "UNRESTRICTED_PUBLIC_REPO_SELF_HOSTED_GITHUB_RUNNER"
   gui_automation: "NOT_REQUIRED_AND_NOT_PREFERRED"
 
+repository_semantics:
+  control_plane_repository: >-
+    Repository containing the canonical active-task index, route/claim/lease/reservation/
+    prewrite/batch authority chain and dispatch governance.
+  execution_repository: >-
+    Repository whose branch/worktree is actually modified by the executor. It may equal
+    the control-plane repository or be a different project-domain repository.
+  worktree_rule: "CREATE_WORKTREE_FROM_EXECUTION_REPOSITORY_ONLY"
+  authority_readback_rule: "READ_EXECUTION_AUTHORITY_FROM_CONTROL_PLANE_REPOSITORY_ONLY"
+  cross_repo_inference_forbidden: true
+
+canonical_authority_receipt:
+  builder: "LOCAL_BRIDGE_FROM_FRESH_CONTROL_PLANE_MAIN"
+  caller_supplied_receipt_is_authority: false
+  required_sources:
+    - "coordination/ACTIVE-WORKBUDDY-TASK.yaml or task-family canonical active index"
+    - "canonical route"
+    - "work claim"
+    - "task lease"
+    - "executor reservation"
+    - "prewrite snapshot"
+    - "executable batch"
+  required_proofs:
+    - "common identity agrees across applicable authority documents"
+    - "content digest recorded for each applicable authority document"
+    - "one authority-chain receipt digest binds all document digests + current canonical main"
+    - "route is READY"
+    - "execution_allowed is true"
+    - "lease is not released/replaced"
+    - "authority chain is not replaced"
+    - "authorized paths/grants/denials are projected from canonical authority, never invented by dispatch"
+  on_missing_or_moved_input: "FAIL_CLOSED_NO_PROCESS_START"
+
 admission_gate:
   required:
-    - "remote main fresh read"
+    - "fresh control-plane main read"
+    - "fresh canonical authority receipt"
     - "active route status READY"
     - "execution_allowed true"
     - "task_id/route_epoch match"
     - "exact base/main match or explicit governed rebase/reconcile"
-    - "valid work claim/lease/reservation when task type requires them"
+    - "valid canonical work claim/lease/reservation/prewrite/batch readback"
+    - "authority refs/digests match dispatch"
     - "project adapter resolved"
+    - "control-plane and execution repositories resolved"
     - "carrier resolved"
     - "model profile resolved"
     - "implementation branch resolved"
-    - "authorized paths resolved"
+    - "authorized paths are subset of canonical authority"
+    - "authority grants are subset of canonical authority"
+    - "canonical denials are preserved"
     - "collision domain available"
     - "credential-secret scan policy loaded"
+  executable_validator: "coordination/GOVERNANCE/unified_execution_validation.py"
   on_any_ambiguity: "FAIL_CLOSED_NO_PROCESS_START"
 
 local_workspace:
   strategy: "ONE_ISOLATED_GIT_WORKTREE_OR_CLONE_PER_ACTIVE_WRITE_TASK"
+  source_repository: "execution_repository"
   dirty_primary_workspace_protection: true
   task_branch_only: true
   no_force_push: true
@@ -69,22 +109,42 @@ runtime_model_resolution:
   record_display_name_and_resolved_id: true
   governed_nontrivial_auto_mode_default: "FORBIDDEN_UNLESS_HANDOFF_EXPLICITLY_ALLOWS_AUTO"
 
+carrier_switch:
+  old_writer_release_source: "FRESH_CANONICAL_CONTROL_PLANE_READBACK"
+  release_receipt_must_bind:
+    - "control_plane_repository"
+    - "execution_repository"
+    - "project_id"
+    - "task_id"
+    - "route_epoch"
+    - "exact_base_sha"
+    - "implementation_branch"
+    - "collision_domain"
+    - "old writer lease id"
+    - "old writer lease generation"
+  new_writer_rule: "NEW_ADMISSION_MUST_BIND_SAME_COMMON_IDENTITY_AFTER_RELEASE"
+  opaque_or_caller_asserted_release_proof: "REJECT"
+  same_task_simultaneous_writers: "FORBIDDEN"
+
 execution_loop:
-  - "acquire_local_task_and_collision_lock"
-  - "prepare_isolated_worktree"
+  - "fresh-read control-plane authority chain and build canonical authority receipt"
+  - "validate dispatch against canonical authority receipt"
+  - "validate local admission using executable validator"
+  - "acquire local task and collision lock"
+  - "prepare isolated worktree from execution repository"
   - "record exact pre-execution git state"
   - "launch selected carrier/model"
   - "run bounded implementation/test loops"
   - "collect stdout/stderr/test/tool/cost/session telemetry without credential values"
   - "perform changed-path and secret-value scan"
-  - "commit/push authorized branch"
+  - "commit/push authorized execution-repository branch"
   - "emit WORKBUDDY_RETURN_PACKAGE"
   - "release local execution lock only after reproducible checkpoint"
 
 github_write_policy:
   allowed:
-    - "authorized task branch"
-    - "task PR/evidence surfaces"
+    - "authorized task branch in execution repository"
+    - "authorized task PR/evidence surfaces"
   forbidden:
     - "direct main"
     - "force push"
