@@ -84,6 +84,21 @@ class UnifiedExecutionFabricTests(unittest.TestCase):
         self.assertIn('fast_default: "GLM-5.3-Flash"', router)
         self.assertIn('deep_default: "Deepseek-V4-Pro"', router)
 
+    def test_frontier_compute_is_value_gated_and_workbuddy_cannot_self_escalate(self):
+        router = text("coordination/GOVERNANCE/MODEL-CAPABILITY-COST-ROUTER-v1.0.yaml")
+        fabric = text("coordination/GOVERNANCE/UNIFIED-AGENT-EXECUTION-FABRIC-v1.0.yaml")
+        gpt_start = text("coordination/GPT-UNIFIED-ORCHESTRATOR-START-HERE.md")
+        wb_start = text("coordination/WORKBUDDY-UNIFIED-START-HERE.md")
+
+        self.assertIn('principle: "ALLOCATE_SCARCE_FRONTIER_COMPUTE_BY_EXPECTED_MARGINAL_VALUE_NOT_PRESTIGE"', router)
+        self.assertIn("frontier_spend_requires_explicit_value_case: true", router)
+        self.assertIn('frontier_default: "DENY_UNLESS_VALUE_GATE_PASSES"', fabric)
+        self.assertIn("workbuddy_cannot_self_authorize_frontier_compute: true", fabric)
+        self.assertIn("Reality Map -> Architecture Gap Map -> Decision Set -> Bounded Frontier Questions", gpt_start)
+        self.assertIn("不得自行触发 Codex frontier spend", wb_start)
+        self.assertIn("named_frontier_models_are_preferences_not_dependencies: true", fabric)
+        self.assertIn("named_model_is_required_dependency: false", router)
+
     def test_owner_private_memory_policy_and_secret_exclusion(self):
         fabric = text("coordination/GOVERNANCE/UNIFIED-AGENT-EXECUTION-FABRIC-v1.0.yaml")
         self.assertIn('ordinary_owner_authorized_private_memory_publication: "ALLOWED"', fabric)
