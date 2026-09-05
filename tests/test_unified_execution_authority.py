@@ -17,6 +17,15 @@ MAIN_OLD = "a" * 40
 MAIN_NEW = "b" * 40
 
 
+def _thaw(value):
+    """Convert immutable MappingProxy/tuple evidence into caller-owned containers."""
+    if isinstance(value, dict) or hasattr(value, "items"):
+        return {key: _thaw(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_thaw(item) for item in value]
+    return value
+
+
 def _adapter(project_id, execution_repo, aliases=()):
     alias_block = ""
     if aliases:
@@ -121,7 +130,7 @@ def _verified_authority(main_sha=MAIN_OLD, lease_suffix="old"):
 def _dispatch(authority):
     current = authority.as_mapping()
     return {
-        key: copy.deepcopy(current[key])
+        key: _thaw(current[key])
         for key in (
             *mod.COMMON_IDENTITY_FIELDS,
             "canonical_main_sha",
@@ -158,7 +167,7 @@ class CanonicalAuthorityTrustBoundaryTests(unittest.TestCase):
 
     def test_fully_self_consistent_caller_fabricated_authority_is_rejected(self):
         auth = _verified_authority()
-        fabricated = copy.deepcopy(dict(auth.as_mapping()))
+        fabricated = _thaw(auth.as_mapping())
         dispatch = _dispatch(auth)
         with self.assertRaises(mod.ExecutionContractError):
             mod.validate_dispatch(dispatch, fabricated)
