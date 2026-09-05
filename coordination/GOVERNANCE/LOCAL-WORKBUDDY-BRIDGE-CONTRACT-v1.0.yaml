@@ -1,4 +1,4 @@
-schema_version: "1.2"
+schema_version: "1.3"
 protocol_id: "LOCAL-WORKBUDDY-BRIDGE-CONTRACT-v1"
 status: "CANDIDATE_REMEDIATED_PENDING_INDEPENDENT_REVIEW"
 source_issue: 596
@@ -37,6 +37,10 @@ trusted_git_boundary:
     - "fail closed if main moves during readback"
     - "read authority documents by exact canonical-main object identity"
     - "hash every authority document"
+    - "semantically validate every authority-bearing document, not just hash it"
+    - "verify route/claim/lease/reservation/prewrite/batch cross-document refs"
+    - "derive one canonical write surface only after every authority surface agrees"
+    - "derive immutable writer_lease_identity from trusted task-lease ref/digest plus common identity"
     - "recompute one receipt over common identity + main + refs + digests + authority projection"
   caller_supplied_mapping_or_boolean_is_authority: false
   fabricated_self_consistent_receipt_behavior: "REJECT"
@@ -52,26 +56,34 @@ canonical_authority_receipt:
     - "executable batch"
     - "canonical project adapter mapping"
   required_proofs:
-    - "route/task/epoch/branch identity agrees"
-    - "route is READY"
-    - "execution_allowed is true"
-    - "lease is ACTIVE"
-    - "active/route/lease write surfaces agree"
+    - "repository/task/epoch/branch identity agrees across applicable documents"
+    - "route and active task are READY/execution_allowed"
+    - "claim is ACTIVE and observed READY/execution_allowed"
+    - "lease is ACTIVE and substantive-write allowed"
+    - "reservation is ACTIVE and substantive-write authorized"
+    - "route/lease/batch/prewrite backrefs point to the same canonical authority objects"
+    - "prewrite immutable checkpoint equals exact base"
+    - "batch task/epoch/route refs and write paths remain within canonical authority"
+    - "active/route/claim/lease/reservation write surfaces agree"
     - "collision domain is derived from canonical write surface"
+    - "writer_lease_identity is derived from the canonical task lease"
     - "authorized paths/grants/denials are projected from canonical authority"
-  on_missing_or_moved_input: "FAIL_CLOSED_NO_PROCESS_START"
+  unsupported_or_unknown_authority_schema: "FAIL_CLOSED_UNTIL_VALIDATOR_SUPPORT_EXISTS"
+  on_missing_moved_stale_inactive_or_misbound_input: "FAIL_CLOSED_NO_PROCESS_START"
 
 admission_gate:
   required:
     - "fresh trusted control-plane main read"
     - "VerifiedCanonicalAuthority issued by trusted builder"
     - "dispatch validates against that verified authority"
+    - "full authority-chain semantic closure passes"
     - "active route status READY"
     - "execution_allowed true"
     - "task_id/route_epoch/common identity match"
     - "project adapter resolved from canonical project mapping"
     - "control-plane and execution repositories resolved"
     - "carrier/model/branch resolved"
+    - "writer_lease_identity exactly matches trusted canonical task lease"
     - "authorized paths/grants are canonical subsets"
     - "canonical denials are preserved"
     - "collision domain available"
@@ -118,19 +130,24 @@ carrier_switch:
     - "complete common identity"
     - "old task lease ref"
     - "old task lease digest"
-    - "old writer lease id and generation"
+    - "old immutable writer_lease_identity"
     - "canonical release document digest"
   new_writer_rule: >-
-    Run the complete validate_local_admission path against a new VerifiedCanonicalAuthority;
-    never trust caller-supplied admitted=true.
+    Rebuild a new VerifiedCanonicalAuthority from canonical main, then run the complete
+    validate_local_admission path. The admission writer_lease_identity must equal the
+    immutable identity derived from that new canonical task lease. Caller lease ids,
+    generations, booleans or admitted=true flags are not writer authority.
+  legacy_writer_lease_id_generation: "NON_AUTHORITY_METADATA_ONLY"
   release_main_must_equal_new_authority_main: true
   new_lease_document_must_differ_from_old_lease_document: true
+  new_writer_lease_identity_must_differ_from_old_writer_lease_identity: true
   same_task_simultaneous_writers: "FORBIDDEN"
 
 execution_loop:
   - "fresh-read trusted control-plane main and build VerifiedCanonicalAuthority"
+  - "validate full authority-chain semantics"
   - "validate dispatch against verified authority"
-  - "validate local admission against verified authority"
+  - "validate local admission and writer_lease_identity against verified authority"
   - "acquire local task and collision lock"
   - "prepare isolated worktree from execution repository"
   - "record exact pre-execution git state"
