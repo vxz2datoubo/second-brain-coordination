@@ -1,0 +1,107 @@
+schema_version: "1.0"
+contract_id: "UNIFIED-EXECUTION-FRESH-TRUST-GATE-v1"
+status: "CANDIDATE_REMEDIATED_PENDING_INDEPENDENT_REVIEW"
+source_issue: 596
+source_pr: 597
+
+purpose: >-
+  Close the remaining caller-mintable authority/release trust boundary by making
+  fresh trusted GitHub canonical-main readback, not Python object identity, the
+  sole authority source for process start and carrier handoff.
+
+normative_precedence:
+  applies_to:
+    - "coordination/GOVERNANCE/UNIFIED-EXECUTION-INTERFACE-SCHEMAS-v1.0.yaml"
+    - "coordination/GOVERNANCE/LOCAL-WORKBUDDY-BRIDGE-CONTRACT-v1.0.yaml"
+    - "coordination/GOVERNANCE/unified_execution_validation.py"
+  rule: >-
+    Where an older contract or helper could be read as trusting a
+    VerifiedCanonicalAuthority/VerifiedReleaseWitness object, _ISSUER identity,
+    constructor, internal factory, cached receipt, or caller-supplied typed snapshot,
+    this contract overrides that interpretation. Those are transport/cache shapes only.
+
+security_boundary:
+  sole_trust_root: "FRESH_TRUSTED_REMOTE_CANONICAL_MAIN_READBACK"
+  python_object_identity_is_authority: false
+  module_private_name_is_security_boundary: false
+  caller_constructed_typed_snapshot_is_authority: false
+  caller_cloned_snapshot_is_authority: false
+  cached_verified_snapshot_is_sufficient_for_process_start: false
+
+executable_gate:
+  module: "coordination/GOVERNANCE/unified_execution_trust_gate.py"
+  process_start_entrypoint: "validate_process_start(repo_path, admission, dispatch, claimed_snapshot)"
+  dispatch_entrypoint: "validate_dispatch(repo_path, dispatch, claimed_snapshot)"
+  authority_entrypoint: "validate_canonical_authority(repo_path, claimed_snapshot)"
+  release_entrypoint: "validate_release_witness(repo_path, release_ref, claimed_snapshot)"
+  carrier_handoff_entrypoint: >-
+    validate_carrier_handoff(repo_path, release_ref, handoff, old_dispatch,
+    old_authority_snapshot, release_snapshot, new_dispatch, new_admission,
+    new_authority_snapshot)
+
+canonical_authority_reauthentication:
+  required_before_every_process_start: true
+  sequence:
+    - "fresh build from fixed trusted remote refs/heads/main"
+    - "validate full Active/Route/Claim/Lease/Reservation/Prewrite/Batch semantic chain"
+    - "re-run project-specific adapter semantic floor at exact canonical_main_sha"
+    - "compare claimed snapshot byte-semantically to fresh canonical projection"
+    - "terminal ls-remote recheck after governed document reads"
+    - "fail closed if main moved or any semantic mismatch exists"
+  direct_constructor_attack: "FAIL_CLOSED_UNLESS_EXACTLY_EQUAL_TO_FRESH_CANONICAL_STATE"
+  internal_factory_attack: "FAIL_CLOSED_UNLESS_EXACTLY_EQUAL_TO_FRESH_CANONICAL_STATE"
+  dataclasses_replace_attack: "FAIL_CLOSED_UNLESS_EXACTLY_EQUAL_TO_FRESH_CANONICAL_STATE"
+  issuer_reuse_attack: "FAIL_CLOSED_UNLESS_EXACTLY_EQUAL_TO_FRESH_CANONICAL_STATE"
+  note: >-
+    An exactly equal reconstructed snapshot grants no additional authority because
+    the gate independently obtains the same authority from canonical main.
+
+release_reauthentication:
+  required_for_carrier_handoff: true
+  source: "fresh canonical main release_ref readback"
+  terminal_remote_head_recheck: true
+  claimed_release_must_equal_fresh_release: true
+  old_authority_snapshot_role: "HISTORICAL_EVIDENCE_ONLY_NEVER_CURRENT_WRITER_ADMISSION"
+  new_writer_rule: "MUST_PASS_FULL_FRESH_PROCESS_START_GATE"
+  release_and_new_authority_main_must_match: true
+
+project_adapter_runtime_floor:
+  revalidate_on_authority_consumption: true
+  exact_sha: "canonical_main_sha from fresh authority"
+  all_registered_project_adapters_parsed: true
+  matched_project_must_be_unique: true
+  execution_repository_must_match_semantically_validated_adapter: true
+  trading_floor_retained:
+    order_authority: "SEPARATE_EXPLICIT_OWNER_GATE"
+    market_data_default: "READ_MARKET_DATA"
+    place_order_allowed: false
+    point_in_time_only: true
+    no_lookahead: true
+    source_and_timestamp_provenance: true
+
+terminal_freshness:
+  initial_remote_main_observation: true
+  fetch_same_main: true
+  governed_document_reads_at_exact_sha: true
+  terminal_remote_main_equality_check: true
+  moved_main_behavior: "FAIL_CLOSED_NO_PROCESS_START"
+
+ci_adversarial_requirements:
+  - "direct VerifiedCanonicalAuthority constructor with reused issuer cannot mint authority"
+  - "internal authority factory cannot mint altered authority"
+  - "dataclasses.replace issuer-preserving authority clone cannot mint authority"
+  - "direct VerifiedReleaseWitness constructor cannot mint release authority"
+  - "dataclasses.replace release clone cannot preserve trust"
+  - "process start substitutes fresh canonical snapshot for caller object identity"
+  - "terminal main movement fails closed"
+  - "runtime project adapter semantic-floor downgrade fails closed"
+  - "carrier handoff substitutes fresh canonical release and fresh new authority"
+
+hard_boundaries:
+  - "NO_SELF_REVIEW"
+  - "NO_SELF_MERGE"
+  - "NO_PROCESS_START_FROM_CACHED_SNAPSHOT_ONLY"
+  - "NO_CALLER_MINTED_AUTHORITY"
+  - "NO_CALLER_MINTED_RELEASE_PROOF"
+  - "NO_LIVE_TRADE_OR_ORDER_AUTHORITY"
+  - "NO_ACTIVE_WORKBUDDY_TASK_MUTATION_FROM_THIS_REMEDIATION"
