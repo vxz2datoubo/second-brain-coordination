@@ -1,4 +1,4 @@
-schema_version: "1.1"
+schema_version: "1.2"
 protocol_id: "LOCAL-WORKBUDDY-BRIDGE-CONTRACT-v1"
 status: "CANDIDATE_REMEDIATED_PENDING_INDEPENDENT_REVIEW"
 source_issue: 596
@@ -26,9 +26,22 @@ repository_semantics:
   authority_readback_rule: "READ_EXECUTION_AUTHORITY_FROM_CONTROL_PLANE_REPOSITORY_ONLY"
   cross_repo_inference_forbidden: true
 
+trusted_git_boundary:
+  repository: "vxz2datoubo/second-brain-coordination"
+  remote_url: "https://github.com/vxz2datoubo/second-brain-coordination.git"
+  canonical_ref: "refs/heads/main"
+  executable_builder: "build_verified_canonical_authority(repo_path)"
+  requirements:
+    - "ls-remote canonical main from trusted URL"
+    - "fetch the same canonical main"
+    - "fail closed if main moves during readback"
+    - "read authority documents by exact canonical-main object identity"
+    - "hash every authority document"
+    - "recompute one receipt over common identity + main + refs + digests + authority projection"
+  caller_supplied_mapping_or_boolean_is_authority: false
+  fabricated_self_consistent_receipt_behavior: "REJECT"
+
 canonical_authority_receipt:
-  builder: "LOCAL_BRIDGE_FROM_FRESH_CONTROL_PLANE_MAIN"
-  caller_supplied_receipt_is_authority: false
   required_sources:
     - "coordination/ACTIVE-WORKBUDDY-TASK.yaml or task-family canonical active index"
     - "canonical route"
@@ -37,34 +50,29 @@ canonical_authority_receipt:
     - "executor reservation"
     - "prewrite snapshot"
     - "executable batch"
+    - "canonical project adapter mapping"
   required_proofs:
-    - "common identity agrees across applicable authority documents"
-    - "content digest recorded for each applicable authority document"
-    - "one authority-chain receipt digest binds all document digests + current canonical main"
+    - "route/task/epoch/branch identity agrees"
     - "route is READY"
     - "execution_allowed is true"
-    - "lease is not released/replaced"
-    - "authority chain is not replaced"
-    - "authorized paths/grants/denials are projected from canonical authority, never invented by dispatch"
+    - "lease is ACTIVE"
+    - "active/route/lease write surfaces agree"
+    - "collision domain is derived from canonical write surface"
+    - "authorized paths/grants/denials are projected from canonical authority"
   on_missing_or_moved_input: "FAIL_CLOSED_NO_PROCESS_START"
 
 admission_gate:
   required:
-    - "fresh control-plane main read"
-    - "fresh canonical authority receipt"
+    - "fresh trusted control-plane main read"
+    - "VerifiedCanonicalAuthority issued by trusted builder"
+    - "dispatch validates against that verified authority"
     - "active route status READY"
     - "execution_allowed true"
-    - "task_id/route_epoch match"
-    - "exact base/main match or explicit governed rebase/reconcile"
-    - "valid canonical work claim/lease/reservation/prewrite/batch readback"
-    - "authority refs/digests match dispatch"
-    - "project adapter resolved"
+    - "task_id/route_epoch/common identity match"
+    - "project adapter resolved from canonical project mapping"
     - "control-plane and execution repositories resolved"
-    - "carrier resolved"
-    - "model profile resolved"
-    - "implementation branch resolved"
-    - "authorized paths are subset of canonical authority"
-    - "authority grants are subset of canonical authority"
+    - "carrier/model/branch resolved"
+    - "authorized paths/grants are canonical subsets"
     - "canonical denials are preserved"
     - "collision domain available"
     - "credential-secret scan policy loaded"
@@ -91,55 +99,48 @@ launch_modes:
     explicit_model: true
     noninteractive_permission_note: >-
       Official headless mode may require -y for tool use. Do not set CODEBUDDY_IS_SANDBOX=1
-      unless the process is truly inside an isolated disposable sandbox. Keep HIGH/CRITICAL
-      confirmations and explicit tool allow/deny rules on an ordinary host.
+      unless the process is truly inside an isolated disposable sandbox.
   CLI_SERVE:
     allowed: true
     bind_default: "127.0.0.1"
     auth_default: "password"
     auth_none_on_normal_host: "FORBIDDEN"
-    purpose: "interactive Web UI / background sessions / HTTP telemetry"
   DESKTOP:
     bridge_auto_launch_required: false
     rule: "HUMAN_INTERACTIVE_CARRIER_READS_SAME_GITHUB_CONTRACT"
 
-runtime_model_resolution:
-  do_not_invent_cli_model_id: true
-  resolve_from_current_product_when_possible: true
-  record_display_name_and_resolved_id: true
-  governed_nontrivial_auto_mode_default: "FORBIDDEN_UNLESS_HANDOFF_EXPLICITLY_ALLOWS_AUTO"
-
 carrier_switch:
-  old_writer_release_source: "FRESH_CANONICAL_CONTROL_PLANE_READBACK"
-  release_receipt_must_bind:
-    - "control_plane_repository"
-    - "execution_repository"
-    - "project_id"
-    - "task_id"
-    - "route_epoch"
-    - "exact_base_sha"
-    - "implementation_branch"
-    - "collision_domain"
-    - "old writer lease id"
-    - "old writer lease generation"
-  new_writer_rule: "NEW_ADMISSION_MUST_BIND_SAME_COMMON_IDENTITY_AFTER_RELEASE"
-  opaque_or_caller_asserted_release_proof: "REJECT"
+  release_document_schema: "EXECUTION_CARRIER_RELEASE_v1"
+  release_builder: "build_verified_release_witness(repo_path, release_ref)"
+  caller_constructed_release_witness: "REJECT"
+  old_writer_release_source: "FRESH_TRUSTED_CANONICAL_MAIN_READBACK"
+  old_release_must_bind:
+    - "complete common identity"
+    - "old task lease ref"
+    - "old task lease digest"
+    - "old writer lease id and generation"
+    - "canonical release document digest"
+  new_writer_rule: >-
+    Run the complete validate_local_admission path against a new VerifiedCanonicalAuthority;
+    never trust caller-supplied admitted=true.
+  release_main_must_equal_new_authority_main: true
+  new_lease_document_must_differ_from_old_lease_document: true
   same_task_simultaneous_writers: "FORBIDDEN"
 
 execution_loop:
-  - "fresh-read control-plane authority chain and build canonical authority receipt"
-  - "validate dispatch against canonical authority receipt"
-  - "validate local admission using executable validator"
+  - "fresh-read trusted control-plane main and build VerifiedCanonicalAuthority"
+  - "validate dispatch against verified authority"
+  - "validate local admission against verified authority"
   - "acquire local task and collision lock"
   - "prepare isolated worktree from execution repository"
   - "record exact pre-execution git state"
   - "launch selected carrier/model"
   - "run bounded implementation/test loops"
-  - "collect stdout/stderr/test/tool/cost/session telemetry without credential values"
+  - "collect telemetry without credential values"
   - "perform changed-path and secret-value scan"
   - "commit/push authorized execution-repository branch"
   - "emit WORKBUDDY_RETURN_PACKAGE"
-  - "release local execution lock only after reproducible checkpoint"
+  - "release local execution lock only after canonical release checkpoint"
 
 github_write_policy:
   allowed:
