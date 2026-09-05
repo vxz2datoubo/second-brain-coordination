@@ -1,4 +1,4 @@
-schema_version: "1.6"
+schema_version: "1.7"
 protocol_id: "LOCAL-WORKBUDDY-BRIDGE-CONTRACT-v1"
 status: "CANDIDATE_REMEDIATED_PENDING_INDEPENDENT_REVIEW"
 source_issue: 596
@@ -37,15 +37,36 @@ trusted_git_boundary:
   caller_system_git_config_is_authority_input: false
   inherited_git_environment_is_authority_input: false
   inherited_git_template_dir_is_authority_input: false
+  inherited_path_is_git_executable_authority_input: false
+  arbitrary_inherited_process_environment_is_authority_input: false
   url_insteadof_rewrite_allowed_to_redefine_remote: false
   structural_builder: "coordination/GOVERNANCE/unified_execution_validation.py"
   authoritative_consumption_gate: "coordination/GOVERNANCE/unified_execution_trust_gate.py"
+  trusted_git_executable:
+    selection: "ABSOLUTE_OS_OR_HKLM_TRUSTED_PATH_ONLY"
+    caller_PATH_lookup: "FORBIDDEN"
+    digest: "SHA256_ATTESTED_BEFORE_AND_AFTER_PROTECTED_INVOCATION"
+    posix_default: "/usr/bin/git or /bin/git"
+    macos_default: "/usr/bin/git"
+    windows_default: "HKLM GitForWindows InstallPath"
+    on_missing_changed_or_ambiguous_identity: "FAIL_CLOSED_NO_PROCESS_START"
+  protected_process_environment:
+    mode: "MINIMAL_BRIDGE_OWNED_ALLOWLIST"
+    copy_os_environ: false
+    caller_PATH: "NOT_INHERITED"
+    caller_LD_DYLD_PYTHON_PROXY_SSL_environment: "NOT_INHERITED"
+    caller_GIT_star_environment: "NOT_INHERITED"
+    bridge_owned_HOME_XDG_TEMP: true
+    bridge_owned_PATH_only: true
   requirements:
+    - "resolve trusted Git executable without consulting caller PATH"
+    - "use the resolved absolute Git executable for init/config/ls-remote/fetch/rev-parse/show/recheck"
+    - "attest trusted Git executable SHA256 before and after each protected invocation"
+    - "construct protected subprocess environment from a minimal allowlist instead of copying os.environ"
     - "perform trust-root init/ls-remote/fetch/show/recheck only inside a bridge-owned isolated bare repository"
     - "ignore caller/executor repository config for canonical remote resolution"
-    - "use fresh HOME/XDG_CONFIG_HOME and disable inherited global/system Git config"
+    - "use fresh HOME/XDG_CONFIG_HOME/TMP/TEMP and disable inherited global/system Git config"
     - "drop all inherited GIT_* behavior variables before protected Git execution"
-    - "reintroduce only bridge-owned GIT_CONFIG_NOSYSTEM/GIT_CONFIG_GLOBAL/GIT_TEMPLATE_DIR/GIT_TERMINAL_PROMPT"
     - "use a bridge-owned empty Git template and pass it explicitly to git init --bare"
     - "attest the new trust repo local config contains only allowed init-time repository metadata"
     - "ls-remote canonical main from fixed trusted URL"
@@ -58,7 +79,7 @@ trusted_git_boundary:
     - "derive immutable writer_lease_identity from trusted task-lease ref/digest plus common identity"
     - "re-run matched project adapter semantic floor at exact canonical main"
     - "reject duplicate top-level Adapter keys and duplicate protected nested semantic keys"
-    - "terminal isolated ls-remote equality recheck after governed document reads"
+    - "terminal isolated remote-main equality recheck after governed document reads"
   python_object_identity_is_authority: false
   module_private_issuer_is_authority: false
   caller_supplied_mapping_or_boolean_is_authority: false
@@ -112,6 +133,8 @@ canonical_authority_receipt:
 admission_gate:
   required:
     - "fresh protected control-plane main read"
+    - "trusted absolute/digest-attested Git executable identity"
+    - "minimal bridge-owned protected process environment"
     - "fresh canonical authority rebuilt inside authoritative trust gate"
     - "caller snapshot exactly equals fresh canonical projection"
     - "dispatch validates against the freshly rebuilt authority"
@@ -191,6 +214,8 @@ carrier_switch:
   same_task_simultaneous_writers: "FORBIDDEN"
 
 execution_loop:
+  - "resolve and attest protected Git executable identity"
+  - "construct minimal bridge-owned process environment"
   - "protected bridge-owned read/fetch of canonical control-plane main"
   - "validate full authority-chain semantics"
   - "re-run strict project-specific adapter semantic floor at exact canonical main"
@@ -229,6 +254,7 @@ security:
   python_object_or_module_private_symbol_is_not_a_security_boundary: true
   user_or_executor_git_config_is_not_a_security_boundary: true
   inherited_git_environment_or_template_is_not_a_security_boundary: true
+  caller_path_or_arbitrary_process_environment_is_not_a_git_trust_root: true
 
 availability:
   candidate_contract_only: true
