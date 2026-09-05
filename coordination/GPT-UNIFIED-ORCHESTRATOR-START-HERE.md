@@ -29,12 +29,14 @@
    - WorkBuddy CLI Headless
    - WorkBuddy CLI WebUI
    - WorkBuddy Desktop Interactive
+   - Codex Standard Engineering
    - Codex Frontier Escalation
 7. 用 `MODEL-CAPABILITY-COST-ROUTER` 选择模型 profile 和当时可用模型。
-8. 如果准备使用 Codex frontier，必须先过 expected marginal value gate。大上下文默认先由 GPT 压缩成 `Reality Map -> Architecture Gap Map -> Decision Set -> Bounded Frontier Questions`，除非压缩会损失本次决策所需的关键全保真交互。
+8. 如果准备使用 Codex frontier，必须先过 expected marginal value gate。大上下文默认先由 GPT 压缩成 `Reality Map -> Architecture Gap Map -> Decision Set -> Bounded Frontier Questions`，除非压缩会损失本次决策所需的关键全保真交互。Codex Standard 不等于 frontier spend，可在 L1/L2 中按 code-centric expected value 使用。
 9. 对非 trivial 工作，**必须告诉用户**：
    - 为什么需要实际施工；
    - 选择 GPT / Codex / WB 哪一个；
+   - 若选 Codex，是 Standard 还是 Frontier；
    - 选择 CLI / CLI WebUI / Desktop 哪一个；
    - 选择哪个模型或 profile；
    - 当前已知积分倍率/免费状态只是快照还是 fresh 观测；
@@ -85,7 +87,7 @@
 - Architecture Gap Map；
 - Decision Set；
 - 把高价值问题压成 bounded frontier questions；
-- 将 Codex frontier 结论重新拆成 GPT_DIRECT / WorkBuddy FAST / WorkBuddy DEEP 等可施工 slice；
+- 将 Codex 结论重新拆成 GPT_DIRECT / WorkBuddy FAST / WorkBuddy DEEP 等可施工 slice；
 - 集成结果、触发独立验算与 canonicalization。
 
 不要把 Codex frontier 当作 GPT 自己不想读资料或拆任务的替代品。
@@ -103,6 +105,17 @@
 
 WorkBuddy 可以报告“建议 frontier escalation”，但不得自行触发 Codex frontier spend，也不得自行把 governed task 换成明显更昂贵的 frontier 模型。
 
+### Codex Standard
+
+Codex 是载体，不等于 frontier。Standard 档用于：
+
+- 大 diff / 大仓库的高质量 code-centric 分析；
+- architecture-sensitive 但边界已经比较清楚的实现或 review；
+- 难 debug / root cause 的独立第二视角；
+- 需要 Codex repo tooling，但没有理由烧 frontier 算力的任务。
+
+模型必须 dispatch 时现场读取。`GPT-5.6` 之类只能作为“当时确实可用”的 Standard 候选，不能写成永久依赖。
+
 ### Codex Frontier
 
 只在 high-leverage reasoning 上花：
@@ -112,7 +125,7 @@ WorkBuddy 可以报告“建议 frontier escalation”，但不得自行触发 C
 - 第二大脑、交易、agent runtime、continuous learning 等跨域耦合；
 - 两种都合理但后果差异巨大的设计；
 - PIT/no-lookahead、canonical truth、writer authority、真实交易权限、自我迭代安全等高风险正确性；
-- GPT + WorkBuddy 多轮仍找不到根因的难题。
+- GPT + WorkBuddy / Codex Standard 多轮仍找不到根因的难题。
 
 默认**不**用 frontier 做：
 
@@ -143,19 +156,22 @@ WorkBuddy 可以报告“建议 frontier escalation”，但不得自行触发 C
 ## 默认模型策略（只是初始策略）
 
 - 快速低成本：优先 `GLM-5.3-Flash`。
-- 深度工程：优先 `Deepseek-V4-Pro`。
+- 深度工程：`Deepseek-V4-Pro` 与 `GLM-5.3` 作为**同档 peer models**，不再固定主模型/fallback。
+- 同档初始亲和性：V4-Pro 偏多文件实现、state/concurrency、长程 coding；GLM-5.3 偏 terminal/tool-heavy Reality Audit、复杂 agent 执行、广域 diagnosis、第二意见。
 - 快速后备：`Deepseek-V4-Flash`。
-- 困难第二意见：`GLM-5.3`。
 - 多模态/视觉：项目适用时优先考虑 `MiniMax-M3`。
 - Hy4 preview / Hy3：只在仍然 fresh 观察到免费且任务低风险时用于批量机械工作。
 - Kimi K3：只有超长上下文/特殊任务的收益足以覆盖较高倍率时再用。
+- Codex Standard：每次 dispatch 现场读取实际可用模型，`GPT-5.6` 等只作运行时例子。
 - Codex frontier：每次 dispatch 都现场读取实际可用 frontier model。若 `GPT-6 Astra` 当时真实可用，可作为高价值 frontier 候选，但绝不写成永久 correctness dependency。
 
-这些不是永久排名。真正的长期路由应由我们自己的 `ENGINEERING_PRODUCTIVITY_RECEIPT` 和 frontier compute telemetry 校准。
+这些不是永久排名。真正的长期路由应由我们自己的 `ENGINEERING_PRODUCTIVITY_RECEIPT` 和 Codex/WorkBuddy compute telemetry 校准。
 
 ## Codex 何时介入
 
-只有当 `MODEL-CAPABILITY-COST-ROUTER` 的 frontier value gate 通过，才进入 Codex frontier lane。升级前告诉用户原因、预期价值、实际可用模型和 fallback。
+Codex Standard 可在 L1/L2 里按 code-centric expected value 使用，不要求 frontier gate；Codex Frontier 只有当 `MODEL-CAPABILITY-COST-ROUTER` 的 frontier value gate 通过才进入。两者都要在 dispatch 时读取实际可用模型。
+
+Frontier 升级前告诉用户原因、预期价值、实际可用模型和 fallback。
 
 大上下文优先先压缩再送 frontier，压缩包至少保留：
 
@@ -164,9 +180,9 @@ WorkBuddy 可以报告“建议 frontier escalation”，但不得自行触发 C
 - counter-evidence；
 - architecture gaps；
 - bounded decisions；
-- why GPT + WorkBuddy is insufficient or lower-value。
+- why GPT + WorkBuddy / Codex Standard is insufficient or lower-value。
 
-如果 frontier 不可用，默认回到 GPT + WorkBuddy，不能把“等待最贵模型”变成项目长期阻塞，除非该决策确实不能安全降级。
+如果 frontier 不可用，默认回到 GPT + WorkBuddy 或 Codex Standard，不能把“等待最贵模型”变成项目长期阻塞，除非该决策确实不能安全降级。
 
 ## 多项目同时跑
 
