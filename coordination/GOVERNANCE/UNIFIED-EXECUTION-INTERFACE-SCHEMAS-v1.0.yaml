@@ -1,0 +1,182 @@
+schema_version: "1.0"
+schema_family: "UNIFIED-EXECUTION-INTERFACES-v1"
+status: "CANDIDATE_PENDING_INDEPENDENT_REVIEW"
+source_issue: 596
+
+common_identity:
+  required:
+    - repository
+    - project_id
+    - task_id
+    - route_epoch
+    - exact_base_sha
+    - implementation_branch
+    - collision_domain
+  rule: "IDENTITY_MISMATCH_FAILS_CLOSED"
+
+GPT_TO_EXECUTOR_DISPATCH_v1:
+  purpose: "exact-bound handoff from GPT architecture/control plane to an authorized executor"
+  required:
+    - schema_version
+    - repository
+    - project_id
+    - project_adapter
+    - task_id
+    - route_epoch
+    - source_issue
+    - exact_base_sha
+    - implementation_branch
+    - executor
+    - carrier
+    - model_profile
+    - resolved_model_display_name
+    - model_resolution_status
+    - authorized_paths
+    - forbidden_paths
+    - collision_domain
+    - architecture_decisions
+    - acceptance_stories
+    - required_tests
+    - authority_grants
+    - authority_denials
+    - stop_escalation_conditions
+    - completion_signal
+    - return_package_target
+  optional:
+    - resolved_cli_model_id
+    - observed_credit_multiplier
+    - observed_promotion_state
+    - model_fallback
+    - local_resource_class
+    - exclusive_tool_locks
+    - cross_project_dependencies
+    - codex_escalation_reason
+  invariants:
+    - "project_adapter_must_exist_in_project_registry"
+    - "carrier_must_be_allowed_by_project_adapter"
+    - "model_profile_must_be_allowed_by_project_adapter"
+    - "no_authority_is_inferred_from_model_or_carrier"
+    - "ordinary_private_memory_publication_is_allowed_when_owner_authorized"
+    - "authentication_secret_values_are_never_payload_content"
+
+WORKBUDDY_RETURN_PACKAGE_v1:
+  purpose: "reproducible execution return from CLI/WebUI/Desktop WorkBuddy carrier"
+  required:
+    - schema_version
+    - repository
+    - project_id
+    - task_id
+    - route_epoch
+    - exact_base_sha
+    - exact_head_sha
+    - implementation_branch
+    - carrier
+    - model_profile
+    - resolved_model_display_name
+    - changed_files
+    - diff_scope_summary
+    - commands_and_tests
+    - failures_and_repairs
+    - discoveries
+    - unknowns
+    - collision_scope_proof
+    - credential_secret_scan_result
+    - architecture_drift_check
+    - next_gate
+  telemetry_optional:
+    - resolved_cli_model_id
+    - observed_credit_multiplier
+    - local_execution_cycles
+    - model_switches
+    - push_count
+    - ci_cycles
+    - elapsed_wall_time_seconds
+    - product_credit_or_api_cost
+    - session_id
+  invariants:
+    - "return_package_never_self_asserts_ACCEPT"
+    - "head_sha_is_immutable_review_identity_once_submitted"
+    - "secret_values_are_redacted_not_hashed_for_public_persistence"
+    - "changed_files_must_fit_authorized_paths_or_return_BLOCKED_SCOPE_DRIFT"
+
+EXECUTION_CARRIER_HANDOFF_v1:
+  purpose: "safe transfer between CLI Headless, CLI WebUI, Desktop or another governed executor"
+  required:
+    - task_id
+    - from_carrier
+    - to_carrier
+    - checkpoint_head_sha
+    - git_status
+    - current_session_state
+    - writer_lease_release_proof
+    - new_writer_admission_required
+    - reason
+  invariants:
+    - "same_task_simultaneous_writers_forbidden"
+    - "carrier_switch_does_not_change_architecture_or_authority"
+
+GPT_INDEPENDENT_REVIEW_REQUEST_v1:
+  purpose: "exact-head request to a GPT reviewer that did not author/execute the candidate"
+  required:
+    - repository
+    - source_issue
+    - pull_request
+    - exact_base_sha
+    - exact_head_sha
+    - changed_file_scope
+    - exact_head_ci
+    - effective_spec_snapshot
+    - review_focus
+    - forbidden_reuse_of_older_verdicts
+  result_semantics: "reuse existing REVIEW_RESULT/v1 exact-head discipline"
+  invariants:
+    - "any_head_movement_requires_new_review_request"
+    - "ACCEPT_is_not_canonical"
+
+ENGINEERING_PRODUCTIVITY_RECEIPT_v1:
+  purpose: "calibrate future executor/model/carrier routing from our own comparable task evidence"
+  required:
+    - project_id
+    - task_class
+    - executor
+    - carrier
+    - model_profile
+    - resolved_model_display_name
+    - final_verdict
+  optional:
+    - observed_credit_multiplier
+    - local_execution_cycles
+    - push_count
+    - ci_cycles
+    - reviewer_blocker_count
+    - changed_files_count
+    - additions
+    - deletions
+    - elapsed_wall_time_seconds
+    - product_credit_or_api_cost
+  update_rule: "MULTIPLE_COMPARABLE_TASKS_REQUIRED_BEFORE_GLOBAL_ROUTING_DEFAULT_CHANGE"
+
+LOCAL_BRIDGE_ADMISSION_v1:
+  required:
+    - canonical_main_sha
+    - dispatch_digest_or_identity
+    - task_id
+    - route_epoch
+    - project_id
+    - project_adapter
+    - exact_base_sha
+    - branch
+    - carrier
+    - model_profile
+    - resolved_model_display_name
+    - authorized_paths
+    - collision_domain
+    - execution_allowed
+  admit_only_when:
+    - "route_status_READY"
+    - "execution_allowed_true"
+    - "all_identity_fields_match"
+    - "collision_domain_available"
+    - "credential_secret_policy_loaded"
+    - "local_runtime_requirements_satisfied"
+  otherwise: "FAIL_CLOSED_NO_PROCESS_START"
