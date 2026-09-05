@@ -1,7 +1,8 @@
-schema_version: "1.0"
+schema_version: "1.2"
 protocol_id: "UNIFIED-AGENT-EXECUTION-FABRIC-v1"
-status: "CANDIDATE_PENDING_INDEPENDENT_REVIEW"
+status: "CANDIDATE_EXTENSION_PENDING_INDEPENDENT_REVIEW"
 source_issue: 596
+latest_extension_issue: 605
 authority:
   owner_decision: "ONE_GLOBAL_CONTROL_PLANE_WITH_PROJECT_ADAPTERS"
   canonical_engineering_sync_repo: "vxz2datoubo/second-brain-coordination"
@@ -10,7 +11,8 @@ authority:
 purpose: >-
   Provide one durable multi-project engineering execution fabric for Second Brain,
   Trading System, Realtime Interactive Film Game and AI Director while preserving
-  each project's own domain authority, runtime-data SoR and safety boundaries.
+  each project's own domain authority, runtime-data SoR and safety boundaries, and
+  allocating scarce model compute according to expected marginal value.
 
 architecture:
   style:
@@ -18,11 +20,15 @@ architecture:
     - "GITOPS_DESIRED_STATE_RECONCILIATION"
     - "SINGLE_WRITER_PER_COLLISION_DOMAIN"
     - "EXACT_HEAD_INDEPENDENT_REVIEW"
+    - "COMPUTE_CAPITAL_ALLOCATION_BY_MARGINAL_VALUE"
   global_port:
     owns:
       - "task classification"
       - "executor/carrier selection"
       - "model profile selection"
+      - "compute value-tier selection"
+      - "codex standard admission"
+      - "frontier escalation admission"
       - "handoff/return package semantics"
       - "local bridge admission"
       - "concurrency/collision admission"
@@ -44,6 +50,7 @@ roles:
       - "set goals/priorities"
       - "approve consequential/high-risk gates"
       - "override model preferences"
+      - "authorize exceptional frontier spend"
   GPT_ARCHITECTURE_OWNER:
     owns:
       - "conversation with Owner"
@@ -53,33 +60,70 @@ roles:
       - "project adapter selection"
       - "dispatch publication"
       - "integration reasoning"
+      - "cross-project context maintenance"
+      - "large-context compression before frontier escalation"
+      - "architecture gap maps and bounded decision sets"
+      - "codex standard expected-value decision"
+      - "frontier expected-value decision"
+      - "post-codex decomposition into governed implementation slices"
     must:
       - "fresh reconcile GitHub before nontrivial dispatch"
       - "tell Owner which executor/carrier/model profile is being selected and why"
+      - "prefer GPT plus WorkBuddy when Codex adds insufficient marginal value"
+      - "distinguish Codex Standard from Codex Frontier"
+      - "compress Reality Map -> Architecture Gap Map -> Decision Set -> bounded frontier questions for large inputs"
     cannot:
       - "claim independent ACCEPT for a candidate it authored/steered"
+      - "use expensive frontier compute merely because a task is large or prestigious"
+  CODEX_STANDARD_ENGINEER:
+    role: "OPTIONAL_CODE_CENTRIC_HIGH_QUALITY_EXECUTION_OR_SECOND_OPINION"
+    use_when:
+      - "large diff or complex code analysis benefits from Codex repository tooling"
+      - "architecture-sensitive but bounded engineering needs an independent code-centric view"
+      - "difficult diagnosis benefits from Codex without frontier-level reasoning"
+      - "expected value exceeds delegation overhead"
+    must:
+      - "read current available Codex model at dispatch time"
+      - "record why Codex Standard is preferable to GPT plus WorkBuddy for this slice"
+    cannot:
+      - "be treated as Codex Frontier merely because it runs in Codex"
+      - "silently consume frontier model budget"
+      - "be treated as a permanent named-model dependency"
   CODEX_FRONTIER_ARCHITECT:
-    role: "OPTIONAL_ESCALATION"
+    role: "OPTIONAL_HIGH_VALUE_ESCALATION"
     use_when:
       - "architecture ambiguity remains material"
       - "repo-wide refactor design is unusually complex"
       - "two bounded implementation attempts fail on root cause"
       - "frontier-model expected value clearly exceeds delegation cost"
+      - "cross-domain synthesis materially affects the result"
+      - "wrong architecture has high migration or safety cost"
+      - "PIT/no-lookahead/canonical-truth/writer-authority/self-modification correctness requires frontier reasoning"
     must:
       - "read current available model at dispatch time"
       - "record escalation reason and expected value"
+      - "receive a bounded decision bundle when GPT compression can preserve fidelity"
     cannot:
       - "silently replace GPT architecture authority"
+      - "be used as the default executor for routine implementation"
+      - "be treated as a permanent named-model dependency"
   WORKBUDDY_ENGINEERING_EXECUTOR:
     owns:
       - "authorized local implementation"
       - "local testing/debug loops"
       - "bounded engineering optimization"
       - "execution telemetry"
+      - "local environment and capability reconnaissance"
+      - "file/service/project reality audits"
+      - "broad repetitive engineering under bounded authority"
+    may:
+      - "report that frontier escalation may have high expected value"
     cannot:
       - "silently change architecture/acceptance"
       - "self-review/self-accept/self-merge"
       - "write main directly"
+      - "self-authorize Codex frontier compute"
+      - "silently switch a governed task to a materially more expensive frontier model"
   GPT_INDEPENDENT_REVIEWER:
     must:
       - "fresh-read current main, issue/spec, PR, exact head, CI, diff and latest discussion"
@@ -103,22 +147,44 @@ task_classes:
     default_executor: "WORKBUDDY"
   S3:
     meaning: "complex/cross-module engineering"
-    default_executor: "WORKBUDDY_DEEP"
+    default_executor: "WORKBUDDY_DEEP_OR_CODEX_STANDARD_BY_EXPECTED_VALUE"
   S4:
     meaning: "material architecture ambiguity"
-    default_executor: "GPT_OR_CODEX_ARCHITECTURE_ONLY"
+    default_executor: "GPT_OR_CODEX_STANDARD_OR_FRONTIER_BY_VALUE_GATE"
     implementation_allowed: false
   S5:
     meaning: "high-risk/irreversible/authority-sensitive"
     default_executor: "EXPLICIT_OWNER_GATE"
 
+compute_allocation:
+  router: "coordination/GOVERNANCE/MODEL-CAPABILITY-COST-ROUTER-v1.0.yaml"
+  default_strategy: "GPT_COORDINATION_PLUS_WORKBUDDY_EXECUTION"
+  codex_standard_default: "OPTIONAL_BY_EXPECTED_VALUE_NOT_FRONTIER_GATE"
+  codex_standard_model_selection: "RUNTIME_DISCOVER_ACTUAL_AVAILABLE_CODEX_MODEL"
+  frontier_default: "DENY_UNLESS_VALUE_GATE_PASSES"
+  frontier_model_selection: "RUNTIME_DISCOVER_ACTUAL_AVAILABLE_CODEX_MODEL"
+  named_codex_models_are_preferences_not_dependencies: true
+  named_frontier_models_are_preferences_not_dependencies: true
+  tiers:
+    L0_ROUTINE: "NO_FRONTIER"
+    L1_COMPLEX_IMPLEMENTATION: "GPT_PLUS_WORKBUDDY_DEFAULT_CODEX_STANDARD_OPTIONAL_BY_VALUE"
+    L2_HIGH_LEVERAGE_DECISION: "CODEX_STANDARD_OPTIONAL_FRONTIER_OPTIONAL_IF_VALUE_GATE_PASSES"
+    L3_SYSTEMIC_FRONTIER: "FRONTIER_PREFERRED_IF_AVAILABLE_AND_VALUE_GATE_PASSES"
+  large_context_rule: "GPT_COMPRESS_BEFORE_FRONTIER_WHEN_DECISION_FIDELITY_CAN_BE_PRESERVED"
+  workbuddy_self_escalation: "FORBIDDEN"
+  owner_override: "ALLOWED_WITH_EXPLICIT_DECISION"
+
 routing_algorithm:
   - "fresh_reconcile_current_main_and_active_routes"
   - "identify_project_and_load_project_adapter"
   - "classify_task_S0_to_S5"
+  - "classify_workload_value_tier_L0_to_L3"
   - "resolve_collision_domain_and_dependency_graph"
   - "choose_execution_carrier"
   - "choose_model_profile_using_capability_cost_router"
+  - "if_codex_standard_candidate_run_standard_expected_value_gate"
+  - "if_frontier_candidate_run_expected_marginal_value_gate"
+  - "if_large_context_and_frontier_candidate_compress_reality_gap_decisions_questions"
   - "announce_executor_carrier_model_to_owner_for_nontrivial_work"
   - "publish_exact_bound_handoff"
   - "local_bridge_or_human_interactive_session_executes_only_if_authorized"
@@ -126,7 +192,7 @@ routing_algorithm:
   - "run_exact_head_CI"
   - "separate_GPT_independent_review"
   - "separate_canonicalization"
-  - "record_productivity_receipt_and_learning"
+  - "record_productivity_codex_standard_and_frontier_compute_receipt_learning"
 
 references:
   interfaces: "coordination/GOVERNANCE/UNIFIED-EXECUTION-INTERFACE-SCHEMAS-v1.0.yaml"
@@ -151,6 +217,11 @@ global_invariants:
   no_silent_model_switch_for_governed_nontrivial_task: true
   no_silent_carrier_switch: true
   no_silent_architecture_authority_transfer: true
+  codex_standard_not_equivalent_to_frontier: true
+  frontier_spend_requires_expected_value_gate: true
+  workbuddy_cannot_self_authorize_frontier_compute: true
+  named_codex_model_not_permanent_correctness_dependency: true
+  named_frontier_model_not_permanent_correctness_dependency: true
 
 security:
   public_repo_self_hosted_runner_default: "FORBIDDEN"

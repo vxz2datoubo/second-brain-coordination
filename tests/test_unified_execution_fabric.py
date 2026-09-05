@@ -77,12 +77,46 @@ class UnifiedExecutionFabricTests(unittest.TestCase):
         self.assertIn("observed_credit_multiplier: 0.06", catalog)
         self.assertIn('display_name: "Deepseek-V4-Pro"', catalog)
         self.assertIn("observed_credit_multiplier: 0.51", catalog)
+        self.assertIn('display_name: "GLM-5.3"', catalog)
+        self.assertIn("observed_credit_multiplier: 0.79", catalog)
         self.assertIn('display_name: "Hy4 preview"', catalog)
         self.assertIn("free_promotion_must_not_be_assumed_after_observation: true", catalog)
         self.assertIn('refresh_rule: "RECHECK_AT_DISPATCH_WHEN_LOCALLY_OBSERVABLE"', router)
         self.assertIn("never_use_credit_multiplier_alone: true", router)
         self.assertIn('fast_default: "GLM-5.3-Flash"', router)
-        self.assertIn('deep_default: "Deepseek-V4-Pro"', router)
+        self.assertIn('deep_peer_models: ["Deepseek-V4-Pro", "GLM-5.3"]', router)
+        self.assertIn('deep_selection: "TASK_AFFINITY_PLUS_FRESH_VALUE"', router)
+
+    def test_deep_peer_tier_and_codex_standard_are_distinct_from_frontier(self):
+        router = text("coordination/GOVERNANCE/MODEL-CAPABILITY-COST-ROUTER-v1.0.yaml")
+        fabric = text("coordination/GOVERNANCE/UNIFIED-AGENT-EXECUTION-FABRIC-v1.0.yaml")
+        gpt_start = text("coordination/GPT-UNIFIED-ORCHESTRATOR-START-HERE.md")
+        wb_start = text("coordination/WORKBUDDY-UNIFIED-START-HERE.md")
+
+        self.assertIn("fixed_primary_forbidden: true", router)
+        self.assertIn('same_capability_tier_may_contain_multiple_peer_models: true', router)
+        self.assertIn("Deepseek-V4-Pro / GLM-5.3 同档 peer models", wb_start)
+        self.assertIn("CODEX_STANDARD_ENGINEERING:", router)
+        self.assertIn('named_standard_preference_examples:', router)
+        self.assertIn('      - "GPT-5.6 when actually available"', router)
+        self.assertIn("codex_standard_not_equivalent_to_frontier: true", fabric)
+        self.assertIn("Codex 是载体，不等于 frontier", gpt_start)
+        self.assertIn("Codex Standard 可在 L1/L2", gpt_start)
+
+    def test_frontier_compute_is_value_gated_and_workbuddy_cannot_self_escalate(self):
+        router = text("coordination/GOVERNANCE/MODEL-CAPABILITY-COST-ROUTER-v1.0.yaml")
+        fabric = text("coordination/GOVERNANCE/UNIFIED-AGENT-EXECUTION-FABRIC-v1.0.yaml")
+        gpt_start = text("coordination/GPT-UNIFIED-ORCHESTRATOR-START-HERE.md")
+        wb_start = text("coordination/WORKBUDDY-UNIFIED-START-HERE.md")
+
+        self.assertIn('principle: "ALLOCATE_SCARCE_FRONTIER_COMPUTE_BY_EXPECTED_MARGINAL_VALUE_NOT_PRESTIGE"', router)
+        self.assertIn("frontier_spend_requires_explicit_value_case: true", router)
+        self.assertIn('frontier_default: "DENY_UNLESS_VALUE_GATE_PASSES"', fabric)
+        self.assertIn("workbuddy_cannot_self_authorize_frontier_compute: true", fabric)
+        self.assertIn("Reality Map -> Architecture Gap Map -> Decision Set -> Bounded Frontier Questions", gpt_start)
+        self.assertIn("自己启动 Codex frontier lane", wb_start)
+        self.assertIn("named_frontier_models_are_preferences_not_dependencies: true", fabric)
+        self.assertIn("named_model_is_required_dependency: false", router)
 
     def test_owner_private_memory_policy_and_secret_exclusion(self):
         fabric = text("coordination/GOVERNANCE/UNIFIED-AGENT-EXECUTION-FABRIC-v1.0.yaml")

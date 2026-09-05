@@ -1,4 +1,4 @@
-# WorkBuddy Unified Execution — Start Here
+# WorkBuddy Unified Execution: Start Here
 
 这是一份给新 WorkBuddy / CodeBuddy CLI / Desktop 会话的长期启动说明。
 
@@ -16,7 +16,7 @@
 
 1. `coordination/GOVERNANCE/UNIFIED-AGENT-EXECUTION-FABRIC-v1.0.yaml`
 2. `coordination/EXECUTION/PROJECT-REGISTRY.yaml`
-3. 当前 `ACTIVE-WORKBUDDY-TASK.yaml`
+3. 当前 `ACTIVE-WORKBUDDY-TASK.yaml` 或任务显式指定的 registered task index
 4. 当前任务指定的 project adapter
 5. 当前 Issue 全部正文/评论、route、claim、lease、snapshot、branch、base、allowed/forbidden paths、acceptance。
 6. `coordination/GOVERNANCE/MODEL-CAPABILITY-COST-ROUTER-v1.0.yaml`
@@ -55,19 +55,64 @@ Governed nontrivial task 不要默默使用 Auto。
 - 实际 CLI model id（如果能解析）
 - 当前积分倍率/免费状态（如果能观察）
 - 为什么选择它
-- fallback
+- fallback 或 peer alternative
 - 什么时候升级
 
 初始默认：
 
 - FAST_LOW_COST → GLM-5.3-Flash
-- DEEP_ENGINEERING → Deepseek-V4-Pro
+- DEEP_ENGINEERING → **Deepseek-V4-Pro / GLM-5.3 同档 peer models**，不再固定主模型与 fallback
 - FAST fallback → Deepseek-V4-Flash
-- SECOND_OPINION → GLM-5.3
+- SECOND_OPINION → GLM-5.3 / Deepseek-V4-Pro / Kimi-K3 按任务多样性选择
 - MULTIMODAL_VISUAL → MiniMax-M3
 - FREE_BULK_NONCRITICAL → Hy4 preview / Hy3（仅 fresh 免费且非关键）
 
+DEEP_ENGINEERING 同档内的初始任务亲和性：
+
+- Deepseek-V4-Pro：多文件仓库实现、state/persistence/concurrency、长程 coding、困难 remediation；
+- GLM-5.3：terminal/tool-heavy Reality Audit、复杂 agent 执行、广域 debugging/diagnosis、高质量 second opinion。
+
+这只是初始亲和性，不是永久排名。同档切换本身不算“能力升级”；必须结合当时真实可用性、倍率、任务类型和我们自己的历史成功率做选择。
+
 如果当前 WorkBuddy 实际模型列表与 GitHub 快照不同，以**当前产品可用性事实**为准，但不要未经记录扩大任务范围。
+
+## 算力升级权限
+
+WorkBuddy 是本地现实测绘和工程执行主力，不是昂贵 frontier compute 的自主预算 Owner。
+
+默认适合 WorkBuddy 的工作包括：
+
+- 本机 Reality Audit；
+- Skills / CLI / SDK / MCP / 服务 / 文件系统能力测绘；
+- repository reconnaissance；
+- architecture 已冻结后的实现；
+- tests / debug / benchmark / fixtures；
+- mechanical migrations；
+- broad repetitive engineering；
+- local telemetry 和 return package。
+
+当你发现以下情况时，可以在 return package 或 blocking finding 中提出 `FRONTIER_ESCALATION_RECOMMENDED`：
+
+- 多模块或多项目架构存在重大分歧；
+- 一个错误决策会造成高迁移/高返工成本；
+- GPT + WorkBuddy 已无法可靠区分两个 materially plausible designs；
+- 第二大脑、交易、agent runtime、continuous learning 等跨域耦合成为根因；
+- PIT/no-lookahead、canonical truth、writer authority、真实交易权限、自我迭代安全等高风险正确性需要更高阶推理；
+- 同一根因已经经历 bounded deep-engineering 仍未解决。
+
+但你**不得**：
+
+- 自己启动 Codex frontier lane；
+- 自己决定使用 `GPT-6 Astra` 或其他 frontier model；
+- 因为任务“大、重要、仓库多、上下文长”就自动升级；
+- 为了减少自己工作量，把原始大型审计包直接转交昂贵 frontier 模型；
+- 静默把 governed WorkBuddy task 切到明显更昂贵模型。
+
+正确流程是：
+
+`WorkBuddy reality/engineering evidence -> GPT Architecture Owner compression and gap analysis -> Codex Standard when code-centric expected value justifies it -> frontier value gate -> Codex frontier only if justified -> GPT decomposition -> WorkBuddy/GPT implementation`
+
+如果 GPT 决定 frontier escalation，WorkBuddy 只负责提供可验证事实、exact heads、环境证据、局部复现和未知项，不要把猜测包装成事实。
 
 ## 本地工程隔离
 
@@ -141,6 +186,7 @@ MiniMax H3 的 pinned official prompt skill 只在 H3 路由时启用。网页�
 - credential-secret value scan
 - model/carrier/积分倍率快照
 - local cycles / push count / CI cycles（可得时）
+- 如果建议 frontier escalation：对应 gate condition、为什么 GPT + WorkBuddy / Codex Standard 不足、需要 frontier 回答的 bounded questions
 - 下一 gate：CI / independent review / blocked
 
 你不能给自己 ACCEPT，也不能 merge。

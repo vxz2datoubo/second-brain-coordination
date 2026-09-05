@@ -1,0 +1,34 @@
+schema_version: "1.0"
+addendum_id: "UNIFIED-EXECUTION-COMPUTE-LANE-ADDENDUM-v1"
+status: "CANDIDATE_PENDING_INDEPENDENT_REVIEW"
+source_issue: 605
+extends:
+  interface_schema_family: "UNIFIED-EXECUTION-INTERFACES-v1"
+  dispatch: "GPT_TO_EXECUTOR_DISPATCH_v1"
+  local_admission: "LOCAL_PROCESS_START_ADMISSION"
+
+required_dispatch_compute_fields:
+  - executor
+  - carrier
+  - compute_class
+  - model_profile
+  - resolved_model_display_name
+  - model_resolution_status
+  - compute_lane_receipt_digest
+
+codex_conditional_fields:
+  - compute_authorization_ref
+  - compute_authorization_receipt_digest
+
+compute_authorization_contract: "coordination/GOVERNANCE/COMPUTE-LANE-AUTHORIZATION-v1.0.yaml"
+
+invariants:
+  - "all required compute fields fail closed when omitted"
+  - "model_resolution_status must be RESOLVED before executable admission"
+  - "local admission must exactly match dispatch compute identity"
+  - "CODEX_STANDARD_ESCALATION requires VerifiedComputeLaneAuthorization STANDARD"
+  - "CODEX_FRONTIER_ESCALATION requires VerifiedComputeLaneAuthorization FRONTIER"
+  - "Standard authorization cannot be replayed as Frontier"
+  - "Frontier authorization requires expected-value gate plus explicit Owner authorization"
+  - "named model is runtime-discovered and is not permanent correctness authority"
+  - "compute authorization never grants repository write, review, merge, account, order, trade or funds authority"
