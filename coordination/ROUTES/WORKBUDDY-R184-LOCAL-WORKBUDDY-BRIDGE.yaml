@@ -1,0 +1,86 @@
+schema_version: "1.0"
+route_id: "WORKBUDDY-R184-LOCAL-WORKBUDDY-BRIDGE"
+repository: "vxz2datoubo/second-brain-coordination"
+project: "SECOND_BRAIN"
+target_agent: "WORKBUDDY"
+task_id: "WORKBUDDY-R184-LOCAL-WORKBUDDY-BRIDGE"
+route_epoch: 184
+source_issue: 595
+active_issue: 595
+status: "READY"
+execution_allowed: true
+release_state: "ACTIVE_READBACK_REQUIRED_BEFORE_PROCESS_START"
+automatic_resume_within_task: true
+automatic_resume_within_batch: true
+second_user_start_command_required: false
+direct_main_write: false
+merge_authorized: false
+review_authority: false
+acceptance_authority: false
+
+source_checkpoint:
+  source_branch: "main"
+  checkpoint_remote_ref: "refs/heads/main"
+  exact_head: "bf4e722540f92ed560b29f884b3ac7c1c8d8895d"
+  baseline: "bf4e722540f92ed560b29f884b3ac7c1c8d8895d"
+  immutable: true
+
+governance_sources:
+  source_issue: "https://github.com/vxz2datoubo/second-brain-coordination/issues/595"
+  task_brief: "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/TASK-BRIEF.yaml"
+  bridge_contract: "coordination/GOVERNANCE/LOCAL-WORKBUDDY-BRIDGE-CONTRACT-v1.0.yaml"
+  fresh_trust_contract: "coordination/GOVERNANCE/UNIFIED-EXECUTION-FRESH-TRUST-GATE-v1.0.yaml"
+  model_catalog: "coordination/EXECUTION/MODEL-CATALOG-SNAPSHOT-2026-09-04.yaml"
+
+execution:
+  implementation_branch: "workbuddy/r184-local-workbuddy-bridge"
+  executable_batch: "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/EXECUTABLE-BATCH.json"
+  fixed_order: ["WB-LB-V1", "WB-LB-S1", "WB-LB-S2", "WB-LB-S3"]
+  reorder_allowed: false
+  skip_allowed: false
+  parallelize_items: false
+  intermediate_gpt_audit_required: false
+  continue_after_item_pass: true
+  blocking_finding_action: "STOP_AFFECTED_BATCH_AND_RETURN_TO_GPT"
+  batch_complete_action: "PUBLISH_RETURN_PACKAGE_DRAFT_PR_AND_STOP_AT_INDEPENDENT_REVIEW_GATE"
+  model_profile: "DEEP_ENGINEERING"
+  preferred_model: "deepseek-v4-pro"
+  core_model_unavailable_action: "FAIL_CLOSED_RETURN_TO_GPT"
+
+write_ownership:
+  workbuddy_exclusive:
+    - "tools/local_workbuddy_bridge/**"
+    - "tests/test_unified_execution_local_bridge.py"
+    - "tests/fixtures/local_workbuddy_bridge/**"
+    - "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/**"
+  r175_retained:
+    - "tests/workbuddy/**"
+    - "tools/workbuddy/**"
+    - "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/**"
+  protected_governance_retained:
+    - "coordination/GOVERNANCE/**"
+    - "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+    - "coordination/EXECUTION/ACTIVE-TASK-INDEX-REGISTRY.json"
+  overlap_rule: "R184_IS_A_DISTINCT_REGISTERED_WRITER; ANY_REGISTRY_WIDE_OVERLAP_OR_BRANCH_COLLISION_FAILS_CLOSED"
+
+bindings:
+  work_claim: "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/WORK-CLAIM.yaml"
+  task_lease: "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/TASK-LEASE.yaml"
+  executor_reservation: "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/EXECUTOR-RESERVATION.yaml"
+  prewrite_snapshot: "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/PREWRITE-RECONCILIATION-SNAPSHOT.yaml"
+  active_task: "coordination/EXECUTION/ACTIVE-WORKBUDDY-R184-LOCAL-BRIDGE.yaml"
+
+hard_stops:
+  - "source checkpoint identity drift or branch parent mismatch"
+  - "route, claim, lease, reservation, snapshot, batch or registered-index mismatch"
+  - "R175 is missing, mutated, superseded, or conflicts with this write surface"
+  - "any unlisted write path is required"
+  - "canonical trust-gate or protected transport would need to be weakened/replaced instead of reused"
+  - "a real WorkBuddy/CodeBuddy child process would be spawned by candidate bridge/test code"
+  - "required Deepseek-V4-Pro core model is unavailable or resolves ambiguously"
+  - "credentials, account/order/trade/funds authority, production deployment, direct main write, force push, rebase, amend, reset or history rewrite"
+
+return_target: "GPT_ARCHITECTURE_OWNER"
+final_review: "SEPARATE_GPT_INDEPENDENT_REVIEW_VIA_ISSUE_453"
+completion_signal: "WORKBUDDY_R184_LOCAL_WORKBUDDY_BRIDGE_READY_FOR_GPT_INDEPENDENT_REVIEW"
+next_command_when_active: "READ_EXPLICIT_REGISTERED_R184_TASK_INDEX_VALIDATE_REGISTRY_WIDE_AUTHORITY_AND_EXECUTE_IMMEDIATELY"
