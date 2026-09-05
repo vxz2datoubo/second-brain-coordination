@@ -1,4 +1,4 @@
-schema_version: "1.3"
+schema_version: "1.4"
 protocol_id: "LOCAL-WORKBUDDY-BRIDGE-CONTRACT-v1"
 status: "CANDIDATE_REMEDIATED_PENDING_INDEPENDENT_REVIEW"
 source_issue: 596
@@ -30,11 +30,12 @@ trusted_git_boundary:
   repository: "vxz2datoubo/second-brain-coordination"
   remote_url: "https://github.com/vxz2datoubo/second-brain-coordination.git"
   canonical_ref: "refs/heads/main"
-  executable_builder: "build_verified_canonical_authority(repo_path)"
+  structural_builder: "build_verified_canonical_authority(repo_path)"
+  authoritative_consumption_gate: "coordination/GOVERNANCE/unified_execution_trust_gate.py"
   requirements:
     - "ls-remote canonical main from trusted URL"
     - "fetch the same canonical main"
-    - "fail closed if main moves during readback"
+    - "fail closed if main moves during initial readback"
     - "read authority documents by exact canonical-main object identity"
     - "hash every authority document"
     - "semantically validate every authority-bearing document, not just hash it"
@@ -42,8 +43,28 @@ trusted_git_boundary:
     - "derive one canonical write surface only after every authority surface agrees"
     - "derive immutable writer_lease_identity from trusted task-lease ref/digest plus common identity"
     - "recompute one receipt over common identity + main + refs + digests + authority projection"
+    - "re-run matched project adapter semantic floor at the exact canonical main"
+    - "terminal ls-remote equality recheck after governed document reads"
+  python_object_identity_is_authority: false
+  module_private_issuer_is_authority: false
   caller_supplied_mapping_or_boolean_is_authority: false
-  fabricated_self_consistent_receipt_behavior: "REJECT"
+  caller_constructed_or_cloned_typed_snapshot_is_authority: false
+  fabricated_self_consistent_receipt_behavior: "REJECT_UNLESS_EXACTLY_EQUAL_TO_FRESH_CANONICAL_STATE"
+
+fresh_trust_gate:
+  normative_contract: "coordination/GOVERNANCE/UNIFIED-EXECUTION-FRESH-TRUST-GATE-v1.0.yaml"
+  executable_module: "coordination/GOVERNANCE/unified_execution_trust_gate.py"
+  sole_process_start_entrypoint: "validate_process_start(repo_path, admission, dispatch, claimed_snapshot)"
+  rule: >-
+    VerifiedCanonicalAuthority and VerifiedReleaseWitness values are cache/transport
+    snapshots, not bearer capabilities. Every process start independently rebuilds the
+    current canonical authority from the fixed trusted remote and requires exact semantic
+    equality before launching any executor.
+  direct_constructor_does_not_grant_authority: true
+  internal_factory_does_not_grant_authority: true
+  dataclasses_replace_does_not_preserve_authority: true
+  issuer_reuse_does_not_preserve_authority: true
+  cached_snapshot_only_process_start: "FORBIDDEN"
 
 canonical_authority_receipt:
   required_sources:
@@ -68,15 +89,20 @@ canonical_authority_receipt:
     - "collision domain is derived from canonical write surface"
     - "writer_lease_identity is derived from the canonical task lease"
     - "authorized paths/grants/denials are projected from canonical authority"
+    - "project-specific semantic floor is revalidated at canonical_main_sha"
+    - "terminal remote main still equals canonical_main_sha"
   unsupported_or_unknown_authority_schema: "FAIL_CLOSED_UNTIL_VALIDATOR_SUPPORT_EXISTS"
-  on_missing_moved_stale_inactive_or_misbound_input: "FAIL_CLOSED_NO_PROCESS_START"
+  on_missing_moved_stale_inactive_misbound_or_cloned_input: "FAIL_CLOSED_NO_PROCESS_START"
 
 admission_gate:
   required:
     - "fresh trusted control-plane main read"
-    - "VerifiedCanonicalAuthority issued by trusted builder"
-    - "dispatch validates against that verified authority"
+    - "fresh canonical authority rebuilt inside authoritative trust gate"
+    - "caller snapshot exactly equals fresh canonical projection"
+    - "dispatch validates against the freshly rebuilt authority"
     - "full authority-chain semantic closure passes"
+    - "project adapter semantic floor is re-run at exact canonical main"
+    - "terminal remote-main equality recheck passes"
     - "active route status READY"
     - "execution_allowed true"
     - "task_id/route_epoch/common identity match"
@@ -88,7 +114,10 @@ admission_gate:
     - "canonical denials are preserved"
     - "collision domain available"
     - "credential-secret scan policy loaded"
-  executable_validator: "coordination/GOVERNANCE/unified_execution_validation.py"
+  executable_validator: "coordination/GOVERNANCE/unified_execution_trust_gate.py"
+  executable_entrypoint: "validate_process_start(repo_path, admission, dispatch, claimed_snapshot)"
+  structural_validator_only: "coordination/GOVERNANCE/unified_execution_validation.py"
+  structural_validator_alone_must_never_launch_process: true
   on_any_ambiguity: "FAIL_CLOSED_NO_PROCESS_START"
 
 local_workspace:
@@ -123,8 +152,9 @@ launch_modes:
 
 carrier_switch:
   release_document_schema: "EXECUTION_CARRIER_RELEASE_v1"
-  release_builder: "build_verified_release_witness(repo_path, release_ref)"
-  caller_constructed_release_witness: "REJECT"
+  structural_release_builder: "build_verified_release_witness(repo_path, release_ref)"
+  authoritative_handoff_gate: "unified_execution_trust_gate.validate_carrier_handoff"
+  caller_constructed_release_witness: "REJECT_UNLESS_EXACTLY_EQUAL_TO_FRESH_CANONICAL_RELEASE"
   old_writer_release_source: "FRESH_TRUSTED_CANONICAL_MAIN_READBACK"
   old_release_must_bind:
     - "complete common identity"
@@ -132,22 +162,26 @@ carrier_switch:
     - "old task lease digest"
     - "old immutable writer_lease_identity"
     - "canonical release document digest"
+  old_authority_snapshot_role: "HISTORICAL_EVIDENCE_ONLY_NEVER_CURRENT_WRITER_ADMISSION"
   new_writer_rule: >-
-    Rebuild a new VerifiedCanonicalAuthority from canonical main, then run the complete
-    validate_local_admission path. The admission writer_lease_identity must equal the
-    immutable identity derived from that new canonical task lease. Caller lease ids,
-    generations, booleans or admitted=true flags are not writer authority.
+    Rebuild current authority inside the fresh trust gate and run the complete
+    validate_process_start path. Caller lease ids, generations, booleans, cached
+    VerifiedCanonicalAuthority objects or admitted=true flags are never writer authority.
   legacy_writer_lease_id_generation: "NON_AUTHORITY_METADATA_ONLY"
   release_main_must_equal_new_authority_main: true
+  terminal_remote_main_recheck_required: true
   new_lease_document_must_differ_from_old_lease_document: true
   new_writer_lease_identity_must_differ_from_old_writer_lease_identity: true
   same_task_simultaneous_writers: "FORBIDDEN"
 
 execution_loop:
-  - "fresh-read trusted control-plane main and build VerifiedCanonicalAuthority"
+  - "fresh-read trusted control-plane main and structurally build canonical authority snapshot"
   - "validate full authority-chain semantics"
-  - "validate dispatch against verified authority"
-  - "validate local admission and writer_lease_identity against verified authority"
+  - "re-run project-specific adapter semantic floor at exact canonical main"
+  - "terminally recheck trusted remote main"
+  - "compare any caller snapshot to fresh canonical projection"
+  - "validate dispatch against freshly rebuilt authority"
+  - "validate process start and writer_lease_identity through fresh trust gate"
   - "acquire local task and collision lock"
   - "prepare isolated worktree from execution repository"
   - "record exact pre-execution git state"
@@ -157,7 +191,7 @@ execution_loop:
   - "perform changed-path and secret-value scan"
   - "commit/push authorized execution-repository branch"
   - "emit WORKBUDDY_RETURN_PACKAGE"
-  - "release local execution lock only after canonical release checkpoint"
+  - "release local execution lock only after fresh canonical release checkpoint"
 
 github_write_policy:
   allowed:
@@ -176,6 +210,7 @@ security:
   untrusted_public_PR_code_must_not_gain_host_execution: true
   local_credential_store_never_committed: true
   secret_values_redacted_from_logs_and_return_packages: true
+  python_object_or_module_private_symbol_is_not_a_security_boundary: true
 
 availability:
   candidate_contract_only: true
