@@ -1,0 +1,80 @@
+schema_version: "1.0"
+protocol_id: "EXECUTION-CARRIER-AND-CONCURRENCY-CONTRACT-v1"
+status: "CANDIDATE_PENDING_INDEPENDENT_REVIEW"
+source_issue: 596
+
+carriers:
+  WORKBUDDY_CLI_HEADLESS:
+    automation_level: "HIGH"
+    interaction_level: "LOW"
+    visual_surface: "OPTIONAL_GENERATED_ARTIFACTS"
+    default_for: ["unattended implementation", "batch tests", "scheduled/continuous engineering"]
+  WORKBUDDY_CLI_WEBUI:
+    automation_level: "HIGH"
+    interaction_level: "HIGH"
+    visual_surface: "CODEBUDDY_SERVE_WEB_UI"
+    default_for: ["observable long-running tasks", "interactive debugging", "visual local dashboards"]
+  WORKBUDDY_DESKTOP_INTERACTIVE:
+    automation_level: "MEDIUM"
+    interaction_level: "VERY_HIGH"
+    visual_surface: "WORKBUDDY_RESULTS_AND_PREVIEW_PANEL"
+    default_for: ["artifact-heavy work", "data visualization", "human steering", "desktop/browser workflows"]
+  CODEX_FRONTIER_ESCALATION:
+    automation_level: "VARIABLE"
+    interaction_level: "MEDIUM"
+    default_for: ["frontier architecture reasoning", "very complex engineering escalation"]
+  GPT_DIRECT:
+    automation_level: "LOW"
+    interaction_level: "HIGH"
+    default_for: ["architecture discussion", "tiny bounded changes"]
+
+carrier_switch:
+  allowed: true
+  requires:
+    - "safe checkpoint"
+    - "git status recorded"
+    - "session/return partial package"
+    - "writer lease release from old carrier"
+    - "new carrier admission"
+  same_task_simultaneous_writers: "FORBIDDEN"
+
+concurrency:
+  multi_project_parallelism: "ALLOWED_WITH_GATES"
+  isolation_unit:
+    - "repository"
+    - "project_id"
+    - "task_id"
+    - "branch"
+    - "worktree"
+    - "collision_domain"
+  required_locks:
+    - "same canonical object/path family"
+    - "same task branch"
+    - "exclusive local runtime/tool when adapter declares it"
+  read_only_parallelism: "ALLOWED_UNLESS_EXTERNAL_TOOL_LICENSE_OR_RATE_LIMIT_FORBIDS"
+  write_parallelism: "ONLY_NON_OVERLAPPING_COLLISION_DOMAINS"
+  scheduling_policy:
+    type: "OWNER_PRIORITY_PLUS_DEPENDENCY_AWARE_FAIR_QUEUE"
+    hardcoded_project_priority: false
+    starvation_prevention: true
+    dependency_unblock_bonus: true
+    consequential_user_gate_preempts_automation: true
+
+git_worktrees:
+  recommended: true
+  rule: "ONE_LINKED_WORKTREE_PER_CONCURRENT_WRITE_TASK_WHEN_REPOSITORY_SHARED"
+  branch_must_not_be_checked_out_in_two_worktrees: true
+  worktree_specific_config_preferred_for_task_local_settings: true
+
+resource_classes:
+  CPU_LIGHT: "docs/search/lint"
+  CPU_HEAVY: "large test suites/data processing"
+  GPU_LOCAL: "local model/media workloads"
+  MARKET_DATA_READ: "read-only real-time market feed"
+  BROWSER_GENERATION: "interactive or paid external generation"
+  EXCLUSIVE_ACCOUNT_OR_ORDER: "requires separate explicit authority; never implied"
+
+interactive_visibility:
+  owner_can_observe_cli_webui: true
+  owner_can_use_desktop_for_interactive_tasks: true
+  exact_same_task_branch_must_have_one_writer: true

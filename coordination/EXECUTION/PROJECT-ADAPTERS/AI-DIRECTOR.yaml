@@ -1,0 +1,84 @@
+schema_version: "1.1"
+adapter_schema: "PROJECT-EXECUTION-ADAPTER-v1"
+project_id: "AI_DIRECTOR"
+display_name: "AI导演系统"
+status: "CANDIDATE_REMEDIATED_PENDING_INDEPENDENT_REVIEW"
+global_protocol_id: "UNIFIED-AGENT-EXECUTION-FABRIC-v1"
+inherits_global_invariants: true
+control_plane_repository: "vxz2datoubo/second-brain-coordination"
+execution_repository: "vxz2datoubo/eustia-ai-film"
+
+repositories:
+  - repo: "vxz2datoubo/second-brain-coordination"
+    role: "CONTROL_PLANE_AUTHORITY"
+  - repo: "vxz2datoubo/eustia-ai-film"
+    role: "DOMAIN_AND_EXECUTION_AUTHORITY"
+
+canonical_entrypoints:
+  - "PROJECT_INDEX.yaml"
+  - "项目入口.md"
+  - "10_运行时/director_route_index.yaml"
+  - "current active work item resolution evidence"
+
+authority:
+  source_authority: "vxz2datoubo/eustia-ai-film/PROJECT_INDEX.yaml"
+  owns:
+    - "screenplay/adaptation"
+    - "characters/performance"
+    - "scene/space"
+    - "visual assets"
+    - "continuity/production state"
+    - "director feature compilation"
+    - "learning application/recall"
+    - "generation feedback"
+  second_brain_may_not_silently_modify_domain_truth: true
+
+allowed_execution_carriers:
+  - "GPT_DIRECT"
+  - "WORKBUDDY_CLI_HEADLESS"
+  - "WORKBUDDY_CLI_WEBUI"
+  - "WORKBUDDY_DESKTOP_INTERACTIVE"
+  - "CODEX_FRONTIER_ESCALATION"
+
+default_model_profiles:
+  code_and_runtime: "FAST_LOW_COST"
+  complex_director_runtime: "DEEP_ENGINEERING"
+  visual_media_work: "MULTIMODAL_VISUAL"
+  architecture_ambiguous: "FRONTIER_ARCHITECTURE"
+
+collision_domains:
+  - "DIRECTOR_PROJECT_INDEX_AND_AUTHORITY"
+  - "DIRECTOR_RUNTIME_COMPILERS"
+  - "DIRECTOR_LEARNING"
+  - "SCENE_ASSET_CONTINUITY"
+  - "GENERATION_FEEDBACK"
+
+tool_interfaces:
+  - id: "MINIMAX_H3_OFFICIAL_PROMPT_SKILL"
+    role: "PINNED_VENDOR_PROMPT_STRUCTURE_SYNTAX_ONLY"
+    default_active: false
+    activation: "EXPLICIT_OR_ROUTER_SELECTED_MINIMAX_H3_ONLY"
+  - id: "MINIMAX_H3_WEB_GENERATION"
+    role: "SEPARATE_BROWSER_GENERATION_CARRIER"
+    engineering_model_choice_does_not_override: true
+  - id: "REALTIME_INTERACTIVE_FILM_CALLER"
+    role: "EXPLICIT_CROSS_PROJECT_ADAPTER_ONLY"
+
+hard_boundaries:
+  - "PROJECT_INDEX_FIRST"
+  - "NO_SECOND_DIRECTOR_AUTHORITY"
+  - "GENERIC_ENGINEERING_MODEL_CANNOT_OVERRIDE_DIRECTOR_OR_PROMPT_AUTHORITY"
+  - "BROWSER_GENERATION_REQUIRES_EXPLICIT_GENERATION_ROUTE"
+  - "NO_SELF_REVIEW"
+  - "NO_SELF_MERGE"
+
+acceptance:
+  required:
+    - "director regression cases"
+    - "active work item resolution gate"
+    - "learning application/conflict gates where touched"
+    - "exact-head CI/reproducible validation"
+    - "independent review"
+
+handoff:
+  from_interactive_film: "preserve caller task/provenance; return director artifact by declared interface"

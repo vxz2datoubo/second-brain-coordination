@@ -1,0 +1,262 @@
+schema_version: "1.7"
+protocol_id: "LOCAL-WORKBUDDY-BRIDGE-CONTRACT-v1"
+status: "CANDIDATE_REMEDIATED_PENDING_INDEPENDENT_REVIEW"
+source_issue: 596
+
+purpose: >-
+  Safely reconcile GitHub-governed desired execution state with a local WorkBuddy/CodeBuddy
+  runtime without granting a public repository broad command execution over the host.
+
+preferred_implementation:
+  primary: "OFFICIAL_CODEBUDDY_PYTHON_SDK"
+  alternatives:
+    - "CODEBUDDY_CLI_SUBPROCESS"
+    - "AUTHENTICATED_LOCALHOST_CODEBUDDY_HTTP_API"
+  forbidden_default: "UNRESTRICTED_PUBLIC_REPO_SELF_HOSTED_GITHUB_RUNNER"
+  gui_automation: "NOT_REQUIRED_AND_NOT_PREFERRED"
+
+repository_semantics:
+  control_plane_repository: >-
+    Repository containing the canonical active-task index, route/claim/lease/reservation/
+    prewrite/batch authority chain and dispatch governance.
+  execution_repository: >-
+    Repository whose branch/worktree is actually modified by the executor. It may equal
+    the control-plane repository or be a different project-domain repository.
+  worktree_rule: "CREATE_WORKTREE_FROM_EXECUTION_REPOSITORY_ONLY"
+  authority_readback_rule: "READ_EXECUTION_AUTHORITY_FROM_CONTROL_PLANE_REPOSITORY_ONLY"
+  cross_repo_inference_forbidden: true
+
+trusted_git_boundary:
+  repository: "vxz2datoubo/second-brain-coordination"
+  remote_url: "https://github.com/vxz2datoubo/second-brain-coordination.git"
+  canonical_ref: "refs/heads/main"
+  protected_transport_module: "coordination/GOVERNANCE/unified_execution_trusted_transport.py"
+  protected_transport_context: "BRIDGE_OWNED_EPHEMERAL_BARE_REPOSITORY"
+  caller_repo_git_config_is_authority_input: false
+  caller_global_git_config_is_authority_input: false
+  caller_system_git_config_is_authority_input: false
+  inherited_git_environment_is_authority_input: false
+  inherited_git_template_dir_is_authority_input: false
+  inherited_path_is_git_executable_authority_input: false
+  arbitrary_inherited_process_environment_is_authority_input: false
+  url_insteadof_rewrite_allowed_to_redefine_remote: false
+  structural_builder: "coordination/GOVERNANCE/unified_execution_validation.py"
+  authoritative_consumption_gate: "coordination/GOVERNANCE/unified_execution_trust_gate.py"
+  trusted_git_executable:
+    selection: "ABSOLUTE_OS_OR_HKLM_TRUSTED_PATH_ONLY"
+    caller_PATH_lookup: "FORBIDDEN"
+    digest: "SHA256_ATTESTED_BEFORE_AND_AFTER_PROTECTED_INVOCATION"
+    posix_default: "/usr/bin/git or /bin/git"
+    macos_default: "/usr/bin/git"
+    windows_default: "HKLM GitForWindows InstallPath"
+    on_missing_changed_or_ambiguous_identity: "FAIL_CLOSED_NO_PROCESS_START"
+  protected_process_environment:
+    mode: "MINIMAL_BRIDGE_OWNED_ALLOWLIST"
+    copy_os_environ: false
+    caller_PATH: "NOT_INHERITED"
+    caller_LD_DYLD_PYTHON_PROXY_SSL_environment: "NOT_INHERITED"
+    caller_GIT_star_environment: "NOT_INHERITED"
+    bridge_owned_HOME_XDG_TEMP: true
+    bridge_owned_PATH_only: true
+  requirements:
+    - "resolve trusted Git executable without consulting caller PATH"
+    - "use the resolved absolute Git executable for init/config/ls-remote/fetch/rev-parse/show/recheck"
+    - "attest trusted Git executable SHA256 before and after each protected invocation"
+    - "construct protected subprocess environment from a minimal allowlist instead of copying os.environ"
+    - "perform trust-root init/ls-remote/fetch/show/recheck only inside a bridge-owned isolated bare repository"
+    - "ignore caller/executor repository config for canonical remote resolution"
+    - "use fresh HOME/XDG_CONFIG_HOME/TMP/TEMP and disable inherited global/system Git config"
+    - "drop all inherited GIT_* behavior variables before protected Git execution"
+    - "use a bridge-owned empty Git template and pass it explicitly to git init --bare"
+    - "attest the new trust repo local config contains only allowed init-time repository metadata"
+    - "ls-remote canonical main from fixed trusted URL"
+    - "fetch the same canonical main into isolated bare repository"
+    - "fail closed if main moves during initial readback"
+    - "read authority documents only by exact canonical-main object identity"
+    - "hash and semantically validate every authority-bearing document"
+    - "verify route/claim/lease/reservation/prewrite/batch cross-document refs"
+    - "derive one canonical write surface only after every authority surface agrees"
+    - "derive immutable writer_lease_identity from trusted task-lease ref/digest plus common identity"
+    - "re-run matched project adapter semantic floor at exact canonical main"
+    - "reject duplicate top-level Adapter keys and duplicate protected nested semantic keys"
+    - "terminal isolated remote-main equality recheck after governed document reads"
+  python_object_identity_is_authority: false
+  module_private_issuer_is_authority: false
+  caller_supplied_mapping_or_boolean_is_authority: false
+  caller_constructed_or_cloned_typed_snapshot_is_authority: false
+  fabricated_self_consistent_receipt_behavior: "REJECT_UNLESS_EXACTLY_EQUAL_TO_FRESH_CANONICAL_STATE"
+
+fresh_trust_gate:
+  normative_contract: "coordination/GOVERNANCE/UNIFIED-EXECUTION-FRESH-TRUST-GATE-v1.0.yaml"
+  executable_module: "coordination/GOVERNANCE/unified_execution_trust_gate.py"
+  sole_process_start_entrypoint: "validate_process_start(repo_path, admission, dispatch, claimed_snapshot)"
+  rule: >-
+    VerifiedCanonicalAuthority and VerifiedReleaseWitness values are cache/transport
+    snapshots, not bearer capabilities. Every process start independently rebuilds the
+    current canonical authority through the protected bridge-owned Git transport and
+    requires exact semantic equality before launching any executor.
+  direct_constructor_does_not_grant_authority: true
+  internal_factory_does_not_grant_authority: true
+  dataclasses_replace_does_not_preserve_authority: true
+  issuer_reuse_does_not_preserve_authority: true
+  cached_snapshot_only_process_start: "FORBIDDEN"
+
+canonical_authority_receipt:
+  required_sources:
+    - "coordination/ACTIVE-WORKBUDDY-TASK.yaml or task-family canonical active index"
+    - "canonical route"
+    - "work claim"
+    - "task lease"
+    - "executor reservation"
+    - "prewrite snapshot"
+    - "executable batch"
+    - "canonical project adapter mapping"
+  required_proofs:
+    - "repository/task/epoch/branch identity agrees across applicable documents"
+    - "route and active task are READY/execution_allowed"
+    - "claim is ACTIVE and observed READY/execution_allowed"
+    - "lease is ACTIVE and substantive-write allowed"
+    - "reservation is ACTIVE and substantive-write authorized"
+    - "route/lease/batch/prewrite backrefs point to the same canonical authority objects"
+    - "prewrite immutable checkpoint equals exact base"
+    - "batch task/epoch/route refs and write paths remain within canonical authority"
+    - "active/route/claim/lease/reservation write surfaces agree"
+    - "collision domain is derived from canonical write surface"
+    - "writer_lease_identity is derived from the canonical task lease"
+    - "authorized paths/grants/denials are projected from canonical authority"
+    - "project-specific semantic floor is revalidated at canonical_main_sha"
+    - "duplicate top-level and protected nested Adapter YAML keys are absent"
+    - "terminal protected remote main still equals canonical_main_sha"
+  unsupported_or_unknown_authority_schema: "FAIL_CLOSED_UNTIL_VALIDATOR_SUPPORT_EXISTS"
+  on_missing_moved_stale_inactive_misbound_cloned_or_transport_ambiguous_input: "FAIL_CLOSED_NO_PROCESS_START"
+
+admission_gate:
+  required:
+    - "fresh protected control-plane main read"
+    - "trusted absolute/digest-attested Git executable identity"
+    - "minimal bridge-owned protected process environment"
+    - "fresh canonical authority rebuilt inside authoritative trust gate"
+    - "caller snapshot exactly equals fresh canonical projection"
+    - "dispatch validates against the freshly rebuilt authority"
+    - "full authority-chain semantic closure passes"
+    - "project adapter semantic floor is re-run at exact canonical main"
+    - "duplicate top-level or protected nested Adapter keys fail closed"
+    - "terminal protected remote-main equality recheck passes"
+    - "active route status READY"
+    - "execution_allowed true"
+    - "task_id/route_epoch/common identity match"
+    - "project adapter resolved from canonical project mapping"
+    - "control-plane and execution repositories resolved"
+    - "carrier/model/branch resolved"
+    - "writer_lease_identity exactly matches trusted canonical task lease"
+    - "authorized paths/grants are canonical subsets"
+    - "canonical denials are preserved"
+    - "collision domain available"
+    - "credential-secret scan policy loaded"
+  executable_validator: "coordination/GOVERNANCE/unified_execution_trust_gate.py"
+  executable_entrypoint: "validate_process_start(repo_path, admission, dispatch, claimed_snapshot)"
+  structural_validator_only: "coordination/GOVERNANCE/unified_execution_validation.py"
+  structural_validator_alone_must_never_launch_process: true
+  on_any_ambiguity: "FAIL_CLOSED_NO_PROCESS_START"
+
+local_workspace:
+  strategy: "ONE_ISOLATED_GIT_WORKTREE_OR_CLONE_PER_ACTIVE_WRITE_TASK"
+  source_repository: "execution_repository"
+  dirty_primary_workspace_protection: true
+  task_branch_only: true
+  no_force_push: true
+  no_history_rewrite: true
+  cleanup_after_safe_checkpoint: true
+
+launch_modes:
+  SDK:
+    permission_mode_preference: "acceptEdits"
+    use_can_use_tool_callback: true
+    explicit_model: true
+    cwd_task_worktree: true
+  CLI_HEADLESS:
+    allowed: true
+    explicit_model: true
+    noninteractive_permission_note: >-
+      Official headless mode may require -y for tool use. Do not set CODEBUDDY_IS_SANDBOX=1
+      unless the process is truly inside an isolated disposable sandbox.
+  CLI_SERVE:
+    allowed: true
+    bind_default: "127.0.0.1"
+    auth_default: "password"
+    auth_none_on_normal_host: "FORBIDDEN"
+  DESKTOP:
+    bridge_auto_launch_required: false
+    rule: "HUMAN_INTERACTIVE_CARRIER_READS_SAME_GITHUB_CONTRACT"
+
+carrier_switch:
+  release_document_schema: "EXECUTION_CARRIER_RELEASE_v1"
+  structural_release_builder: "build_verified_release_witness(repo_path, release_ref)"
+  authoritative_handoff_gate: "unified_execution_trust_gate.validate_carrier_handoff"
+  caller_constructed_release_witness: "REJECT_UNLESS_EXACTLY_EQUAL_TO_FRESH_CANONICAL_RELEASE"
+  old_writer_release_source: "PROTECTED_BRIDGE_OWNED_CANONICAL_MAIN_READBACK"
+  old_release_must_bind:
+    - "complete common identity"
+    - "old task lease ref"
+    - "old task lease digest"
+    - "old immutable writer_lease_identity"
+    - "canonical release document digest"
+  old_authority_snapshot_role: "HISTORICAL_EVIDENCE_ONLY_NEVER_CURRENT_WRITER_ADMISSION"
+  new_writer_rule: >-
+    Rebuild current authority inside the protected fresh trust gate and run the complete
+    validate_process_start path. Caller lease ids, generations, booleans, cached
+    VerifiedCanonicalAuthority objects or admitted=true flags are never writer authority.
+  legacy_writer_lease_id_generation: "NON_AUTHORITY_METADATA_ONLY"
+  release_main_must_equal_new_authority_main: true
+  terminal_remote_main_recheck_required: true
+  new_lease_document_must_differ_from_old_lease_document: true
+  new_writer_lease_identity_must_differ_from_old_writer_lease_identity: true
+  same_task_simultaneous_writers: "FORBIDDEN"
+
+execution_loop:
+  - "resolve and attest protected Git executable identity"
+  - "construct minimal bridge-owned process environment"
+  - "protected bridge-owned read/fetch of canonical control-plane main"
+  - "validate full authority-chain semantics"
+  - "re-run strict project-specific adapter semantic floor at exact canonical main"
+  - "terminally recheck canonical main through a fresh protected transport context"
+  - "compare any caller snapshot to fresh canonical projection"
+  - "validate dispatch against freshly rebuilt authority"
+  - "validate process start and writer_lease_identity through fresh trust gate"
+  - "acquire local task and collision lock"
+  - "prepare isolated worktree from execution repository"
+  - "record exact pre-execution git state"
+  - "launch selected carrier/model"
+  - "run bounded implementation/test loops"
+  - "collect telemetry without credential values"
+  - "perform changed-path and secret-value scan"
+  - "commit/push authorized execution-repository branch"
+  - "emit WORKBUDDY_RETURN_PACKAGE"
+  - "release local execution lock only after protected canonical release checkpoint"
+
+github_write_policy:
+  allowed:
+    - "authorized task branch in execution repository"
+    - "authorized task PR/evidence surfaces"
+  forbidden:
+    - "direct main"
+    - "force push"
+    - "unrelated branches"
+    - "credentials/secrets"
+  private_personal_memory_rule: "OWNER_AUTHORIZED_CONTENT_MAY_BE_PUBLIC_EXCEPT_AUTHENTICATION_SECRET_VALUES"
+
+security:
+  codebuddy_serve_authentication_required: true
+  expose_to_non_loopback_default: false
+  untrusted_public_PR_code_must_not_gain_host_execution: true
+  local_credential_store_never_committed: true
+  secret_values_redacted_from_logs_and_return_packages: true
+  python_object_or_module_private_symbol_is_not_a_security_boundary: true
+  user_or_executor_git_config_is_not_a_security_boundary: true
+  inherited_git_environment_or_template_is_not_a_security_boundary: true
+  caller_path_or_arbitrary_process_environment_is_not_a_git_trust_root: true
+
+availability:
+  candidate_contract_only: true
+  does_not_install_or_start_bridge: true
+  bridge_implementation_should_be_delegated_after_protocol_canonicalization: true

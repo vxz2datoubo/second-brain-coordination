@@ -1,0 +1,52 @@
+name: Unified Execution Fabric
+
+on:
+  pull_request:
+    paths:
+      - 'README.md'
+      - 'coordination/GPT-UNIFIED-ORCHESTRATOR-START-HERE.md'
+      - 'coordination/WORKBUDDY-UNIFIED-START-HERE.md'
+      - 'coordination/WORKBUDDY-TASK-ROUTER.md'
+      - 'coordination/GOVERNANCE/UNIFIED-AGENT-EXECUTION-FABRIC-v1.0.yaml'
+      - 'coordination/GOVERNANCE/UNIFIED-EXECUTION-INTERFACE-SCHEMAS-v1.0.yaml'
+      - 'coordination/GOVERNANCE/PROJECT-EXECUTION-ADAPTER-SCHEMA-v1.0.yaml'
+      - 'coordination/GOVERNANCE/MODEL-CAPABILITY-COST-ROUTER-v1.0.yaml'
+      - 'coordination/GOVERNANCE/LOCAL-WORKBUDDY-BRIDGE-CONTRACT-v1.0.yaml'
+      - 'coordination/GOVERNANCE/EXECUTION-CARRIER-AND-CONCURRENCY-CONTRACT-v1.0.yaml'
+      - 'coordination/GOVERNANCE/UNIFIED-EXECUTION-FABRIC-RESEARCH-NOTES.md'
+      - 'coordination/GOVERNANCE/UNIFIED-EXECUTION-FRESH-TRUST-GATE-v1.0.yaml'
+      - 'coordination/GOVERNANCE/unified_execution_validation.py'
+      - 'coordination/GOVERNANCE/unified_execution_trust_gate.py'
+      - 'coordination/GOVERNANCE/unified_execution_trusted_transport.py'
+      - 'coordination/EXECUTION/**'
+      - 'tests/test_unified_execution*.py'
+      - '.github/workflows/unified-execution-fabric.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.13']
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Dependency-free governance invariants
+        run: python -m unittest discover -s tests -p 'test_unified_execution*.py' -v
+      - name: Whitespace and patch hygiene
+        shell: bash
+        run: |
+          if [ -n "${{ github.event.pull_request.base.sha }}" ] && [ -n "${{ github.event.pull_request.head.sha }}" ]; then
+            git diff --check "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}"
+          else
+            git diff --check HEAD^ HEAD
+          fi

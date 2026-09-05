@@ -1,0 +1,69 @@
+schema_version: "1.1"
+adapter_schema: "PROJECT-EXECUTION-ADAPTER-v1"
+project_id: "SECOND_BRAIN"
+display_name: "第二大脑"
+status: "CANDIDATE_REMEDIATED_PENDING_INDEPENDENT_REVIEW"
+global_protocol_id: "UNIFIED-AGENT-EXECUTION-FABRIC-v1"
+inherits_global_invariants: true
+control_plane_repository: "vxz2datoubo/second-brain-coordination"
+execution_repository: "vxz2datoubo/second-brain-coordination"
+
+repositories:
+  - repo: "vxz2datoubo/second-brain-coordination"
+    role: "PRIMARY_COORDINATION_AND_ENGINEERING_SYNC"
+
+canonical_entrypoints:
+  - "AGENTS.md"
+  - "coordination/GPT-UNIFIED-ORCHESTRATOR-START-HERE.md"
+  - "coordination/CONTROL-TOWER/"
+  - "current active route/issue/PR exact head"
+
+authority:
+  global_engineering_sync: "GitHub main"
+  runtime_sors:
+    - "W3/CLTM MemoryStore according to existing W3 contracts"
+    - "existing Control Tower canonical projections"
+  chat_history_is_sole_authority: false
+
+allowed_execution_carriers:
+  - "GPT_DIRECT"
+  - "WORKBUDDY_CLI_HEADLESS"
+  - "WORKBUDDY_CLI_WEBUI"
+  - "WORKBUDDY_DESKTOP_INTERACTIVE"
+  - "CODEX_FRONTIER_ESCALATION"
+
+default_model_profiles:
+  standard: "FAST_LOW_COST"
+  complex: "DEEP_ENGINEERING"
+  architecture_ambiguous: "FRONTIER_ARCHITECTURE"
+
+collision_domains:
+  - "CONTROL_TOWER_CANONICAL_OBJECT"
+  - "W3_SCHEMA_AND_RUNTIME"
+  - "KNOWLEDGE_INGESTION_RUNTIME"
+  - "MEMORY_PALACE_PROJECTION"
+  - "GLOBAL_GOVERNANCE_ENTRYPOINTS"
+
+tool_interfaces:
+  - id: "GITHUB"
+    authority: "ENGINEERING_SYNC"
+  - id: "W3_PRIVATE_OR_PUBLIC_MEMORY_RUNTIME"
+    authority: "EXISTING_SOR_ONLY"
+
+hard_boundaries:
+  - "NO_SECOND_W3"
+  - "NO_SECOND_CONTROL_TOWER"
+  - "NO_SELF_REVIEW"
+  - "NO_SELF_MERGE"
+  - "AUTHENTICATION_SECRET_VALUES_NEVER_PUBLIC"
+  - "OWNER_AUTHORIZED_ORDINARY_PRIVATE_MEMORY_MAY_BE_PUBLIC_GITHUB_CONTENT"
+
+acceptance:
+  required:
+    - "project-specific regression tests"
+    - "exact-head CI"
+    - "independent review"
+    - "separate canonicalization"
+
+handoff:
+  cross_project_rule: "explicit adapter transition required"

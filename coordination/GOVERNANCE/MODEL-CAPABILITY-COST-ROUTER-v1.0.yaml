@@ -1,0 +1,130 @@
+schema_version: "1.0"
+protocol_id: "MODEL-CAPABILITY-COST-ROUTER-v1"
+status: "CANDIDATE_PENDING_INDEPENDENT_REVIEW"
+source_issue: 596
+
+purpose: >-
+  Select the cheapest sufficiently capable and sufficiently reliable model for each
+  governed execution slice, while preserving explicit escalation and learning from
+  the project's own measured outcomes.
+
+catalog:
+  initial_snapshot: "coordination/EXECUTION/MODEL-CATALOG-SNAPSHOT-2026-09-04.yaml"
+  volatile_fields:
+    - "credit_multiplier"
+    - "promotion/free status"
+    - "availability"
+    - "queue/latency"
+    - "CLI model id exposed by current WorkBuddy build"
+  refresh_rule: "RECHECK_AT_DISPATCH_WHEN_LOCALLY_OBSERVABLE"
+  stale_price_behavior: "USE_AS_ESTIMATE_ONLY_NOT_CORRECTNESS_AUTHORITY"
+
+profiles:
+  FAST_LOW_COST:
+    initial_preferred_display_model: "GLM-5.3-Flash"
+    fallback_display_model: "Deepseek-V4-Flash"
+    suitable_for:
+      - "repo reconnaissance"
+      - "bounded edits"
+      - "fixtures/regressions"
+      - "lint/type/docs"
+      - "mechanical migrations"
+      - "broad low-risk verification"
+  DEEP_ENGINEERING:
+    initial_preferred_display_model: "Deepseek-V4-Pro"
+    fallback_display_model: "GLM-5.3"
+    suitable_for:
+      - "complex debugging"
+      - "multi-module implementation"
+      - "long-horizon coding"
+      - "state/persistence/concurrency"
+      - "difficult remediation"
+  MULTIMODAL_VISUAL:
+    initial_preferred_display_model: "MiniMax-M3"
+    alternatives:
+      - "GLM-5.3-Flash"
+      - "GLM-5v-Turbo"
+    suitable_for:
+      - "image/video-informed implementation"
+      - "visual artifact inspection"
+      - "AI Director visual workflows"
+  FREE_BULK_NONCRITICAL:
+    candidates:
+      - "Hy4 preview"
+      - "Hy3"
+    rule: "ONLY_WHILE_RUNTIME_OBSERVED_FREE_AND_AVAILABLE"
+    forbidden_for:
+      - "correctness-critical final pass"
+      - "sole reviewer"
+      - "transient-free dependency in CI"
+  SECOND_OPINION:
+    initial_preferred_display_model: "GLM-5.3"
+    alternatives:
+      - "Deepseek-V4-Pro"
+      - "Kimi-K3"
+  FRONTIER_ARCHITECTURE:
+    executor: "CODEX_FRONTIER_ESCALATION"
+    model_rule: "READ_ACTUAL_AVAILABLE_CODEX_MODEL_AT_DISPATCH"
+    silent_escalation_forbidden: true
+
+selection_constraints:
+  objective: "MINIMIZE_EXPECTED_TOTAL_COST_SUBJECT_TO_CAPABILITY_RELIABILITY_AND_AUTHORITY_FLOORS"
+  required_inputs:
+    - "task_class"
+    - "project_adapter"
+    - "modalities"
+    - "estimated_context"
+    - "tool_depth"
+    - "expected_iterations"
+    - "risk_class"
+    - "current_model_availability"
+    - "current_credit_multiplier_if_observable"
+    - "historical_success_for_same_task_class"
+  never_use_credit_multiplier_alone: true
+  cross_vendor_benchmarks_are_directional: true
+  vendor_benchmark_harness_may_differ: true
+
+initial_policy:
+  fast_default: "GLM-5.3-Flash"
+  deep_default: "Deepseek-V4-Pro"
+  fast_fallback: "Deepseek-V4-Flash"
+  difficult_alternative: "GLM-5.3"
+  multimodal_specialist: "MiniMax-M3"
+  exceptional_long_context_candidate: "Kimi-K3"
+  free_bulk_candidates: ["Hy4 preview", "Hy3"]
+
+escalation:
+  from_fast_to_deep_when:
+    - "same root blocker survives one bounded repair loop"
+    - "cross-module semantic ambiguity appears"
+    - "state/concurrency/security invariant is involved"
+    - "task exceeds configured local complexity threshold"
+  from_deep_to_second_opinion_when:
+    - "same root blocker survives two bounded deep loops"
+    - "reviewer finds architecture-sensitive defect"
+    - "two plausible designs remain materially unresolved"
+  to_codex_frontier_when:
+    - "architecture remains materially ambiguous after GPT analysis"
+    - "frontier reasoning expected value is high"
+    - "Owner is informed of escalation and reason"
+
+telemetry_learning:
+  receipt_schema: "ENGINEERING_PRODUCTIVITY_RECEIPT/v1"
+  measurements:
+    - "task_class"
+    - "project_id"
+    - "carrier"
+    - "model_display_name"
+    - "resolved_model_id"
+    - "credit_multiplier_observed"
+    - "local_cycles"
+    - "push_count"
+    - "CI_cycles"
+    - "reviewer_blockers"
+    - "elapsed_time_if_reliable"
+    - "cost_if_available"
+    - "final_verdict"
+  update_policy: >-
+    Do not promote one success into a global default. Change routing defaults only
+    after multiple comparable tasks show a stable quality/cost advantage and no
+    project-specific safety regression.

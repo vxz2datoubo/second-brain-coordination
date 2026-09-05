@@ -1,0 +1,295 @@
+schema_version: "1.3"
+schema_family: "UNIFIED-EXECUTION-INTERFACES-v1"
+status: "CANDIDATE_REMEDIATED_PENDING_INDEPENDENT_REVIEW"
+source_issue: 596
+
+common_identity:
+  composition_rule: "EVERY_AUTHORITY_BEARING_MACHINE_OBJECT_MUST_EXPLICITLY_INCLUDE_ALL_COMMON_IDENTITY_FIELDS"
+  required:
+    - control_plane_repository
+    - execution_repository
+    - project_id
+    - task_id
+    - route_epoch
+    - exact_base_sha
+    - implementation_branch
+    - collision_domain
+  rule: "IDENTITY_MISMATCH_FAILS_CLOSED"
+
+CANONICAL_EXECUTION_AUTHORITY_CHAIN_v1:
+  purpose: >-
+    Trusted bridge-issued evidence derived from a fresh remote canonical-main readback.
+    A caller-supplied mapping, boolean or digest string is never canonical authority.
+  trusted_builder: "build_verified_canonical_authority(repo_path)"
+  trusted_source:
+    repository: "vxz2datoubo/second-brain-coordination"
+    ref: "refs/heads/main"
+    remote_identity_must_be_fresh: true
+    main_move_during_readback: "FAIL_CLOSED"
+  required_sources:
+    - active_task_index_ref
+    - canonical_route_ref
+    - work_claim_ref
+    - task_lease_ref
+    - executor_reservation_ref
+    - prewrite_snapshot_ref
+    - executable_batch_ref
+    - canonical project adapter mapping
+  derivation:
+    digest_each_source_document: true
+    receipt_recomputed_over_common_identity_main_refs_digests_and_authority_projection: true
+    semantic_validation_closes_over_every_authority_bearing_document: true
+    cross_document_refs_and_backrefs_must_match: true
+    authorized_paths_derived_from_all_canonical_write_surfaces: true
+    all_authority_bearing_write_surfaces_must_agree: true
+    write_surface_disagreement_or_narrowing: "FAIL_CLOSED"
+    collision_domain_derived_from_canonical_write_surface: true
+    project_id_resolved_from_canonical_project_adapter_alias: true
+    writer_lease_identity_derived_from_canonical_task_lease_ref_digest_and_common_identity: true
+    caller_assertion_is_authority: false
+  fail_closed_when:
+    - "route_not_READY"
+    - "execution_allowed_not_true"
+    - "claim_not_ACTIVE_READY"
+    - "lease_not_ACTIVE"
+    - "reservation_not_ACTIVE"
+    - "route_claim_lease_reservation_prewrite_or_batch_identity_mismatch"
+    - "authority_document_cross_ref_mismatch"
+    - "write_surfaces_disagree_or_narrow"
+    - "prewrite_checkpoint_mismatch"
+    - "batch_route_authority_mismatch"
+    - "required_authority_document_missing"
+    - "canonical_main_moves_during_readback"
+    - "caller_supplies_unverified_authority_mapping"
+
+GPT_TO_EXECUTOR_DISPATCH_v1:
+  purpose: "exact-bound handoff from GPT architecture/control plane to an authorized executor"
+  common_identity_required: true
+  required:
+    - schema_version
+    - control_plane_repository
+    - execution_repository
+    - project_id
+    - project_adapter
+    - task_id
+    - route_epoch
+    - source_issue
+    - canonical_main_sha
+    - exact_base_sha
+    - implementation_branch
+    - executor
+    - carrier
+    - model_profile
+    - resolved_model_display_name
+    - model_resolution_status
+    - authority_chain_receipt_digest
+    - authority_refs
+    - authority_digests
+    - writer_lease_identity
+    - authorized_paths
+    - forbidden_paths
+    - collision_domain
+    - architecture_decisions
+    - acceptance_stories
+    - required_tests
+    - authority_grants
+    - authority_denials
+    - stop_escalation_conditions
+    - completion_signal
+    - return_package_target
+  invariants:
+    - "dispatch_must_validate_against_VerifiedCanonicalAuthority_not_a_mapping"
+    - "dispatch_identity_exactly_matches_trusted_authority"
+    - "authority_refs_and_digests_exactly_match_trusted_authority"
+    - "writer_lease_identity_exactly_matches_trusted_authority"
+    - "authorized_paths_must_be_subset_of_canonical_authorized_paths"
+    - "authority_grants_must_be_subset_of_canonical_authority_grants"
+    - "canonical_authority_denials_must_be_preserved_or_strengthened"
+    - "no_authority_is_inferred_from_model_or_carrier"
+
+WORKBUDDY_RETURN_PACKAGE_v1:
+  purpose: "reproducible execution return from CLI/WebUI/Desktop WorkBuddy carrier"
+  common_identity_required: true
+  required:
+    - schema_version
+    - control_plane_repository
+    - execution_repository
+    - project_id
+    - task_id
+    - route_epoch
+    - exact_base_sha
+    - exact_head_sha
+    - implementation_branch
+    - collision_domain
+    - carrier
+    - model_profile
+    - resolved_model_display_name
+    - changed_files
+    - diff_scope_summary
+    - commands_and_tests
+    - failures_and_repairs
+    - discoveries
+    - unknowns
+    - collision_scope_proof
+    - credential_secret_scan_result
+    - architecture_drift_check
+    - next_gate
+  invariants:
+    - "return_package_never_self_asserts_ACCEPT"
+    - "head_sha_is_immutable_review_identity_once_submitted"
+    - "changed_files_must_fit_authorized_paths_or_return_BLOCKED_SCOPE_DRIFT"
+
+EXECUTION_CARRIER_RELEASE_v1:
+  purpose: "canonical old-writer release record consumed only through a trusted fresh-main builder"
+  trusted_builder: "build_verified_release_witness(repo_path, release_ref)"
+  required:
+    - control_plane_repository
+    - execution_repository
+    - project_id
+    - task_id
+    - route_epoch
+    - exact_base_sha
+    - implementation_branch
+    - collision_domain
+    - writer_lease_ref
+    - released_lease_digest
+    - writer_lease_identity
+    - release_status
+  derivation:
+    writer_lease_identity_recomputed_from_common_identity_ref_and_digest: true
+    release_status_required: "RELEASED"
+    release_document_digest_recomputed: true
+    release_receipt_digest_recomputed: true
+    caller_supplied_release_mapping_is_authority: false
+    legacy_writer_lease_id_generation: "NON_AUTHORITY_METADATA_IF_PRESENT"
+
+EXECUTION_CARRIER_HANDOFF_v1:
+  purpose: "safe transfer between CLI Headless, CLI WebUI, Desktop or another governed executor"
+  common_identity_required: true
+  validation_signature: >-
+    validate_carrier_handoff(handoff, old_dispatch, old_verified_authority,
+    verified_release_witness, new_dispatch, new_admission, new_verified_authority)
+  invariants:
+    - "old_dispatch_must_validate_against_trusted_old_authority"
+    - "release_witness_must_be_VerifiedReleaseWitness_from_fresh_canonical_main"
+    - "released_lease_ref_and_digest_must_match_old_trusted_authority"
+    - "released_writer_lease_identity_must_match_old_trusted_authority"
+    - "release_witness_common_identity_must_match_handoff"
+    - "new_writer_must_pass_full_validate_local_admission_against_new_trusted_authority"
+    - "new_writer_lease_identity_must_match_new_trusted_authority"
+    - "release_main_must_equal_new_admission_authority_main"
+    - "new_lease_document_digest_must_differ_from_old_lease_document_digest"
+    - "old_writer_lease_cannot_be_replayed"
+    - "same_task_simultaneous_writers_forbidden"
+
+GPT_INDEPENDENT_REVIEW_REQUEST_v1:
+  purpose: "exact-head request to a GPT reviewer that did not author/execute the candidate"
+  required:
+    - control_plane_repository
+    - execution_repository
+    - source_issue
+    - pull_request
+    - exact_base_sha
+    - exact_head_sha
+    - changed_file_scope
+    - exact_head_ci
+    - effective_spec_snapshot
+    - review_focus
+    - forbidden_reuse_of_older_verdicts
+  invariants:
+    - "any_head_movement_requires_new_review_request"
+    - "ACCEPT_is_not_canonical"
+
+ENGINEERING_PRODUCTIVITY_RECEIPT_v1:
+  purpose: "calibrate future executor/model/carrier routing from comparable task evidence"
+  required:
+    - project_id
+    - task_class
+    - executor
+    - carrier
+    - model_profile
+    - resolved_model_display_name
+    - final_verdict
+  update_rule: "MULTIPLE_COMPARABLE_TASKS_REQUIRED_BEFORE_GLOBAL_ROUTING_DEFAULT_CHANGE"
+
+LOCAL_BRIDGE_ADMISSION_v1:
+  purpose: "final process-start gate using trusted remote-main authority evidence"
+  common_identity_required: true
+  authority_input_type: "VerifiedCanonicalAuthority"
+  caller_supplied_authority_mapping: "REJECT"
+  required:
+    - control_plane_repository
+    - execution_repository
+    - project_id
+    - task_id
+    - route_epoch
+    - exact_base_sha
+    - implementation_branch
+    - collision_domain
+    - canonical_main_sha
+    - route_status
+    - execution_allowed
+    - authority_chain_receipt_digest
+    - authority_refs
+    - authority_digests
+    - writer_lease_identity
+    - authorized_paths
+    - authority_grants
+    - authority_denials
+  admit_only_when:
+    - "trusted_builder_fresh_readback_succeeds"
+    - "full_authority_chain_semantics_validate"
+    - "dispatch_validates_against_trusted_authority"
+    - "route_status_READY"
+    - "execution_allowed_true"
+    - "all_common_identity_fields_match"
+    - "writer_lease_identity_matches_canonical_task_lease"
+    - "authorized_paths_and_grants_are_canonical_subsets"
+    - "canonical_denials_are_preserved"
+    - "collision_domain_available"
+    - "credential_secret_policy_loaded"
+    - "local_runtime_requirements_satisfied"
+  otherwise: "FAIL_CLOSED_NO_PROCESS_START"
+
+PROJECT_EXECUTION_ADAPTER_VALIDATION_v1:
+  executable_validator: "parse_and_validate_project_adapter"
+  actual_adapter_files_must_be_executed_in_CI: true
+  known_project_registry_is_closed: true
+  unknown_project_adapter: "FAIL_CLOSED_UNTIL_SEMANTIC_FLOOR_IS_REGISTERED"
+  required_semantic_sections:
+    - repositories
+    - canonical_entrypoints
+    - authority
+    - allowed_execution_carriers
+    - default_model_profiles
+    - collision_domains
+    - tool_interfaces
+    - hard_boundaries
+    - acceptance
+    - handoff
+  semantic_floor_rules:
+    - "NO_SELF_REVIEW_AND_NO_SELF_MERGE_REQUIRED_IN_EVERY_ADAPTER"
+    - "TRADING_ORDER_AUTHORITY_MUST_EQUAL_SEPARATE_EXPLICIT_OWNER_GATE"
+    - "TRADING_MARKET_DATA_TOOL_MUST_REMAIN_READ_ONLY_AND_PLACE_ORDER_FALSE"
+    - "SECOND_BRAIN_EXISTING_SOR_BOUNDARIES_MUST_REMAIN"
+    - "INTERACTIVE_FILM_PROJECT_BATON_REMAINS_NAVIGATION_ONLY"
+    - "AI_DIRECTOR_PROJECT_INDEX_REMAINS_SOURCE_AUTHORITY"
+  forbidden_widening_examples:
+    - "unbounded shell carrier"
+    - "merge/review/direct-main authority"
+    - "generic place_order_allowed true"
+    - "rewording a protected authority enum to a permissive value"
+
+executable_validation:
+  module: "coordination/GOVERNANCE/unified_execution_validation.py"
+  workflow_watch_required: true
+  required_functions:
+    - build_verified_canonical_authority
+    - build_verified_release_witness
+    - validate_canonical_authority
+    - validate_dispatch
+    - validate_local_admission
+    - validate_carrier_handoff
+    - validate_project_adapter
+    - parse_and_validate_project_adapter
+  rule: "BRIDGE_IMPLEMENTATION_MUST_USE_EQUIVALENT_OR_STRONGER_VALIDATION_BEFORE_PROCESS_START"

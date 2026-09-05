@@ -1,0 +1,32 @@
+schema_version: "1.0"
+migration_id: "G591_G592_TO_G596_UNIFIED_EXECUTION_FABRIC"
+status: "CANDIDATE_PENDING_INDEPENDENT_REVIEW"
+source_issue: 596
+
+inputs:
+  - issue: 591
+    pr: 593
+    role: "global operating model/interface schemas/bootstrap"
+    disposition: "SUPERSEDE_GLOBAL_SCOPE_AFTER_G596_CANONICAL"
+  - issue: 592
+    pr: 594
+    role: "global factory/model dispatch/CLI bridge plus interactive-film bootstrap"
+    disposition: "SUPERSEDE_GLOBAL_SCOPE; PRESERVE_INTERACTIVE_FILM_ADAPTER_VALUE"
+
+overlap:
+  known_direct_collision:
+    - "coordination/WORKBUDDY-TASK-ROUTER.md"
+  conceptual_duplicates:
+    - "GPT to WorkBuddy global factory"
+    - "model selection"
+    - "bootstrap"
+    - "local CLI bridge"
+
+target:
+  global_protocol: "coordination/GOVERNANCE/UNIFIED-AGENT-EXECUTION-FABRIC-v1.0.yaml"
+  project_specific_film_adapter: "coordination/EXECUTION/PROJECT-ADAPTERS/REALTIME-INTERACTIVE-FILM.yaml"
+
+precanonical_rule: >-
+  PR #593 and PR #594 remain non-canonical design inputs. Do not merge either as a
+  competing global factory after this migration candidate is accepted; if they move,
+  independently reconcile before consuming any project-specific residual value.

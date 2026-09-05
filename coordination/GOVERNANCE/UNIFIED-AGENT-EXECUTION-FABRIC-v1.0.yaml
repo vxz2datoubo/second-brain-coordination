@@ -1,0 +1,182 @@
+schema_version: "1.0"
+protocol_id: "UNIFIED-AGENT-EXECUTION-FABRIC-v1"
+status: "CANDIDATE_PENDING_INDEPENDENT_REVIEW"
+source_issue: 596
+authority:
+  owner_decision: "ONE_GLOBAL_CONTROL_PLANE_WITH_PROJECT_ADAPTERS"
+  canonical_engineering_sync_repo: "vxz2datoubo/second-brain-coordination"
+  runtime_data_sor_preserved: true
+
+purpose: >-
+  Provide one durable multi-project engineering execution fabric for Second Brain,
+  Trading System, Realtime Interactive Film Game and AI Director while preserving
+  each project's own domain authority, runtime-data SoR and safety boundaries.
+
+architecture:
+  style:
+    - "PORTS_AND_ADAPTERS"
+    - "GITOPS_DESIRED_STATE_RECONCILIATION"
+    - "SINGLE_WRITER_PER_COLLISION_DOMAIN"
+    - "EXACT_HEAD_INDEPENDENT_REVIEW"
+  global_port:
+    owns:
+      - "task classification"
+      - "executor/carrier selection"
+      - "model profile selection"
+      - "handoff/return package semantics"
+      - "local bridge admission"
+      - "concurrency/collision admission"
+      - "exact-head review lifecycle"
+      - "productivity telemetry"
+    does_not_own:
+      - "project domain truth"
+      - "runtime data truth"
+      - "trading order authority"
+      - "director story/asset/continuity authority"
+  project_adapter:
+    schema: "coordination/GOVERNANCE/PROJECT-EXECUTION-ADAPTER-SCHEMA-v1.0.yaml"
+    registry: "coordination/EXECUTION/PROJECT-REGISTRY.yaml"
+    rule: "MAY_NARROW_GLOBAL_RULES_NEVER_SILENTLY_WEAKEN"
+
+roles:
+  OWNER:
+    can:
+      - "set goals/priorities"
+      - "approve consequential/high-risk gates"
+      - "override model preferences"
+  GPT_ARCHITECTURE_OWNER:
+    owns:
+      - "conversation with Owner"
+      - "research"
+      - "architecture and acceptance"
+      - "task classification"
+      - "project adapter selection"
+      - "dispatch publication"
+      - "integration reasoning"
+    must:
+      - "fresh reconcile GitHub before nontrivial dispatch"
+      - "tell Owner which executor/carrier/model profile is being selected and why"
+    cannot:
+      - "claim independent ACCEPT for a candidate it authored/steered"
+  CODEX_FRONTIER_ARCHITECT:
+    role: "OPTIONAL_ESCALATION"
+    use_when:
+      - "architecture ambiguity remains material"
+      - "repo-wide refactor design is unusually complex"
+      - "two bounded implementation attempts fail on root cause"
+      - "frontier-model expected value clearly exceeds delegation cost"
+    must:
+      - "read current available model at dispatch time"
+      - "record escalation reason and expected value"
+    cannot:
+      - "silently replace GPT architecture authority"
+  WORKBUDDY_ENGINEERING_EXECUTOR:
+    owns:
+      - "authorized local implementation"
+      - "local testing/debug loops"
+      - "bounded engineering optimization"
+      - "execution telemetry"
+    cannot:
+      - "silently change architecture/acceptance"
+      - "self-review/self-accept/self-merge"
+      - "write main directly"
+  GPT_INDEPENDENT_REVIEWER:
+    must:
+      - "fresh-read current main, issue/spec, PR, exact head, CI, diff and latest discussion"
+      - "key verdict to exact head"
+    cannot:
+      - "reuse verdict after head movement"
+  CANONICALIZER:
+    must:
+      - "be separate from candidate author/executor"
+      - "fresh reconcile mergeability, head identity, review and current main"
+
+task_classes:
+  S0:
+    meaning: "analysis/research/no repo write"
+    default_executor: "GPT_ARCHITECTURE_OWNER"
+  S1:
+    meaning: "tiny bounded governance or patch where delegation overhead dominates"
+    default_executor: "GPT_DIRECT"
+  S2:
+    meaning: "standard nontrivial multi-file implementation or repeated local test loop"
+    default_executor: "WORKBUDDY"
+  S3:
+    meaning: "complex/cross-module engineering"
+    default_executor: "WORKBUDDY_DEEP"
+  S4:
+    meaning: "material architecture ambiguity"
+    default_executor: "GPT_OR_CODEX_ARCHITECTURE_ONLY"
+    implementation_allowed: false
+  S5:
+    meaning: "high-risk/irreversible/authority-sensitive"
+    default_executor: "EXPLICIT_OWNER_GATE"
+
+routing_algorithm:
+  - "fresh_reconcile_current_main_and_active_routes"
+  - "identify_project_and_load_project_adapter"
+  - "classify_task_S0_to_S5"
+  - "resolve_collision_domain_and_dependency_graph"
+  - "choose_execution_carrier"
+  - "choose_model_profile_using_capability_cost_router"
+  - "announce_executor_carrier_model_to_owner_for_nontrivial_work"
+  - "publish_exact_bound_handoff"
+  - "local_bridge_or_human_interactive_session_executes_only_if_authorized"
+  - "freeze_exact_head_after_return"
+  - "run_exact_head_CI"
+  - "separate_GPT_independent_review"
+  - "separate_canonicalization"
+  - "record_productivity_receipt_and_learning"
+
+references:
+  interfaces: "coordination/GOVERNANCE/UNIFIED-EXECUTION-INTERFACE-SCHEMAS-v1.0.yaml"
+  model_router: "coordination/GOVERNANCE/MODEL-CAPABILITY-COST-ROUTER-v1.0.yaml"
+  local_bridge: "coordination/GOVERNANCE/LOCAL-WORKBUDDY-BRIDGE-CONTRACT-v1.0.yaml"
+  carrier_concurrency: "coordination/GOVERNANCE/EXECUTION-CARRIER-AND-CONCURRENCY-CONTRACT-v1.0.yaml"
+  model_snapshot: "coordination/EXECUTION/MODEL-CATALOG-SNAPSHOT-2026-09-04.yaml"
+  gpt_bootstrap: "coordination/GPT-UNIFIED-ORCHESTRATOR-START-HERE.md"
+  workbuddy_bootstrap: "coordination/WORKBUDDY-UNIFIED-START-HERE.md"
+
+global_invariants:
+  github_main_is_engineering_sync_truth: true
+  project_runtime_sor_not_replaced_by_github: true
+  active_task_route_required_for_execution: true
+  single_writer_per_collision_domain: true
+  no_direct_main_write_by_executor: true
+  exact_head_review_identity: true
+  head_movement_invalidates_review: true
+  accept_is_not_canonical: true
+  no_self_review: true
+  no_self_merge: true
+  no_silent_model_switch_for_governed_nontrivial_task: true
+  no_silent_carrier_switch: true
+  no_silent_architecture_authority_transfer: true
+
+security:
+  public_repo_self_hosted_runner_default: "FORBIDDEN"
+  preferred_local_execution: "NARROW_PULL_BASED_LOCAL_BRIDGE"
+  secret_values_forbidden_in_github:
+    - "passwords/passphrases"
+    - "api/client secrets"
+    - "private keys"
+    - "auth/session/access/refresh tokens"
+    - "authentication cookies"
+    - "MFA/recovery credentials"
+    - "equivalent reusable account-authentication credentials"
+  ordinary_owner_authorized_private_memory_publication: "ALLOWED"
+  secret_redaction_rule: "REMOVE_SECRET_VALUE_PRESERVE_NON_SECRET_CONTEXT"
+
+supersession:
+  global_scope_inputs:
+    - issue: 591
+      pr: 593
+      disposition: "SUPERSEDED_BY_596_GLOBAL_FABRIC_AFTER_596_CANONICALIZATION"
+    - issue: 592
+      pr: 594
+      disposition: "GLOBAL_FACTORY_SUPERSEDED_PROJECT_SPECIFIC_FILM_ADAPTER_VALUE_REUSED"
+  rule: "UNTIL_596_CANONICAL_OLD_CANDIDATES_REMAIN_NON_CANONICAL_AND_MUST_NOT_COMPETE_AS_GLOBAL_PROTOCOLS"
+
+activation:
+  this_candidate_does_not_activate_local_execution: true
+  this_candidate_does_not_modify_active_workbuddy_task: true
+  this_candidate_does_not_grant_trade_authority: true

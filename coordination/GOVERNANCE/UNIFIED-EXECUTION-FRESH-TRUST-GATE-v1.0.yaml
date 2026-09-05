@@ -1,0 +1,163 @@
+schema_version: "1.3"
+contract_id: "UNIFIED-EXECUTION-FRESH-TRUST-GATE-v1"
+status: "CANDIDATE_REMEDIATED_PENDING_INDEPENDENT_REVIEW"
+source_issue: 596
+source_pr: 597
+
+purpose: >-
+  Make fresh canonical GitHub readback the sole process-start/handoff trust root while
+  preventing caller-controlled repository config, Git environment, templates, PATH,
+  executable selection or process-injection environment from redefining that trust root.
+
+normative_precedence:
+  applies_to:
+    - "coordination/GOVERNANCE/UNIFIED-EXECUTION-INTERFACE-SCHEMAS-v1.0.yaml"
+    - "coordination/GOVERNANCE/LOCAL-WORKBUDDY-BRIDGE-CONTRACT-v1.0.yaml"
+    - "coordination/GOVERNANCE/unified_execution_validation.py"
+    - "coordination/GOVERNANCE/unified_execution_trust_gate.py"
+    - "coordination/GOVERNANCE/unified_execution_trusted_transport.py"
+  rule: >-
+    Any older wording that could be read as trusting Python verified-object identity,
+    module-private issuer identity, cached receipts, caller-supplied typed snapshots,
+    caller Git configuration, inherited Git variables/templates, inherited PATH lookup,
+    or arbitrary inherited process environment is overridden by this contract.
+
+security_boundary:
+  sole_trust_root: "PROTECTED_BRIDGE_OWNED_CANONICAL_GIT_TRANSPORT"
+  canonical_remote_url: "https://github.com/vxz2datoubo/second-brain-coordination.git"
+  canonical_ref: "refs/heads/main"
+  python_object_identity_is_authority: false
+  caller_or_executor_git_config_is_trust_input: false
+  inherited_git_environment_is_trust_input: false
+  caller_git_template_is_trust_input: false
+  caller_path_is_git_executable_authority: false
+  arbitrary_inherited_process_environment_is_trust_input: false
+
+protected_git_transport:
+  module: "coordination/GOVERNANCE/unified_execution_trusted_transport.py"
+  bridge_owned_ephemeral_bare_repo: true
+  caller_repo_path_ignored_for_remote_resolution: true
+  git_executable_identity:
+    selection: "ABSOLUTE_OS_OR_HKLM_TRUSTED_PATH_ONLY"
+    inherited_path_lookup: "FORBIDDEN"
+    executable_digest_attestation: "SHA256_BEFORE_AND_AFTER_EVERY_PROTECTED_INVOCATION"
+    posix_default_candidates:
+      - "/usr/bin/git"
+      - "/bin/git"
+    macos_default_candidate: "/usr/bin/git"
+    windows_default_provenance: "HKLM_GitForWindows_InstallPath"
+    missing_or_changed_identity: "FAIL_CLOSED_NO_PROCESS_START"
+  environment_policy:
+    mode: "MINIMAL_BRIDGE_OWNED_ALLOWLIST"
+    copy_os_environ: false
+    inherited_PATH: false
+    inherited_LD_DYLD_PYTHON_PROXY_SSL_or_other_execution_environment: false
+    bridge_owned_PATH_only: true
+    fresh_HOME_XDG_TEMP: true
+    drop_all_inherited_GIT_star: true
+  repo_local_config_inherited: false
+  global_config_inherited: false
+  system_config_inherited: false
+  inherited_git_template_dir_allowed: false
+  bridge_owned_empty_template_required: true
+  explicit_init_template_argument_required: true
+  post_init_local_config_attestation_required: true
+  same_git_identity_and_environment_for_init_ls_remote_fetch_show_and_recheck: true
+  requirements:
+    - "resolve trusted Git without consulting caller PATH"
+    - "attest trusted Git executable absolute path and SHA256 before and after each invocation"
+    - "construct environment from scratch rather than copying os.environ"
+    - "PATH contains only bridge-selected Git directory plus trusted OS helper directories"
+    - "fresh HOME/XDG_CONFIG_HOME/TMP/TEMP"
+    - "GIT_CONFIG_NOSYSTEM=1"
+    - "GIT_CONFIG_GLOBAL points to null device"
+    - "GIT_TEMPLATE_DIR points to bridge-owned empty template"
+    - "git init --bare receives an explicit bridge-owned --template path"
+    - "new bare trust repo local config contains only allowed init-time repository-format metadata"
+    - "perform ls-remote/fetch/show/recheck only through the same attested Git identity"
+  failure_behavior: "FAIL_CLOSED_NO_PROCESS_START"
+
+executable_gate:
+  module: "coordination/GOVERNANCE/unified_execution_trust_gate.py"
+  process_start_entrypoint: "validate_process_start(repo_path, admission, dispatch, claimed_snapshot)"
+  dispatch_entrypoint: "validate_dispatch(repo_path, dispatch, claimed_snapshot)"
+  authority_entrypoint: "validate_canonical_authority(repo_path, claimed_snapshot)"
+  release_entrypoint: "validate_release_witness(repo_path, release_ref, claimed_snapshot)"
+  carrier_handoff_entrypoint: >-
+    validate_carrier_handoff(repo_path, release_ref, handoff, old_dispatch,
+    old_authority_snapshot, release_snapshot, new_dispatch, new_admission,
+    new_authority_snapshot)
+
+canonical_authority_reauthentication:
+  required_before_every_process_start: true
+  sequence:
+    - "resolve and attest trusted absolute Git executable identity"
+    - "protected isolated ls-remote of fixed canonical main"
+    - "protected fetch of exact observed main"
+    - "validate Active/Route/Claim/Lease/Reservation/Prewrite/Batch semantic chain"
+    - "re-run project-specific adapter semantic floor at exact canonical_main_sha"
+    - "reject duplicate top-level Adapter keys and protected nested semantic keys"
+    - "compare claimed snapshot to fresh canonical projection"
+    - "terminal protected remote-main recheck"
+    - "fail closed on executable drift, main movement, transport ambiguity or semantic mismatch"
+  caller_path_git_shim_attack: "IGNORED_AND_REGRESSION_TESTED"
+  git_template_dir_insteadof_attack: "IGNORED_AND_REGRESSION_TESTED"
+  inherited_git_exec_or_ssh_environment_attack: "REMOVED_FROM_PROTECTED_ENVIRONMENT"
+  inherited_ld_dyld_python_proxy_ssl_environment_attack: "REMOVED_FROM_PROTECTED_ENVIRONMENT"
+
+release_reauthentication:
+  required_for_carrier_handoff: true
+  source: "protected isolated canonical main release_ref readback"
+  terminal_remote_head_recheck: true
+  claimed_release_must_equal_fresh_release: true
+  old_authority_snapshot_role: "HISTORICAL_EVIDENCE_ONLY_NEVER_CURRENT_WRITER_ADMISSION"
+  new_writer_rule: "MUST_PASS_FULL_FRESH_PROCESS_START_GATE"
+  release_and_new_authority_main_must_match: true
+
+project_adapter_runtime_floor:
+  revalidate_on_authority_consumption: true
+  exact_sha: "canonical_main_sha from fresh authority"
+  duplicate_top_level_keys: "FAIL_CLOSED"
+  duplicate_protected_nested_keys: "FAIL_CLOSED"
+  all_registered_project_adapters_parsed: true
+  matched_project_must_be_unique: true
+  execution_repository_must_match_semantically_validated_adapter: true
+  trading_floor_retained:
+    order_authority: "SEPARATE_EXPLICIT_OWNER_GATE"
+    market_data_default: "READ_MARKET_DATA"
+    place_order_allowed: false
+    point_in_time_only: true
+    no_lookahead: true
+    source_and_timestamp_provenance: true
+
+terminal_freshness:
+  initial_protected_remote_main_observation: true
+  protected_fetch_same_main: true
+  governed_document_reads_at_exact_sha: true
+  terminal_protected_remote_main_equality_check: true
+  same_trusted_git_identity_required_within_transport_session: true
+  moved_main_behavior: "FAIL_CLOSED_NO_PROCESS_START"
+
+ci_adversarial_requirements:
+  - "caller PATH git shim cannot service protected canonical reads"
+  - "trusted Git executable identity is absolute and SHA256-attested"
+  - "trusted Git executable digest change fails closed"
+  - "minimal protected environment excludes caller PATH/LD_PRELOAD/DYLD/PYTHONPATH/proxy/SSL overrides"
+  - "malicious inherited GIT_TEMPLATE_DIR cannot seed url.*.insteadOf"
+  - "repo-local and inherited GIT_CONFIG_* rewrites cannot redirect canonical transport"
+  - "terminal recheck uses protected transport"
+  - "duplicate top-level Adapter authority/list/section keys fail closed"
+  - "duplicate protected nested Adapter YAML keys fail closed"
+  - "runtime project adapter semantic-floor downgrade fails closed"
+  - "caller-constructed/cloned authority/release snapshots remain non-authority"
+
+hard_boundaries:
+  - "NO_SELF_REVIEW"
+  - "NO_SELF_MERGE"
+  - "NO_PROCESS_START_FROM_CACHED_SNAPSHOT_ONLY"
+  - "NO_CALLER_MINTED_AUTHORITY"
+  - "NO_CALLER_MINTED_RELEASE_PROOF"
+  - "NO_USER_OR_EXECUTOR_GIT_CONFIG_AS_TRUST_ROOT"
+  - "NO_CALLER_PATH_OR_INHERITED_PROCESS_ENV_AS_GIT_TRUST_ROOT"
+  - "NO_LIVE_TRADE_OR_ORDER_AUTHORITY"
+  - "NO_ACTIVE_WORKBUDDY_TASK_MUTATION_FROM_THIS_REMEDIATION"

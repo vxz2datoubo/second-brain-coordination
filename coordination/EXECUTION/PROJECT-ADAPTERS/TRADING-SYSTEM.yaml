@@ -1,0 +1,91 @@
+schema_version: "1.2"
+adapter_schema: "PROJECT-EXECUTION-ADAPTER-v1"
+project_id: "TRADING_SYSTEM"
+display_name: "交易系统"
+status: "CANDIDATE_REMEDIATED_PENDING_INDEPENDENT_REVIEW"
+global_protocol_id: "UNIFIED-AGENT-EXECUTION-FABRIC-v1"
+inherits_global_invariants: true
+control_plane_repository: "vxz2datoubo/second-brain-coordination"
+execution_repository: "vxz2datoubo/second-brain-coordination"
+
+repositories:
+  - repo: "vxz2datoubo/second-brain-coordination"
+    role: "CURRENT_COORDINATION_AND_RESEARCH_ENGINEERING"
+    note: "PR #588 is a non-canonical synthetic/research relay candidate as of this adapter draft."
+
+canonical_entrypoints:
+  - "current trading active route/issue/PR when present"
+  - "existing trading knowledge/runtime SoR contracts"
+  - "PR #588 only as candidate evidence until independently accepted/canonicalized"
+
+authority:
+  market_data_truth: "DECLARED_DATA_PROVIDER_AT_RUNTIME_WITH_PROVENANCE"
+  strategy_truth: "GOVERNED_TRADING_RESEARCH_ARTIFACTS"
+  order_authority: "SEPARATE_EXPLICIT_OWNER_GATE"
+  engineering_execution_does_not_imply_order_authority: true
+
+allowed_execution_carriers:
+  - "GPT_DIRECT"
+  - "WORKBUDDY_CLI_HEADLESS"
+  - "WORKBUDDY_CLI_WEBUI"
+  - "WORKBUDDY_DESKTOP_INTERACTIVE"
+  - "CODEX_FRONTIER_ESCALATION"
+
+default_model_profiles:
+  routine_data_engineering: "FAST_LOW_COST"
+  complex_strategy_runtime: "DEEP_ENGINEERING"
+  chart_visual_analysis: "MULTIMODAL_VISUAL"
+  architecture_ambiguous: "FRONTIER_ARCHITECTURE"
+
+collision_domains:
+  - "TRADING_NUMERIC_CONTRACT"
+  - "MARKET_DATA_ADAPTER"
+  - "PIT_REPLAY_ENGINE"
+  - "STRATEGY_EXPERIMENT_REGISTRY"
+  - "ORDER_EXECUTION_AUTHORITY"
+
+tool_interfaces:
+  - id: "TDX_TQ_LOCAL_MARKET_DATA"
+    preferred_transport: "LOCAL_STDIO_MCP_OR_BOUNDED_LOCAL_PYTHON_TOOL"
+    default_authority: "READ_MARKET_DATA"
+    live_data_allowed_when_provider_license_and_local_config_allow: true
+    place_order_allowed: false
+  - id: "WORKBUDDY_VISUAL_SURFACE"
+    carriers: ["WORKBUDDY_CLI_WEBUI", "WORKBUDDY_DESKTOP_INTERACTIVE"]
+    purpose: "charts/dashboards/human steering"
+
+numeric_and_research_invariants:
+  - "POINT_IN_TIME_ONLY"
+  - "NO_LOOKAHEAD"
+  - "SOURCE_AND_TIMESTAMP_PROVENANCE"
+  - "MARKET_SESSION_CALENDAR"
+  - "CORPORATE_ACTION_ADJUSTMENT_POLICY"
+  - "TRANSACTION_COST_AND_SLIPPAGE"
+  - "A_SHARE_T_PLUS_1_WHERE_APPLICABLE"
+  - "PRICE_LIMITS"
+  - "SUSPENSION_HANDLING"
+  - "OUT_OF_SAMPLE_AND_WALK_FORWARD_WHERE_MODEL_SELECTION_OCCURS"
+
+hard_boundaries:
+  - "READ_MARKET_DATA_DOES_NOT_IMPLY_PLACE_ORDER"
+  - "NO_ACCOUNT_OR_ORDER_AUTHORITY_FROM_GENERIC_ENGINEERING_ROUTE"
+  - "NO_BROKER_CREDENTIALS_IN_GITHUB"
+  - "NO_LIVE_TRADE_WITHOUT_SEPARATE_EXPLICIT_GATE"
+  - "NO_SYNTHETIC_RESULT_LAUNDERED_AS_LIVE_EVIDENCE"
+  - "NO_SELF_REVIEW"
+  - "NO_SELF_MERGE"
+
+acceptance:
+  required:
+    - "numeric invariants"
+    - "PIT/no-lookahead tests"
+    - "provider provenance"
+    - "exact-head CI"
+    - "independent review"
+  live_market_acceptance_extra:
+    - "fresh local provider readback"
+    - "timestamp/freshness proof"
+    - "read-only authority proof"
+
+handoff:
+  to_ai_or_second_brain: "only derived evidence/knowledge through declared contracts"
