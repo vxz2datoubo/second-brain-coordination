@@ -62,6 +62,17 @@ _PROTECTED_ADAPTER_KEYS = {
     "source_authority",
     "second_brain_may_not_silently_modify_domain_truth",
     "engineering_model_choice_does_not_override",
+    "authority",
+    "allowed_execution_carriers",
+    "tool_interfaces",
+    "numeric_and_research_invariants",
+    "hard_boundaries",
+    "repositories",
+    "canonical_entrypoints",
+    "default_model_profiles",
+    "collision_domains",
+    "acceptance",
+    "handoff",
 }
 
 
@@ -131,6 +142,29 @@ def _read_at_sha(repo_path: str | Path, sha: str, path: str) -> str:
     return read(path).decode("utf-8")
 
 
+def _reject_duplicate_top_level_yaml_keys(text: str) -> None:
+    """Reject duplicate top-level adapter keys before regex-based semantic parsing.
+
+    This prevents parser-differential ambiguity where this validator observes the first
+    authority-bearing section while a standard YAML consumer may apply last-key-wins.
+    """
+    counts: dict[str, int] = {}
+    for line in text.splitlines():
+        if not line or line.startswith((" ", "\t")) or line.lstrip().startswith("#"):
+            continue
+        match = re.match(r"^([A-Za-z0-9_]+):", line)
+        if not match:
+            continue
+        key = match.group(1)
+        counts[key] = counts.get(key, 0) + 1
+    duplicates = sorted(key for key, count in counts.items() if count > 1)
+    if duplicates:
+        raise ExecutionContractError(
+            "fresh_trust_gate: duplicate top-level adapter YAML keys: "
+            + ", ".join(duplicates)
+        )
+
+
 def _reject_duplicate_protected_yaml_keys(text: str) -> None:
     counts: dict[str, int] = {}
     for line in text.splitlines():
@@ -151,6 +185,7 @@ def _reject_duplicate_protected_yaml_keys(text: str) -> None:
 
 
 def _strict_parse_adapter(text: str) -> Mapping[str, Any]:
+    _reject_duplicate_top_level_yaml_keys(text)
     _reject_duplicate_protected_yaml_keys(text)
     return base.parse_and_validate_project_adapter(text, _GLOBAL_POLICY)
 
