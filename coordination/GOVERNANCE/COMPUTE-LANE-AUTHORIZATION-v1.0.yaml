@@ -1,0 +1,85 @@
+schema_version: "1.0"
+contract_id: "COMPUTE-LANE-AUTHORIZATION-v1"
+status: "CANDIDATE_PENDING_INDEPENDENT_REVIEW"
+source_issue: 605
+purpose: >-
+  Bind a governed Codex Standard or Codex Frontier compute lane to the same exact task
+  identity and canonical-main epoch used by executable writer authority, so compute class,
+  carrier and model profile cannot be silently escalated while reusing writer authority.
+
+trusted_builder: "build_verified_compute_lane_authorization(repo_path, authorization_ref)"
+trusted_source:
+  repository: "vxz2datoubo/second-brain-coordination"
+  ref: "refs/heads/main"
+  authorization_document_must_be_in_canonical_main: true
+  caller_supplied_mapping_is_authority: false
+
+common_identity_required:
+  - control_plane_repository
+  - execution_repository
+  - project_id
+  - task_id
+  - route_epoch
+  - exact_base_sha
+  - implementation_branch
+  - collision_domain
+
+lane_identity_required:
+  - authorization_status
+  - executor
+  - carrier
+  - compute_class
+  - model_profile
+
+standard_lane:
+  carrier: "CODEX_STANDARD_ESCALATION"
+  executor: "CODEX_STANDARD_ENGINEER"
+  compute_class: "STANDARD"
+  model_profile: "CODEX_STANDARD_ENGINEERING"
+  required_evidence:
+    standard_value_case_status: "PASS"
+  frontier_gate_required: false
+
+frontier_lane:
+  carrier: "CODEX_FRONTIER_ESCALATION"
+  executor: "CODEX_FRONTIER_ARCHITECT"
+  compute_class: "FRONTIER"
+  model_profile: "FRONTIER_ARCHITECTURE"
+  required_evidence:
+    frontier_value_gate_status: "PASS"
+    owner_frontier_authorized: true
+    frontier_gate_condition:
+      - "ARCHITECTURE_LEVERAGE"
+      - "IRREVERSIBLE_OR_HIGH_REWORK_COST"
+      - "FRONTIER_AMBIGUITY"
+      - "CROSS_DOMAIN_SYNTHESIS"
+      - "HIGH_RISK_CORRECTNESS"
+      - "ROOT_CAUSE_ESCALATION"
+    bounded_question_set_digest: "REQUIRED_NONEMPTY"
+    fallback_if_frontier_unavailable: "REQUIRED_NONEMPTY"
+
+runtime_model_resolution:
+  rule: >-
+    Authorization binds lane/class/profile, not a permanently named model. Actual model
+    identity is runtime-discovered at dispatch and executable admission requires
+    model_resolution_status=RESOLVED.
+  named_models_are_correctness_dependencies: false
+
+process_start_invariants:
+  - "dispatch executor/carrier/compute_class/model_profile must match verified compute authorization for Codex lanes"
+  - "compute authorization canonical_main_sha must equal writer authority canonical_main_sha"
+  - "compute authorization common identity must equal writer authority common identity"
+  - "local admission compute fields must exactly match dispatch"
+  - "Standard authorization cannot authorize Frontier carrier/profile/class"
+  - "Frontier dispatch without verified Frontier authorization fails closed"
+  - "resolved model identity cannot be omitted at executable admission"
+  - "model or lane mutation between dispatch and local admission fails closed"
+  - "compute authorization grants no repository write authority by itself"
+  - "compute authorization grants no review or merge authority"
+  - "compute authorization grants no account/order/trade/funds authority"
+
+trading_safety:
+  read_market_data_authority_unchanged: true
+  create_order_intent_authority_granted: false
+  place_order_authority_granted: false
+  broker_account_funds_authority_granted: false
