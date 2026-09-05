@@ -1,4 +1,4 @@
-schema_version: "1.1"
+schema_version: "1.2"
 protocol_id: "MODEL-CAPABILITY-COST-ROUTER-v1"
 status: "CANDIDATE_EXTENSION_PENDING_INDEPENDENT_REVIEW"
 source_issue: 596
@@ -17,7 +17,7 @@ catalog:
     - "availability"
     - "queue/latency"
     - "CLI model id exposed by current WorkBuddy build"
-    - "Codex frontier model actually available to the Owner account"
+    - "Codex model actually available to the Owner account"
   refresh_rule: "RECHECK_AT_DISPATCH_WHEN_LOCALLY_OBSERVABLE"
   stale_price_behavior: "USE_AS_ESTIMATE_ONLY_NOT_CORRECTNESS_AUTHORITY"
   named_model_rule: "NAMED_MODELS_ARE_RUNTIME_DISCOVERED_PREFERENCES_NEVER_PERMANENT_CORRECTNESS_DEPENDENCIES"
@@ -34,14 +34,32 @@ profiles:
       - "mechanical migrations"
       - "broad low-risk verification"
   DEEP_ENGINEERING:
-    initial_preferred_display_model: "Deepseek-V4-Pro"
-    fallback_display_model: "GLM-5.3"
+    peer_display_models:
+      - "Deepseek-V4-Pro"
+      - "GLM-5.3"
+    fixed_primary_forbidden: true
+    selection_rule: >-
+      Treat Deepseek-V4-Pro and GLM-5.3 as peer deep-engineering models. Select per task
+      using fresh availability, task affinity, observed reliability and current multiplier;
+      neither model is a permanent fallback to the other.
+    task_affinity:
+      Deepseek-V4-Pro:
+        - "multi-file repository implementation"
+        - "state/persistence/concurrency"
+        - "long-horizon coding"
+        - "difficult remediation"
+      GLM-5.3:
+        - "terminal/tool-heavy reality audits"
+        - "complex agent execution"
+        - "broad debugging and diagnosis"
+        - "high-quality second opinion"
     suitable_for:
       - "complex debugging"
       - "multi-module implementation"
       - "long-horizon coding"
       - "state/persistence/concurrency"
       - "difficult remediation"
+      - "local capability and environment audits where tool execution quality matters"
   MULTIMODAL_VISUAL:
     initial_preferred_display_model: "MiniMax-M3"
     alternatives:
@@ -61,10 +79,23 @@ profiles:
       - "sole reviewer"
       - "transient-free dependency in CI"
   SECOND_OPINION:
-    initial_preferred_display_model: "GLM-5.3"
-    alternatives:
+    peer_candidates:
+      - "GLM-5.3"
       - "Deepseek-V4-Pro"
       - "Kimi-K3"
+    rule: "CHOOSE_BY_TASK_DIVERSITY_AND_FRESH_OBSERVED_VALUE_NOT_STATIC_RANK"
+  CODEX_STANDARD_ENGINEERING:
+    executor: "CODEX_STANDARD_ESCALATION"
+    model_rule: "READ_ACTUAL_AVAILABLE_CODEX_MODEL_AT_DISPATCH"
+    named_standard_preference_examples:
+      - "GPT-5.6 when actually available"
+    named_model_is_required_dependency: false
+    suitable_for:
+      - "large-diff code analysis"
+      - "complex engineering second opinion"
+      - "bounded architecture-sensitive implementation or review"
+      - "root-cause analysis that benefits from Codex tooling but does not justify frontier spend"
+    frontier_value_gate_required: false
   FRONTIER_ARCHITECTURE:
     executor: "CODEX_FRONTIER_ESCALATION"
     model_rule: "READ_ACTUAL_AVAILABLE_CODEX_MODEL_AT_DISPATCH"
@@ -99,6 +130,15 @@ executor_compute_roles:
     may_report_frontier_escalation_need: true
     may_self_authorize_codex_frontier_spend: false
     may_silently_switch_to_frontier_model: false
+  CODEX_STANDARD_ENGINEER:
+    primary_value:
+      - "high-quality code reasoning with repository tooling"
+      - "architecture-sensitive but bounded engineering"
+      - "large-diff review and difficult second opinion"
+      - "root-cause analysis below frontier threshold"
+    may_handle_L1_and_L2_without_frontier_gate: true
+    still_requires_expected_value_over_GPT_plus_WorkBuddy: true
+    model_must_be_runtime_discovered: true
   CODEX_FRONTIER_ARCHITECT:
     primary_value:
       - "high-leverage architecture"
@@ -118,6 +158,7 @@ compute_capital_policy:
   default_no_frontier_spend: true
   frontier_spend_requires_explicit_value_case: true
   owner_may_override_model_preference: true
+  codex_standard_is_not_equivalent_to_frontier_spend: true
 
 workload_value_tiers:
   L0_ROUTINE:
@@ -132,7 +173,7 @@ workload_value_tiers:
       - "bulk mechanical transformation"
   L1_COMPLEX_IMPLEMENTATION:
     frontier_allowed_by_default: false
-    preferred_executor: "GPT_PLUS_WORKBUDDY"
+    preferred_executor: "GPT_PLUS_WORKBUDDY_OR_CODEX_STANDARD_BY_EXPECTED_VALUE"
     examples:
       - "ordinary multi-file implementation"
       - "complex debugging with bounded architecture"
@@ -140,6 +181,7 @@ workload_value_tiers:
       - "stateful implementation under already-frozen contracts"
   L2_HIGH_LEVERAGE_DECISION:
     frontier_allowed_if_value_gate_passes: true
+    codex_standard_allowed_without_frontier_gate: true
     examples:
       - "multi-module architecture choice"
       - "material cross-project boundary design"
@@ -155,6 +197,16 @@ workload_value_tiers:
       - "cross-domain synthesis across memory, trading, agent runtime and feedback loops"
       - "irreversible canonical truth or execution-authority redesign"
 
+codex_standard_value_gate:
+  principle: "USE_CODEX_STANDARD_WHEN_ITS_TOOLING_OR_REASONING_EDGE_JUSTIFIES_DELEGATION_OVERHEAD_WITHOUT_FRONTIER_SPEND"
+  examples:
+    - "complex code review or large diff where Codex repository tooling reduces error"
+    - "architecture-sensitive bounded engineering needing an independent implementation view"
+    - "difficult diagnosis where GPT plus WorkBuddy evidence exists but a Codex code-centric pass has positive expected value"
+  non_qualifiers:
+    - "novelty of the model name"
+    - "ordinary mechanical work already handled reliably by WorkBuddy"
+
 frontier_value_gate:
   minimum_condition_count: 1
   conditions:
@@ -167,7 +219,7 @@ frontier_value_gate:
   expected_value_test: >-
     Frontier use is justified only when the expected reduction in architecture error,
     rework, safety risk, or unresolved ambiguity materially exceeds the extra compute cost
-    and latency relative to GPT plus WorkBuddy.
+    and latency relative to GPT plus WorkBuddy or Codex Standard.
   non_qualifiers_by_default:
     - "large context alone"
     - "large repository alone"
@@ -196,7 +248,7 @@ frontier_dispatch_record:
   required_fields:
     - "workload_value_tier"
     - "frontier_gate_condition"
-    - "why_GPT_plus_WorkBuddy_is_insufficient_or_lower_value"
+    - "why_GPT_plus_WorkBuddy_or_Codex_Standard_is_insufficient_or_lower_value"
     - "expected_decision_impact"
     - "expected_rework_or_risk_reduction"
     - "actual_available_codex_model"
@@ -222,15 +274,17 @@ selection_constraints:
   never_use_model_prestige_alone: true
   cross_vendor_benchmarks_are_directional: true
   vendor_benchmark_harness_may_differ: true
+  same_capability_tier_may_contain_multiple_peer_models: true
 
 initial_policy:
   fast_default: "GLM-5.3-Flash"
-  deep_default: "Deepseek-V4-Pro"
+  deep_peer_models: ["Deepseek-V4-Pro", "GLM-5.3"]
+  deep_selection: "TASK_AFFINITY_PLUS_FRESH_VALUE"
   fast_fallback: "Deepseek-V4-Flash"
-  difficult_alternative: "GLM-5.3"
   multimodal_specialist: "MiniMax-M3"
   exceptional_long_context_candidate: "Kimi-K3"
   free_bulk_candidates: ["Hy4 preview", "Hy3"]
+  codex_standard_default: "RUNTIME_DISCOVER_ACTUAL_CODEX_MODEL"
   frontier_default: "RUNTIME_DISCOVER_ACTUAL_CODEX_MODEL"
 
 escalation:
@@ -239,10 +293,17 @@ escalation:
     - "cross-module semantic ambiguity appears"
     - "state/concurrency/security invariant is involved"
     - "task exceeds configured local complexity threshold"
+  within_deep_peer_tier:
+    - "switch between Deepseek-V4-Pro and GLM-5.3 based on task affinity, fresh availability and measured outcomes"
+    - "do not describe peer switch as capability escalation by itself"
   from_deep_to_second_opinion_when:
     - "same root blocker survives two bounded deep loops"
     - "reviewer finds architecture-sensitive defect"
     - "two plausible designs remain materially unresolved"
+  to_codex_standard_when:
+    - "codex_standard_value_gate passes"
+    - "Codex code-centric tooling or reasoning has positive expected value"
+    - "frontier-level architecture reasoning is not required"
   to_codex_frontier_when:
     - "frontier_value_gate passes"
     - "architecture remains materially ambiguous after GPT analysis"
@@ -267,6 +328,7 @@ telemetry_learning:
     - "cost_if_available"
     - "final_verdict"
     - "workload_value_tier"
+    - "codex_standard_call_count"
     - "frontier_call_count"
     - "frontier_gate_condition"
     - "frontier_question_count"
