@@ -38,6 +38,22 @@ def _make_bare_with_main(root: Path, name: str, marker: str) -> tuple[Path, str]
     return bare, sha
 
 
+def _make_malicious_template(
+    root: Path, fake_url: str, trusted_url: str
+) -> Path:
+    template = root / "malicious-template"
+    template.mkdir()
+    (template / "config").write_text(
+        '[core]\n'
+        '    repositoryformatversion = 0\n'
+        '    bare = true\n'
+        f'[url "{fake_url}"]\n'
+        f'    insteadOf = {trusted_url}\n',
+        encoding="utf-8",
+    )
+    return template
+
+
 class TrustedTransportRewriteIsolationTests(unittest.TestCase):
     def test_repo_local_insteadof_cannot_redirect_initial_readback_or_fetch(self):
         with tempfile.TemporaryDirectory() as raw:
@@ -75,6 +91,54 @@ class TrustedTransportRewriteIsolationTests(unittest.TestCase):
                 transport, "TRUSTED_CONTROL_PLANE_URL", legit_url
             ):
                 self.assertEqual(transport.remote_main_sha(root), legit_sha)
+
+    def test_git_template_dir_cannot_seed_url_rewrite_into_trust_repo(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            legit, legit_sha = _make_bare_with_main(root, "legit", "LEGIT")
+            fake, fake_sha = _make_bare_with_main(root, "fake", "FAKE")
+            legit_url = legit.as_uri()
+            fake_url = fake.as_uri()
+            malicious_template = _make_malicious_template(
+                root, fake_url, legit_url
+            )
+
+            with patch.dict(
+                os.environ,
+                {"GIT_TEMPLATE_DIR": str(malicious_template)},
+                clear=False,
+            ), patch.object(transport, "TRUSTED_CONTROL_PLANE_URL", legit_url):
+                observed, read = transport.open_trusted_main(root)
+                terminal = transport.remote_main_sha(root)
+                gate._terminal_remote_main_recheck(root, legit_sha)
+
+            self.assertEqual(observed, legit_sha)
+            self.assertEqual(terminal, legit_sha)
+            self.assertNotEqual(observed, fake_sha)
+            self.assertEqual(read("marker.txt"), b"LEGIT")
+
+    def test_sanitized_env_drops_caller_git_execution_and_template_variables(self):
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            poisoned = {
+                "GIT_TEMPLATE_DIR": str(root / "evil-template"),
+                "GIT_EXEC_PATH": str(root / "evil-exec"),
+                "GIT_SSH_COMMAND": "false",
+                "GIT_CONFIG_COUNT": "1",
+                "GIT_CONFIG_KEY_0": "url.file:///fake.git.insteadOf",
+                "GIT_CONFIG_VALUE_0": transport.TRUSTED_CONTROL_PLANE_URL,
+            }
+            with patch.dict(os.environ, poisoned, clear=False):
+                env = transport._sanitized_env(root / "home")
+
+            self.assertNotIn("GIT_EXEC_PATH", env)
+            self.assertNotIn("GIT_SSH_COMMAND", env)
+            self.assertNotIn("GIT_CONFIG_COUNT", env)
+            self.assertNotIn("GIT_CONFIG_KEY_0", env)
+            self.assertNotIn("GIT_CONFIG_VALUE_0", env)
+            self.assertEqual(env["GIT_CONFIG_NOSYSTEM"], "1")
+            self.assertEqual(env["GIT_CONFIG_GLOBAL"], os.devnull)
+            self.assertNotEqual(env["GIT_TEMPLATE_DIR"], poisoned["GIT_TEMPLATE_DIR"])
 
     def test_terminal_recheck_uses_isolated_transport_not_user_repo_config(self):
         with tempfile.TemporaryDirectory() as raw:
@@ -122,6 +186,32 @@ class DuplicateProtectedAdapterKeyTests(unittest.TestCase):
             needle + 'execution_repository: "vxz2datoubo/second-brain-coordination"\n',
             1,
         )
+        with self.assertRaises(gate.ExecutionContractError):
+            gate._strict_parse_adapter(mutated)
+
+    def test_duplicate_top_level_hard_boundaries_section_fails_closed(self):
+        path = (
+            Path(__file__).resolve().parents[1]
+            / "coordination"
+            / "EXECUTION"
+            / "PROJECT-ADAPTERS"
+            / "TRADING-SYSTEM.yaml"
+        )
+        text = path.read_text(encoding="utf-8")
+        mutated = text + '\nhard_boundaries:\n  - "ALLOW_LIVE_TRADE"\n'
+        with self.assertRaises(gate.ExecutionContractError):
+            gate._strict_parse_adapter(mutated)
+
+    def test_duplicate_top_level_authority_section_fails_closed(self):
+        path = (
+            Path(__file__).resolve().parents[1]
+            / "coordination"
+            / "EXECUTION"
+            / "PROJECT-ADAPTERS"
+            / "TRADING-SYSTEM.yaml"
+        )
+        text = path.read_text(encoding="utf-8")
+        mutated = text + '\nauthority:\n  order_authority: "GENERIC_ENGINEERING_ROUTE"\n'
         with self.assertRaises(gate.ExecutionContractError):
             gate._strict_parse_adapter(mutated)
 
