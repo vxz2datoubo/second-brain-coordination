@@ -1,32 +1,56 @@
-schema_version: "1.0"
+schema_version: "1.1"
 contract_id: "UNIFIED-EXECUTION-FRESH-TRUST-GATE-v1"
 status: "CANDIDATE_REMEDIATED_PENDING_INDEPENDENT_REVIEW"
 source_issue: 596
 source_pr: 597
 
 purpose: >-
-  Close the remaining caller-mintable authority/release trust boundary by making
-  fresh trusted GitHub canonical-main readback, not Python object identity, the
-  sole authority source for process start and carrier handoff.
+  Make fresh canonical GitHub readback the sole process-start/handoff trust root,
+  while preventing caller/user Git configuration from redefining the supposedly
+  fixed canonical repository.
 
 normative_precedence:
   applies_to:
     - "coordination/GOVERNANCE/UNIFIED-EXECUTION-INTERFACE-SCHEMAS-v1.0.yaml"
     - "coordination/GOVERNANCE/LOCAL-WORKBUDDY-BRIDGE-CONTRACT-v1.0.yaml"
     - "coordination/GOVERNANCE/unified_execution_validation.py"
+    - "coordination/GOVERNANCE/unified_execution_trust_gate.py"
   rule: >-
-    Where an older contract or helper could be read as trusting a
-    VerifiedCanonicalAuthority/VerifiedReleaseWitness object, _ISSUER identity,
-    constructor, internal factory, cached receipt, or caller-supplied typed snapshot,
-    this contract overrides that interpretation. Those are transport/cache shapes only.
+    Any older wording that could be read as trusting Python verified-object identity,
+    module-private issuer identity, cached receipts, caller-supplied typed snapshots,
+    or Git reads executed inside caller/executor Git configuration is overridden by
+    this contract.
 
 security_boundary:
-  sole_trust_root: "FRESH_TRUSTED_REMOTE_CANONICAL_MAIN_READBACK"
+  sole_trust_root: "PROTECTED_BRIDGE_OWNED_CANONICAL_GIT_TRANSPORT"
+  canonical_remote_url: "https://github.com/vxz2datoubo/second-brain-coordination.git"
+  canonical_ref: "refs/heads/main"
   python_object_identity_is_authority: false
   module_private_name_is_security_boundary: false
   caller_constructed_typed_snapshot_is_authority: false
   caller_cloned_snapshot_is_authority: false
   cached_verified_snapshot_is_sufficient_for_process_start: false
+  caller_or_executor_git_config_is_trust_input: false
+
+protected_git_transport:
+  module: "coordination/GOVERNANCE/unified_execution_trusted_transport.py"
+  bridge_owned_ephemeral_bare_repo: true
+  caller_repo_path_ignored_for_remote_resolution: true
+  inherited_git_config_environment_sanitized: true
+  repo_local_config_inherited: false
+  worktree_config_inherited: false
+  global_config_inherited: false
+  system_config_inherited: false
+  url_insteadof_rewrites_inherited: false
+  requirements:
+    - "fresh empty HOME/XDG_CONFIG_HOME"
+    - "GIT_CONFIG_NOSYSTEM=1"
+    - "GIT_CONFIG_GLOBAL points to null device"
+    - "remove inherited GIT_CONFIG_* variables before invoking git"
+    - "remove inherited GIT_DIR/GIT_WORK_TREE/common/object alternate variables"
+    - "perform ls-remote and fetch only inside isolated bridge-owned bare repository"
+    - "read governed files only by fetched exact SHA"
+  failure_behavior: "FAIL_CLOSED_NO_PROCESS_START"
 
 executable_gate:
   module: "coordination/GOVERNANCE/unified_execution_trust_gate.py"
@@ -42,23 +66,24 @@ executable_gate:
 canonical_authority_reauthentication:
   required_before_every_process_start: true
   sequence:
-    - "fresh build from fixed trusted remote refs/heads/main"
+    - "protected isolated ls-remote of fixed canonical main"
+    - "protected fetch of the exact observed main into isolated bare repo"
     - "validate full Active/Route/Claim/Lease/Reservation/Prewrite/Batch semantic chain"
     - "re-run project-specific adapter semantic floor at exact canonical_main_sha"
+    - "reject duplicate protected Adapter YAML keys before semantic parsing"
     - "compare claimed snapshot byte-semantically to fresh canonical projection"
-    - "terminal ls-remote recheck after governed document reads"
-    - "fail closed if main moved or any semantic mismatch exists"
+    - "terminal protected ls-remote recheck after governed document reads"
+    - "fail closed if main moved, transport was ambiguous, or any semantic mismatch exists"
   direct_constructor_attack: "FAIL_CLOSED_UNLESS_EXACTLY_EQUAL_TO_FRESH_CANONICAL_STATE"
   internal_factory_attack: "FAIL_CLOSED_UNLESS_EXACTLY_EQUAL_TO_FRESH_CANONICAL_STATE"
   dataclasses_replace_attack: "FAIL_CLOSED_UNLESS_EXACTLY_EQUAL_TO_FRESH_CANONICAL_STATE"
   issuer_reuse_attack: "FAIL_CLOSED_UNLESS_EXACTLY_EQUAL_TO_FRESH_CANONICAL_STATE"
-  note: >-
-    An exactly equal reconstructed snapshot grants no additional authority because
-    the gate independently obtains the same authority from canonical main.
+  local_git_insteadof_attack: "FAIL_CLOSED_OR_IGNORED_BY_ISOLATED_TRANSPORT"
+  environment_git_insteadof_attack: "FAIL_CLOSED_OR_IGNORED_BY_ISOLATED_TRANSPORT"
 
 release_reauthentication:
   required_for_carrier_handoff: true
-  source: "fresh canonical main release_ref readback"
+  source: "protected isolated canonical main release_ref readback"
   terminal_remote_head_recheck: true
   claimed_release_must_equal_fresh_release: true
   old_authority_snapshot_role: "HISTORICAL_EVIDENCE_ONLY_NEVER_CURRENT_WRITER_ADMISSION"
@@ -68,6 +93,7 @@ release_reauthentication:
 project_adapter_runtime_floor:
   revalidate_on_authority_consumption: true
   exact_sha: "canonical_main_sha from fresh authority"
+  duplicate_protected_keys: "FAIL_CLOSED"
   all_registered_project_adapters_parsed: true
   matched_project_must_be_unique: true
   execution_repository_must_match_semantically_validated_adapter: true
@@ -80,10 +106,10 @@ project_adapter_runtime_floor:
     source_and_timestamp_provenance: true
 
 terminal_freshness:
-  initial_remote_main_observation: true
-  fetch_same_main: true
+  initial_protected_remote_main_observation: true
+  protected_fetch_same_main: true
   governed_document_reads_at_exact_sha: true
-  terminal_remote_main_equality_check: true
+  terminal_protected_remote_main_equality_check: true
   moved_main_behavior: "FAIL_CLOSED_NO_PROCESS_START"
 
 ci_adversarial_requirements:
@@ -92,8 +118,10 @@ ci_adversarial_requirements:
   - "dataclasses.replace issuer-preserving authority clone cannot mint authority"
   - "direct VerifiedReleaseWitness constructor cannot mint release authority"
   - "dataclasses.replace release clone cannot preserve trust"
-  - "process start substitutes fresh canonical snapshot for caller object identity"
-  - "terminal main movement fails closed"
+  - "repo-local url.*.insteadOf cannot redirect initial canonical readback/fetch"
+  - "inherited GIT_CONFIG_* url rewrite cannot redirect canonical transport"
+  - "repo-local url.*.insteadOf cannot redirect terminal remote-main recheck"
+  - "duplicate protected Adapter YAML keys fail closed"
   - "runtime project adapter semantic-floor downgrade fails closed"
   - "carrier handoff substitutes fresh canonical release and fresh new authority"
 
@@ -103,5 +131,6 @@ hard_boundaries:
   - "NO_PROCESS_START_FROM_CACHED_SNAPSHOT_ONLY"
   - "NO_CALLER_MINTED_AUTHORITY"
   - "NO_CALLER_MINTED_RELEASE_PROOF"
+  - "NO_USER_OR_EXECUTOR_GIT_CONFIG_AS_TRUST_ROOT"
   - "NO_LIVE_TRADE_OR_ORDER_AUTHORITY"
   - "NO_ACTIVE_WORKBUDDY_TASK_MUTATION_FROM_THIS_REMEDIATION"
