@@ -30,10 +30,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Dependency-free governance invariants
         run: python -m unittest discover -s tests -p 'test_unified_execution_fabric.py' -v
       - name: Whitespace and patch hygiene
-        run: git diff --check HEAD^ HEAD
+        shell: bash
+        run: |
+          if [ -n "${{ github.event.pull_request.base.sha }}" ] && [ -n "${{ github.event.pull_request.head.sha }}" ]; then
+            git diff --check "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}"
+          else
+            git diff --check HEAD^ HEAD
+          fi
