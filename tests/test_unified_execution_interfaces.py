@@ -19,6 +19,7 @@ class UnifiedExecutionInterfaceTests(unittest.TestCase):
     def test_interface_family_defines_all_cross_agent_objects(self):
         interfaces = text("coordination/GOVERNANCE/UNIFIED-EXECUTION-INTERFACE-SCHEMAS-v1.0.yaml")
         for object_id in (
+            "CANONICAL_EXECUTION_AUTHORITY_CHAIN_v1",
             "GPT_TO_EXECUTOR_DISPATCH_v1",
             "WORKBUDDY_RETURN_PACKAGE_v1",
             "EXECUTION_CARRIER_HANDOFF_v1",
@@ -31,23 +32,37 @@ class UnifiedExecutionInterfaceTests(unittest.TestCase):
     def test_dispatch_and_return_are_exact_bound_and_non_authority_minting(self):
         interfaces = text("coordination/GOVERNANCE/UNIFIED-EXECUTION-INTERFACE-SCHEMAS-v1.0.yaml")
         for field in (
+            "control_plane_repository",
+            "execution_repository",
             "exact_base_sha",
             "implementation_branch",
             "collision_domain",
+            "authority_chain_receipt_digest",
+            "authority_refs",
+            "authority_digests",
             "authorized_paths",
             "authority_grants",
             "authority_denials",
             "completion_signal",
         ):
             self.assertIn(f"    - {field}", interfaces)
+        self.assertIn('    - "authorized_paths_must_be_subset_of_canonical_authorized_paths"', interfaces)
+        self.assertIn('    - "authority_grants_must_be_subset_of_canonical_authority_grants"', interfaces)
         self.assertIn('    - "no_authority_is_inferred_from_model_or_carrier"', interfaces)
         self.assertIn('    - "return_package_never_self_asserts_ACCEPT"', interfaces)
         self.assertIn('    - "head_sha_is_immutable_review_identity_once_submitted"', interfaces)
 
     def test_carrier_handoff_releases_old_writer_before_new_writer(self):
         interfaces = text("coordination/GOVERNANCE/UNIFIED-EXECUTION-INTERFACE-SCHEMAS-v1.0.yaml")
-        self.assertIn("    - writer_lease_release_proof", interfaces)
-        self.assertIn("    - new_writer_admission_required", interfaces)
+        for field in (
+            "old_writer_lease_id",
+            "old_writer_lease_generation",
+            "old_writer_release_receipt_digest",
+            "release_readback_canonical_main_sha",
+            "new_writer_admission_required",
+        ):
+            self.assertIn(f"    - {field}", interfaces)
+        self.assertIn('    - "old_writer_release_must_be_fresh_canonical_readback"', interfaces)
         self.assertIn('    - "same_task_simultaneous_writers_forbidden"', interfaces)
 
     def test_review_and_productivity_objects_do_not_blur_acceptance(self):
@@ -59,6 +74,7 @@ class UnifiedExecutionInterfaceTests(unittest.TestCase):
     def test_bridge_admission_fails_closed(self):
         interfaces = text("coordination/GOVERNANCE/UNIFIED-EXECUTION-INTERFACE-SCHEMAS-v1.0.yaml")
         self.assertIn('  otherwise: "FAIL_CLOSED_NO_PROCESS_START"', interfaces)
+        self.assertIn('    - "fresh_canonical_authority_receipt_validates"', interfaces)
         self.assertIn('    - "collision_domain_available"', interfaces)
         self.assertIn('    - "credential_secret_policy_loaded"', interfaces)
 
