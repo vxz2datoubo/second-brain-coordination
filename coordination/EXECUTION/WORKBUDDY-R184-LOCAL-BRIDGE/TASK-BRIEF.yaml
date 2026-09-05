@@ -1,0 +1,125 @@
+schema: "WorkBuddyTaskBrief/v1"
+project: "SECOND_BRAIN"
+repository: "vxz2datoubo/second-brain-coordination"
+source_issue: 595
+task_id: "WORKBUDDY-R184-LOCAL-WORKBUDDY-BRIDGE"
+route_epoch: 184
+executor: "WORKBUDDY"
+mode: "DEEP_ENGINEERING"
+status: "READY"
+execution_allowed: true
+implementation_branch: "workbuddy/r184-local-workbuddy-bridge"
+branch_parent_required: "bf4e722540f92ed560b29f884b3ac7c1c8d8895d"
+
+mission: >-
+  Implement the narrow, Windows-first local canonical-task watcher / WorkBuddy Bridge
+  required by Issue #595. The bridge reconciles registered GitHub task authority with a
+  local WorkBuddy/CodeBuddy runtime while preserving the canonical fresh trust gate,
+  single-writer rules, credential isolation, exact Git provenance, and dry-run safety.
+
+canonical_inputs:
+  - "Issue #595"
+  - "coordination/GOVERNANCE/LOCAL-WORKBUDDY-BRIDGE-CONTRACT-v1.0.yaml"
+  - "coordination/GOVERNANCE/UNIFIED-EXECUTION-FRESH-TRUST-GATE-v1.0.yaml"
+  - "coordination/GOVERNANCE/unified_execution_trust_gate.py"
+  - "coordination/GOVERNANCE/unified_execution_trusted_transport.py"
+  - "coordination/EXECUTION/unified_active_task_registry.py"
+  - "coordination/EXECUTION/canonical_write_paths.py"
+  - "coordination/EXECUTION/ACTIVE-TASK-INDEX-REGISTRY.json"
+  - "coordination/EXECUTION/PROJECT-ADAPTERS/SECOND-BRAIN.yaml"
+  - "coordination/EXECUTION/MODEL-CATALOG-SNAPSHOT-2026-09-04.yaml"
+
+model_policy:
+  profile: "DEEP_ENGINEERING"
+  preferred_model: "deepseek-v4-pro"
+  preferred_display_name: "Deepseek-V4-Pro"
+  runtime_availability_recheck_required: true
+  observed_multiplier_is_not_authority: true
+  flash_use: "BOUNDED_TEST_FIXTURE_OR_LOW_RISK_SUBTASK_ONLY"
+  flash_model: "deepseek-v4-flash"
+  unavailable_preferred_model_action: "FAIL_CLOSED_RETURN_TO_GPT"
+  silent_whole_task_downgrade: false
+
+carrier_policy:
+  bootstrap_carrier: "WORKBUDDY_DESKTOP_INTERACTIVE_OR_EXISTING_CODEBUDDY_CLI"
+  future_default_after_bridge_canonicalization: "WORKBUDDY_CLI_HEADLESS"
+  official_sdk_preferred: true
+  gui_automation_for_bridge: false
+  unrestricted_public_repo_self_hosted_runner: false
+
+implementation_requirements:
+  - "Fresh-read trusted canonical main through the protected bridge-owned Git transport."
+  - "Discover executable work only from registered task indexes; arbitrary issue/comment/branch prose is never execution authority."
+  - "Rebuild selected authority through unified_active_task_registry + unified_execution_trust_gate before process start."
+  - "Require READY/execution_allowed and exact project/task/epoch/base/branch/collision/writer-lease identity."
+  - "Create one isolated worktree or clone per write task from execution_repository only."
+  - "Keep authentication-secret values local; never persist them to GitHub, logs, receipts, fixtures, or return packages."
+  - "Use durable local idempotency/launch receipts keyed to canonical task and immutable writer lease identity."
+  - "Fail closed on stale/moved main, unregistered task index, wrong lease, branch/base mismatch, collision conflict, candidate-only state, malformed authority, unknown adapter, or unavailable required model."
+  - "Commands and model identifiers may come only from validated structured authority/dispatch fields, never arbitrary GitHub free text."
+  - "Windows-first path/process implementation with portable abstractions; no shell-string concatenation authority boundary."
+  - "Emit a standard WorkBuddy return package and local productivity/telemetry receipt with secrets redacted."
+
+implementation_surface:
+  - "tools/local_workbuddy_bridge/**"
+  - "tests/test_unified_execution_local_bridge.py"
+  - "tests/fixtures/local_workbuddy_bridge/**"
+  - "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/**"
+
+required_components:
+  - "canonical task registry discovery adapter"
+  - "fresh trust-gate admission wrapper"
+  - "local durable launch/idempotency receipt store"
+  - "isolated worktree preparation abstraction"
+  - "allowlisted CodeBuddy SDK/CLI/localhost-API launch plan adapter"
+  - "fake process adapter used by all automated tests"
+  - "credential/secret redaction boundary"
+  - "model availability/identity preflight abstraction"
+  - "return-package and telemetry serializer"
+
+mandatory_adversarial_tests:
+  - "stale or moved canonical main fails closed"
+  - "unregistered task index fails closed"
+  - "wrong writer lease identity fails closed"
+  - "duplicate launch with same immutable authority is idempotently rejected or resumed without second writer"
+  - "branch or base mismatch fails closed"
+  - "same-repository collision conflict fails before local launch"
+  - "candidate-only / non-READY state fails closed"
+  - "malicious free-text shell content cannot become command execution"
+  - "credential-looking values are rejected/redacted from persisted evidence"
+  - "required model mismatch/unavailability fails closed"
+  - "R175 remains discoverable, unchanged, and conflict-isolated"
+  - "no real WorkBuddy/CodeBuddy child process is spawned in CI or unit tests"
+  - "Windows case/Unicode-equivalent protected paths retain the canonical conflict behavior"
+
+acceptance_commands:
+  - "python -m unittest discover -s tests -p 'test_unified_execution*.py' -v"
+  - "python -m unittest tests.test_unified_execution_local_bridge -v"
+  - "git diff --check bf4e722540f92ed560b29f884b3ac7c1c8d8895d...HEAD"
+
+completion_requirements:
+  - "implementation and adversarial tests complete on the authorized branch"
+  - "Draft PR opened against main"
+  - "exact head identified"
+  - "exact-head CI green under canonical Python 3.11"
+  - "return package posted with commands/tests/findings/unknowns and no secret values"
+  - "REVIEW_REQUEST/v1 prepared for independent #453 review"
+
+hard_boundaries:
+  - "DRY_RUN_NEW_BRIDGE_BY_DEFAULT"
+  - "NO_REAL_BRIDGE_PROCESS_ACTIVATION_BEFORE_INDEPENDENT_REVIEW_AND_CANONICALIZATION"
+  - "NO_REAL_WORKBUDDY_CHILD_PROCESS_FROM_TESTS_OR_CI"
+  - "NO_MUTATION_OF_R175_ACTIVE_ROUTE_CLAIM_LEASE_OR_BRANCH"
+  - "NO_WRITE_TO_TOOLS_WORKBUDDY_OR_TESTS_WORKBUDDY"
+  - "NO_SECOND_CONTROL_TOWER_OR_SECOND_TRUST_GATE"
+  - "NO_WEAK_REIMPLEMENTATION_OF_PROTECTED_GIT_TRANSPORT"
+  - "NO_DIRECT_MAIN_IMPLEMENTATION_WRITE"
+  - "NO_SELF_REVIEW"
+  - "NO_SELF_MERGE"
+  - "NO_FORCE_PUSH_REBASE_RESET_AMEND_HISTORY_REWRITE"
+  - "NO_CREDENTIAL_SECRET_VALUE_PERSISTENCE"
+  - "NO_ACCOUNT_ORDER_TRADE_FUNDS_AUTHORITY"
+  - "NO_PRODUCTION_DEPLOYMENT"
+
+return_target: "GPT_ARCHITECTURE_OWNER"
+completion_signal: "WORKBUDDY_R184_LOCAL_WORKBUDDY_BRIDGE_READY_FOR_GPT_INDEPENDENT_REVIEW"
