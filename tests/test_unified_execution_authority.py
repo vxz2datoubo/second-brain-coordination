@@ -1,6 +1,7 @@
 import copy
 import importlib.util
 from pathlib import Path
+import sys
 import unittest
 from unittest.mock import patch
 
@@ -9,6 +10,7 @@ MODULE_PATH = ROOT / "coordination" / "GOVERNANCE" / "unified_execution_validati
 spec = importlib.util.spec_from_file_location("unified_execution_validation", MODULE_PATH)
 mod = importlib.util.module_from_spec(spec)
 assert spec.loader is not None
+sys.modules[spec.name] = mod
 spec.loader.exec_module(mod)
 
 MAIN_OLD = "a" * 40
@@ -90,14 +92,10 @@ def _authority_files(lease_suffix="old"):
         refs["prewrite_snapshot"]: b'task_id: "TASK-1"\nroute_epoch: 7\n',
         refs["executable_batch"]: b'{"task_id":"TASK-1","route_epoch":7}',
         mod.PROJECT_ADAPTER_PATHS[0]: _adapter(
-            "SECOND_BRAIN",
-            "vxz2datoubo/second-brain-coordination",
-            ("SECOND_BRAIN",),
+            "SECOND_BRAIN", "vxz2datoubo/second-brain-coordination", ("SECOND_BRAIN",)
         ).encode(),
         mod.PROJECT_ADAPTER_PATHS[1]: _adapter(
-            "TRADING_SYSTEM",
-            "vxz2datoubo/second-brain-coordination",
-            ("TRADING_SYSTEM",),
+            "TRADING_SYSTEM", "vxz2datoubo/second-brain-coordination", ("TRADING_SYSTEM",)
         ).encode(),
         mod.PROJECT_ADAPTER_PATHS[2]: _adapter(
             "REALTIME_INTERACTIVE_FILM_GAME",
@@ -230,13 +228,7 @@ class CarrierReleaseTrustBoundaryTests(unittest.TestCase):
             "new_writer_admission_required": True,
         }
         mod.validate_carrier_handoff(
-            handoff,
-            old_dispatch,
-            old_auth,
-            witness,
-            new_dispatch,
-            new_admission,
-            new_auth,
+            handoff, old_dispatch, old_auth, witness, new_dispatch, new_admission, new_auth
         )
 
     def test_fabricated_release_witness_is_rejected_even_if_fields_match(self):
@@ -267,13 +259,7 @@ class CarrierReleaseTrustBoundaryTests(unittest.TestCase):
         }
         with self.assertRaises(mod.ExecutionContractError):
             mod.validate_carrier_handoff(
-                handoff,
-                old_dispatch,
-                old_auth,
-                fabricated,
-                new_dispatch,
-                new_admission,
-                new_auth,
+                handoff, old_dispatch, old_auth, fabricated, new_dispatch, new_admission, new_auth
             )
 
 
