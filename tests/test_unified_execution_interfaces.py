@@ -13,7 +13,7 @@ class UnifiedExecutionInterfaceTests(unittest.TestCase):
 
     def test_interface_family_defines_all_cross_agent_objects(self):
         interfaces = text('coordination/GOVERNANCE/UNIFIED-EXECUTION-INTERFACE-SCHEMAS-v1.0.yaml')
-        for object_id in ('CANONICAL_EXECUTION_AUTHORITY_CHAIN_v1', 'GPT_TO_EXECUTOR_DISPATCH_v1', 'WORKBUDDY_RETURN_PACKAGE_v1', 'EXECUTION_CARRIER_RELEASE_v1', 'EXECUTION_CARRIER_HANDOFF_v1', 'GPT_INDEPENDENT_REVIEW_REQUEST_v1', 'ENGINEERING_PRODUCTIVITY_RECEIPT_v1', 'LOCAL_BRIDGE_ADMISSION_v1', 'PROJECT_EXECUTION_ADAPTER_VALIDATION_v1'):
+        for object_id in ('CANONICAL_EXECUTION_AUTHORITY_CHAIN_v1', 'GPT_TO_EXECUTOR_DISPATCH_v1', 'WORKBUDDY_RETURN_PACKAGE_v1', 'EXECUTION_CARRIER_RELEASE_v1', 'EXECUTION_CARRIER_HANDOFF_v1', 'GPT_INDEPENDENT_REVIEW_REQUEST_v1', 'ENGINEERING_PRODUCTIVITY_RECEIPT_v1', 'OWNER_PROGRESS_REPORT_v1', 'LOCAL_BRIDGE_ADMISSION_v1', 'PROJECT_EXECUTION_ADAPTER_VALIDATION_v1'):
             self.assertIn(f'{object_id}:', interfaces)
 
     def test_dispatch_and_return_are_exact_bound_and_non_authority_minting(self):
@@ -69,5 +69,23 @@ class UnifiedExecutionInterfaceTests(unittest.TestCase):
         self.assertIn('    - "any_head_movement_requires_new_review_request"', interfaces)
         self.assertIn('    - "ACCEPT_is_not_canonical"', interfaces)
         self.assertIn('update_rule: "MULTIPLE_COMPARABLE_TASKS_REQUIRED_BEFORE_GLOBAL_ROUTING_DEFAULT_CHANGE"', interfaces)
+
+    def test_owner_progress_report_is_action_first_and_recommendation_complete(self):
+        interfaces = text('coordination/GOVERNANCE/UNIFIED-EXECUTION-INTERFACE-SCHEMAS-v1.0.yaml')
+        self.assertIn('OWNER_PROGRESS_REPORT_v1:', interfaces)
+        self.assertIn('owner_action_first_when_required: true', interfaces)
+        self.assertIn('invented_progress_percent_forbidden: true', interfaces)
+        self.assertIn('short_cross_window_prompt_default: true', interfaces)
+        self.assertIn('technical_review_detail_stays_in_canonical_ticket: true', interfaces)
+        self.assertIn('    - "material_recommendation_or_warning_must_not_be_silently_omitted"', interfaces)
+        self.assertIn('    - "recommendation_strength_and_confidence_are_separate_dimensions"', interfaces)
+        self.assertIn('    - "candidate_CI_ACCEPT_canonical_deployed_active_must_not_be_collapsed"', interfaces)
+        self.assertIn('    - "owner_report_is_not_authority_and_cannot_mint_execution_or_merge_permission"', interfaces)
+
+    def test_gpt_orchestrator_wires_owner_action_recommendation_and_short_prompt_rules(self):
+        orchestrator = text('coordination/GPT-UNIFIED-ORCHESTRATOR-START-HERE.md')
+        for marker in ('Owner Action Check', 'Recommendation Check', 'Visual Check', '强烈建议 / 建议 / 可选优化 / 不建议 / 强烈不建议', '跨窗口提示词默认**短而明确**', '自动续行规则'):
+            self.assertIn(marker, orchestrator)
+
 if __name__ == '__main__':
     unittest.main()
