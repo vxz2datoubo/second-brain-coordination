@@ -15,6 +15,7 @@ on:
       - 'coordination/GOVERNANCE/EXECUTION-CARRIER-AND-CONCURRENCY-CONTRACT-v1.0.yaml'
       - 'coordination/GOVERNANCE/UNIFIED-EXECUTION-FABRIC-RESEARCH-NOTES.md'
       - 'coordination/GOVERNANCE/UNIFIED-EXECUTION-FRESH-TRUST-GATE-v1.0.yaml'
+      - 'coordination/GOVERNANCE/CANONICAL-PYTHON-VALIDATION-RUNTIME-POLICY-v1.0.yaml'
       - 'coordination/GOVERNANCE/unified_execution_validation.py'
       - 'coordination/GOVERNANCE/unified_execution_trust_gate.py'
       - 'coordination/GOVERNANCE/unified_execution_trusted_transport.py'
@@ -28,10 +29,6 @@ permissions:
 
 jobs:
   verify:
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ['3.11', '3.13']
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -39,7 +36,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: '3.11'
       - name: Dependency-free governance invariants
         run: python -m unittest discover -s tests -p 'test_unified_execution*.py' -v
       - name: Whitespace and patch hygiene

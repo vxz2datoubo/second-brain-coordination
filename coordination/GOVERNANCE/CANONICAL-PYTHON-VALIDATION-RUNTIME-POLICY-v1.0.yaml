@@ -1,0 +1,67 @@
+schema_version: "1.0"
+protocol_id: "CANONICAL-PYTHON-VALIDATION-RUNTIME-POLICY-v1"
+status: "CANDIDATE_PENDING_INDEPENDENT_REVIEW"
+source_issue: 603
+scope: "GLOBAL_UNIFIED_EXECUTION_VALIDATION"
+
+authority:
+  owner_decision: "ONE_CANONICAL_PYTHON_RUNTIME_FOR_ROUTINE_GOVERNED_VALIDATION"
+  applies_to:
+    - "GPT_DIRECT engineering validation"
+    - "WorkBuddy engineering validation"
+    - "Local WorkBuddy Bridge runtime validation"
+    - "GitHub exact-head CI for unified execution fabric"
+    - "independent review CI sufficiency checks"
+
+canonical_runtime:
+  language: "Python"
+  version: "3.11"
+  version_policy: "SINGLE_CANONICAL_RUNTIME"
+  rationale:
+    - "match the actual governed execution environment instead of testing hypothetical environments by default"
+    - "reduce duplicate CI cost and duplicated logs"
+    - "reduce runtime drift between local execution and GitHub verification"
+    - "keep one reproducible baseline until an explicit migration changes it"
+
+routine_validation_rule:
+  required_python_versions: 1
+  default_version: "3.11"
+  multi_version_matrix_by_default: false
+  independent_review_must_not_require_duplicate_version_ci_without_specific_cross_version_scope: true
+
+multi_version_exception:
+  allowed_only_when_task_explicitly_covers_one_or_more_of:
+    - "canonical Python runtime migration"
+    - "multi-runtime packaging or distribution"
+    - "declared compatibility support across Python versions"
+    - "dependency behavior known or suspected to differ materially by Python version"
+    - "a reproduced defect that is version-specific"
+  requirements:
+    - "task/spec states why extra version coverage is decision-relevant"
+    - "extra version coverage is bounded to that task"
+    - "extra version does not silently become a second permanent canonical runtime"
+
+runtime_alignment:
+  local_bridge_should_use_canonical_runtime: true
+  workbuddy_should_use_canonical_runtime: true
+  github_ci_should_use_canonical_runtime: true
+  mismatch_behavior: >-
+    Report the observed mismatch and either align the local/runtime environment or open
+    an explicit runtime-migration task. Do not permanently duplicate CI versions as a workaround.
+
+runtime_change:
+  ad_hoc_per_pr_version_switch: "FORBIDDEN"
+  requires_explicit_governed_migration: true
+  migration_must_define:
+    - "old canonical version"
+    - "new canonical version"
+    - "local bridge compatibility"
+    - "dependency compatibility"
+    - "CI cutover"
+    - "rollback condition"
+
+hard_boundaries:
+  - "ONE_ROUTINE_CANONICAL_PYTHON_RUNTIME"
+  - "NO_DEFAULT_MULTI_VERSION_MATRIX"
+  - "NO_WEAKENING_OF_TEST_CONTENT_OR_INDEPENDENT_REVIEW"
+  - "VERSION_COUNT_REDUCTION_IS_NOT_TEST_COVERAGE_REDUCTION"
