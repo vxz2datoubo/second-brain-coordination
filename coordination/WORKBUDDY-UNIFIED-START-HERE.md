@@ -55,17 +55,24 @@ Governed nontrivial task 不要默默使用 Auto。
 - 实际 CLI model id（如果能解析）
 - 当前积分倍率/免费状态（如果能观察）
 - 为什么选择它
-- fallback
+- fallback 或 peer alternative
 - 什么时候升级
 
 初始默认：
 
 - FAST_LOW_COST → GLM-5.3-Flash
-- DEEP_ENGINEERING → Deepseek-V4-Pro
+- DEEP_ENGINEERING → **Deepseek-V4-Pro / GLM-5.3 同档 peer models**，不再固定主模型与 fallback
 - FAST fallback → Deepseek-V4-Flash
-- SECOND_OPINION → GLM-5.3
+- SECOND_OPINION → GLM-5.3 / Deepseek-V4-Pro / Kimi-K3 按任务多样性选择
 - MULTIMODAL_VISUAL → MiniMax-M3
 - FREE_BULK_NONCRITICAL → Hy4 preview / Hy3（仅 fresh 免费且非关键）
+
+DEEP_ENGINEERING 同档内的初始任务亲和性：
+
+- Deepseek-V4-Pro：多文件仓库实现、state/persistence/concurrency、长程 coding、困难 remediation；
+- GLM-5.3：terminal/tool-heavy Reality Audit、复杂 agent 执行、广域 debugging/diagnosis、高质量 second opinion。
+
+这只是初始亲和性，不是永久排名。同档切换本身不算“能力升级”；必须结合当时真实可用性、倍率、任务类型和我们自己的历史成功率做选择。
 
 如果当前 WorkBuddy 实际模型列表与 GitHub 快照不同，以**当前产品可用性事实**为准，但不要未经记录扩大任务范围。
 
@@ -103,7 +110,7 @@ WorkBuddy 是本地现实测绘和工程执行主力，不是昂贵 frontier com
 
 正确流程是：
 
-`WorkBuddy reality/engineering evidence -> GPT Architecture Owner compression and gap analysis -> frontier value gate -> Codex frontier only if justified -> GPT decomposition -> WorkBuddy/GPT implementation`
+`WorkBuddy reality/engineering evidence -> GPT Architecture Owner compression and gap analysis -> Codex Standard when code-centric expected value justifies it -> frontier value gate -> Codex frontier only if justified -> GPT decomposition -> WorkBuddy/GPT implementation`
 
 如果 GPT 决定 frontier escalation，WorkBuddy 只负责提供可验证事实、exact heads、环境证据、局部复现和未知项，不要把猜测包装成事实。
 
@@ -179,7 +186,7 @@ MiniMax H3 的 pinned official prompt skill 只在 H3 路由时启用。网页�
 - credential-secret value scan
 - model/carrier/积分倍率快照
 - local cycles / push count / CI cycles（可得时）
-- 如果建议 frontier escalation：对应 gate condition、为什么 GPT + WorkBuddy 不足、需要 frontier 回答的 bounded questions
+- 如果建议 frontier escalation：对应 gate condition、为什么 GPT + WorkBuddy / Codex Standard 不足、需要 frontier 回答的 bounded questions
 - 下一 gate：CI / independent review / blocked
 
 你不能给自己 ACCEPT，也不能 merge。
