@@ -100,13 +100,12 @@ def canonicalize_authorized_paths(paths: Sequence[str]) -> tuple[str, ...]:
 
 
 def parse_write_pattern(path: str) -> tuple[str, bool]:
-    canonical = canonicalize_write_path_pattern(path)
-    recursive = canonical.endswith("/**")
-    root = canonical[:-3] if recursive else canonical
-    return root, recursive
+    """Parse one surface into its Windows-safe conflict root and tree flag.
 
-
-def parse_write_pattern_conflict_key(path: str) -> tuple[str, bool]:
+    Registry overlap admission intentionally consumes the conflict identity, not
+    the evidence spelling, so case/Unicode-equivalent Windows paths collide while
+    different execution repositories remain isolated by the caller.
+    """
     conflict_key = write_surface_conflict_key(path)
     recursive = conflict_key.endswith("/**")
     root = conflict_key[:-3] if recursive else conflict_key
