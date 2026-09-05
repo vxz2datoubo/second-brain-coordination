@@ -219,6 +219,83 @@ def build_verified_canonical_authority_for_task_index(
     return fresh
 
 
+def validate_process_start_for_task_index(
+    repo_path: str | Path,
+    active_task_index_ref: str,
+    admission: Mapping[str, Any],
+    dispatch: Mapping[str, Any],
+    claimed_snapshot: base.VerifiedCanonicalAuthority,
+) -> base.VerifiedCanonicalAuthority:
+    """Fresh-gated process start for one explicitly registered task index.
+
+    The task-index path is only a selector. It grants no authority unless it remains
+    registered on trusted canonical main and the caller snapshot exactly matches the
+    freshly rebuilt full authority chain for that registered index.
+    """
+    claimed = gate._authority_mapping(claimed_snapshot)
+    fresh = build_verified_canonical_authority_for_task_index(
+        repo_path, active_task_index_ref
+    )
+    canonical = gate._authority_mapping(fresh)
+    if not gate._same_snapshot(claimed, canonical):
+        raise ExecutionContractError(
+            "active_task_registry: claimed authority differs from fresh registered task authority"
+        )
+    base.validate_local_admission(admission, dispatch, fresh)
+    return fresh
+
+
+def _write_pattern(path: str) -> tuple[str, bool, bool]:
+    """Return (root, recursive_tree, ambiguous_pattern).
+
+    A terminal '/**' is the only glob form we interpret as a recursive tree. Other
+    wildcard forms are conservatively treated as ambiguous so parallel writers fail
+    closed instead of relying on an incomplete glob-overlap oracle.
+    """
+    normalized = path.replace("\\", "/").strip().strip("/")
+    recursive = normalized.endswith("/**")
+    root = normalized[:-3].rstrip("/") if recursive else normalized
+    wildcard_chars = "*?["
+    ambiguous = any(char in root for char in wildcard_chars)
+    if not recursive and any(char in normalized for char in wildcard_chars):
+        ambiguous = True
+    return root, recursive, ambiguous
+
+
+def _write_paths_may_overlap(left: str, right: str) -> bool:
+    lroot, ltree, lambiguous = _write_pattern(left)
+    rroot, rtree, rambiguous = _write_pattern(right)
+    if lambiguous or rambiguous or not lroot or not rroot:
+        return True
+    if lroot == rroot:
+        return True
+    if ltree and (rroot.startswith(lroot + "/")):
+        return True
+    if rtree and (lroot.startswith(rroot + "/")):
+        return True
+    return False
+
+
+def _authority_write_surfaces_overlap(
+    left: Mapping[str, Any], right: Mapping[str, Any]
+) -> bool:
+    if left["execution_repository"] != right["execution_repository"]:
+        return False
+    left_paths = left.get("authorized_paths")
+    right_paths = right.get("authorized_paths")
+    if not isinstance(left_paths, (list, tuple)) or not isinstance(
+        right_paths, (list, tuple)
+    ):
+        return True
+    if not left_paths or not right_paths:
+        return True
+    return any(
+        _write_paths_may_overlap(str(lpath), str(rpath))
+        for lpath in left_paths
+        for rpath in right_paths
+    )
+
+
 def build_registered_authorities(
     repo_path: str | Path,
 ) -> tuple[base.VerifiedCanonicalAuthority, ...]:
@@ -248,6 +325,11 @@ def build_registered_authorities(
             raise ExecutionContractError(
                 "active_task_registry: simultaneous active writers share a collision domain"
             )
+        for existing in authorities:
+            if _authority_write_surfaces_overlap(existing.as_mapping(), current):
+                raise ExecutionContractError(
+                    "active_task_registry: simultaneous active writer surfaces overlap or are ambiguous"
+                )
         seen_collision.add(collision)
         authorities.append(authority)
 
