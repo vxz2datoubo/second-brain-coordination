@@ -1,8 +1,9 @@
 """Protected Git transport for canonical trust-root reads.
 
-This module deliberately ignores executor/user repository Git configuration when
-reading the canonical control-plane remote. In particular, repo/global/system/env
-`url.*.insteadOf` rewrites must not be able to redefine the trusted repository.
+This module deliberately ignores executor/user repository Git configuration and inherited
+Git execution/configuration environment when reading the canonical control-plane remote.
+In particular, repo/global/system/env/template `url.*.insteadOf` rewrites must not be able
+to redefine the trusted repository.
 """
 from __future__ import annotations
 
@@ -16,42 +17,61 @@ from typing import Callable
 TRUSTED_CONTROL_PLANE_URL = "https://github.com/vxz2datoubo/second-brain-coordination.git"
 TRUSTED_MAIN_REF = "refs/heads/main"
 
+# An ephemeral protected bare repository is deliberately feature-minimal. Any local
+# config outside Git's own init-time repository-format metadata is treated as evidence
+# that the trust-root context was contaminated.
+_ALLOWED_INIT_LOCAL_CONFIG_KEYS = {
+    "core.repositoryformatversion",
+    "core.filemode",
+    "core.bare",
+    "core.logallrefupdates",
+    "core.ignorecase",
+    "core.precomposeunicode",
+    "core.symlinks",
+    "extensions.objectformat",
+    "extensions.refstorage",
+}
+
 
 class TrustedTransportError(RuntimeError):
     pass
 
 
-def _sanitized_env(home: Path) -> dict[str, str]:
-    env = dict(os.environ)
-    for key in list(env):
-        if key.startswith("GIT_CONFIG_") or key in {
-            "GIT_DIR",
-            "GIT_WORK_TREE",
-            "GIT_COMMON_DIR",
-            "GIT_OBJECT_DIRECTORY",
-            "GIT_ALTERNATE_OBJECT_DIRECTORIES",
-        }:
-            env.pop(key, None)
+def _sanitized_env(home: Path, template_dir: Path | None = None) -> dict[str, str]:
+    """Return an environment with no caller-controlled Git behavior variables.
+
+    We intentionally drop *all* inherited ``GIT_*`` variables rather than maintaining a
+    deny-list. This closes config injection through GIT_CONFIG_*, GIT_TEMPLATE_DIR,
+    GIT_EXEC_PATH, GIT_SSH_COMMAND and future Git-specific environment knobs by default.
+    Only the small bridge-owned set below is reintroduced.
+    """
+    env = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
+    home.mkdir(parents=True, exist_ok=True)
+    (home / "xdg").mkdir(parents=True, exist_ok=True)
+    template = template_dir or (home / "empty-git-template")
+    template.mkdir(parents=True, exist_ok=True)
+
     env["HOME"] = str(home)
     env["XDG_CONFIG_HOME"] = str(home / "xdg")
     env["GIT_CONFIG_NOSYSTEM"] = "1"
     env["GIT_CONFIG_GLOBAL"] = os.devnull
+    env["GIT_TEMPLATE_DIR"] = str(template)
     env["GIT_TERMINAL_PROMPT"] = "0"
     return env
 
 
 def _run_git(cwd: Path, *args: str, text: bool = True):
     cwd.mkdir(parents=True, exist_ok=True)
-    home = cwd.parent / "home"
-    home.mkdir(parents=True, exist_ok=True)
-    (home / "xdg").mkdir(parents=True, exist_ok=True)
+    root = cwd.parent
+    home = root / "home"
+    template = root / "empty-git-template"
     proc = subprocess.run(
         ["git", "-C", str(cwd), *args],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=text,
         check=False,
-        env=_sanitized_env(home),
+        env=_sanitized_env(home, template),
     )
     if proc.returncode != 0:
         stderr = proc.stderr if text else proc.stderr.decode("utf-8", "replace")
@@ -59,6 +79,38 @@ def _run_git(cwd: Path, *args: str, text: bool = True):
             f"protected git read failed: {' '.join(args)}: {stderr.strip()}"
         )
     return proc.stdout
+
+
+def _assert_bridge_owned_local_config(bare: Path) -> None:
+    """Fail closed if the ephemeral trust repo contains non-init local config."""
+    output = _run_git(bare, "config", "--local", "--name-only", "--list")
+    keys = {line.strip().lower() for line in output.splitlines() if line.strip()}
+    unexpected = sorted(keys - _ALLOWED_INIT_LOCAL_CONFIG_KEYS)
+    if unexpected:
+        raise TrustedTransportError(
+            "protected git read: trust repo contains non bridge-owned local config: "
+            + ", ".join(unexpected)
+        )
+
+
+def _init_bare_trust_repo(root: Path) -> Path:
+    """Create a bare repo with an explicit bridge-owned empty template."""
+    bare = root / "trust.git"
+    bare.mkdir(parents=True, exist_ok=True)
+    template = root / "empty-git-template"
+    template.mkdir(parents=True, exist_ok=True)
+
+    # CLI --template plus the sanitized GIT_TEMPLATE_DIR is intentional defense in
+    # depth: caller GIT_TEMPLATE_DIR cannot seed config/hooks into the trust repo.
+    _run_git(
+        bare,
+        "init",
+        "--bare",
+        "--quiet",
+        f"--template={template}",
+    )
+    _assert_bridge_owned_local_config(bare)
+    return bare
 
 
 def _parse_ls_remote(output: str) -> str:
@@ -74,9 +126,7 @@ def remote_main_sha(_repo_path: str | Path | None = None) -> str:
     """Read canonical main in a fresh bridge-owned Git context."""
     with tempfile.TemporaryDirectory(prefix="uef-trust-root-") as raw:
         root = Path(raw)
-        bare = root / "trust.git"
-        bare.mkdir(parents=True, exist_ok=True)
-        _run_git(bare, "init", "--bare", "--quiet")
+        bare = _init_bare_trust_repo(root)
         output = _run_git(
             bare, "ls-remote", TRUSTED_CONTROL_PLANE_URL, TRUSTED_MAIN_REF
         )
@@ -88,15 +138,13 @@ def open_trusted_main(
 ) -> tuple[str, Callable[[str], bytes]]:
     """Fetch canonical main into an isolated bare repo and return exact-SHA reader.
 
-    The caller's repo path is intentionally ignored for trust-root transport so local
-    `.git/config`, worktree config, global config, system config and inherited Git config
-    environment cannot redirect the canonical URL.
+    The caller's repo path is intentionally ignored for trust-root transport. Repo/worktree
+    config, global/system config, inherited GIT_* behavior, and caller Git templates cannot
+    redirect or seed the protected canonical transport.
     """
     temp = tempfile.TemporaryDirectory(prefix="uef-trust-root-")
     root = Path(temp.name)
-    bare = root / "trust.git"
-    bare.mkdir(parents=True, exist_ok=True)
-    _run_git(bare, "init", "--bare", "--quiet")
+    bare = _init_bare_trust_repo(root)
 
     observed = _parse_ls_remote(
         _run_git(bare, "ls-remote", TRUSTED_CONTROL_PLANE_URL, TRUSTED_MAIN_REF)
@@ -116,22 +164,14 @@ def open_trusted_main(
             "protected git read: canonical main moved during isolated fetch"
         )
 
+    # Recheck local config after network operations too. Nothing in the protected read
+    # path is allowed to materialize a new local authority-affecting setting.
+    _assert_bridge_owned_local_config(bare)
+
     def read(path: str) -> bytes:
         if Path(path).is_absolute() or ".." in Path(path).parts:
             raise TrustedTransportError(f"protected git read: unsafe path {path}")
-        proc = subprocess.run(
-            ["git", "-C", str(bare), "show", f"{observed}:{path}"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=False,
-            check=False,
-            env=_sanitized_env(root / "home"),
-        )
-        if proc.returncode != 0:
-            raise TrustedTransportError(
-                f"protected git read: cannot read canonical path {path}"
-            )
-        return proc.stdout
+        return _run_git(bare, "show", f"{observed}:{path}", text=False)
 
     # Keep the temporary bare repository alive as long as the reader is alive.
     setattr(read, "_trusted_transport_tempdir", temp)
