@@ -5,7 +5,7 @@ so every existing trust-boundary story also exercises the required compute-lane 
 """
 from pathlib import Path as _BootstrapPath
 
-_base_path = _BootstrapPath(__file__).with_name("test_unified_execution_authority_base.py")
+_base_path = _BootstrapPath(__file__).with_name("support_unified_execution_authority_base.py")
 exec(compile(_base_path.read_text(encoding="utf-8"), str(_base_path), "exec"), globals(), globals())
 del _base_path, _BootstrapPath
 
@@ -185,7 +185,3 @@ class ComputeLaneTrustBoundaryTests(unittest.TestCase):
         trading = (ROOT / "coordination/EXECUTION/PROJECT-ADAPTERS/TRADING-SYSTEM.yaml").read_text(encoding="utf-8")
         self.assertIn('order_authority: "SEPARATE_EXPLICIT_OWNER_GATE"', trading)
         self.assertIn("place_order_allowed: false", trading)
-
-
-if __name__ == "__main__":
-    unittest.main()
