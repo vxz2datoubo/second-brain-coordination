@@ -1,11 +1,13 @@
-schema_version: "1.0"
+schema_version: "1.1"
 schema_family: "UNIFIED-EXECUTION-INTERFACES-v1"
-status: "CANDIDATE_PENDING_INDEPENDENT_REVIEW"
+status: "CANDIDATE_REMEDIATED_PENDING_INDEPENDENT_REVIEW"
 source_issue: 596
 
 common_identity:
+  composition_rule: "EVERY_AUTHORITY_BEARING_MACHINE_OBJECT_MUST_EXPLICITLY_INCLUDE_ALL_COMMON_IDENTITY_FIELDS"
   required:
-    - repository
+    - control_plane_repository
+    - execution_repository
     - project_id
     - task_id
     - route_epoch
@@ -14,16 +16,68 @@ common_identity:
     - collision_domain
   rule: "IDENTITY_MISMATCH_FAILS_CLOSED"
 
+CANONICAL_EXECUTION_AUTHORITY_CHAIN_v1:
+  purpose: >-
+    Fresh bridge-built readback of the canonical execution-authority documents. This object
+    is evidence derived from canonical main; caller-supplied dispatch fields cannot mint it.
+  required:
+    - canonical_main_sha
+    - fresh_readback
+    - route_status
+    - execution_allowed
+    - lease_released
+    - lease_replaced
+    - authority_replaced
+    - authority_chain_receipt_digest
+    - authority_refs
+    - authority_digests
+    - authorized_paths
+    - authority_grants
+    - authority_denials
+  authority_refs_required:
+    - active_task_index_ref
+    - canonical_route_ref
+    - work_claim_ref
+    - task_lease_ref
+    - executor_reservation_ref
+    - prewrite_snapshot_ref
+    - executable_batch_ref
+  authority_digests_required:
+    - active_task_index_ref
+    - canonical_route_ref
+    - work_claim_ref
+    - task_lease_ref
+    - executor_reservation_ref
+    - prewrite_snapshot_ref
+    - executable_batch_ref
+  derivation:
+    source: "FRESH_CANONICAL_MAIN_READBACK_ONLY"
+    digest_rule: "DIGEST_EACH_APPLICABLE_DOCUMENT_AND_BIND_ONE_RECEIPT_TO_COMMON_IDENTITY_AND_CANONICAL_MAIN"
+    caller_assertion_is_authority: false
+  fail_closed_when:
+    - "route_status_not_READY"
+    - "execution_allowed_not_true"
+    - "fresh_readback_missing_or_false"
+    - "lease_released"
+    - "lease_replaced"
+    - "authority_replaced"
+    - "required_authority_ref_or_digest_missing"
+    - "canonical_main_moved_since_receipt"
+    - "any_authority_document_digest_moved_or_replaced"
+
 GPT_TO_EXECUTOR_DISPATCH_v1:
   purpose: "exact-bound handoff from GPT architecture/control plane to an authorized executor"
+  common_identity_required: true
   required:
     - schema_version
-    - repository
+    - control_plane_repository
+    - execution_repository
     - project_id
     - project_adapter
     - task_id
     - route_epoch
     - source_issue
+    - canonical_main_sha
     - exact_base_sha
     - implementation_branch
     - executor
@@ -31,6 +85,9 @@ GPT_TO_EXECUTOR_DISPATCH_v1:
     - model_profile
     - resolved_model_display_name
     - model_resolution_status
+    - authority_chain_receipt_digest
+    - authority_refs
+    - authority_digests
     - authorized_paths
     - forbidden_paths
     - collision_domain
@@ -52,6 +109,11 @@ GPT_TO_EXECUTOR_DISPATCH_v1:
     - cross_project_dependencies
     - codex_escalation_reason
   invariants:
+    - "dispatch_identity_exactly_matches_fresh_canonical_authority_receipt"
+    - "authority_refs_and_digests_exactly_match_fresh_canonical_authority_receipt"
+    - "authorized_paths_must_be_subset_of_canonical_authorized_paths"
+    - "authority_grants_must_be_subset_of_canonical_authority_grants"
+    - "canonical_authority_denials_must_be_preserved_or_strengthened"
     - "project_adapter_must_exist_in_project_registry"
     - "carrier_must_be_allowed_by_project_adapter"
     - "model_profile_must_be_allowed_by_project_adapter"
@@ -61,15 +123,18 @@ GPT_TO_EXECUTOR_DISPATCH_v1:
 
 WORKBUDDY_RETURN_PACKAGE_v1:
   purpose: "reproducible execution return from CLI/WebUI/Desktop WorkBuddy carrier"
+  common_identity_required: true
   required:
     - schema_version
-    - repository
+    - control_plane_repository
+    - execution_repository
     - project_id
     - task_id
     - route_epoch
     - exact_base_sha
     - exact_head_sha
     - implementation_branch
+    - collision_domain
     - carrier
     - model_profile
     - resolved_model_display_name
@@ -101,24 +166,56 @@ WORKBUDDY_RETURN_PACKAGE_v1:
 
 EXECUTION_CARRIER_HANDOFF_v1:
   purpose: "safe transfer between CLI Headless, CLI WebUI, Desktop or another governed executor"
+  common_identity_required: true
   required:
+    - control_plane_repository
+    - execution_repository
+    - project_id
     - task_id
+    - route_epoch
+    - exact_base_sha
+    - implementation_branch
+    - collision_domain
     - from_carrier
     - to_carrier
     - checkpoint_head_sha
     - git_status
     - current_session_state
-    - writer_lease_release_proof
+    - old_writer_lease_id
+    - old_writer_lease_generation
+    - old_writer_release_receipt_digest
+    - release_readback_canonical_main_sha
     - new_writer_admission_required
     - reason
+  release_witness_required:
+    - control_plane_repository
+    - execution_repository
+    - project_id
+    - task_id
+    - route_epoch
+    - exact_base_sha
+    - implementation_branch
+    - collision_domain
+    - writer_lease_id
+    - writer_lease_generation
+    - release_status
+    - release_receipt_digest
+    - canonical_readback_verified
+    - canonical_main_sha
   invariants:
+    - "release_witness_must_match_complete_common_identity"
+    - "old_writer_release_must_be_fresh_canonical_readback"
+    - "old_writer_lease_id_and_generation_must_match_release_witness"
+    - "new_writer_admission_must_match_same_common_identity"
+    - "old_writer_lease_cannot_be_replayed_as_new_writer_lease"
     - "same_task_simultaneous_writers_forbidden"
     - "carrier_switch_does_not_change_architecture_or_authority"
 
 GPT_INDEPENDENT_REVIEW_REQUEST_v1:
   purpose: "exact-head request to a GPT reviewer that did not author/execute the candidate"
   required:
-    - repository
+    - control_plane_repository
+    - execution_repository
     - source_issue
     - pull_request
     - exact_base_sha
@@ -157,7 +254,13 @@ ENGINEERING_PRODUCTIVITY_RECEIPT_v1:
   update_rule: "MULTIPLE_COMPARABLE_TASKS_REQUIRED_BEFORE_GLOBAL_ROUTING_DEFAULT_CHANGE"
 
 LOCAL_BRIDGE_ADMISSION_v1:
+  purpose: >-
+    Final process-start gate. The bridge must build the canonical authority receipt from
+    fresh control-plane main and validate this object against both that receipt and dispatch.
+  common_identity_required: true
   required:
+    - control_plane_repository
+    - execution_repository
     - canonical_main_sha
     - dispatch_digest_or_identity
     - task_id
@@ -165,18 +268,42 @@ LOCAL_BRIDGE_ADMISSION_v1:
     - project_id
     - project_adapter
     - exact_base_sha
-    - branch
+    - implementation_branch
+    - collision_domain
+    - route_status
+    - execution_allowed
+    - authority_chain_receipt_digest
+    - authority_refs
+    - authority_digests
+    - authorized_paths
+    - authority_grants
+    - authority_denials
     - carrier
     - model_profile
     - resolved_model_display_name
-    - authorized_paths
-    - collision_domain
-    - execution_allowed
+    - writer_lease_id
+    - writer_lease_generation
+    - admitted
   admit_only_when:
+    - "fresh_canonical_authority_receipt_validates"
     - "route_status_READY"
     - "execution_allowed_true"
-    - "all_identity_fields_match"
+    - "all_common_identity_fields_match_dispatch_and_canonical_receipt"
+    - "canonical_main_and_authority_digests_match_fresh_readback"
+    - "authorized_paths_and_grants_are_canonical_subsets"
+    - "canonical_denials_are_preserved"
+    - "lease_not_released_replaced_or_replayed"
     - "collision_domain_available"
     - "credential_secret_policy_loaded"
     - "local_runtime_requirements_satisfied"
   otherwise: "FAIL_CLOSED_NO_PROCESS_START"
+
+executable_validation:
+  module: "coordination/GOVERNANCE/unified_execution_validation.py"
+  required_functions:
+    - validate_canonical_authority
+    - validate_dispatch
+    - validate_local_admission
+    - validate_carrier_handoff
+    - validate_project_adapter
+  rule: "BRIDGE_IMPLEMENTATION_MUST_USE_EQUIVALENT_OR_STRONGER_VALIDATION_BEFORE_PROCESS_START"
