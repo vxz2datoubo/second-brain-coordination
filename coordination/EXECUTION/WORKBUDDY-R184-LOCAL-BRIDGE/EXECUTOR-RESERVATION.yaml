@@ -1,0 +1,39 @@
+schema: "ExecutorReservation/v1"
+project: "SECOND_BRAIN"
+repository: "vxz2datoubo/second-brain-coordination"
+task_id: "WORKBUDDY-R184-LOCAL-WORKBUDDY-BRIDGE"
+route_epoch: 184
+source_issue: 595
+active_issue: 595
+executor_agent_type: "WORKBUDDY"
+executor_role: "BOUNDED_DEEP_ENGINEERING_EXECUTOR"
+reservation_state: "ACTIVE"
+implementation_branch: "workbuddy/r184-local-workbuddy-bridge"
+branch_must_not_exist_before_snapshot: true
+pull_request: null
+
+reservation_scope:
+  - "tools/local_workbuddy_bridge/**"
+  - "tests/test_unified_execution_local_bridge.py"
+  - "tests/fixtures/local_workbuddy_bridge/**"
+  - "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/**"
+reservation_exclusions:
+  - "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+  - "tests/workbuddy/**"
+  - "tools/workbuddy/**"
+  - "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/**"
+  - "coordination/GOVERNANCE/**"
+  - "direct main"
+  - "credentials, account/order/trade/funds, production deployment"
+activation_requires:
+  - "snapshot published before branch creation"
+  - "branch created exactly from bf4e722540f92ed560b29f884b3ac7c1c8d8895d"
+  - "fresh registry-wide readback of every registered task index before process start"
+  - "fresh readback of route, claim, lease, reservation, active task index, snapshot and executable batch"
+  - "R175 remains registered and registry-wide branch/write-surface conflict admission passes"
+  - "preferred core model Deepseek-V4-Pro is actually available at dispatch time"
+reservation_effect:
+  execution_identity_reserved: true
+  substantive_write_authorized_now: true
+  review_authority: false
+  merge_authority: false
