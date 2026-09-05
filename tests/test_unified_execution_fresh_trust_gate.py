@@ -145,11 +145,7 @@ class CallerMintingAttackTests(unittest.TestCase):
 class FreshReadbackHardeningTests(unittest.TestCase):
     def test_terminal_remote_head_recheck_fails_when_main_moves(self):
         moved = "b" * 40
-        with patch.object(
-            base,
-            "_run_git",
-            return_value=f"{moved}\trefs/heads/main",
-        ):
+        with patch.object(gate, "_remote_main_sha", return_value=moved):
             with self.assertRaises(base.ExecutionContractError):
                 gate._terminal_remote_main_recheck(".", MAIN)
 
@@ -158,8 +154,8 @@ class FreshReadbackHardeningTests(unittest.TestCase):
         events = []
 
         with patch.object(
-            base,
-            "build_verified_canonical_authority",
+            gate,
+            "_secure_build_verified_canonical_authority",
             side_effect=lambda _repo: events.append("build") or fresh,
         ), patch.object(
             base,
