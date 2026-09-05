@@ -1,0 +1,79 @@
+schema_version: "4.6"
+router_protocol: "coordination/WORKBUDDY-TASK-ROUTER.md"
+task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
+registry_protocol: "coordination/EXECUTION/ACTIVE-TASK-INDEX-REGISTRY.json"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "WORKBUDDY"
+trigger_phrases: ["读取R184任务", "执行R184任务", "开始R184任务", "读取#595任务"]
+
+active_issue: 595
+source_issue: 595
+pull_request: null
+task_id: "WORKBUDDY-R184-LOCAL-WORKBUDDY-BRIDGE"
+route_epoch: 184
+mode: "deep_engineering_local_bridge_implementation"
+mode_label: "R184 Local WorkBuddy Bridge dry-run implementation"
+status: "READY"
+execution_allowed: true
+active: true
+blocked_by: null
+automatic_resume: true
+automatic_resume_within_task: true
+automatic_resume_within_batch: true
+second_user_start_command_required: false
+
+canonical_route: "coordination/ROUTES/WORKBUDDY-R184-LOCAL-WORKBUDDY-BRIDGE.yaml"
+task_brief: "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/TASK-BRIEF.yaml"
+work_claim: "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/WORK-CLAIM.yaml"
+task_lease: "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/TASK-LEASE.yaml"
+executor_reservation: "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/EXECUTOR-RESERVATION.yaml"
+prewrite_snapshot: "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/PREWRITE-RECONCILIATION-SNAPSHOT.yaml"
+executable_batch: "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/EXECUTABLE-BATCH.json"
+
+source_checkpoint:
+  branch: "main"
+  checkpoint_remote_ref: "refs/heads/main"
+  exact_head: "bf4e722540f92ed560b29f884b3ac7c1c8d8895d"
+  baseline: "bf4e722540f92ed560b29f884b3ac7c1c8d8895d"
+implementation_branch: "workbuddy/r184-local-workbuddy-bridge"
+
+fixed_order: ["WB-LB-V1", "WB-LB-S1", "WB-LB-S2", "WB-LB-S3"]
+continue_without_user_message: true
+intermediate_gpt_audit_required: false
+return_target: "GPT_ARCHITECTURE_OWNER"
+completion_signal: "WORKBUDDY_R184_LOCAL_WORKBUDDY_BRIDGE_READY_FOR_GPT_INDEPENDENT_REVIEW"
+
+model_profile: "DEEP_ENGINEERING"
+preferred_model: "deepseek-v4-pro"
+model_availability_recheck_required: true
+core_model_unavailable_action: "FAIL_CLOSED_RETURN_TO_GPT"
+fast_fixture_model: "deepseek-v4-flash"
+
+carrier_bootstrap: "WORKBUDDY_DESKTOP_INTERACTIVE_OR_EXISTING_CODEBUDDY_CLI"
+new_bridge_runtime_mode: "DRY_RUN_ONLY_UNTIL_ACCEPT_AND_CANONICALIZATION"
+
+authorized_paths:
+  - "tools/local_workbuddy_bridge/**"
+  - "tests/test_unified_execution_local_bridge.py"
+  - "tests/fixtures/local_workbuddy_bridge/**"
+  - "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/**"
+hard_boundaries:
+  - "NO_REAL_BRIDGE_OR_WORKBUDDY_CHILD_PROCESS_ACTIVATION_FROM_CANDIDATE"
+  - "NO_R175_ACTIVE_ROUTE_CLAIM_LEASE_BRANCH_OR_WRITE_SURFACE_MUTATION"
+  - "NO_TOOLS_WORKBUDDY_OR_TESTS_WORKBUDDY_WRITE"
+  - "NO_GOVERNANCE_TRUST_GATE_OR_PROTECTED_TRANSPORT_REPLACEMENT"
+  - "NO_DIRECT_MAIN_IMPLEMENTATION_WRITE"
+  - "NO_SELF_REVIEW"
+  - "NO_SELF_MERGE"
+  - "NO_CREDENTIAL_SECRET_VALUE_PERSISTENCE"
+  - "NO_ACCOUNT_ORDER_TRADE_FUNDS_AUTHORITY"
+  - "NO_PRODUCTION_DEPLOYMENT"
+  - "NO_FORCE_PUSH_REBASE_RESET_AMEND_HISTORY_REWRITE"
+
+read_behavior:
+  on_read_task: "SELECT_THIS_EXPLICIT_REGISTERED_INDEX_THEN_RUN_REGISTRY_WIDE_FRESH_CONFLICT_ADMISSION"
+  legacy_default_fallback_forbidden: true
+  arbitrary_issue_or_comment_as_execution_authority: false
+after_read: "BEGIN_WB_LB_V1_AND_CONTINUE_FIXED_BATCH_WITHOUT_SECOND_USER_COMMAND"
+updated_by: "GPT_GITHUB_INTEGRATOR"
+updated_at: "2026-09-05T13:40:00-05:00"
