@@ -95,7 +95,7 @@ class UnifiedExecutionFabricTests(unittest.TestCase):
         self.assertIn('frontier_default: "DENY_UNLESS_VALUE_GATE_PASSES"', fabric)
         self.assertIn("workbuddy_cannot_self_authorize_frontier_compute: true", fabric)
         self.assertIn("Reality Map -> Architecture Gap Map -> Decision Set -> Bounded Frontier Questions", gpt_start)
-        self.assertIn("不得自行触发 Codex frontier spend", wb_start)
+        self.assertIn("自己启动 Codex frontier lane", wb_start)
         self.assertIn("named_frontier_models_are_preferences_not_dependencies: true", fabric)
         self.assertIn("named_model_is_required_dependency: false", router)
 
