@@ -1,0 +1,194 @@
+name: Vendor-neutral agent kernel
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/vendor-neutral-agent-kernel.yml"
+      - "coordination/BLUEPRINTS/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL-PROTOCOL-v1.0-CANDIDATE.md"
+      - "coordination/BLUEPRINTS/PERSONAL-EPISTEMIC-COGNITIVE-OPERATING-SYSTEM-AGENT-KERNEL-ADDENDUM-v1.0-CANDIDATE.md"
+      - "coordination/BLUEPRINTS/PROJECT-BLUEPRINT-INTEGRATION-INDEX-v1.5-CANDIDATE.md"
+      - "coordination/SKILLS/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL-GOVERNANCE-SKILL-v1.0.yaml"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  candidate-evidence:
+    name: Candidate evidence (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install test-only dependencies
+        run: python -m pip install --disable-pip-version-check -r coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/requirements-ci.txt
+      - name: Resolve immutable evidence context
+        id: context
+        shell: bash
+        run: |
+          base="${{ github.event.pull_request.base.sha || github.event.before || github.sha }}"
+          head="${{ github.event.pull_request.head.sha || github.sha }}"
+          git diff --name-only "$base...$head" > "$RUNNER_TEMP/changed-files.txt"
+          echo "commit=$head" >> "$GITHUB_OUTPUT"
+          echo "tree=$(git rev-parse "$head^{tree}")" >> "$GITHUB_OUTPUT"
+          evidence="coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/E32-TOPOLOGY-EVIDENCE.json"
+          python - "$evidence" "$head" "$(git rev-parse "$head^{tree}")" <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          import sys
+          evidence = json.load(open(sys.argv[1], encoding="utf-8"))
+          if evidence["status"] == "RECEIPT_HEAD":
+              identity = evidence["tested_identity"]
+              print(f"tested_commit={identity['commit']}")
+              print(f"tested_tree={identity['tree']}")
+          else:
+              print(f"tested_commit={sys.argv[2]}")
+              print(f"tested_tree={sys.argv[3]}")
+          PY
+          echo "changed_files=$RUNNER_TEMP/changed-files.txt" >> "$GITHUB_OUTPUT"
+      - name: Run complete candidate suite and static gates
+        run: >-
+          python -B coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/ci_verify.py
+          --changed-files "${{ steps.context.outputs.changed_files }}"
+          --commit "${{ steps.context.outputs.commit }}"
+          --tree "${{ steps.context.outputs.tree }}"
+          --tested-commit "${{ steps.context.outputs.tested_commit }}"
+          --tested-tree "${{ steps.context.outputs.tested_tree }}"
+      - name: Reproduce clean Git archive evidence under three hash seeds
+        shell: bash
+        env:
+          E32_JOB_ID: candidate-evidence-py${{ matrix.python-version }}
+        run: |
+          set -euo pipefail
+          : > "$RUNNER_TEMP/archive-roots.jsonl"
+          evidence="coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/E32-TOPOLOGY-EVIDENCE.json"
+          evidence_status="$(python - "$evidence" <<'PY'
+          import json
+          import sys
+          print(json.load(open(sys.argv[1], encoding="utf-8"))["status"])
+          PY
+          )"
+          archive_target="${{ steps.context.outputs.commit }}"
+          archive_tree="${{ steps.context.outputs.tree }}"
+          if [[ "$evidence_status" == "RECEIPT_HEAD" ]]; then
+            archive_target="${{ steps.context.outputs.tested_commit }}"
+            archive_tree="${{ steps.context.outputs.tested_tree }}"
+          fi
+          for seed in 1 2 3; do
+            archive_root="$(mktemp -d)"
+            archive_path="$RUNNER_TEMP/archive-$seed.tar"
+            git archive "$archive_target" > "$archive_path"
+            tar -xf "$archive_path" -C "$archive_root"
+            cp "${{ steps.context.outputs.changed_files }}" "$archive_root/.e32-changed-files.txt"
+            report_path="$archive_root/ci-report.json"
+            stderr_path="$archive_root/ci-report.stderr"
+            (
+              cd "$archive_root"
+              PYTHONHASHSEED="$seed" python -B ./coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/ci_verify.py \
+                --changed-files ./.e32-changed-files.txt \
+                --commit "$archive_target" \
+                --tree "$archive_tree" \
+                --tested-commit "$archive_target" \
+                --tested-tree "$archive_tree"
+            ) > "$report_path" 2> "$stderr_path"
+            python - "$archive_root" "$report_path" "$stderr_path" "$archive_path" "$archive_target" "$archive_tree" "$seed" "$RUNNER_TEMP/archive-roots.jsonl" <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+          import sys
+
+          root = Path(sys.argv[1])
+          report = Path(sys.argv[2])
+          stderr = Path(sys.argv[3])
+          archive = Path(sys.argv[4])
+          archive_commit = sys.argv[5]
+          archive_tree = sys.argv[6]
+          tested_commit = archive_commit
+          tested_tree = archive_tree
+          seed = sys.argv[7]
+          output = Path(sys.argv[8])
+          # The candidate surface is explicit and excludes the temporary input list.
+          kernel_prefix = Path("coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL")
+          paths = [Path(".github/workflows/vendor-neutral-agent-kernel.yml")]
+          paths.extend(path.relative_to(root) for path in (root / kernel_prefix).rglob("*") if path.is_file())
+          paths.extend([Path("ci-report.json"), Path("ci-report.stderr")])
+          paths = sorted(set(paths), key=lambda item: item.as_posix())
+          entries = []
+          for relative in paths:
+              file_path = root / relative
+              data = file_path.read_bytes()
+              entries.append({"path": relative.as_posix(), "size": len(data), "sha256": hashlib.sha256(data).hexdigest()})
+          canonical = "".join(f"{item['path']}\t{item['size']}\t{item['sha256']}\n" for item in entries)
+          content_canonical = "".join(f"{item['path']}\0{item['size']}\0{item['sha256']}\n" for item in entries)
+          record = {
+              "root_id": f"e32-clean-archive-seed-{seed}",
+              "run_id": os.environ["GITHUB_RUN_ID"],
+              "job_id": os.environ.get("E32_JOB_ID", os.environ["GITHUB_JOB"]),
+              "root_locator": f"github-actions://{os.environ['GITHUB_RUN_ID']}/{os.environ['GITHUB_JOB']}/e32-clean-archive-seed-{seed}",
+              "root_path_sha256": hashlib.sha256(str(root).encode("utf-8")).hexdigest(),
+              "archive_content_sha256": hashlib.sha256(Path(archive).read_bytes()).hexdigest(),
+              "archive_size_bytes": Path(archive).stat().st_size,
+              "archive_git_commit": archive_commit,
+              "archive_git_tree_sha": archive_tree,
+              "archive_content_tree_sha256": hashlib.sha256(content_canonical.encode("utf-8")).hexdigest(),
+              "cwd": ".",
+              "command": f"PYTHONHASHSEED={seed} python -B ./coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/ci_verify.py --changed-files ./.e32-changed-files.txt --commit {archive_commit} --tree {archive_tree} --tested-commit {tested_commit} --tested-tree {tested_tree}",
+              "exit_code": 0,
+              "stdout_sha256": hashlib.sha256(Path(report).read_bytes()).hexdigest(),
+              "stderr_sha256": hashlib.sha256(Path(stderr).read_bytes()).hexdigest(),
+              "artifact_set_sha256": hashlib.sha256(canonical.encode("utf-8")).hexdigest(),
+              "artifacts": entries,
+          }
+          with Path(output).open("a", encoding="utf-8") as handle:
+              handle.write(json.dumps(record, sort_keys=True) + "\n")
+          PY
+          done
+          python - "$RUNNER_TEMP/archive-roots.jsonl" "$RUNNER_TEMP/archive-manifest.json" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          roots = [json.loads(line) for line in Path(sys.argv[1]).read_text().splitlines() if line]
+          paths = roots[0]["artifacts"]
+          Path(sys.argv[2]).write_text(json.dumps({
+              "schema_version": "VNAK_E32_ARCHIVE_PROVENANCE_v1",
+              "task_id": "CODEX-PEOS-0010-E31-FINAL-EXECUTABLE-HEAD-ARCHIVE-AND-SINGLE-RECEIPT-TOPOLOGY-CLOSURE-0024-E32",
+              "status": "FINAL",
+              "root_count": len(roots),
+              "required_root_count": 3,
+              "tested_identity": {
+                  "authority": "E32_FINAL_TESTED_HEAD",
+                  "tested_commit": roots[0]["archive_git_commit"],
+                  "tested_tree": roots[0]["archive_git_tree_sha"],
+                  "source_run": roots[0]["run_id"],
+              },
+              "declared_artifact_surface": {
+                  "name": "E31-kernel-and-workflow-public-evidence-surface",
+                  "path_count": len(paths),
+                  "paths": [item["path"] for item in paths],
+              },
+              "roots": roots,
+          }, sort_keys=True, indent=2) + "\n")
+          PY
+          cat "$RUNNER_TEMP/archive-manifest.json"
+      - name: Upload machine-readable evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: vendor-neutral-agent-kernel-evidence-py${{ matrix.python-version }}
+          path: |
+            ${{ runner.temp }}/changed-files.txt
+            ${{ runner.temp }}/archive-*.json
+            ${{ runner.temp }}/archive-*.stderr
+            ${{ runner.temp }}/archive-*.tar
+            ${{ runner.temp }}/archive-roots.jsonl
+            ${{ runner.temp }}/archive-manifest.json

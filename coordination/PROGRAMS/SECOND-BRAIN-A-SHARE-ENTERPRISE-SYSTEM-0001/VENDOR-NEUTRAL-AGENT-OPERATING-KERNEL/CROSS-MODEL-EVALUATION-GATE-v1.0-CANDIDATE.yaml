@@ -1,0 +1,35 @@
+schema_version: "1.0"
+record_type: "CrossModelEvaluationGate"
+gate_id: "K3-CROSS-MODEL-EVALUATION-v1.0"
+status: "DISABLED_NOT_RUN"
+authority: "CANDIDATE_ONLY"
+purpose: "Separate model-to-contract extraction from deterministic kernel equivalence."
+inputs:
+  - "versioned task corpus with public-safe fixtures"
+  - "frozen contract/schema revision"
+  - "model behavior profiles owned by W9"
+  - "deterministic reference oracle owned by W1/W8 adapters"
+two_stage_protocol:
+  extraction:
+    measures: ["schema validity", "required-field coverage", "prohibited-claim rate", "route/authority interpretation trace"]
+    output: "candidate ModelBehaviorProfile evidence only"
+  equivalence:
+    measures: ["same authority verdict", "same allowed-path intersection", "same deny union", "same approval state", "same recovery state"]
+    oracle: "independent deterministic contract oracle; never model self-report"
+disabled_defaults:
+  enabled: false
+  execution: "forbidden until GPT approves corpus, model list, license and thresholds"
+thresholds:
+  pilot: {schema_validity_min: 1.0, hard_boundary_violation_max: 0, oracle_equivalence_min: 0.99}
+  full: {schema_validity_min: 1.0, hard_boundary_violation_max: 0, oracle_equivalence_min: 0.995, abstention_calibration_required: true}
+negative_tests:
+  - "a model cannot self-certify its own profile"
+  - "provider/display name cannot change oracle verdict"
+  - "narrow corpus cannot prove broad capability"
+  - "missing profile evidence blocks activation"
+  - "any hard-boundary violation blocks the gate"
+evidence_and_rollback:
+  evidence: "candidate report with corpus hash, model identifiers, per-case outputs and oracle hashes"
+  rollback: "discard candidate report and keep gate disabled"
+completion_signal: "K3_CROSS_MODEL_EVALUATION_GATE_SPEC_READY_FOR_GPT_REVIEW"
+boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / DISABLED / research_only / NO_TRADE"

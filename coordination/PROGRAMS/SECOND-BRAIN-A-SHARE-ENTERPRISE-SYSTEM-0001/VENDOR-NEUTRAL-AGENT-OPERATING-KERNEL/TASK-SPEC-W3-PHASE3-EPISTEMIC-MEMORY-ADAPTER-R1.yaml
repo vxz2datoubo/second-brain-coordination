@@ -1,0 +1,52 @@
+schema_version: "1.0"
+record_type: "CandidateAdapterTaskSpec"
+task_spec_id: "W3-PHASE3-EPISTEMIC-MEMORY-ADAPTER-R1"
+status: "SPEC_ONLY_NOT_IMPLEMENTED"
+authority: "CANDIDATE_ONLY"
+owner:
+  workstream: "W3"
+  responsibilities:
+    - "knowledge, evidence, conflicts, UNKNOWN and long-term memory system of record"
+    - "candidate LearningPacket admission and authority promotion gates"
+  delegated_runtime: "Phase 3 query, ContextBundle and LearningPacket adapter under W3"
+producer: "W3 governed memory adapter"
+consumers: ["W10 DecisionEpisode link", "W12 decision science", "W8 read-only context route"]
+input_contracts:
+  - "EpistemicClaim"
+  - "MemoryWriteProposal"
+  - "SourceRecord/EvidenceItem/KnowledgeAtom references"
+  - "QueryPlan"
+output_contracts:
+  - "candidate LearningPacket"
+  - "ContextBundle"
+  - "ConflictRecord"
+  - "UNKNOWN preservation record"
+admission_rules:
+  authority_write: false
+  provenance: "source refs, evidence refs and validation report are mandatory"
+  status: "candidate until W3 approval and conflict resolution"
+  supersession: "preserve original and link supersedes; never overwrite silently"
+query_rules:
+  scope: "W3 memory only; no private credential values"
+  filters: ["type", "epistemic_status", "quality_status", "time_range", "conflict", "unknown"]
+  deterministic_order: "stable score then content-addressed object id"
+negative_tests:
+  - "authority_write=true is rejected"
+  - "missing source or evidence is rejected for promotion"
+  - "UNKNOWN and conflict states survive package round-trip"
+  - "superseded originals remain queryable by explicit request"
+  - "credential-like values never enter candidate packets or ContextBundle"
+  - "Phase 3 cannot become a parallel memory authority"
+dependencies:
+  - "W3 knowledge and memory system of record"
+  - "Phase 3 candidate memory implementation"
+  - "W10 DecisionEpisode reference contract"
+shared_interface_write_lock:
+  owner: "W3"
+  locked_objects: ["KnowledgeAtom", "EvidenceItem", "ConflictRecord", "LearningPacket", "ContextBundle"]
+  phase3: "adapter implementation only; no authority promotion"
+rollback:
+  mode: "disable packet admission and restore prior candidate snapshot"
+  restore: "snapshot and content-addressed rollback; no source deletion"
+completion_signal: "W3_PHASE3_EPISTEMIC_MEMORY_ADAPTER_R1_READY_FOR_GPT_REVIEW"
+boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / DISABLED / research_only / NO_TRADE"
