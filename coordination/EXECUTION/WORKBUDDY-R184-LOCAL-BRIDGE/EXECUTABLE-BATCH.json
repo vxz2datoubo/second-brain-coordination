@@ -1,0 +1,120 @@
+{
+  "schema": "CreativeExecutorWorkBatch/v1",
+  "batch_id": "SECOND-BRAIN-R184-LOCAL-WORKBUDDY-BRIDGE-001",
+  "project_id": "SECOND_BRAIN",
+  "authority": "CANONICAL_BOUND_BATCH_EXECUTABLE",
+  "source_checkpoint": {
+    "branch": "main",
+    "exact_head": "bf4e722540f92ed560b29f884b3ac7c1c8d8895d",
+    "checkpoint_remote_ref": "refs/heads/main"
+  },
+  "route_authority": {
+    "execution_allowed": true,
+    "task_id": "WORKBUDDY-R184-LOCAL-WORKBUDDY-BRIDGE",
+    "active_issue": 595,
+    "route_epoch": 184,
+    "route_ref": "coordination/ROUTES/WORKBUDDY-R184-LOCAL-WORKBUDDY-BRIDGE.yaml",
+    "claim_ref": "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/WORK-CLAIM.yaml",
+    "lease_ref": "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/TASK-LEASE.yaml",
+    "snapshot_ref": "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/PREWRITE-RECONCILIATION-SNAPSHOT.yaml"
+  },
+  "codex_retained_write_surfaces": [
+    "tests/workbuddy/**",
+    "tools/workbuddy/**",
+    "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/**",
+    "coordination/GOVERNANCE/**",
+    "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+  ],
+  "automatic_resume_within_batch": true,
+  "items": [
+    {
+      "item_id": "WB-LB-V1",
+      "owner": "WORKBUDDY",
+      "kind": "CLEAN_REPRODUCTION",
+      "status": "PLANNED",
+      "complexity": "D2",
+      "depends_on": [],
+      "write_paths": [],
+      "acceptance_commands": [
+        "git rev-parse HEAD",
+        "python -m unittest discover -s tests -p 'test_unified_execution*.py' -v"
+      ],
+      "outcome": "Fresh-read the registered R184 authority, verify branch parent bf4e722540f92ed560b29f884b3ac7c1c8d8895d, verify R175 remains separately registered and non-overlapping, recheck Deepseek-V4-Pro runtime availability, and stop if any governed identity differs.",
+      "architecture_change": false,
+      "acceptance_oracle_change": false,
+      "receipt_ref": null
+    },
+    {
+      "item_id": "WB-LB-S1",
+      "owner": "WORKBUDDY",
+      "kind": "DEEP_IMPLEMENTATION",
+      "status": "PLANNED",
+      "complexity": "D4",
+      "depends_on": ["WB-LB-V1"],
+      "write_paths": [
+        "tools/local_workbuddy_bridge/**",
+        "tests/test_unified_execution_local_bridge.py",
+        "tests/fixtures/local_workbuddy_bridge/**"
+      ],
+      "acceptance_commands": [
+        "python -m unittest tests.test_unified_execution_local_bridge -v"
+      ],
+      "outcome": "Implement the dry-run local bridge using the canonical registry/trust-gate as authority, bridge-owned local state for idempotency, isolated worktree preparation, allowlisted SDK/CLI/localhost launch plans, secret redaction, and fake process adapters. Do not spawn a real WorkBuddy/CodeBuddy process.",
+      "architecture_change": false,
+      "acceptance_oracle_change": false,
+      "receipt_ref": null
+    },
+    {
+      "item_id": "WB-LB-S2",
+      "owner": "WORKBUDDY",
+      "kind": "ADVERSARIAL_MATRIX",
+      "status": "PLANNED",
+      "complexity": "D3",
+      "depends_on": ["WB-LB-S1"],
+      "write_paths": [
+        "tools/local_workbuddy_bridge/**",
+        "tests/test_unified_execution_local_bridge.py",
+        "tests/fixtures/local_workbuddy_bridge/**"
+      ],
+      "acceptance_commands": [
+        "python -m unittest tests.test_unified_execution_local_bridge -v",
+        "python -m unittest discover -s tests -p 'test_unified_execution*.py' -v"
+      ],
+      "outcome": "Prove fail-closed behavior for stale/moved main, unregistered index, wrong lease, duplicate launch, branch/base mismatch, writer collision, candidate-only state, malicious free text, credential-looking values, unavailable/mismatched model, and Windows path-equivalence cases; prove cross-task R175 isolation remains intact.",
+      "architecture_change": false,
+      "acceptance_oracle_change": false,
+      "receipt_ref": null
+    },
+    {
+      "item_id": "WB-LB-S3",
+      "owner": "WORKBUDDY",
+      "kind": "EVIDENCE_AND_HANDOFF",
+      "status": "PLANNED",
+      "complexity": "D2",
+      "depends_on": ["WB-LB-S2"],
+      "write_paths": [
+        "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/**"
+      ],
+      "acceptance_commands": [
+        "python -m unittest discover -s tests -p 'test_unified_execution*.py' -v",
+        "git diff --check bf4e722540f92ed560b29f884b3ac7c1c8d8895d...HEAD"
+      ],
+      "outcome": "Write a redacted return package, open a Draft PR, bind exact head and CI evidence, and stop at GPT independent-review gate. The newly implemented bridge remains dry-run/non-activated until separate ACCEPT and canonicalization.",
+      "architecture_change": false,
+      "acceptance_oracle_change": false,
+      "receipt_ref": null
+    }
+  ],
+  "stop_conditions": [
+    "registered R184 authority is absent, stale, moved, disabled, or conflicts with another registered writer",
+    "branch parent is not bf4e722540f92ed560b29f884b3ac7c1c8d8895d",
+    "Deepseek-V4-Pro required runtime is unavailable for core implementation",
+    "an unlisted write path is required",
+    "a change to canonical trust-gate or governance authority is required rather than reuse",
+    "a real WorkBuddy/CodeBuddy child process would be spawned by the candidate bridge or tests",
+    "credential values, account/order/trade/funds authority, production deployment, or R175 mutation is encountered"
+  ],
+  "return_package_required": true,
+  "return_target": "GPT_ARCHITECTURE_OWNER",
+  "final_review_trigger": "POST_REVIEW_REQUEST_TO_ISSUE_453_AND_STOP"
+}
