@@ -219,32 +219,6 @@ def build_verified_canonical_authority_for_task_index(
     return fresh
 
 
-def validate_process_start_for_task_index(
-    repo_path: str | Path,
-    active_task_index_ref: str,
-    admission: Mapping[str, Any],
-    dispatch: Mapping[str, Any],
-    claimed_snapshot: base.VerifiedCanonicalAuthority,
-) -> base.VerifiedCanonicalAuthority:
-    """Fresh-gated process start for one explicitly registered task index.
-
-    The task-index path is only a selector. It grants no authority unless it remains
-    registered on trusted canonical main and the caller snapshot exactly matches the
-    freshly rebuilt full authority chain for that registered index.
-    """
-    claimed = gate._authority_mapping(claimed_snapshot)
-    fresh = build_verified_canonical_authority_for_task_index(
-        repo_path, active_task_index_ref
-    )
-    canonical = gate._authority_mapping(fresh)
-    if not gate._same_snapshot(claimed, canonical):
-        raise ExecutionContractError(
-            "active_task_registry: claimed authority differs from fresh registered task authority"
-        )
-    base.validate_local_admission(admission, dispatch, fresh)
-    return fresh
-
-
 def _write_pattern(path: str) -> tuple[str, bool, bool]:
     """Return (root, recursive_tree, ambiguous_pattern).
 
@@ -296,13 +270,15 @@ def _authority_write_surfaces_overlap(
     )
 
 
-def build_registered_authorities(
+def _build_registered_authority_set(
     repo_path: str | Path,
+    observed_main: str,
+    refs: Sequence[str],
 ) -> tuple[base.VerifiedCanonicalAuthority, ...]:
-    observed_main, refs = registered_task_index_refs(repo_path)
     authorities: list[base.VerifiedCanonicalAuthority] = []
     seen_task_identity: set[tuple[str, Any]] = set()
     seen_collision: set[tuple[str, str]] = set()
+    seen_branch: set[tuple[str, str]] = set()
 
     for ref in refs:
         authority = build_verified_canonical_authority_for_task_index(repo_path, ref)
@@ -317,23 +293,81 @@ def build_registered_authorities(
                 "active_task_registry: duplicate active task identity"
             )
         seen_task_identity.add(task_identity)
+
+        execution_repository = str(current["execution_repository"])
         collision = (
-            str(current["execution_repository"]),
+            execution_repository,
             str(current["collision_domain"]),
         )
         if collision in seen_collision:
             raise ExecutionContractError(
                 "active_task_registry: simultaneous active writers share a collision domain"
             )
+
+        branch_identity = (
+            execution_repository,
+            str(current["implementation_branch"]),
+        )
+        if branch_identity in seen_branch:
+            raise ExecutionContractError(
+                "active_task_registry: simultaneous active writers share an implementation branch"
+            )
+
         for existing in authorities:
             if _authority_write_surfaces_overlap(existing.as_mapping(), current):
                 raise ExecutionContractError(
                     "active_task_registry: simultaneous active writer surfaces overlap or are ambiguous"
                 )
+
         seen_collision.add(collision)
+        seen_branch.add(branch_identity)
         authorities.append(authority)
 
     return tuple(authorities)
+
+
+def build_registered_authorities(
+    repo_path: str | Path,
+) -> tuple[base.VerifiedCanonicalAuthority, ...]:
+    observed_main, refs = registered_task_index_refs(repo_path)
+    return _build_registered_authority_set(repo_path, observed_main, refs)
+
+
+def validate_process_start_for_task_index(
+    repo_path: str | Path,
+    active_task_index_ref: str,
+    admission: Mapping[str, Any],
+    dispatch: Mapping[str, Any],
+    claimed_snapshot: base.VerifiedCanonicalAuthority,
+) -> base.VerifiedCanonicalAuthority:
+    """Fresh-gated process start for one explicitly registered task index.
+
+    Process start is admitted only from a fresh registry-wide conflict-free authority
+    set. The selected task must be registered on the same canonical main as every
+    peer authority, and the caller snapshot must exactly match that fresh target.
+    """
+    base._validate_ref(active_task_index_ref)
+    observed_main, refs = registered_task_index_refs(repo_path)
+    if active_task_index_ref not in refs:
+        raise ExecutionContractError(
+            "active_task_registry: caller-selected task index is not registered in canonical main"
+        )
+
+    authorities = _build_registered_authority_set(repo_path, observed_main, refs)
+    selected = authorities[refs.index(active_task_index_ref)]
+    canonical = gate._authority_mapping(selected)
+    if canonical["canonical_main_sha"] != observed_main:
+        raise ExecutionContractError(
+            "active_task_registry: selected authority is not bound to registry main"
+        )
+
+    claimed = gate._authority_mapping(claimed_snapshot)
+    if not gate._same_snapshot(claimed, canonical):
+        raise ExecutionContractError(
+            "active_task_registry: claimed authority differs from fresh registered task authority"
+        )
+    base.validate_local_admission(admission, dispatch, selected)
+    return selected
 
 
 def build_legacy_default_authority(
