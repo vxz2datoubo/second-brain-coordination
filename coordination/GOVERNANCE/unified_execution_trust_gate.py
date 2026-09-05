@@ -13,4 +13,17 @@ exec(
     globals(),
     globals(),
 )
-del _extension_path
+
+_compat_path = Path(__file__).with_name(
+    "unified_execution_trust_gate_process_compat.py"
+)
+exec(
+    compile(
+        _compat_path.read_text(encoding="utf-8"),
+        str(_compat_path),
+        "exec",
+    ),
+    globals(),
+    globals(),
+)
+del _extension_path, _compat_path
