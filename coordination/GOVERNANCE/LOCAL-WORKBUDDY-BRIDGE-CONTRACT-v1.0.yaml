@@ -1,4 +1,4 @@
-schema_version: "1.5"
+schema_version: "1.6"
 protocol_id: "LOCAL-WORKBUDDY-BRIDGE-CONTRACT-v1"
 status: "CANDIDATE_REMEDIATED_PENDING_INDEPENDENT_REVIEW"
 source_issue: 596
@@ -35,15 +35,19 @@ trusted_git_boundary:
   caller_repo_git_config_is_authority_input: false
   caller_global_git_config_is_authority_input: false
   caller_system_git_config_is_authority_input: false
-  inherited_git_config_environment_is_authority_input: false
+  inherited_git_environment_is_authority_input: false
+  inherited_git_template_dir_is_authority_input: false
   url_insteadof_rewrite_allowed_to_redefine_remote: false
   structural_builder: "coordination/GOVERNANCE/unified_execution_validation.py"
   authoritative_consumption_gate: "coordination/GOVERNANCE/unified_execution_trust_gate.py"
   requirements:
-    - "perform trust-root ls-remote/fetch only inside a bridge-owned isolated bare repository"
+    - "perform trust-root init/ls-remote/fetch/show/recheck only inside a bridge-owned isolated bare repository"
     - "ignore caller/executor repository config for canonical remote resolution"
     - "use fresh HOME/XDG_CONFIG_HOME and disable inherited global/system Git config"
-    - "remove inherited GIT_CONFIG_* and repository/object-location Git environment overrides"
+    - "drop all inherited GIT_* behavior variables before protected Git execution"
+    - "reintroduce only bridge-owned GIT_CONFIG_NOSYSTEM/GIT_CONFIG_GLOBAL/GIT_TEMPLATE_DIR/GIT_TERMINAL_PROMPT"
+    - "use a bridge-owned empty Git template and pass it explicitly to git init --bare"
+    - "attest the new trust repo local config contains only allowed init-time repository metadata"
     - "ls-remote canonical main from fixed trusted URL"
     - "fetch the same canonical main into isolated bare repository"
     - "fail closed if main moves during initial readback"
@@ -53,7 +57,7 @@ trusted_git_boundary:
     - "derive one canonical write surface only after every authority surface agrees"
     - "derive immutable writer_lease_identity from trusted task-lease ref/digest plus common identity"
     - "re-run matched project adapter semantic floor at exact canonical main"
-    - "reject duplicate protected Adapter YAML keys"
+    - "reject duplicate top-level Adapter keys and duplicate protected nested semantic keys"
     - "terminal isolated ls-remote equality recheck after governed document reads"
   python_object_identity_is_authority: false
   module_private_issuer_is_authority: false
@@ -100,7 +104,7 @@ canonical_authority_receipt:
     - "writer_lease_identity is derived from the canonical task lease"
     - "authorized paths/grants/denials are projected from canonical authority"
     - "project-specific semantic floor is revalidated at canonical_main_sha"
-    - "duplicate protected Adapter YAML keys are absent"
+    - "duplicate top-level and protected nested Adapter YAML keys are absent"
     - "terminal protected remote main still equals canonical_main_sha"
   unsupported_or_unknown_authority_schema: "FAIL_CLOSED_UNTIL_VALIDATOR_SUPPORT_EXISTS"
   on_missing_moved_stale_inactive_misbound_cloned_or_transport_ambiguous_input: "FAIL_CLOSED_NO_PROCESS_START"
@@ -113,7 +117,7 @@ admission_gate:
     - "dispatch validates against the freshly rebuilt authority"
     - "full authority-chain semantic closure passes"
     - "project adapter semantic floor is re-run at exact canonical main"
-    - "duplicate protected Adapter keys fail closed"
+    - "duplicate top-level or protected nested Adapter keys fail closed"
     - "terminal protected remote-main equality recheck passes"
     - "active route status READY"
     - "execution_allowed true"
@@ -224,6 +228,7 @@ security:
   secret_values_redacted_from_logs_and_return_packages: true
   python_object_or_module_private_symbol_is_not_a_security_boundary: true
   user_or_executor_git_config_is_not_a_security_boundary: true
+  inherited_git_environment_or_template_is_not_a_security_boundary: true
 
 availability:
   candidate_contract_only: true
