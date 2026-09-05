@@ -1,7 +1,8 @@
-schema_version: "1.3"
+schema_version: "1.4"
 schema_family: "UNIFIED-EXECUTION-INTERFACES-v1"
 status: "CANDIDATE_REMEDIATED_PENDING_INDEPENDENT_REVIEW"
 source_issue: 596
+owner_reporting_extension_source_issue: 598
 
 common_identity:
   composition_rule: "EVERY_AUTHORITY_BEARING_MACHINE_OBJECT_MUST_EXPLICITLY_INCLUDE_ALL_COMMON_IDENTITY_FIELDS"
@@ -138,6 +139,7 @@ WORKBUDDY_RETURN_PACKAGE_v1:
     - "return_package_never_self_asserts_ACCEPT"
     - "head_sha_is_immutable_review_identity_once_submitted"
     - "changed_files_must_fit_authorized_paths_or_return_BLOCKED_SCOPE_DRIFT"
+    - "material_discoveries_opportunities_and_risks_must_not_be_silently_dropped_before_owner_reporting"
 
 EXECUTION_CARRIER_RELEASE_v1:
   purpose: "canonical old-writer release record consumed only through a trusted fresh-main builder"
@@ -211,6 +213,74 @@ ENGINEERING_PRODUCTIVITY_RECEIPT_v1:
     - resolved_model_display_name
     - final_verdict
   update_rule: "MULTIPLE_COMPARABLE_TASKS_REQUIRED_BEFORE_GLOBAL_ROUTING_DEFAULT_CHANGE"
+
+OWNER_PROGRESS_REPORT_v1:
+  purpose: >-
+    Compact Owner-facing control view derived from fresh engineering/review state.
+    It is a reporting projection only and grants no execution, review, merge or domain authority.
+  source_issue: 598
+  default_order:
+    - owner_action
+    - lifecycle_status
+    - visual_summary_when_useful
+    - recommendation
+    - decision_relevant_tradeoffs
+    - executor_model_note_when_applicable
+    - next_step
+  required:
+    - lifecycle_status
+    - owner_action_required
+    - owner_action_summary
+    - recommendation_present
+    - recommendation_direction
+    - recommendation_strength
+    - recommendation_confidence
+    - key_benefit
+    - key_risk
+    - next_system_step
+    - unlock_condition
+  lifecycle_values:
+    - CANDIDATE
+    - CI_PASSED
+    - INDEPENDENT_REVIEW
+    - ACCEPT
+    - CANONICAL
+    - DEPLOYED
+    - ACTIVE
+    - BLOCKED
+  recommendation_strength_values:
+    - STRONGLY_RECOMMEND
+    - RECOMMEND
+    - OPTIONAL_OPTIMIZATION
+    - DO_NOT_RECOMMEND
+    - STRONGLY_DO_NOT_RECOMMEND
+    - NONE_IDENTIFIED
+  confidence_values:
+    - HIGH
+    - MEDIUM
+    - LOW
+    - NOT_APPLICABLE
+  presentation_rules:
+    owner_action_first_when_required: true
+    no_action_phrase_when_none: "现在无需操作"
+    one_screen_default: true
+    visual_first_when_more_informative: true
+    invented_progress_percent_forbidden: true
+    short_cross_window_prompt_default: true
+    technical_review_detail_stays_in_canonical_ticket: true
+  invariants:
+    - "owner_must_not_infer_whether_personal_action_is_required"
+    - "material_recommendation_or_warning_must_not_be_silently_omitted"
+    - "recommendation_strength_and_confidence_are_separate_dimensions"
+    - "brevity_must_not_reduce_actual_execution_depth"
+    - "candidate_CI_ACCEPT_canonical_deployed_active_must_not_be_collapsed"
+    - "no_silent_switch_to_materially_more_expensive_model_or_carrier"
+    - "owner_report_is_not_authority_and_cannot_mint_execution_or_merge_permission"
+  cross_window_prompt_rule: >-
+    Human-carried prompts should contain only the canonical task/review entrypoint,
+    fresh-reconcile requirement and essential role boundaries. Detailed adversarial,
+    security or engineering checks belong in the GitHub canonical ticket so the Owner
+    does not have to manually transport them.
 
 LOCAL_BRIDGE_ADMISSION_v1:
   purpose: "final process-start gate using trusted remote-main authority evidence"
