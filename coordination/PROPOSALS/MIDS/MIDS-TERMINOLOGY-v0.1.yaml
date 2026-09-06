@@ -1,0 +1,202 @@
+schema_version: "0.1"
+status: "CANDIDATE_SHADOW_FIRST"
+issue: 529
+protocol_id: "MIDS"
+protocol_name: "Mixed-Initiative Discovery & Specification"
+protocol_name_zh: "混合主动式共创发现与规格化"
+
+portable_triggers:
+  implicit_semantic_recall:
+    rule: "The user does not need to remember or name MIDS. Detect suitable opportunities from request semantics and project state."
+    zh: "用户不需要记住 MIDS 名称；当需求结构明显适合共创发现时，由 AI 主动识别、提醒或使用 micro-MIDS。"
+    detector_ref: "coordination/PROPOSALS/MIDS/MIDS-OPPORTUNITY-DETECTOR-v0.1.yaml"
+  shortest:
+    - "进入 MIDS 共创发现模式。"
+    - "先 discovery，后 specification；主动追问和挑战我。"
+    - "把这个当成需求发现，不是需求执行。"
+  compact: >-
+    用 MIDS 共创发现模式处理：不要只执行我表面说的话。先理解当前目标和上下文，主动发现未知项、隐含需求、冲突与新方向；每轮只问 1–3 个最高价值问题，必要时给出不同候选、最强反方和具体场景让我判断；逐步把我的自然语言想法收敛成明确决策、假设、未知项、验收例子和可执行规格。不要把 AI 推断冒充我的决定。
+
+roles:
+  DISCOVERY_LEAD:
+    zh: "共创发现主导者"
+    definition: "与用户进行主要 discovery 对话，并聚合 research/architecture/coding/review agent 提交的问题候选与证据。"
+
+knowledge_states:
+  USER_EXPLICIT_CONFIRMED:
+    zh: "用户显性已确认"
+    definition: "用户明确表达并确认的事实、偏好、目标或决定。"
+  USER_TACIT_CANDIDATE:
+    zh: "用户隐性知识候选"
+    definition: "用户可能知道或能判断，但尚未主动表达，需要通过案例、场景、对比、反事实或关键事件追问引出。"
+  AI_DISCOVERABLE_OPTION:
+    zh: "AI 可发现候选方向"
+    definition: "用户原先未提出，但 AI 通过研究、推演、类比或 design-space exploration 发现的可供用户判断的候选。"
+  EXPERT_BLIND_ZONE:
+    zh: "专家盲区"
+    definition: "不应直接要求用户回答底层专业参数，应由 AI 先研究并转换成效果、风险、代价或场景选择。"
+  AI_INFERENCE:
+    zh: "AI 推断"
+    definition: "AI 根据证据推断出的解释，不等于用户决定。"
+  UNKNOWN:
+    zh: "未知"
+    definition: "当前缺乏足够信息或证据。"
+  DEFERRED:
+    zh: "延期决策"
+    definition: "已知存在但明确暂不解决。"
+  REJECTED:
+    zh: "已拒绝"
+    definition: "用户或治理明确拒绝的候选。"
+  SUPERSEDED:
+    zh: "已被替代"
+    definition: "旧决定仍保留历史证据，但当前已由新决定替代。"
+
+actions:
+  ELICIT:
+    zh: "引出"
+    definition: "挖掘用户已有但尚未表达的知识、偏好、经验和约束。"
+  EXPAND:
+    zh: "扩展"
+    definition: "主动提出新的候选方向、跨领域类比和创新组合。"
+  CHALLENGE:
+    zh: "挑战"
+    definition: "寻找反例、隐藏前提、最强反方、失败条件和二阶影响。"
+  CONVERGE:
+    zh: "收敛"
+    definition: "当当前 bounded slice 足够清晰时停止继续发散，整理为可验证规格。"
+
+concepts:
+  IMPLICIT_MIDS_RECALL:
+    zh: "MIDS 隐式唤起"
+    definition: "即使用户忘记或从未知道 MIDS 名称，AI 也根据需求的模糊度、决策影响、未知项、返工风险和设计空间主动识别 MIDS 机会。"
+  MICRO_MIDS:
+    zh: "微型 MIDS"
+    definition: "在中等机会场景中不启动正式长流程，只指出一个关键未知、问一个高价值问题、给一个非显然候选或提示一个关键假设。"
+  MIDS_OPPORTUNITY_DETECTOR:
+    zh: "MIDS 机会探测器"
+    definition: "判断当前请求是否适合主动提醒或使用 MIDS 的非权威检测机制；HIGH/MEDIUM/LOW/SUPPRESSED 分级。"
+  EPISTEMIC_COVERAGE_MATRIX:
+    zh: "认知覆盖矩阵"
+    definition: "区分用户显性知识、隐性知识、AI 可发现选项、专家盲区、推断与未知的结构。"
+  HIGH_INFORMATION_VALUE_QUESTION:
+    zh: "高信息价值问题"
+    definition: "对关键决策、不确定性削减、下游依赖、返工风险或创新空间具有高影响的问题。"
+  QUESTION_SELECTION_POLICY:
+    zh: "提问选择策略"
+    definition: "根据问题价值动态决定下一问，而非使用固定问卷。"
+    heuristic: "DecisionImpact * UncertaintyReduction * DependencyCentrality * Irreversibility * NoveltyPotential / (CognitiveLoad + InterruptionCost)"
+  MIXED_INITIATIVE_INTERACTION:
+    zh: "混合主动权交互"
+    definition: "人和 AI 都可以主动发起问题、建议、探索与下一步动作的交互范式。"
+  HUMAN_AI_CO_CREATION:
+    zh: "人机共创"
+    definition: "人和 AI 共同扩展、评估并收敛设计空间，而不是单向命令执行。"
+  REQUIREMENTS_ELICITATION:
+    zh: "需求引导/需求获取"
+    definition: "从 stakeholder 中发现、澄清、协商和验证需求。"
+  KNOWLEDGE_ELICITATION:
+    zh: "知识引出"
+    definition: "把人的经验、判断线索和隐性认知转化为可表达知识。"
+  TACIT_KNOWLEDGE:
+    zh: "隐性知识"
+    definition: "人会做、会判断，但未必能够直接解释或预先列出的知识。"
+  COGNITIVE_TASK_ANALYSIS:
+    zh: "认知任务分析"
+    definition: "分析复杂任务中专家使用的线索、策略、判断与认知结构。"
+  CRITICAL_DECISION_METHOD:
+    zh: "关键决策法"
+    definition: "通过回溯真实关键事件和反事实追问挖掘专家判断。"
+  PREFERENCE_ELICITATION:
+    zh: "偏好引出"
+    definition: "通过选择、比较、场景和反馈逐步推断用户真实偏好。"
+  CONTINUOUS_DISCOVERY:
+    zh: "持续发现"
+    definition: "把需求和机会发现贯穿整个工作周期，而不是只在项目开始前进行一次。"
+  DOUBLE_DIAMOND:
+    zh: "双钻模型"
+    definition: "通过发散与收敛组织 Discover/Define/Develop/Deliver。"
+  IBIS:
+    zh: "基于议题的信息系统"
+    definition: "用 Issue/Position/Argument 保存讨论和设计理由结构。"
+  QOC:
+    zh: "问题-选项-标准"
+    definition: "Questions/Options/Criteria 设计理由框架。"
+  DESIGN_RATIONALE:
+    zh: "设计理由"
+    definition: "记录为什么做出某个决定、依据是什么、替代方案为何被拒。"
+  EXAMPLE_MAPPING:
+    zh: "示例映射"
+    definition: "用 Rules/Examples/Questions 把抽象需求转成可测试行为。"
+  SPECIFICATION_BY_EXAMPLE:
+    zh: "示例规格化"
+    definition: "通过具体正例、反例和边界案例定义可执行需求。"
+  SPEC_DRIVEN_DEVELOPMENT:
+    zh: "规格驱动开发"
+    definition: "先形成明确、可验证规格，再进入实现。"
+  BOUNDED_CLARITY:
+    zh: "有界清晰度"
+    definition: "只要求当前 bounded slice 的高影响未知足够清晰，而不要求整个项目全部问题一次解决。"
+  DISCOVERY_PACKET:
+    zh: "发现交接包"
+    definition: "把 discovery 结果以结构化、带 provenance 的形式交给 domain/spec layer。"
+  SPEC_DELTA:
+    zh: "规格增量"
+    definition: "相对当前 canonical/spec 新增、修改、撤销或替代的具体规格变化。"
+  AI_PROPOSAL_BOUNDARY:
+    zh: "AI 提案边界"
+    definition: "AI 主动提出的新想法只能作为 proposal/candidate/inference，不能自动成为用户决定。"
+  AUTHORITY_BOUNDARY:
+    zh: "权限/真相边界"
+    definition: "discovery、spec、domain truth、runtime、review 等角色之间不可越权的边界。"
+  CONTRADICTION_LEAKAGE:
+    zh: "决策矛盾泄漏"
+    definition: "已确认决定在后续上下文或 agent 传递中被模型无意改写、遗忘或重新引入旧方案。"
+  NOVEL_DIRECTION_ACCEPTANCE:
+    zh: "新方向采纳率"
+    definition: "AI 主动提出的新设计方向被用户认可并进入后续规格的比例。"
+  CRITICAL_UNKNOWN_DISCOVERY_RATE:
+    zh: "关键未知发现率"
+    definition: "在实现前发现后来可能导致 blocker、返工或架构冲突的重要未知项的比例。"
+
+handoff_statuses:
+  - USER_CONFIRMED
+  - EVIDENCE_SUPPORTED
+  - AI_INFERENCE
+  - CANDIDATE
+  - UNKNOWN
+  - DEFERRED
+  - REJECTED
+  - SUPERSEDED
+
+shared_layer_may_own:
+  - portable_invocation_vocabulary
+  - implicit_MIDS_opportunity_detection
+  - discovery_session_envelope
+  - question_selection_semantics
+  - provenance_status_vocabulary
+  - cross_agent_question_aggregation
+  - domain_handoff_packet
+  - generic_shadow_replay_eval_framework
+
+shared_layer_must_not_own:
+  - domain_canonical_semantics
+  - ai_film_story_character_directing_truth
+  - awrse_world_capability_rules_truth
+  - domain_specific_learning_maturity_authority
+
+validation_sequence:
+  - SHADOW
+  - PILOT
+  - CROSS_DOMAIN_VALIDATION
+  - GENERALIZATION_CANDIDATE
+  - INDEPENDENT_REVIEW
+  - CANONICALIZATION_IF_ACCEPTED
+
+hard_failures:
+  - AI_INFERENCE_SILENTLY_PROMOTED_TO_USER_TRUTH
+  - DISCOVERY_LAYER_OVERRIDES_DOMAIN_AUTHORITY
+  - REJECTED_OPTION_REINTRODUCED_AS_ACCEPTED
+  - MULTI_AGENT_USER_QUESTION_BOMBARDMENT
+  - UNBOUNDED_DISCOVERY_WITHOUT_STOPPING_CONDITION
+  - MIDS_REMINDER_SPAM
+  - MIDS_FORCED_AFTER_USER_REJECTION

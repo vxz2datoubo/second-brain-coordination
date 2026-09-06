@@ -1,0 +1,202 @@
+schema_version: "0.1"
+detector_id: "MIDS-OPPORTUNITY-DETECTOR"
+status: "CANDIDATE_SHADOW_FIRST"
+issue: 529
+purpose: >-
+  Detect when a user request would materially benefit from Mixed-Initiative Discovery & Specification
+  even if the user does not remember, name, or know the MIDS method. The detector may recommend or
+  lightly initiate discovery behavior, but it does not create domain truth, user decisions, tasks, or
+  canonical specifications by itself.
+
+core_principle:
+  user_does_not_need_to_remember_the_method_name: true
+  recognize_need_from_semantics_not_keyword_only: true
+  reminder_is_capability_recall_not_requirement_invention: true
+  preserve_user_agency: true
+  domain_authority_unchanged: true
+  mnemonic_rule_zh: "方法应该记住用户，而不是要求用户记住方法。"
+
+trigger_signals:
+  strong:
+    - vague_goal_with_material_implementation_gap
+    - user_has_many_ideas_but_cannot_structure_or_specify_them
+    - user_explicitly_says_they_do_not_know_the_concrete_implementation_direction
+    - user_asks_what_should_be_added_built_or_changed_but_design_space_is_open
+    - multiple_plausible_architectures_or_product_directions_exist
+    - high_impact_tradeoffs_are_unresolved
+    - user_can_judge_outcomes_but_not_expert_level_parameters
+    - repeated_rework_suggests_hidden_requirements_or_tacit_preferences
+    - current_request_would_create_a_large_or_irreversible_spec_without_discovery
+  medium:
+    - user_uses_language_such_as_maybe_probably_somehow_or_not_sure_what_it_should_become
+    - user_asks_for_brainstorming_that_will_later_be_implemented
+    - user_proposes_a_solution_without_an_explicit_problem_definition
+    - project_has_open_decisions_or_unknowns_material_to_the_requested_slice
+    - user_asks_ai_to_help_decide_direction_not_only_execute
+  explicit:
+    - "MIDS"
+    - "共创发现"
+    - "先发现再规格"
+    - "主动问我"
+    - "帮我把需求问出来"
+
+anti_triggers:
+  - simple_factual_lookup_with_no_design_decision
+  - trivial_formatting_or_translation
+  - precise_low_risk_execution_request_with_sufficient_specification
+  - user_explicitly_says_do_not_ask_or_do_not_use_discovery_for_this_slice
+  - urgent_action_where_extra_discovery_would_create_unnecessary_delay
+  - question_answerable_from_existing_canonical_facts_without_user_judgment
+
+scoring_dimensions:
+  decision_impact: 0_to_3
+  uncertainty: 0_to_3
+  dependency_centrality: 0_to_3
+  irreversibility_or_rework_cost: 0_to_3
+  tacit_knowledge_likelihood: 0_to_3
+  design_space_openness: 0_to_3
+  novelty_opportunity: 0_to_3
+  user_cognitive_cost: 0_to_3
+  interruption_cost: 0_to_3
+
+suggested_heuristic: >-
+  Favor MIDS when the combined benefit from decision impact, uncertainty reduction, dependency
+  centrality, rework avoidance, tacit-knowledge elicitation and design-space expansion clearly
+  exceeds cognitive and interruption cost. This is a prioritization principle, not a calibrated
+  probability model.
+
+intervention_policy:
+  HIGH:
+    conditions:
+      - strong_trigger_present: true
+      - material_decision_or_specification_likely: true
+      - existing_context_does_not_already_resolve_key_unknowns: true
+    behavior:
+      - briefly_remind_that_this_is_a_good_fit_for_MIDS_or_equivalent_discovery
+      - explain_in_plain_language_why_without_requiring_the_user_to_know_the_term
+      - start_with_1_to_3_high_information_value_questions_when_that_improves_progress
+      - optionally_offer_2_to_4_materially_distinct_candidate_directions
+      - do_not_force_a_long_discovery_session_before_useful_progress
+    example: >-
+      这个需求现在还处在“方向有了、具体形态没锁定”的阶段，很适合先用我们那套
+      MIDS 共创发现法。我先不急着把第一版想法写死，先抓 1–3 个真正会改变方案的问题，
+      同时给你几个可能没想到的方向。
+  MEDIUM:
+    conditions:
+      - plausible_benefit_but_not_clearly_material: true
+    behavior:
+      - use_micro_discovery_inline
+      - ask_at_most_one_high_value_question_if_needed
+      - mention_MIDS_only_if_the_name_itself_is_useful
+      - otherwise_keep_the_interaction_natural
+  LOW:
+    conditions:
+      - weak_or_speculative_fit: true
+    behavior:
+      - do_not_interrupt
+      - answer_normally
+  SUPPRESSED:
+    conditions:
+      - user_explicitly_declined_MIDS_or_discovery_for_current_slice: true
+    behavior:
+      - answer_normally_without_MIDS_reminder
+      - reopen_only_on_materially_new_uncertainty_or_contradictory_evidence
+
+implicit_recall_rule:
+  description: >-
+    When a request semantically matches HIGH or MEDIUM opportunity conditions, the assistant should
+    be able to recall and recommend the MIDS capability without the user naming it. The trigger is the
+    structure of the problem, not memory of the acronym.
+  user_forgot_name: "still_eligible"
+  new_user_never_knew_name: "still_eligible"
+  other_ai_or_agent: "eligible_if_this_policy_or_terminology_pack_is_loaded"
+
+micro_mids:
+  purpose: "Apply useful discovery without turning every task into a formal workshop."
+  allowed_actions:
+    - reflect_current_goal_in_one_sentence
+    - surface_one_material_unknown
+    - ask_one_high_information_value_question
+    - suggest_one_non_obvious_alternative
+    - state_one_critical_assumption_or_failure_condition
+  must_not:
+    - block_a_simple_answer_unnecessarily
+    - expose_internal_chain_of_thought
+    - fabricate_user_preferences
+
+provenance_states:
+  - USER_EXPLICIT_CONFIRMED
+  - USER_TACIT_CANDIDATE
+  - AI_DISCOVERABLE_OPTION
+  - EXPERT_BLIND_ZONE
+  - EVIDENCE_SUPPORTED
+  - AI_INFERENCE
+  - CANDIDATE
+  - UNKNOWN
+  - DEFERRED
+  - REJECTED
+  - SUPERSEDED
+
+routing:
+  second_brain_role:
+    - detect_discovery_opportunity
+    - preserve_public_safe_provenance
+    - select_or_route_to_discovery_lead
+    - carry_compact_discovery_handoff
+  domain_role:
+    - interpret_domain_semantics
+    - decide_domain_specific_options_and_constraints
+    - own_canonical_specification_and_truth
+    - own_domain_eval_and_learning
+  forbidden:
+    - second_brain_minting_domain_truth
+    - automatic_task_creation_from_a_MIDS_suggestion_alone
+    - silent_promotion_of_AI_inference_to_user_requirement
+    - forcing_MIDS_after_explicit_user_rejection
+
+learning_and_suppression:
+  positive_signal_examples:
+    - user_accepts_the_reminder_or_questions_and_it_reduces_rework
+    - previously_hidden_requirement_is_discovered_before_implementation
+    - user_adopts_a_non_obvious_candidate_direction
+  negative_signal_examples:
+    - reminder_interrupts_a_task_that_was_already_clear
+    - repeated_MIDS_suggestions_after_user_declines
+    - questions_repeat_known_canonical_information
+  suppression_rule: >-
+    If the user explicitly declines MIDS for the current slice, suppress further reminders for that
+    slice unless materially new uncertainty or contradictory evidence appears.
+
+shadow_eval:
+  required_before_canonical_runtime_activation: true
+  implementation_ref: "coordination/PROPOSALS/MIDS/shadow/mids_opportunity_detector.py"
+  regression_ref: "coordination/PROPOSALS/MIDS/shadow/test_mids_opportunity_detector.py"
+  replay_cases:
+    - vague_idea_that_later_caused_requirement_rework
+    - expert_blind_zone_where_scenario_questions_would_have_helped
+    - precise_task_where_detector_should_remain_silent
+    - creative_task_where_EXPAND_should_surface_a_new_candidate
+    - high_impact_task_where_CHALLENGE_should_find_a_blocker
+    - user_declines_MIDS_and_detector_respects_suppression
+  metrics:
+    - useful_decisions_per_question
+    - critical_unknown_discovery_rate
+    - redundant_question_rate
+    - false_positive_reminder_rate
+    - interruption_cost
+    - novel_direction_acceptance
+    - post_spec_rework
+    - provenance_accuracy
+    - domain_authority_violation
+
+activation_boundary:
+  current_state: "DOCUMENTED_AND_SHADOW_IMPLEMENTED_NOT_CANONICAL_RUNTIME"
+  current_claim: >-
+    The protocol, detector semantics and deterministic shadow implementation are now recorded in the
+    candidate PR. Automatic reminders must not be claimed as globally active until governed integration
+    with the real intake/assistant routing surface is independently reviewed and canonicalized.
+  requires_before_claiming_active:
+    - independent_review
+    - accepted_shadow_or_replay_evidence
+    - governed_integration_with_existing_intake_or_assistant_routing_surface
+    - canonicalization_under_current_second_brain_governance
