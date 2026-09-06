@@ -8,12 +8,11 @@ executor_agent_type: "GPT_ENGINEERING_WORKER"
 executor_role: "GPT_ENGINEERING_WORKER"
 worker_slot_id: "GPT-WORKER-R168-CANONICAL-CI-STATE-ISOLATION-1"
 model_id: "GPT-5.6 Sol"
-reservation_state: "RESERVED_PRE_SNAPSHOT"
+reservation_state: "RELEASED_POST_CANONICAL_MERGE"
 implementation_branch: "gpt/canonical-ci-state-isolation-r168"
-branch_must_not_exist_before_snapshot: true
-pull_request: null
+pull_request: 517
 
-capacity:
+historical_capacity:
   gpt_parallel_routes_allowed: true
   gpt_active_slots_max: 2
   r166_active_slot_count_before_r168: 1
@@ -21,21 +20,28 @@ capacity:
   concurrent_codex_r167: true
   cross_agent_overlap: "O1_READ_ONLY_COEXISTENCE"
 
-reservation_scope: "CONTROL_TOWER_CI_STATE_ISOLATION_FOUR_FILE_SURFACE_ONLY"
-reservation_exclusions:
+current_reservation_scope: []
+historical_reservation_scope: "CONTROL_TOWER_CI_STATE_ISOLATION_FOUR_FILE_SURFACE_ONLY"
+historical_reservation_exclusions:
   - "W5 Event Coverage runtime and workflow"
   - "creative_runtime/apps/cli/root tests/R167 CODEX surfaces"
   - "W3 canonical runtime or domain truth"
   - "trading/production/credential/provider surfaces"
 
-activation_requires:
-  - "canonical ACTIVE-GPT-ENGINEERING-WORKERS R168 slot"
-  - "Lane A active route projection"
-  - "fresh R168 Control Tower activation scan"
-  - "Issue #496 EFFECTIVE_SPEC_SNAPSHOT/v1 after all bindings"
+terminal_binding:
+  worker_registry: "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+  route: "coordination/ROUTES/GPT-CANONICAL-CI-STATE-ISOLATION-R168.yaml"
+  work_claim: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/WORK-CLAIM.yaml"
+  task_lease: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/TASK-LEASE.yaml"
+  closeout_receipt: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/POST-MERGE-WORKER-CLOSEOUT.yaml"
+  accepted_exact_head: "6a00939495ec7d8c974e5fbe8a8940a56dec3855"
+  canonical_merge: "7c77e303a124f1debfb52f497eccd1db3f9f7cb4"
 
 reservation_effect:
-  execution_identity_reserved: true
+  execution_identity_reserved: false
   substantive_write_authorized_now: false
   review_authority: false
   merge_authority: false
+
+reactivation_allowed: false
+reactivation_requirement: "NEW_GOVERNED_TASK_IDENTITY_AND_FRESH_RESERVATION"

@@ -7,32 +7,38 @@ source_issue: 496
 agent_type: "GPT_ENGINEERING_WORKER"
 worker_slot_id: "GPT-WORKER-R168-CANONICAL-CI-STATE-ISOLATION-1"
 implementation_branch: "gpt/canonical-ci-state-isolation-r168"
-pull_request: null
-lease_state: "RESERVED_PRE_SNAPSHOT"
-execution_allowed: true
+pull_request: 517
+lease_state: "RELEASED_POST_CANONICAL_MERGE"
+execution_allowed: false
 substantive_write_allowed: false
-substantive_write_gate: "ISSUE_496_EFFECTIVE_SPEC_SNAPSHOT_REQUIRED"
+substantive_write_gate: "CLOSED_POST_CANONICAL_MERGE"
 
-exclusive_write_surface:
+current_exclusive_write_surface: []
+historical_exclusive_write_surface:
   - ".github/workflows/program-control-tower.yml"
   - "coordination/CONTROL-TOWER/integration_state_isolation.py"
   - "coordination/CONTROL-TOWER/integration_state_isolation.schema.json"
   - "coordination/CONTROL-TOWER/tests/test_integration_state_isolation.py"
 
-concurrency:
+terminal_binding:
+  route: "coordination/ROUTES/GPT-CANONICAL-CI-STATE-ISOLATION-R168.yaml"
+  work_claim: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/WORK-CLAIM.yaml"
+  authorization_witness: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/AUTHORIZATION-WITNESS.yaml"
+  active_worker_registry: "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+  closeout_receipt: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/POST-MERGE-WORKER-CLOSEOUT.yaml"
+  accepted_exact_head: "6a00939495ec7d8c974e5fbe8a8940a56dec3855"
+  canonical_merge: "7c77e303a124f1debfb52f497eccd1db3f9f7cb4"
+  mismatch_action: "LEASE_INVALID_FAIL_CLOSED"
+
+historical_concurrency:
   gpt_r166_active: true
   codex_r167_active: true
   overlap: "O1_READ_ONLY_COEXISTENCE"
   same_surface_second_writer_forbidden: true
   nested_parallelism: "FORBIDDEN"
 
-freshness:
-  route: "coordination/ROUTES/GPT-CANONICAL-CI-STATE-ISOLATION-R168.yaml"
-  work_claim: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/WORK-CLAIM.yaml"
-  authorization_witness: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CANONICAL-CI-STATE-ISOLATION-R168/AUTHORIZATION-WITNESS.yaml"
-  active_worker_registry: "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
-  mismatch_action: "LEASE_INVALID_FAIL_CLOSED"
-
 self_review_allowed: false
 self_merge_allowed: false
-lease_expiry: "ON_HANDOFF_OR_GOVERNANCE_SUPERSESSION"
+lease_expiry: "RESOLVED_BY_CANONICAL_MERGE_AND_WORKER_CLOSEOUT"
+reactivation_allowed: false
+reactivation_requirement: "NEW_GOVERNED_TASK_IDENTITY_AND_FRESH_LEASE"
