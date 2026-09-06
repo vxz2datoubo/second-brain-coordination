@@ -1,0 +1,77 @@
+schema_version: "1.0"
+route_id: "SECOND-BRAIN-R586-PR578-REVIEW-BOUNDED-REMEDIATION"
+repository: "vxz2datoubo/second-brain-coordination"
+project: "CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001"
+target_agent: "WORKBUDDY"
+task_id: "WORKBUDDY-R586-PR578-REMEDIATION"
+route_epoch: 586
+source_issue: 577
+active_issue: 586
+source_pull_request: 578
+source_exact_head: "9d536357755a44ac50ea4352ac7c319d97101779"
+independent_review: "pullrequestreview-5108122069"
+review_verdict: "CHANGES_REQUIRED"
+status: "BLOCKED"
+execution_allowed: false
+release_state: "ROUTE_PACKAGE_PUBLISHED_PENDING_SEPARATE_CANONICAL_ACTIVATION"
+automatic_resume_within_task: false
+second_user_start_command_required: false
+direct_main_write: false
+merge_authorized: false
+review_authority: false
+acceptance_authority: false
+
+canonical_base_snapshot:
+  branch: "main"
+  exact_head: "04124e233dc813cca4054851ef6a470b342d82fe"
+  drift_action: "FAIL_CLOSED_RECONCILE_AND_REISSUE_ACTIVATION"
+
+frozen_source:
+  pr: 578
+  exact_head: "9d536357755a44ac50ea4352ac7c319d97101779"
+  branch_write_authority: false
+  codex_further_engineering: false
+
+sole_remediation_basis:
+  - "P1-01 EXACT_HEAD_CI_SCOPE_GATE_USES_STALE_BASELINE"
+  - "P1-02 CALLER_SELECTED_BASELINE_CAN_REDEFINE_SCOPE_UNIVERSE"
+
+future_execution:
+  implementation_branch: "workbuddy/r586-pr578-review-bounded-remediation"
+  executable_batch: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R586/EXECUTABLE-BATCH.json"
+  creation_authority_now: false
+  activation_requires:
+    - "this route-release exact head receives independent ACCEPT"
+    - "the accepted release is separately canonicalized"
+    - "GPT fresh-reconciles the then-current main and predecessor slot state"
+    - "a separate canonical activation change binds ACTIVE-WORKBUDDY-TASK and ACTIVE-PROGRAM-LANES consistently"
+    - "the activation receives its own governed canonicalization before WorkBuddy writes"
+
+scope_authority:
+  exact_source_port_allowlist_ref: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R586/WORK-CLAIM.yaml"
+  semantic_modification_surface:
+    - ".github/workflows/creative-runtime-offline.yml"
+    - "tools/verify_r175_scope.py"
+    - "tests/test_creative_public_safe_boundary.py"
+  canonical_policy_floor_write: false
+  e577_allowlist_widening: false
+
+bindings:
+  task_brief: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R586/TASK-BRIEF.yaml"
+  work_claim: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R586/WORK-CLAIM.yaml"
+  task_lease: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R586/TASK-LEASE.yaml"
+  executor_reservation: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R586/EXECUTOR-RESERVATION.yaml"
+  prewrite_snapshot: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R586/PREWRITE-RECONCILIATION-SNAPSHOT.yaml"
+
+hard_stops:
+  - "attempt to execute from this route-release candidate or its canonical non-executable package"
+  - "frozen PR #578 exact head or independent review identity drift"
+  - "semantic edit outside the three review-bounded remediation files"
+  - "E577 allowlist widening"
+  - "canonical public-safe policy floor modification"
+  - "Codex R577 authority reuse"
+  - "Ready self-review self-accept merge or history rewrite"
+
+return_target: "GPT"
+completion_signal: "WORKBUDDY_R586_PR578_REMEDIATION_READY_FOR_GPT_REVIEW"
+next_control_action: "INDEPENDENTLY_REVIEW_ROUTE_PACKAGE_THEN_SEPARATELY_CANONICALIZE_AND_FRESHLY_ACTIVATE"

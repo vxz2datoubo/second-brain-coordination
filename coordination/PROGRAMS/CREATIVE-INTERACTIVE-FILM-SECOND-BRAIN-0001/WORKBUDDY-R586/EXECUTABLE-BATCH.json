@@ -1,0 +1,60 @@
+{
+  "schema": "CreativeExecutorWorkBatch/v1",
+  "batch_id": "CIF-R586-PR578-REVIEW-BOUNDED-REMEDIATION-001",
+  "project_id": "CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001",
+  "authority": "RESERVED_NON_EXECUTABLE_UNTIL_SEPARATE_CANONICAL_ACTIVATION",
+  "route_authority": {
+    "execution_allowed": false,
+    "task_id": "WORKBUDDY-R586-PR578-REMEDIATION",
+    "active_issue": 586,
+    "source_issue": 577,
+    "source_pull_request": 578,
+    "route_epoch": 586,
+    "route_ref": "coordination/ROUTES/WORKBUDDY-R586-PR578-REMEDIATION.yaml",
+    "claim_ref": "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R586/WORK-CLAIM.yaml",
+    "lease_ref": "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R586/TASK-LEASE.yaml",
+    "snapshot_ref": "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R586/PREWRITE-RECONCILIATION-SNAPSHOT.yaml"
+  },
+  "base_snapshot": "04124e233dc813cca4054851ef6a470b342d82fe",
+  "activation_base": "MUST_BE_FRESHLY_REBOUND_BY_SEPARATE_CANONICAL_ACTIVATION",
+  "frozen_source": {
+    "pr": 578,
+    "exact_head": "9d536357755a44ac50ea4352ac7c319d97101779",
+    "write_authority": false
+  },
+  "independent_review": {
+    "ref": "pullrequestreview-5108122069",
+    "verdict": "CHANGES_REQUIRED",
+    "mandatory_findings": [
+      "P1-01 EXACT_HEAD_CI_SCOPE_GATE_USES_STALE_BASELINE",
+      "P1-02 CALLER_SELECTED_BASELINE_CAN_REDEFINE_SCOPE_UNIVERSE"
+    ]
+  },
+  "items": [
+    {"item_id":"WB-R586-V1","kind":"FRESH_IDENTITY_PREFLIGHT","status":"PLANNED","depends_on":[]},
+    {"item_id":"WB-R586-S1","kind":"EXACT_SOURCE_PORT","status":"PLANNED","depends_on":["WB-R586-V1"],"write_paths":["E577_EXACT_ALLOWLIST_ONLY"]},
+    {"item_id":"WB-R586-S2","kind":"P1_01_TRUSTED_PR_BASE_BINDING","status":"PLANNED","depends_on":["WB-R586-S1"],"write_paths":[".github/workflows/creative-runtime-offline.yml"]},
+    {"item_id":"WB-R586-S3","kind":"P1_02_NON_CALLER_MINTABLE_SCOPE_BASE","status":"PLANNED","depends_on":["WB-R586-S2"],"write_paths":["tools/verify_r175_scope.py"]},
+    {"item_id":"WB-R586-S4","kind":"ADVERSARIAL_BASELINE_REGRESSIONS","status":"PLANNED","depends_on":["WB-R586-S3"],"write_paths":["tests/test_creative_public_safe_boundary.py"]},
+    {"item_id":"WB-R586-V2","kind":"FULL_OFFLINE_REGRESSION","status":"PLANNED","depends_on":["WB-R586-S4"]}
+  ],
+  "activation_requirements": [
+    "route-release exact head independently ACCEPTED",
+    "route-release separately canonicalized",
+    "fresh GPT activation snapshot from then-current main",
+    "ACTIVE-WORKBUDDY-TASK and ACTIVE-PROGRAM-LANES updated consistently",
+    "activation separately canonicalized and freshly read back",
+    "implementation branch created only after that readback"
+  ],
+  "stop_conditions": [
+    "execution attempted from route-release package",
+    "frozen PR #578 exact head or review identity drift",
+    "unlisted semantic write needed",
+    "E577 allowlist widening needed",
+    "canonical public-safe policy floor modification needed",
+    "Ready, merge, self-review, self-acceptance or history rewrite required"
+  ],
+  "return_package_required": true,
+  "return_target": "GPT",
+  "completion_signal": "WORKBUDDY_R586_PR578_REMEDIATION_READY_FOR_GPT_REVIEW"
+}
