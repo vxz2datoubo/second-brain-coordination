@@ -1,0 +1,176 @@
+schema_version: "1.3"
+registry_id: DS02-NUMERIC-INTEGRITY-v1
+probability:
+  internal_type: IEEE754_FLOAT64
+  canonical_serialization:
+    decimals: 12
+    rounding: ROUND_HALF_EVEN
+    scientific_notation: false
+  ui:
+    display_precision_is_authority: false
+    round_trip_from_display_forbidden: true
+  stable_update:
+    repeated_binary_evidence: LOG_ODDS_OR_LOG_PROBABILITY
+    direct_likelihood_product_discouraged: true
+    finite_probability_required: true
+    caller_probability_is_validated_belief: false
+    phase1_packet_status: UNVALIDATED_PROPOSAL
+    validated_computation_receipt_available: false
+  canonical_digest:
+    algorithm: SHA256
+    encoding: LOWERCASE_HEX_64
+    canonicalization: SORTED_KEYS_COMPACT_JSON_UTF8
+    excludes_field: numeric_integrity.canonical_digest
+    authenticity_claim: false
+    purpose: CONTENT_INTEGRITY_NOT_PRODUCER_AUTHORITY
+time:
+  timestamps_timezone_explicit: true
+  point_in_time_gate: "available_at <= decision_time"
+  knowledge_cutoff_gate: "available_at <= knowledge_cutoff"
+  identity_order_gate: "knowledge_cutoff <= as_of_time <= decision_time"
+  unknown_temporal_fields_may_not_be_backfilled_from_other_fields: true
+prior:
+  ex_ante_required: true
+  structured_training_window_required: true
+  training_window_end_must_not_exceed_knowledge_cutoff: true
+  effective_from_must_not_exceed_knowledge_cutoff: true
+  retrospective_tuning_as_ex_ante: REJECTED
+  regime_scope_required: true
+shrinkage:
+  contract_safety_gate_only_not_alpha_parameter: true
+  hierarchy_required_for_security_level_small_sample_reasoning: true
+  minimum_effective_sample_size_for_extreme_probability: 20
+  extreme_probability_threshold: 0.90
+  below_threshold_extreme_posterior_result: SMALL_SAMPLE_SHRINKAGE_REQUIRED
+  result_classification: REVALIDATION_REQUIRED
+  empirical_optimality_claim: false
+revision:
+  data_snapshot_hash_required: true
+  revised_data_requires_revision_lineage: true
+  historical_backtest_replacement_without_lineage: PIT_VIOLATION
+identity:
+  scope_type: SINGLE_SECURITY
+  target_definition_version_required: true
+  feature_definition_version_required: true
+  feature_polarity_required: true
+  exchange_required: true
+  board_required: true
+  security_type_required: true
+  market_rule_version_required: true
+  market_rule_clause_state_version_required: true
+  rule_clause_ids_required: true
+  cross_exchange_substitution: REVALIDATION_REQUIRED
+  rule_clause_activation_mismatch: REVALIDATION_REQUIRED
+market_rule_compatibility:
+  registry_version: A_SHARE_RULE_BINDING_2026-07-06_v2
+  clause_ids_are_internal_contract_symbols_not_official_clause_numbers: true
+  unknown_clause_result: RULE_CLAUSE_UNKNOWN
+  deferred_clause_result: RULE_CLAUSE_DEFERRED
+  bindings:
+    - exchange: SSE
+      board: MAIN
+      security_type: A_SHARE_STOCK
+      market_rule_version: SSE_TRADING_RULES_2026
+      market_rule_clause_state_version: SSE_RULE_STATE_2026-07-06_ACTIVE
+      known_clause_ids: [SSE_CORE_TRADING]
+      active_clause_ids: [SSE_CORE_TRADING]
+      deferred_clause_ids: []
+    - exchange: SSE
+      board: STAR
+      security_type: A_SHARE_STOCK
+      market_rule_version: SSE_TRADING_RULES_2026
+      market_rule_clause_state_version: SSE_RULE_STATE_2026-07-06_ACTIVE
+      known_clause_ids: [SSE_CORE_TRADING]
+      active_clause_ids: [SSE_CORE_TRADING]
+      deferred_clause_ids: []
+    - exchange: SZSE
+      board: MAIN
+      security_type: A_SHARE_STOCK
+      market_rule_version: SZSE_TRADING_RULES_2026
+      market_rule_clause_state_version: SZSE_RULE_STATE_2026-07-06_ACTIVE
+      known_clause_ids: [SZSE_CORE_TRADING]
+      active_clause_ids: [SZSE_CORE_TRADING]
+      deferred_clause_ids: []
+    - exchange: SZSE
+      board: CHINEXT
+      security_type: A_SHARE_STOCK
+      market_rule_version: SZSE_TRADING_RULES_2026
+      market_rule_clause_state_version: SZSE_RULE_STATE_2026-07-06_ACTIVE
+      known_clause_ids: [SZSE_CORE_TRADING]
+      active_clause_ids: [SZSE_CORE_TRADING]
+      deferred_clause_ids: []
+    - exchange: BSE
+      board: BSE
+      security_type: A_SHARE_STOCK
+      market_rule_version: BSE_TRADING_RULES_2026
+      market_rule_clause_state_version: BSE_RULE_STATE_2026-07-06_PARTIAL_DEFERRED
+      known_clause_ids:
+        - BSE_CORE_TRADING
+        - BSE_2026_DEFERRED_CLAUSE_SENTINEL
+      active_clause_ids:
+        - BSE_CORE_TRADING
+      deferred_clause_ids:
+        - BSE_2026_DEFERRED_CLAUSE_SENTINEL
+likelihood_verification:
+  contract_version: DS02-LIKELIHOOD-ADAPTER-CONTRACT-v1
+  canonical_likelihood_authority_available: false
+  caller_verification_status_is_authority: false
+  aggregate_must_equal_sum_of_verified_admitted_contributions: true
+  unverified_or_unregistered_evidence_result: LIKELIHOOD_UNVERIFIED
+  nonzero_verified_contribution_requires_diagnostics_calibration_status: PASS
+  receipt:
+    algorithm: SHA256
+    canonicalization: SORTED_KEYS_COMPACT_JSON_UTF8
+    authenticity_claim: false
+    purpose: CONTENT_BINDING_FOR_DETERMINISTIC_CONTRACT_ORACLE_NOT_PRODUCER_AUTHENTICATION
+  registered_models:
+    - likelihood_model_id: likelihood-1
+      likelihood_model_version: v1
+      status: REGISTERED_PHASE1_CONTRACT_MODEL
+      verification_mode: DETERMINISTIC_CONTRACT_ORACLE
+      empirical_calibration_claim: false
+      production_likelihood_claim: false
+      allowed_feature_definition_versions:
+        - event-surprise-v1
+      log_bayes_factor_by_polarity:
+        POSITIVE: 0.4054651081081644
+        NEGATIVE: -0.4054651081081644
+        NEUTRAL: 0.0
+        NON_DIRECTIONAL: 0.0
+dependence:
+  canonical_dependence_authority_available: false
+  caller_independence_group_is_authority: false
+  required_lineage_fields:
+    - source_instance_id
+    - ancestry_refs
+    - shared_feed_group_ids
+    - shared_feature_group_ids
+    - shared_training_data_group_ids
+    - shared_model_lineage_ids
+  phase1_independence_status: UNVERIFIED
+  copied_or_shared_lineage_result: DEPENDENCE_COLLAPSE_REQUIRED
+  multiple_unverified_sources_without_collision_result: INDEPENDENCE_UNVERIFIED
+retraction:
+  append_only: true
+  deletion_of_historical_update_forbidden: true
+  recompute_from_surviving_admitted_evidence: true
+  additive_log_bayes_factor_retraction_must_be_reversible: true
+tolerances:
+  analytic_reference_absolute_error: 1.0e-12
+  sequential_batch_absolute_error: 1.0e-12
+  serialization_round_trip_absolute_error: 5.0e-13
+forbidden_numeric_shortcuts:
+  - LLM_CONFIDENCE_AS_PROBABILITY
+  - UI_PERCENT_AS_CANONICAL_POSTERIOR
+  - CALLER_POSTERIOR_AS_VALIDATED_BELIEF
+  - HISTORICAL_WIN_RATE_AS_FULL_PREDICTIVE_DISTRIBUTION
+  - SAME_DISPLAY_LABEL_WITH_DIFFERENT_TARGET_DEFINITION
+  - SILENT_FEATURE_POLARITY_FLIP
+  - SILENT_RULE_ERA_POOLING
+  - CALLER_INDEPENDENCE_LABEL_AS_DEPENDENCE_AUTHORITY
+  - RETROSPECTIVE_PRIOR_AS_EX_ANTE
+  - KNOWLEDGE_AFTER_CUTOFF_AS_HISTORICAL_EVIDENCE
+  - SMALL_SAMPLE_EXTREME_POSTERIOR_WITHOUT_SHRINKAGE_REVALIDATION
+  - UNBOUND_CANONICAL_DIGEST
+  - UNVERIFIED_LIKELIHOOD_AS_BAYES_FACTOR
+  - UNKNOWN_RULE_CLAUSE_AS_ACTIVE

@@ -1,0 +1,106 @@
+schema_version: "1.0"
+registry_id: DS02-RESEARCH-SOURCE-REGISTRY-v1
+source_issue: 522
+observed_at: "2026-08-30"
+policy:
+  evidence_only: true
+  source_cannot_mint_internal_authority: true
+  absence_of_source_support_must_not_be_filled_by_inference: true
+sources:
+  - id: PYMC-PPC
+    class: PRIMARY_PROJECT_DOCUMENTATION
+    url: https://www.pymc.io/projects/docs/en/stable/learn/core_notebooks/posterior_predictive.html
+    supports:
+      - prior predictive checks test implications of priors before conditioning on observed data
+      - posterior predictive checks compare replicated outcomes under posterior draws with observed structure
+    does_not_support: [model_correctness, A_share_alpha, trading_authority]
+    implementation_consequence: preserve prior and posterior predictive check status separately
+  - id: STAN-DIAGNOSTICS
+    class: PRIMARY_PROJECT_DOCUMENTATION
+    url: https://mc-stan.org/learn-stan/diagnostics-warnings.html
+    supports:
+      - R-hat and ESS diagnose chain mixing and effective information
+      - divergences and Monte Carlo diagnostics can invalidate numerical trust
+    does_not_support: [market_model_adequacy, economic_usefulness]
+    implementation_consequence: sampling path may abstain even when code completes
+  - id: ARVIZ-PSIS-LOO
+    class: PRIMARY_PROJECT_DOCUMENTATION
+    url: https://python.arviz.org/projects/stats/en/stable/api/generated/arviz_stats.loo.html
+    supports:
+      - PSIS-LOO estimates expected pointwise predictive performance
+      - Pareto-k is a diagnostic of approximation reliability
+    does_not_support: [live_forecast_profitability, trading_action_authority]
+    implementation_consequence: store LOO diagnostic provenance rather than only a scalar ranking
+  - id: TALTS-SBC
+    class: PEER_REVIEWED_METHOD
+    url: https://arxiv.org/abs/1804.06788
+    supports:
+      - simulation-based calibration can test Bayesian computational faithfulness under a generative model
+    does_not_support: [market_model_realism, A_share_external_validity]
+    implementation_consequence: SBC belongs to inference validation, not alpha validation
+  - id: GNEITING-RAFTERY-PROPER-SCORING
+    class: PEER_REVIEWED_METHOD
+    url: https://doi.org/10.1198/016214506000001437
+    supports:
+      - proper scoring rules provide principled evaluation of probabilistic forecasts
+    does_not_support: [profitability_after_costs, source_independence]
+    implementation_consequence: preserve forecast and outcome ledger for Brier and log-score evaluation
+  - id: ADAMS-MACKAY-BOCPD
+    class: RESEARCH_METHOD
+    url: https://arxiv.org/abs/0710.3742
+    supports:
+      - online Bayesian changepoint inference as a method family
+    does_not_support: [DS02_regime_authority, universal_market_regime_model]
+    implementation_consequence: DS-02 consumes DS-11 validity and change signals
+  - id: SSE-TRADING-RULES-2026
+    class: OFFICIAL_EXCHANGE_RULE
+    url: https://www.sse.com.cn/lawandrules/sselawsrules2025/stocks/exchange/c/c_20260424_10816482.shtml
+    published_at: "2026-04-24"
+    effective_at: "2026-07-06"
+    rule_version: SSE_TRADING_RULES_2026
+    supports:
+      - the 2026 SSE trading-rule document became effective on 2026-07-06
+      - the 2023 revision was superseded
+      - some provisions may have separately declared deferred implementation treatment
+    does_not_support: [predictive_alpha, transferability_of_pre_2026_likelihoods]
+    implementation_consequence: rule-era mismatch can require revalidation
+  - id: SZSE-TRADING-RULES-2026
+    class: OFFICIAL_EXCHANGE_RULE
+    url: https://www.szse.cn/lawrules/rule/trade/current/t20260424_620190.html
+    published_at: "2026-04-24"
+    effective_at: "2026-07-06"
+    rule_version: SZSE_TRADING_RULES_2026
+    supports:
+      - the 2026 SZSE trading-rule document became effective on 2026-07-06
+      - the 2023 revision was superseded
+    does_not_support: [predictive_alpha, identical_mechanics_across_exchanges]
+    implementation_consequence: exchange identity is part of rule-context binding
+  - id: BSE-TRADING-RULES-2026
+    class: OFFICIAL_EXCHANGE_RULE
+    url: https://www.bse.cn/jygl_list/200028217.html
+    published_at: "2026-04-24"
+    effective_at: "2026-07-06"
+    rule_version: BSE_TRADING_RULES_2026
+    supports:
+      - the revised BSE trading rules generally became effective on 2026-07-06
+      - specified clauses were explicitly deferred to later notice
+    does_not_support:
+      - treating every published clause as active on 2026-07-06
+      - importing SSE or SZSE mechanics
+      - predictive alpha
+    implementation_consequence: bind both rule version and clause activation-state version
+  - id: ISSUE-63-DS-FAMILY
+    class: CANONICAL_INTERNAL_REQUIREMENT
+    ref: issue-63
+    supports: [DS02_is_BELIEVE_lifecycle, research_only, NO_TRADE]
+    does_not_support: [runtime_implementation]
+  - id: ISSUE-62-KELLY
+    class: CANONICAL_INTERNAL_REQUIREMENT
+    ref: issue-62
+    supports: [Kelly_and_capital_allocation_are_downstream]
+    does_not_support: [DS02_position_sizing]
+  - id: ISSUE-457-EPISTEMIC
+    class: CANONICAL_INTERNAL_REQUIREMENT
+    ref: issue-457
+    supports: [UNKNOWN_and_abstention_are_legitimate_derived_states, epistemic_authority_must_not_be_duplicated]
+    does_not_support: [probability_calibration_by_itself]
