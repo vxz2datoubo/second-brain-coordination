@@ -1,0 +1,35 @@
+schema: TEST_RECEIPT/v1
+project: SECOND_BRAIN
+task_id: GPT-R161-INTERACTIVE-FILM-REMEDIATION-R163
+slice: A_REAL_S00_S06_V1_MIGRATION
+receipt_class: EXECUTOR_OBSERVED_GITHUB_ACTIONS_NOT_INDEPENDENT_REVIEW
+workflow: .github/workflows/r163-interactive-film-remediation.yml
+observed_run:
+  run_id: 33269745554
+  branch_head: 1e252f8d21c9c7a5553f766e15e344fa05d0c93b
+  python_3_11:
+    predecessor_s00_s06: PASS_22
+    r163_a_legacy_migration: PASS_9
+    diff_hygiene: PASS
+  python_3_13:
+    predecessor_s00_s06: PASS_22
+    r163_a_legacy_migration: PASS_9
+    diff_hygiene: PASS
+  overall: FAILURE_VALIDATION_HARNESS_ONLY
+harness_failure:
+  cause: default actions/checkout pull_request ref was a merge ref, so frozen-root scope diff also saw canonical main governance publication paths
+  example_merge_ref: 5c65391e80d603ab13dcb3419608cfcf4fb97eaf
+  unauthorized_worker_change_inferred: false
+  application_test_failure: false
+harness_correction:
+  - checkout github.event.pull_request.head.sha explicitly
+  - assert git rev-parse HEAD equals the event exact head
+  - run baseline ancestry, tests, diff and scope audit against that exact branch head
+final_checkpoint_expected_commands:
+  - python -m unittest discover -s tests -p 'test_creative_s*.py' -v
+  - python -m unittest discover -s tests -p 'test_r163_legacy_migration.py' -v
+  - git diff --check 58cd5b271164eff71b0824ee42df2723cbc0247d...HEAD
+  - git merge-base --is-ancestor 58cd5b271164eff71b0824ee42df2723cbc0247d HEAD
+  - exact changed-file allowlist and changed-Python forbidden-capability scan
+final_checkpoint_result: PENDING_EXTERNAL_RUN_AFTER_THIS_RECEIPT_COMMIT
+no_claim_of_independent_review: true

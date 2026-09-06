@@ -1,0 +1,70 @@
+name: R163 Interactive Film Remediation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'creative_runtime/**'
+      - 'apps/cli/**'
+      - 'tests/**'
+      - 'coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/REMEDIATION-R163/**'
+      - '.github/workflows/r163-interactive-film-remediation.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  exact-head-validation:
+    name: exact-head / py${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.13']
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Record and verify exact head
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          actual="$(git rev-parse HEAD)"
+          printf 'expected_head=%s\nactual_head=%s\n' "$EXPECTED_HEAD" "$actual"
+          test "$actual" = "$EXPECTED_HEAD"
+          git merge-base --is-ancestor 58cd5b271164eff71b0824ee42df2723cbc0247d HEAD
+      - name: Predecessor S00-S06 regression
+        run: python -m unittest discover -s tests -p 'test_creative_s*.py' -v
+      - name: R163 A genuine legacy migration regression
+        run: python -m unittest discover -s tests -p 'test_r163_legacy_migration.py' -v
+      - name: R163 B per-event prefix timeline truth
+        run: python -m unittest discover -s tests -p 'test_r163_timeline.py' -v
+      - name: R163 C end-to-end independently observable evidence
+        run: python -m unittest discover -s tests -p 'test_r163_c_end_to_end.py' -v
+      - name: Diff hygiene
+        run: git diff --check 58cd5b271164eff71b0824ee42df2723cbc0247d...HEAD
+      - name: Scope and forbidden-capability audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          changed="$(git diff --name-only 58cd5b271164eff71b0824ee42df2723cbc0247d...HEAD)"
+          printf '%s\n' "$changed"
+          while IFS= read -r path; do
+            case "$path" in
+              creative_runtime/*|apps/cli/*|tests/*|coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/REMEDIATION-R163/*|.github/workflows/r163-interactive-film-remediation.yml|.gitignore) ;;
+              *) echo "Unauthorized R163 changed path: $path" >&2; exit 1 ;;
+            esac
+          done <<< "$changed"
+          changed_python="$(printf '%s\n' "$changed" | grep -E '^(creative_runtime|apps/cli|tests)/.*\.py$' || true)"
+          if [[ -n "$changed_python" ]]; then
+            if grep -nE '(os\.environ|os\.getenv|requests\.|urllib\.request|httpx\.|subprocess.*curl|openai\.|anthropic\.|place_order|send_order)' $changed_python; then
+              echo 'Forbidden network/credential/trading capability pattern in R163 changed Python' >&2
+              exit 1
+            fi
+          fi

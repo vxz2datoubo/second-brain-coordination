@@ -1,0 +1,43 @@
+schema: R163_C_SOURCE_REUSE_RECEIPT/v1
+project: SECOND_BRAIN
+task_id: GPT-R161-INTERACTIVE-FILM-REMEDIATION-R163
+source_pr: 493
+source_exact_head: 1dcd15011b02e5452186f178ea77746690d4d6a6
+source_disposition: REFERENCE_ONLY_UNACCEPTED_CANDIDATE
+source_selection_registry: coordination/PROGRAMS/REALTIME-INTERACTIVE-FILM-GAME-0002/REMEDIATION-R163/SOURCE-SELECTION-PROVENANCE.yaml
+reuse_mode: SELECTIVE_REFERENCE_REIMPLEMENT_AND_RETEST
+blind_cherry_pick: false
+accepted_asset_characterization: false
+referenced_paths:
+  - path: creative_runtime/continuity.py
+    source_blob: 34a52c1db323a575cad0d66021a3fc28527367b6
+    adaptation: rebuilt on R163 build_prefix_timeline truth; final-state digest corrected; maintenance state_patch handled diagnostically; no generation authority added
+  - path: creative_runtime/review.py
+    source_blob: 86ff8f6cf5daa88825da5f68e5577da6d5c11338
+    adaptation: transcript and review timeline now derive from exact prefix replay; final state and final-state digest bound explicitly
+  - path: apps/cli/creativectl.py
+    source_blob: f72879d613f1b715f71a4fe361fed000ef02ee5a
+    adaptation: only transcript/compare/director/review-packet concepts reused; A legacy-first startup and B fail-closed prefix timeline remain authoritative; slot load validates before atomically restoring default
+  - path: tests/test_interactive_s09_continuity.py
+    source_blob: 0c0cd3c49ce2319442714783f4b42a49e1ddca3b
+    adaptation: adversarial continuity coverage rebuilt inside R163 C end-to-end suite
+  - path: tests/test_interactive_s10_review.py
+    source_blob: 8430a766d79f9ed42623d6c914221e27fb36a621
+    adaptation: deterministic review coverage rebuilt and coupled to legacy-migrated full route
+not_reused:
+  - PR493 migration implementation
+  - PR493 timeline implementation
+  - PR493 CI or review verdict as evidence for PR495
+verification_required:
+  - predecessor S00-S06
+  - R163 A genuine legacy migration
+  - R163 B prefix timeline
+  - R163 C end-to-end
+  - exact-head GitHub Actions on Python 3.11 and 3.13
+  - diff hygiene
+  - changed-file scope
+  - forbidden-capability scan
+pr493_mutation: false
+pr493_merge: false
+pr493_relabel: false
+pr493_retroactive_provenance_repair: false
