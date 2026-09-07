@@ -1,6 +1,7 @@
 from contextlib import ExitStack
 import copy
 from pathlib import Path
+import subprocess
 import unittest
 from unittest.mock import patch
 
@@ -9,6 +10,7 @@ from coordination.EXECUTION import unified_active_task_registry as registry
 
 ROOT = Path(__file__).resolve().parents[1]
 MAIN = "f" * 40
+RUNTIME_MAIN = "8aca9a842617177f4aea3187d93a021bc30b405f"
 R175_INDEX = registry.LEGACY_DEFAULT_REF
 R184_INDEX = "coordination/EXECUTION/ACTIVE-WORKBUDDY-R184-LOCAL-BRIDGE.yaml"
 S1_INDEX = "coordination/EXECUTION/ACTIVE-WORKBUDDY-R186-S1-LUOXUE-SOURCE-PROBE.yaml"
@@ -70,8 +72,20 @@ def _admission(authority, dispatch):
 
 class S1LocalOnlyRegisteredProcessStartTests(unittest.TestCase):
     def _trusted_tree(self):
+        # This suite preserves the exact pre-release R186 runtime authority as a
+        # historical regression after R186 is removed from the live registry.
+        # The release-specific suite separately proves current no-redispatch state.
         def read(path):
-            return (ROOT / path).read_bytes()
+            proc = subprocess.run(
+                ["git", "show", f"{RUNTIME_MAIN}:{path}"],
+                cwd=ROOT,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=False,
+            )
+            if proc.returncode != 0:
+                raise AssertionError(proc.stderr.decode("utf-8", errors="replace"))
+            return proc.stdout
 
         stack = ExitStack()
         stack.enter_context(
