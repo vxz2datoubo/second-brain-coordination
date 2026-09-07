@@ -42,6 +42,17 @@ def _dispatch(authority, *, paths=None, grants=None):
         result["authorized_paths"] = list(paths)
     if grants is not None:
         result["authority_grants"] = list(grants)
+    result.update(
+        {
+            "executor": "WORKBUDDY_ENGINEERING_EXECUTOR",
+            "carrier": "WORKBUDDY_DESKTOP_INTERACTIVE",
+            "compute_class": "STANDARD",
+            "model_profile": "DEEP_ENGINEERING",
+            "resolved_model_display_name": "Deepseek-V4-Pro",
+            "model_resolution_status": "RESOLVED",
+        }
+    )
+    result["compute_lane_receipt_digest"] = base.compute_lane_receipt_digest(result)
     return result
 
 
