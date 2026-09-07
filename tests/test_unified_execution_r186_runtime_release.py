@@ -68,7 +68,7 @@ class R186RuntimeCompletionReleaseTests(unittest.TestCase):
         registry_text = self._read(REGISTRY).decode("utf-8")
         self.assertNotIn(R186_INDEX, registry_text)
         with self._registry_tree():
-            with self.assertRaises(base.ExecutionContractError) as ctx:
+            with self.assertRaises(registry.ExecutionContractError) as ctx:
                 registry.build_verified_canonical_authority_for_task_index(".", R186_INDEX)
         self.assertIn("not registered", str(ctx.exception))
 
@@ -154,6 +154,7 @@ class R186RuntimeCompletionReleaseTests(unittest.TestCase):
                 R186_ROUTE,
                 RELEASE,
                 "tests/test_unified_execution_r186_runtime_release.py",
+                "tests/test_unified_execution_s1_local_only.py",
             },
         )
         self.assertNotIn(R175_INDEX, changed)
