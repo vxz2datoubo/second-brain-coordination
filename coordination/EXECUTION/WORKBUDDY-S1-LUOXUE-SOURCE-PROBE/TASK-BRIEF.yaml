@@ -1,0 +1,108 @@
+schema: "WorkBuddyTaskBrief/v1"
+project: "SECOND_BRAIN"
+repository: "vxz2datoubo/second-brain-coordination"
+source_issue: 609
+task_id: "WORKBUDDY-R186-S1-LUOXUE-SOURCE-PROBE"
+route_epoch: 186
+executor: "WORKBUDDY"
+mode: "BOUNDED_LOCAL_SOURCE_AND_SYNTHETIC_SECURITY_PROBE"
+status: "READY"
+execution_allowed: true
+implementation_branch: "workbuddy/s1-luoxue-source-probe"
+branch_parent_required: "7dedd7b6337cf3ed85af63e8ab8698e57d3db9dc"
+
+mission: >-
+  Execute the already prepared S1 bounded source/capability and synthetic-security probe
+  locally, after independent review and separate canonicalization only. The task closes
+  S1 current ChatGPT source and owner-delta capability unknowns without starting S2,
+  real capture, operational W3 writes, Local Bridge, or any GitHub repository mutation.
+
+architecture_binding:
+  revision: "OWNER_RESET_CONVERGENCE_2026-09-06-R2"
+  packet_sha256: "26d9d07e1718b8c9e15b56c983251f5cb43a88cdfbfd68896c58655634bbc45c"
+  bundle: "coordination/ARCHITECTURE/H2-LUOXUE-MEMORY/R2-CANONICAL/BUNDLE-MANIFEST.yaml"
+
+preparation_provenance:
+  preparation_schema: "S1_WORKBUDDY_PROBE_PREPARATION/v1"
+  admission_schema: "S1_WORKBUDDY_EXECUTION_ADMISSION_RESULT/v1"
+  admission_entering_release: "REQUIRES_GOVERNED_RELEASE"
+  provenance_is_execution_authority: false
+
+carrier_policy:
+  carrier: "WORKBUDDY_DESKTOP_INTERACTIVE"
+  astra_allowed: false
+  frontier_allowed: false
+  silent_expensive_model_upgrade: false
+
+canonical_collision_fencing:
+  reservation_surface:
+    - "coordination/EXECUTION/WORKBUDDY-S1-LUOXUE-SOURCE-PROBE/**"
+  semantics: "GOVERNANCE_COLLISION_IDENTITY_ONLY"
+  canonical_collision_domain_expected: "WRITESET_SHA256:c38fe512914ca7002e06001ad8d7958ff061d7f9374817cdfe9816b3b1773da3"
+
+local_execution:
+  root: "F:/SecondBrainWorkspace"
+  governance_repo_read_only: "F:/SecondBrainWorkspace/second-brain-coordination/"
+  readonly_probe_inputs: "F:/SecondBrainWorkspace/evidence/s1-readonly-probe/"
+  only_write_root: "F:/SecondBrainWorkspace/evidence/s1-workbuddy-probe/**"
+  forbidden_root: "F:/aidanao"
+  github_repository_write_allowed: false
+  execution_identity_branch_is_metadata_only: true
+  branch_creation_allowed: false
+
+dispatch_projection:
+  authorized_paths: []
+  authority_grants:
+    - "EXECUTE_TASK"
+  authority_denials:
+    - "NO_GITHUB_WRITE"
+    - "NO_REPOSITORY_EDIT"
+    - "NO_BRANCH_WRITE"
+    - "NO_DIRECT_MAIN_WRITE"
+    - "NO_SELF_REVIEW"
+    - "NO_SELF_MERGE"
+    - "NO_R175_MUTATION"
+    - "NO_R184_MUTATION"
+    - "NO_LOCAL_BRIDGE_START"
+    - "NO_REAL_CAPTURE"
+    - "NO_OPERATIONAL_W3_WRITE"
+    - "NO_S2_START"
+    - "NO_SECRET_CREDENTIAL_READ"
+
+execution_requirements:
+  - "Fresh-read the explicit registered S1 index and the complete R175/R184/S1 registry."
+  - "Require registry-wide duplicate-task, branch, collision-domain and write-surface admission to pass."
+  - "Rebuild the S1 full Route -> Claim -> Lease -> Reservation -> Prewrite -> Batch authority chain from canonical main."
+  - "Narrow canonical reservation authority at dispatch to zero Git authorized paths and EXECUTE_TASK only."
+  - "Treat F:/SecondBrainWorkspace/second-brain-coordination as read-only."
+  - "Treat F:/SecondBrainWorkspace/evidence/s1-readonly-probe as read-only."
+  - "Write only under F:/SecondBrainWorkspace/evidence/s1-workbuddy-probe."
+  - "Use synthetic/non-secret fixtures for security checks; do not read authentication secret values."
+  - "Do not create or mutate the execution identity branch."
+  - "Do not start Local Bridge, S2, real capture or operational W3."
+
+acceptance:
+  - "source/capability probe evidence is bounded to the prepared S1 scope"
+  - "synthetic security probe uses no real secrets and no real capture"
+  - "all produced evidence is under the single allowed local write root"
+  - "no repository or branch mutation occurs"
+  - "R175 and R184 remain unchanged and non-colliding"
+  - "return package reports findings, unknowns and stop conditions without self-ACCEPT"
+
+hard_boundaries:
+  - "NO_GITHUB_WRITE"
+  - "NO_REPOSITORY_EDIT"
+  - "NO_BRANCH_WRITE"
+  - "NO_DIRECT_MAIN_WRITE"
+  - "NO_SELF_REVIEW"
+  - "NO_SELF_MERGE"
+  - "NO_R175_MUTATION"
+  - "NO_R184_MUTATION"
+  - "NO_LOCAL_BRIDGE_START"
+  - "NO_REAL_CAPTURE"
+  - "NO_OPERATIONAL_W3_WRITE"
+  - "NO_S2_START"
+  - "NO_SECRET_CREDENTIAL_READ"
+
+return_target: "GPT_ARCHITECTURE_OWNER"
+completion_signal: "WORKBUDDY_R186_S1_LUOXUE_SOURCE_PROBE_COMPLETE_RETURN_TO_GPT"
