@@ -1,0 +1,134 @@
+{
+  "schema": "CreativeExecutorWorkBatch/v1",
+  "batch_id": "SECOND-BRAIN-R186-S1-LUOXUE-SOURCE-PROBE-001",
+  "project_id": "SECOND_BRAIN",
+  "authority": "CANONICAL_BOUND_BATCH_EXECUTABLE",
+  "source_checkpoint": {
+    "branch": "main",
+    "exact_head": "7dedd7b6337cf3ed85af63e8ab8698e57d3db9dc",
+    "checkpoint_remote_ref": "refs/heads/main"
+  },
+  "route_authority": {
+    "execution_allowed": true,
+    "task_id": "WORKBUDDY-R186-S1-LUOXUE-SOURCE-PROBE",
+    "active_issue": 609,
+    "route_epoch": 186,
+    "route_ref": "coordination/ROUTES/WORKBUDDY-R186-S1-LUOXUE-SOURCE-PROBE.yaml",
+    "claim_ref": "coordination/EXECUTION/WORKBUDDY-S1-LUOXUE-SOURCE-PROBE/WORK-CLAIM.yaml",
+    "lease_ref": "coordination/EXECUTION/WORKBUDDY-S1-LUOXUE-SOURCE-PROBE/TASK-LEASE.yaml",
+    "snapshot_ref": "coordination/EXECUTION/WORKBUDDY-S1-LUOXUE-SOURCE-PROBE/PREWRITE-RECONCILIATION-SNAPSHOT.yaml"
+  },
+  "canonical_collision_reservation": {
+    "write_paths": [
+      "coordination/EXECUTION/WORKBUDDY-S1-LUOXUE-SOURCE-PROBE/**"
+    ],
+    "semantics": "COLLISION_FENCING_ONLY_NOT_RUNTIME_GITHUB_WRITE_AUTHORITY",
+    "expected_collision_domain": "WRITESET_SHA256:c38fe512914ca7002e06001ad8d7958ff061d7f9374817cdfe9816b3b1773da3"
+  },
+  "runtime_dispatch": {
+    "authorized_paths": [],
+    "authority_grants": [
+      "EXECUTE_TASK"
+    ],
+    "authority_denials": [
+      "NO_GITHUB_WRITE",
+      "NO_REPOSITORY_EDIT",
+      "NO_BRANCH_WRITE",
+      "NO_DIRECT_MAIN_WRITE",
+      "NO_SELF_REVIEW",
+      "NO_SELF_MERGE",
+      "NO_R175_MUTATION",
+      "NO_R184_MUTATION",
+      "NO_LOCAL_BRIDGE_START",
+      "NO_REAL_CAPTURE",
+      "NO_OPERATIONAL_W3_WRITE",
+      "NO_S2_START",
+      "NO_SECRET_CREDENTIAL_READ"
+    ],
+    "carrier": "WORKBUDDY_DESKTOP_INTERACTIVE",
+    "github_write_allowed": false,
+    "branch_write_allowed": false
+  },
+  "local_workspace": {
+    "root": "F:/SecondBrainWorkspace",
+    "readonly_governance_repo": "F:/SecondBrainWorkspace/second-brain-coordination/",
+    "readonly_probe_input": "F:/SecondBrainWorkspace/evidence/s1-readonly-probe/",
+    "only_write_root": "F:/SecondBrainWorkspace/evidence/s1-workbuddy-probe/**",
+    "forbidden_root": "F:/aidanao"
+  },
+  "automatic_resume_within_batch": true,
+  "items": [
+    {
+      "item_id": "S1-WB-V1",
+      "owner": "WORKBUDDY",
+      "kind": "GOVERNED_PRESTART_VALIDATION",
+      "status": "PLANNED",
+      "depends_on": [],
+      "write_paths": [],
+      "local_write_paths": [],
+      "outcome": "Fresh-read the explicit S1 registered authority and the full R175/R184/S1 registry; prove no duplicate task/branch/collision/write-surface conflict and prove the runtime dispatch is narrowed to no Git paths and EXECUTE_TASK only."
+    },
+    {
+      "item_id": "S1-WB-S1",
+      "owner": "WORKBUDDY",
+      "kind": "BOUNDED_SOURCE_CAPABILITY_PROBE",
+      "status": "PLANNED",
+      "depends_on": [
+        "S1-WB-V1"
+      ],
+      "write_paths": [
+        "coordination/EXECUTION/WORKBUDDY-S1-LUOXUE-SOURCE-PROBE/**"
+      ],
+      "local_write_paths": [
+        "F:/SecondBrainWorkspace/evidence/s1-workbuddy-probe/**"
+      ],
+      "outcome": "Execute only the prepared S1 current-source/capability probe against read-only inputs; write evidence only to the allowed local output root. No Git mutation, real capture, W3 write, Local Bridge or S2."
+    },
+    {
+      "item_id": "S1-WB-S2",
+      "owner": "WORKBUDDY",
+      "kind": "SYNTHETIC_SECURITY_PROBE",
+      "status": "PLANNED",
+      "depends_on": [
+        "S1-WB-S1"
+      ],
+      "write_paths": [
+        "coordination/EXECUTION/WORKBUDDY-S1-LUOXUE-SOURCE-PROBE/**"
+      ],
+      "local_write_paths": [
+        "F:/SecondBrainWorkspace/evidence/s1-workbuddy-probe/**"
+      ],
+      "outcome": "Run only synthetic/non-secret security checks. Do not read authentication secret values or perform real capture. Persist only redacted local evidence under the allowed output root."
+    },
+    {
+      "item_id": "S1-WB-S3",
+      "owner": "WORKBUDDY",
+      "kind": "LOCAL_EVIDENCE_AND_RETURN",
+      "status": "PLANNED",
+      "depends_on": [
+        "S1-WB-S2"
+      ],
+      "write_paths": [
+        "coordination/EXECUTION/WORKBUDDY-S1-LUOXUE-SOURCE-PROBE/**"
+      ],
+      "local_write_paths": [
+        "F:/SecondBrainWorkspace/evidence/s1-workbuddy-probe/**"
+      ],
+      "outcome": "Finalize the local-only S1 evidence/return package and return to GPT. Do not open/update GitHub issues, branches, commits or PRs from WorkBuddy."
+    }
+  ],
+  "stop_conditions": [
+    "independent review ACCEPT and separate canonicalization have not both occurred",
+    "registered S1 authority is absent, stale, moved, disabled or conflicts with R175/R184",
+    "actual dispatch exposes any Git authorized path or WRITE_AUTHORIZED_PATHS grant",
+    "R175 or R184 mutation/start would be required",
+    "Local Bridge, S2, real capture or operational W3 write would be required",
+    "authentication secret credential values would need to be read",
+    "any write outside F:/SecondBrainWorkspace/evidence/s1-workbuddy-probe/** would be required",
+    "F:/aidanao would be used",
+    "Astra or Frontier would be required"
+  ],
+  "return_package_required": true,
+  "return_target": "GPT_ARCHITECTURE_OWNER",
+  "final_review_trigger": "NONE_AT_RUNTIME; GOVERNANCE_CANDIDATE_REVIEW_OCCURS_BEFORE_ACTIVATION"
+}

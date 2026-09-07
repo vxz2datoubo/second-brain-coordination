@@ -1,0 +1,72 @@
+schema_version: "4.7"
+router_protocol: "coordination/WORKBUDDY-TASK-ROUTER.md"
+task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
+registry_protocol: "coordination/EXECUTION/ACTIVE-TASK-INDEX-REGISTRY.json"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "WORKBUDDY"
+trigger_phrases: ["读取S1洛雪源探针任务", "执行S1洛雪源探针任务", "开始S1洛雪源探针任务"]
+
+active_issue: 609
+source_issue: 609
+pull_request: null
+task_id: "WORKBUDDY-R186-S1-LUOXUE-SOURCE-PROBE"
+route_epoch: 186
+mode: "bounded_local_source_and_synthetic_security_probe"
+mode_label: "S1 local-only Luoxue current-source + synthetic security probe"
+status: "READY"
+execution_allowed: true
+active: true
+blocked_by: "INDEPENDENT_REVIEW_AND_CANONICAL_PUBLICATION_BEFORE_PROCESS_START"
+automatic_resume: false
+automatic_resume_within_task: false
+automatic_resume_within_batch: true
+second_user_start_command_required: true
+
+canonical_route: "coordination/ROUTES/WORKBUDDY-R186-S1-LUOXUE-SOURCE-PROBE.yaml"
+task_brief: "coordination/EXECUTION/WORKBUDDY-S1-LUOXUE-SOURCE-PROBE/TASK-BRIEF.yaml"
+work_claim: "coordination/EXECUTION/WORKBUDDY-S1-LUOXUE-SOURCE-PROBE/WORK-CLAIM.yaml"
+task_lease: "coordination/EXECUTION/WORKBUDDY-S1-LUOXUE-SOURCE-PROBE/TASK-LEASE.yaml"
+executor_reservation: "coordination/EXECUTION/WORKBUDDY-S1-LUOXUE-SOURCE-PROBE/EXECUTOR-RESERVATION.yaml"
+prewrite_snapshot: "coordination/EXECUTION/WORKBUDDY-S1-LUOXUE-SOURCE-PROBE/PREWRITE-RECONCILIATION-SNAPSHOT.yaml"
+executable_batch: "coordination/EXECUTION/WORKBUDDY-S1-LUOXUE-SOURCE-PROBE/EXECUTABLE-BATCH.json"
+dispatch_contract: "coordination/EXECUTION/WORKBUDDY-S1-LUOXUE-SOURCE-PROBE/LOCAL-ONLY-DISPATCH-CONTRACT.yaml"
+
+source_checkpoint:
+  branch: "main"
+  checkpoint_remote_ref: "refs/heads/main"
+  exact_head: "7dedd7b6337cf3ed85af63e8ab8698e57d3db9dc"
+  baseline: "7dedd7b6337cf3ed85af63e8ab8698e57d3db9dc"
+implementation_branch: "workbuddy/s1-luoxue-source-probe"
+
+fixed_order: ["S1-WB-V1", "S1-WB-S1", "S1-WB-S2", "S1-WB-S3"]
+continue_without_user_message: false
+return_target: "GPT_ARCHITECTURE_OWNER"
+completion_signal: "WORKBUDDY_R186_S1_LUOXUE_SOURCE_PROBE_COMPLETE_RETURN_TO_GPT"
+
+carrier: "WORKBUDDY_DESKTOP_INTERACTIVE"
+actual_execution_mode: "LOCAL_ONLY_NO_GITHUB_WRITE"
+
+authorized_paths:
+  - "coordination/EXECUTION/WORKBUDDY-S1-LUOXUE-SOURCE-PROBE/**"
+hard_boundaries:
+  - "NO_GITHUB_WRITE"
+  - "NO_REPOSITORY_EDIT"
+  - "NO_BRANCH_WRITE"
+  - "NO_DIRECT_MAIN_WRITE"
+  - "NO_SELF_REVIEW"
+  - "NO_SELF_MERGE"
+  - "NO_R175_MUTATION"
+  - "NO_R184_MUTATION"
+  - "NO_LOCAL_BRIDGE_START"
+  - "NO_REAL_CAPTURE"
+  - "NO_OPERATIONAL_W3_WRITE"
+  - "NO_S2_START"
+  - "NO_SECRET_CREDENTIAL_READ"
+
+read_behavior:
+  on_read_task: "SELECT_THIS_EXPLICIT_REGISTERED_INDEX_THEN_RUN_REGISTRY_WIDE_FRESH_CONFLICT_ADMISSION"
+  legacy_default_fallback_forbidden: true
+  arbitrary_issue_or_comment_as_execution_authority: false
+after_read: "DO_NOT_START_UNTIL_INDEPENDENT_REVIEW_ACCEPT_AND_SEPARATE_CANONICALIZATION; THEN_REQUIRE_EXPLICIT_OWNER_DISPATCH"
+updated_by: "GPT_GITHUB_GOVERNANCE_AUTHOR"
+updated_at: "2026-09-07T07:16:16-05:00"
