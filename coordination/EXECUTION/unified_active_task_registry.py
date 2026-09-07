@@ -21,6 +21,24 @@ ExecutionContractError = base.ExecutionContractError
 REGISTRY_REF = "coordination/EXECUTION/ACTIVE-TASK-INDEX-REGISTRY.json"
 REGISTRY_SCHEMA = "UNIFIED_ACTIVE_TASK_INDEX_REGISTRY/v1"
 LEGACY_DEFAULT_REF = base.ACTIVE_TASK_INDEX_REF
+LOCAL_ONLY_NO_GITHUB_WRITE_MODE = "LOCAL_ONLY_NO_GITHUB_WRITE"
+LOCAL_ONLY_REQUIRED_DENIALS = frozenset(
+    {
+        "NO_GITHUB_WRITE",
+        "NO_REPOSITORY_EDIT",
+        "NO_BRANCH_WRITE",
+        "NO_DIRECT_MAIN_WRITE",
+        "NO_SELF_REVIEW",
+        "NO_SELF_MERGE",
+        "NO_R175_MUTATION",
+        "NO_R184_MUTATION",
+        "NO_LOCAL_BRIDGE_START",
+        "NO_REAL_CAPTURE",
+        "NO_OPERATIONAL_W3_WRITE",
+        "NO_S2_START",
+        "NO_SECRET_CREDENTIAL_READ",
+    }
+)
 
 
 def _unique_object(pairs: Sequence[tuple[str, Any]]) -> dict[str, Any]:
@@ -191,6 +209,11 @@ def _build_authority_from_open(
         "authority_denials": denials,
         "writer_lease_identity": writer_lease_identity,
     }
+    task_execution_mode = base._scalar(
+        active, "actual_execution_mode", required=False
+    )
+    if task_execution_mode is not None:
+        payload["task_execution_mode"] = task_execution_mode
     receipt_material = {
         key: payload[key]
         for key in (
@@ -347,6 +370,55 @@ def build_registered_authorities(
     return _build_registered_authority_set(repo_path, observed_main, refs)
 
 
+def _validate_task_local_process_start_semantics(
+    canonical: Mapping[str, Any], dispatch: Mapping[str, Any]
+) -> None:
+    """Enforce task-local runtime capability narrowing after generic admission.
+
+    Canonical write surfaces can reserve collision identity without becoming runtime
+    Git authority. Tasks that explicitly declare LOCAL_ONLY_NO_GITHUB_WRITE are
+    admitted only with zero Git authorized paths and exactly EXECUTE_TASK.
+    """
+    mode = canonical.get("task_execution_mode")
+    if mode is None:
+        return
+    if mode != LOCAL_ONLY_NO_GITHUB_WRITE_MODE:
+        raise ExecutionContractError(
+            "active_task_registry: unsupported task-local execution mode"
+        )
+
+    canonical_denials = canonical.get("authority_denials")
+    dispatch_denials = dispatch.get("authority_denials")
+    if not isinstance(canonical_denials, (list, tuple)) or not isinstance(
+        dispatch_denials, (list, tuple)
+    ):
+        raise ExecutionContractError(
+            "active_task_registry: local-only denials are malformed"
+        )
+    if not LOCAL_ONLY_REQUIRED_DENIALS <= set(canonical_denials):
+        raise ExecutionContractError(
+            "active_task_registry: local-only canonical denials are incomplete"
+        )
+    if not LOCAL_ONLY_REQUIRED_DENIALS <= set(dispatch_denials):
+        raise ExecutionContractError(
+            "active_task_registry: local-only dispatch denials are incomplete"
+        )
+
+    dispatch_paths = dispatch.get("authorized_paths")
+    if not isinstance(dispatch_paths, (list, tuple)) or len(dispatch_paths) != 0:
+        raise ExecutionContractError(
+            "active_task_registry: local-only dispatch must have zero Git authorized paths"
+        )
+
+    dispatch_grants = dispatch.get("authority_grants")
+    if not isinstance(dispatch_grants, (list, tuple)) or tuple(dispatch_grants) != (
+        "EXECUTE_TASK",
+    ):
+        raise ExecutionContractError(
+            "active_task_registry: local-only dispatch must grant EXECUTE_TASK only"
+        )
+
+
 def validate_process_start_for_task_index(
     repo_path: str | Path,
     active_task_index_ref: str,
@@ -359,6 +431,8 @@ def validate_process_start_for_task_index(
     Process start is admitted only from a fresh registry-wide conflict-free authority
     set. The selected task must be registered on the same canonical main as every
     peer authority, and the caller snapshot must exactly match that fresh target.
+    Task-local execution modes then narrow runtime capabilities without altering the
+    canonical collision reservation used for registry fencing.
     """
     base._validate_ref(active_task_index_ref)
     observed_main, refs = registered_task_index_refs(repo_path)
@@ -381,6 +455,7 @@ def validate_process_start_for_task_index(
             "active_task_registry: claimed authority differs from fresh registered task authority"
         )
     base.validate_local_admission(admission, dispatch, selected)
+    _validate_task_local_process_start_semantics(canonical, dispatch)
     return selected
 
 
