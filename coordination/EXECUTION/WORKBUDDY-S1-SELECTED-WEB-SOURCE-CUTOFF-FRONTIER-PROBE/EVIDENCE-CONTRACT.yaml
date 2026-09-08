@@ -1,0 +1,147 @@
+schema: "S1_SELECTED_WEB_SOURCE_SCOPE_AND_CUTOFF_FRONTIER_EVIDENCE_CONTRACT/v1"
+project: "SECOND_BRAIN"
+repository: "vxz2datoubo/second-brain-coordination"
+task_id: "WORKBUDDY-R187-S1-SELECTED-WEB-SOURCE-CUTOFF-FRONTIER-PROBE"
+route_epoch: 187
+source_issue: 609
+
+primary_gaps_entering:
+  EXACT_SOURCE_SCOPE: "PARTIAL"
+  EXACT_CUTOFF_FRONTIER: "UNKNOWN"
+
+source_authority:
+  allowed_source: "ONE_EXPLICITLY_OWNER_SELECTED_CURRENT_CHATGPT_WEB_CONVERSATION"
+  owner_selection_required_before_source_read: true
+  selection_is_not_conversation_discovery: true
+  CURRENT_CONVERSATION_BINDING: "PASS_FOR_OWNER_SELECTED_WEB_PROBE_ONLY"
+  forbidden:
+    - "BROWSER_HISTORY_CRAWL"
+    - "HOME_PROFILE_CRAWL"
+    - "ARBITRARY_CONVERSATION_DISCOVERY"
+    - "UNRELATED_LOCAL_FILE_DISCOVERY"
+    - "AUTH_COOKIE_TOKEN_SESSION_SECRET_INSPECTION"
+    - "OPENAI_API_DEPENDENCY"
+
+allowed_observables:
+  - "native conversation structural identifier when already exposed by the selected current page"
+  - "message or turn structural identifiers"
+  - "role"
+  - "stable ordering evidence"
+  - "record counts"
+  - "hashes of canonicalized structural evidence"
+  - "virtualization, mounted-set, reload and scroll evidence"
+  - "synthetic or deliberately non-sensitive marker evidence"
+
+privacy_and_durability:
+  raw_private_message_durable_persistence: false
+  raw_private_html_dump: false
+  private_message_screenshot_or_trace_persistence: false
+  private_message_console_log_persistence: false
+  private_message_text_may_be_read_ephemerally_only_when_required_to_identify_trigger_semantics: true
+  durable_private_evidence_form: "STRUCTURAL_IDS_ROLES_ORDINALS_COUNTS_AND_HASHES_ONLY"
+  synthetic_non_sensitive_marker_text_may_be_durable: true
+  mechanically_unavoidable_raw_private_persistence_action: "FAIL_CLOSED_NO_PROBE_STEP"
+
+ordered_source_scope_protocol:
+  objective: "Determine the exact ordered source-record scope for the selected current conversation and truthfully classify completeness."
+  mounted_subset_is_not_complete_by_default: true
+  steps:
+    - "Bind exactly one Owner-selected current conversation before any structural census."
+    - "Record a structural-only baseline census of currently mounted records."
+    - "Perform bounded in-conversation scroll traversal only; do not navigate conversation lists or history."
+    - "Observe virtualization mount/unmount behavior using structural IDs, roles, ordinals and counts only."
+    - "Repeat traversal until a structural fixed point or a bounded inability-to-prove-completeness result is reached."
+    - "Reload the same already-selected conversation without changing selection and repeat structural census."
+    - "Compare ordered structural identity across baseline, traversal and reload."
+  full_conversation_pass_requires_all:
+    - "oldest boundary is positively evidenced without history crawl"
+    - "newest boundary is positively evidenced"
+    - "every record between both boundaries is structurally ordered without unresolved gaps"
+    - "ordered record identity is stable across at least one reload/reconstruction"
+    - "virtualization does not reveal skipped or silently substituted pre-cutoff records"
+  if_any_full_scope_requirement_unproved: "EXACT_SOURCE_SCOPE_REMAINS_PARTIAL"
+  forbidden_inference: "VISIBLE_OR_MOUNTED_DOM_SUBSET_EQUALS_COMPLETE_CONVERSATION"
+
+manual_capture_semantics_binding:
+  canonical_semantics_ref: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CLTM-0021/MEMORY-PALACE-MANUAL-CAPTURE-TEMPORAL-REASONING-V1.md"
+  accepted_trigger: "采集记忆"
+  retained_alias: "数据采集"
+  trigger_in_substantive_owner_message:
+    target: "THE_TRIGGER_BEARING_OWNER_MESSAGE_SEMANTIC_CONTENT_EXCLUDING_TRIGGER_PHRASE"
+    trigger_record: "THE_TRIGGER_BEARING_OWNER_RECORD"
+  trigger_only_owner_message:
+    target: "IMMEDIATELY_PRECEDING_SUBSTANTIVE_OWNER_MESSAGE"
+    trigger_record: "THE_TRIGGER_ONLY_OWNER_RECORD"
+  assistant_text_can_be_owner_memory: false
+  predecessor_must_be_proved_from_ordered_source_scope: true
+  ambiguous_predecessor_action: "FAIL_CLOSED_EXACT_CUTOFF_FRONTIER_REMAINS_UNKNOWN"
+
+frozen_cutoff_frontier:
+  cutoff_record_for_both_trigger_modes: "TRIGGER_RECORD_INCLUSIVE"
+  capture_context_must_not_admit_records_after_cutoff: true
+  target_and_cutoff_are_distinct_for_trigger_only_mode: true
+  frozen_fields:
+    - "conversation_binding_digest"
+    - "trigger_mode"
+    - "trigger_record_structural_id"
+    - "target_record_structural_ids"
+    - "cutoff_record_structural_id"
+    - "cutoff_order_position"
+    - "ordered_prefix_digest_through_cutoff"
+  capture_unit_identity_formula: >-
+    sha256(canonical_json({version:S1_R187_FROZEN_CAPTURE_UNIT/v1,conversation_binding_digest,
+    trigger_mode,trigger_record_structural_id,target_record_structural_ids,cutoff_record_structural_id,
+    cutoff_order_position,ordered_prefix_digest_through_cutoff}))
+  frozen_identity_mutation_allowed: false
+  records_created_or_discovered_after_cutoff:
+    may_be_observed_for_exclusion_proof: true
+    may_enter_frozen_capture_unit: false
+    may_change_capture_unit_identity: false
+  revalidation_after_reload_scroll_virtualization:
+    action: "RECONSTRUCT_AND_COMPARE_TO_FROZEN_IDENTITY_NEVER_REFREEZE_SILENTLY"
+    stable_prefix_result: "PASS_REVALIDATION"
+    changed_pre_cutoff_membership_or_order_result: "FAIL_CLOSED_IDENTITY_DRIFT_OR_SOURCE_INCOMPLETE"
+    post_cutoff_only_growth_result: "PASS_POST_CUTOFF_EXCLUSION_IF_FROZEN_PREFIX_UNCHANGED"
+
+probe_evidence_requirements:
+  trigger_in_message_semantics: "PROVE_WITH_CANONICAL_CONTRACT_PLUS_SYNTHETIC_OR_DELIBERATELY_NON_SENSITIVE_FIXTURE; DO_NOT REAL-CAPTURE"
+  trigger_only_previous_message_semantics: "PROVE_WITH_CANONICAL_CONTRACT_PLUS_SYNTHETIC_OR_DELIBERATELY_NON_SENSITIVE_FIXTURE; DO_NOT REAL-CAPTURE"
+  post_cutoff_exclusion: "PROVE_WITH SYNTHETIC FIXTURE AND, IF AVAILABLE WITHOUT WRITES, STRUCTURAL CURRENT-CONVERSATION OBSERVATION"
+  reload_scroll_virtualization_identity: "PROVE STRUCTURALLY ON THE SELECTED CURRENT CONVERSATION WITHOUT PERSISTING PRIVATE CONTENT"
+  full_conversation_completeness: "PASS ONLY IF POSITIVELY PROVED; OTHERWISE RETURN PARTIAL WITH THE EXACT MISSING PROOF"
+
+capability_boundary_carry_forward:
+  LIVE_OWNER_TRIGGER: "UNKNOWN"
+  CURRENT_CONVERSATION_BINDING: "PASS_FOR_OWNER_SELECTED_WEB_PROBE_ONLY"
+  EXACT_SOURCE_SCOPE: "PARTIAL"
+  EXACT_CUTOFF_FRONTIER: "UNKNOWN"
+  AUTHENTICATED_INCREMENTAL_CAPTURE_TRANSPORT: "UNKNOWN"
+  MOBILE_OFFLINE_DURABLE_INTAKE: "UNKNOWN"
+  HARD_CAPTURE_CHECKPOINT_COMPLETE: "BLOCKED"
+  PROGRAM_S2_STARTED: false
+
+nbf_carry_forward:
+  - id: "NBF-R186-01"
+    finding: "EARLY_CHECKER_FAILURE_RAW_LOGS_NOT_PRESERVED"
+    disposition: "NONBLOCKING_PROVENANCE_FINDING"
+  - id: "NBF-R186-02"
+    finding: "S3_INDEX_DOES_NOT_HASH_ITSELF_OR_RETURN_PACKAGE"
+    disposition: "NONBLOCKING"
+  - id: "NBF-R186-03"
+    finding: "V1_RUNTIME_LOCAL_HEAD_CLEAN_ORIGIN_AND_SOME_FORBIDDEN_EFFECT_FACTS_ARE_EXECUTOR_ATTESTATION_NOT_INDEPENDENT_OS_AUDIT"
+    disposition: "NONBLOCKING"
+  - id: "NBF-R186-04"
+    finding: "ORIGINAL_S2_NONCE_REUSE_FIXTURES_CAN_SHORT_CIRCUIT_ON_SCOPE_DIGEST_MISMATCH"
+    disposition: "NONBLOCKING"
+    reviewer_targeted_rerun: "ACTUAL_NONCE_REUSE_DIFFERENT_DIGEST_REJECTION_PATH_PROVED"
+
+negative_readiness_claims:
+  S1_COMPLETE: false
+  LIVE_CAPTURE_READY: false
+  W3_PRODUCTION_READY: false
+  MOBILE_SOLVED: false
+  EXPORT_SOLVED: false
+  PROGRAM_S2_READY: false
+  PROGRAM_S2_STARTED: false
+
+stop_rule: "RETURN_FINDINGS_TO_GPT_WITHOUT_REAL_CAPTURE_OR_AUTHORITY_EXPANSION"
