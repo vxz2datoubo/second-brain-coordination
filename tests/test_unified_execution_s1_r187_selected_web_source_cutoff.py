@@ -3,6 +3,7 @@ import copy
 from hashlib import sha256
 import json
 from pathlib import Path
+import subprocess
 import unittest
 from unittest.mock import patch
 
@@ -11,6 +12,7 @@ from coordination.EXECUTION import unified_active_task_registry as registry
 
 ROOT = Path(__file__).resolve().parents[1]
 MOCK_MAIN = "f" * 40
+RUNTIME_MAIN = "5fea61a6eb98d3c9599daee93e20f161064a292b"
 R175_INDEX = registry.LEGACY_DEFAULT_REF
 R184_INDEX = "coordination/EXECUTION/ACTIVE-WORKBUDDY-R184-LOCAL-BRIDGE.yaml"
 R186_INDEX = "coordination/EXECUTION/ACTIVE-WORKBUDDY-R186-S1-LUOXUE-SOURCE-PROBE.yaml"
@@ -77,7 +79,16 @@ def _admission(authority, dispatch):
 
 class S1R187SelectedWebSourceCutoffTests(unittest.TestCase):
     def _read(self, path):
-        return (ROOT / path).read_bytes()
+        proc = subprocess.run(
+            ["git", "show", f"{RUNTIME_MAIN}:{path}"],
+            cwd=ROOT,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+        if proc.returncode != 0:
+            raise AssertionError(proc.stderr.decode("utf-8", errors="replace"))
+        return proc.stdout
 
     def _trusted_tree(self):
         stack = ExitStack()
