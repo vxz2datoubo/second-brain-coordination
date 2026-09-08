@@ -1,0 +1,60 @@
+schema: "S1_LOCAL_ONLY_DISPATCH_CONTRACT/v1"
+project: "SECOND_BRAIN"
+source_issue: 609
+task_id: "WORKBUDDY-R187-S1-SELECTED-WEB-SOURCE-CUTOFF-FRONTIER-PROBE"
+route_epoch: 187
+canonical_reservation_surface:
+  - "coordination/EXECUTION/WORKBUDDY-S1-SELECTED-WEB-SOURCE-CUTOFF-FRONTIER-PROBE/**"
+canonical_reservation_semantics: "COLLISION_FENCING_ONLY"
+
+runtime_dispatch_required:
+  carrier: "WORKBUDDY_DESKTOP_INTERACTIVE"
+  authorized_paths: []
+  authority_grants:
+    - "EXECUTE_TASK"
+  authority_denials:
+    - "NO_GITHUB_WRITE"
+    - "NO_REPOSITORY_EDIT"
+    - "NO_BRANCH_WRITE"
+    - "NO_DIRECT_MAIN_WRITE"
+    - "NO_SELF_REVIEW"
+    - "NO_SELF_MERGE"
+    - "NO_R175_MUTATION"
+    - "NO_R184_MUTATION"
+    - "NO_LOCAL_BRIDGE_START"
+    - "NO_REAL_CAPTURE"
+    - "NO_OPERATIONAL_W3_WRITE"
+    - "NO_S2_START"
+    - "NO_SECRET_CREDENTIAL_READ"
+
+source_runtime_policy:
+  required_owner_selection: "ONE_EXPLICITLY_OWNER_SELECTED_CURRENT_CHATGPT_WEB_CONVERSATION"
+  browser_history_crawl_allowed: false
+  home_profile_crawl_allowed: false
+  arbitrary_conversation_discovery_allowed: false
+  openai_api_dependency_allowed: false
+  secret_credential_read_allowed: false
+  raw_private_message_durable_persistence_allowed: false
+
+local_filesystem_policy:
+  read_only:
+    - "F:/SecondBrainWorkspace/second-brain-coordination/"
+    - "F:/SecondBrainWorkspace/evidence/s1-workbuddy-probe/"
+  write_only:
+    - "F:/SecondBrainWorkspace/evidence/s1-r187-selected-web-source-cutoff-frontier/**"
+  unrelated_local_file_discovery_allowed: false
+
+validator_binding:
+  canonical_authority_may_contain_write_authorized_paths_for_collision_identity: true
+  dispatch_authorized_paths_must_be_subset_of_canonical: true
+  dispatch_uses_empty_subset: true
+  dispatch_authority_grants_must_be_subset_of_canonical: true
+  dispatch_uses_execute_task_only_subset: true
+  canonical_denials_must_be_preserved_or_strengthened: true
+  result: "LOCAL_ONLY_NO_GITHUB_WRITE_IS_EXPRESSIBLE_WITH_EXISTING_CANONICAL_VALIDATOR"
+
+privacy_fail_closed:
+  if_raw_private_message_would_be_written_to_disk_log_screenshot_trace_or_html: "FAIL_CLOSED_NO_PROCESS_STEP"
+  durable_evidence: "STRUCTURAL_IDS_ROLES_ORDER_COUNTS_HASHES_AND_SYNTHETIC_MARKERS_ONLY"
+
+failure_action: "FAIL_CLOSED_NO_PROCESS_START_OR_STOP_CURRENT_PROBE_STEP"
