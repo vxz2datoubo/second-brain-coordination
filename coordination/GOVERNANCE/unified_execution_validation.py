@@ -10,15 +10,30 @@ import importlib.util as _bootstrap_importlib_util
 from pathlib import Path as _BootstrapPath
 import sys as _bootstrap_sys
 
-_extension_path = _BootstrapPath(__file__).with_name("unified_execution_compute_lane_extension.py")
-exec(compile(_extension_path.read_text(encoding="utf-8"), str(_extension_path), "exec"), globals(), globals())
-
-_canonicalization_extension_path = _BootstrapPath(__file__).with_name(
-    "unified_execution_canonicalization_extension.py"
+# Capture both paths before executing the legacy/compute extension. That extension intentionally
+# executes into this module's globals and may delete bootstrap helper names such as _BootstrapPath.
+_compute_bootstrap_path = str(
+    _BootstrapPath(__file__).with_name("unified_execution_compute_lane_extension.py")
 )
+_canonicalization_bootstrap_path = str(
+    _BootstrapPath(__file__).with_name("unified_execution_canonicalization_extension.py")
+)
+
+exec(
+    compile(
+        _BootstrapPath(_compute_bootstrap_path).read_text(encoding="utf-8"),
+        _compute_bootstrap_path,
+        "exec",
+    ),
+    globals(),
+    globals(),
+)
+
+# Do not rely on _BootstrapPath after the compute extension executes. Load the canonicalization
+# module from the pre-captured string path into an isolated namespace.
 _canonicalization_spec = _bootstrap_importlib_util.spec_from_file_location(
     "unified_execution_canonicalization_extension",
-    _canonicalization_extension_path,
+    _canonicalization_bootstrap_path,
 )
 if _canonicalization_spec is None or _canonicalization_spec.loader is None:
     raise ImportError("unable to load canonicalization effect-isolation extension")
@@ -48,11 +63,11 @@ validate_pre_merge_effect_gate = _canonicalization_ext.validate_pre_merge_effect
 reconcile_merge_effect = _canonicalization_ext.reconcile_merge_effect
 validate_pr615_prospective_adjudication = _canonicalization_ext.validate_pr615_prospective_adjudication
 
-del (
-    _extension_path,
-    _canonicalization_extension_path,
-    _canonicalization_spec,
-    _canonicalization_ext,
-    _bootstrap_importlib_util,
-    _bootstrap_sys,
-)
+# Avoid brittle ``del`` cleanup across exec-layered modules. These names are private bootstrap
+# implementation details and carry no authority.
+globals().pop("_canonicalization_spec", None)
+globals().pop("_canonicalization_ext", None)
+globals().pop("_bootstrap_importlib_util", None)
+globals().pop("_bootstrap_sys", None)
+globals().pop("_compute_bootstrap_path", None)
+globals().pop("_canonicalization_bootstrap_path", None)
