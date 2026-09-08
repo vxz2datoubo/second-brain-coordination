@@ -1,0 +1,45 @@
+schema: "ExecutorReservation/v1"
+project: "SECOND_BRAIN"
+repository: "vxz2datoubo/second-brain-coordination"
+task_id: "WORKBUDDY-R187-S1-SELECTED-WEB-SOURCE-CUTOFF-FRONTIER-PROBE"
+route_epoch: 187
+source_issue: 609
+active_issue: 609
+executor_agent_type: "WORKBUDDY"
+executor_role: "BOUNDED_SELECTED_WEB_READ_ONLY_SOURCE_PROBE_EXECUTOR"
+reservation_state: "ACTIVE"
+implementation_branch: "workbuddy/s1-selected-web-source-cutoff-frontier-r187"
+branch_must_not_exist_before_snapshot: true
+pull_request: null
+
+reservation_scope:
+  - "coordination/EXECUTION/WORKBUDDY-S1-SELECTED-WEB-SOURCE-CUTOFF-FRONTIER-PROBE/**"
+reservation_scope_semantics: "CANONICAL_COLLISION_FENCING_ONLY_NOT_RUNTIME_GITHUB_WRITE_PERMISSION"
+reservation_exclusions:
+  - "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+  - "coordination/EXECUTION/ACTIVE-WORKBUDDY-R184-LOCAL-BRIDGE.yaml"
+  - "coordination/EXECUTION/ACTIVE-WORKBUDDY-R186-S1-LUOXUE-SOURCE-PROBE.yaml"
+  - "coordination/EXECUTION/WORKBUDDY-S1-LUOXUE-SOURCE-PROBE/**"
+  - "tests/workbuddy/**"
+  - "tools/workbuddy/**"
+  - "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/**"
+  - "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/**"
+  - "coordination/GOVERNANCE/**"
+  - "direct main"
+  - "all repository and branch writes at runtime"
+activation_requires:
+  - "independent review ACCEPT"
+  - "separate canonicalization to main"
+  - "fresh registry-wide readback of R175, R184 and R187"
+  - "R186 remains terminalized and nonregistered"
+  - "Owner explicitly selects exactly one current ChatGPT Web conversation"
+  - "actual dispatch authorized_paths is empty"
+  - "actual dispatch authority_grants equals EXECUTE_TASK only"
+  - "all required NO_GITHUB_WRITE and local-only denials are preserved"
+  - "raw private message durable persistence is mechanically avoided"
+reservation_effect:
+  execution_identity_reserved: true
+  substantive_write_authorized_now: true
+  substantive_write_semantics: "LEGACY_CANONICAL_RESERVATION_FIELD_ONLY; RUNTIME_DISPATCH_IS_STRICTLY_LOCAL_ONLY"
+  review_authority: false
+  merge_authority: false
