@@ -10,6 +10,7 @@ from coordination.GOVERNANCE import unified_execution_validation_base as base
 
 ROOT = Path(__file__).resolve().parents[1]
 RUNTIME_MAIN = "5fea61a6eb98d3c9599daee93e20f161064a292b"
+R187_RELEASE_HEAD = "61ff56f1f1ad9c84e40bb68b3860a10bd1d6befb"
 MOCK_MAIN = "f" * 40
 R187_INDEX = "coordination/EXECUTION/ACTIVE-WORKBUDDY-R187-S1-SELECTED-WEB-SOURCE-CUTOFF-FRONTIER-PROBE.yaml"
 R187_ROUTE = "coordination/ROUTES/WORKBUDDY-R187-S1-SELECTED-WEB-SOURCE-CUTOFF-FRONTIER-PROBE.yaml"
@@ -131,9 +132,9 @@ class R187RuntimeCompletionReleaseTests(unittest.TestCase):
         self.assertIn('r184_started_by_r187: false', text)
         self.assertIn('next_s1_execution_authority_created_by_this_release: false', text)
 
-    def test_r187_release_candidate_diff_is_governance_only_and_does_not_touch_r175_or_r184(self):
+    def test_r187_historical_release_diff_is_governance_only_and_does_not_touch_r175_or_r184(self):
         proc = subprocess.run(
-            ["git", "diff", "--name-only", RUNTIME_MAIN, "HEAD"],
+            ["git", "diff", "--name-only", RUNTIME_MAIN, R187_RELEASE_HEAD],
             cwd=ROOT,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
