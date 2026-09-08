@@ -1,0 +1,305 @@
+schema_version: "1.0"
+contract_id: "TYPED-NUMERIC-PARAMETER-AND-EXPERIMENT-LEDGER-v1"
+status: "CANDIDATE_PENDING_INDEPENDENT_REVIEW"
+source_issue: 627
+effective_spec_snapshot_id: "SECOND-BRAIN-ISSUE627-MULTI-EXECUTOR-EPISTEMIC-NUMERIC-001"
+effective_spec_snapshot_ref: "issuecomment-5592959662"
+
+purpose: >-
+  Prevent numeric direction drift, unit drift, stale-value promotion, hidden default changes and
+  research-selection amnesia by representing important numbers and experiments as typed, versioned,
+  source-bound objects with explicit comparison and revalidation semantics.
+
+authority_rule:
+  this_contract_mints_business_truth: false
+  this_contract_mints_trade_authority: false
+  canonical_source_precedence: >-
+    A parameter record may mirror a value from another ACTIVE canonical contract, but the mirror does
+    not replace that source. Conflicts fail closed and require reconciliation.
+
+parameter_classes:
+  HARD_BINDING_CONSTANT:
+    definition: "mechanically fixed until a governed contract changes it"
+    silent_override: false
+  CALIBRATED_POLICY_PARAMETER:
+    definition: "chosen from measured evidence and expected to be recalibrated under explicit triggers"
+    requires_calibration_receipt: true
+  OBSERVED_RUNTIME_VALUE:
+    definition: "timestamped observation, never automatically promoted to policy"
+    freshness_required: true
+  DERIVED_METRIC:
+    definition: "deterministic transformation of identified inputs under a versioned formula"
+    formula_identity_required: true
+  EXPERIMENT_PARAMETER:
+    definition: "one value used in a tracked research/engineering run"
+    trial_identity_required: true
+
+parameter_record_schema:
+  required:
+    - "parameter_id"
+    - "class"
+    - "domain"
+    - "scope"
+    - "value_type"
+    - "unit"
+    - "source_ref"
+    - "version"
+    - "effective_from"
+    - "comparison_semantics"
+    - "mutation_policy"
+  value_types:
+    - "INTEGER"
+    - "DECIMAL"
+    - "BOOLEAN"
+    - "ENUM"
+    - "DURATION"
+    - "TIMESTAMP"
+    - "RATIO"
+    - "PERCENT"
+    - "MONEY"
+    - "PRICE"
+    - "QUANTITY"
+    - "COUNT"
+    - "RANGE"
+  optional_but_conditionally_required:
+    exact_value: "required when one exact value is canonical"
+    min_value: "required for bounded range lower limit"
+    max_value: "required for bounded range upper limit"
+    tolerance: "required when equality is approximate"
+    formula_ref: "required for DERIVED_METRIC"
+    observed_at: "required for OBSERVED_RUNTIME_VALUE"
+    valid_until: "required when value is time-bounded"
+    calibration_receipt_ref: "required for calibrated values when calibration is claimed"
+    digest: "required when the value set/config snapshot participates in reproducibility"
+    sign_convention: "required when positive/negative direction has semantic meaning"
+    rounding_mode: "required when rounding may change decisions"
+    currency: "required for MONEY unless unit already encodes it"
+    timezone: "required for local wall-clock timestamps"
+
+unit_and_direction_rules:
+  canonical_unit_required: true
+  implicit_unit_conversion: false
+  conversion_requires:
+    - "source unit"
+    - "target unit"
+    - "versioned conversion rule"
+    - "precision/rounding rule"
+  percent_and_ratio_are_distinct: true
+  basis_points_and_percent_are_distinct: true
+  positive_negative_sign_convention_must_be_declared_when_material: true
+  buy_sell_or_inflow_outflow_direction_cannot_be_inferred_from_sign_alone: true
+  unknown_direction: "UNKNOWN_NOT_ZERO"
+  unknown_unit: "UNKNOWN_NOT_DEFAULT_UNIT"
+
+missing_and_unknown_semantics:
+  null_is_zero: false
+  missing_is_false: false
+  parse_failure_uses_default: false
+  unknown_is_no_change: false
+  NaN_inf_handling_must_be_explicit: true
+  stale_observation_is_current_truth: false
+  fail_closed_when_value_controls_authority_or_safety: true
+
+comparison_semantics:
+  modes:
+    EXACT:
+      tolerance: 0
+    ABSOLUTE_TOLERANCE:
+      requires: "absolute_tolerance"
+    RELATIVE_TOLERANCE:
+      requires: "relative_tolerance"
+    RANGE_CONTAINMENT:
+      requires: ["min_value", "max_value"]
+    MONOTONIC_NONDECREASING:
+      direction: "+"
+    MONOTONIC_NONINCREASING:
+      direction: "-"
+    CATEGORY_EQUALITY:
+      for: ["ENUM", "BOOLEAN"]
+  tolerance_widening_without_version_change: false
+
+numeric_snapshot:
+  purpose: "bind a task/run/review to the exact parameter world it used"
+  required_fields:
+    - "snapshot_id"
+    - "created_at"
+    - "parameter_ids_and_versions"
+    - "canonical_source_refs"
+    - "serialized_snapshot_digest"
+  posthoc_mutation: false
+  later_parameter_change_invalidates_historical_snapshot: false
+  later_parameter_change_requires_fresh_current_run_when_material: true
+
+drift_model:
+  record:
+    - "baseline_value"
+    - "observed_value"
+    - "absolute_delta"
+    - "relative_delta_when_defined"
+    - "direction"
+    - "unit"
+    - "baseline_version"
+    - "observation_time"
+    - "freshness_state"
+    - "threshold_or_tolerance"
+    - "classification"
+  classifications:
+    - "NO_MATERIAL_DRIFT"
+    - "WITHIN_TOLERANCE"
+    - "DIRECTIONAL_DRIFT"
+    - "MAGNITUDE_DRIFT"
+    - "UNIT_OR_SCHEMA_DRIFT"
+    - "FRESHNESS_DRIFT"
+    - "SIGN_CONVENTION_CONFLICT"
+    - "UNKNOWN_REQUIRES_REVALIDATION"
+  symmetric_percentage_change_for_zero_baseline: "NOT_IMPLICIT; USE_DECLARED_ALTERNATIVE_OR_UNKNOWN"
+
+change_control:
+  HARD_BINDING_CONSTANT:
+    change_gate: "canonical contract change + regression/review as applicable"
+  CALIBRATED_POLICY_PARAMETER:
+    change_gate: "new calibration evidence + version bump + acceptance criteria"
+  OBSERVED_RUNTIME_VALUE:
+    change_gate: "new timestamped observation; never overwrite history"
+  DERIVED_METRIC:
+    change_gate: "input or formula version change creates new result identity"
+  EXPERIMENT_PARAMETER:
+    change_gate: "new trial identity"
+
+current_active_resource_parameter_mirrors:
+  source_ref: "coordination/GOVERNANCE/LOCAL-EXECUTION-RESOURCE-BUDGET-AND-PROCESS-LIFECYCLE-PROTOCOL-v1.0.yaml"
+  source_status_expected: "ACTIVE_BINDING"
+  conflict_rule: "SOURCE_CONTRACT_WINS_AND_MIRROR_MISMATCH_FAILS_VALIDATION"
+  values:
+    - parameter_id: "LOCAL.PROJECT_OWNED_PYTHON_PROCESS_HARD_CAP"
+      class: "HARD_BINDING_CONSTANT"
+      value_type: "COUNT"
+      unit: "process"
+      exact_value: 8
+    - parameter_id: "LOCAL.PROJECT_OWNED_CPU_BOUND_WORKER_HARD_CAP"
+      class: "HARD_BINDING_CONSTANT"
+      value_type: "COUNT"
+      unit: "worker"
+      exact_value: 4
+    - parameter_id: "LOCAL.PROJECT_RAM_TARGET_GIB"
+      class: "HARD_BINDING_CONSTANT"
+      value_type: "DECIMAL"
+      unit: "GiB"
+      exact_value: 8
+    - parameter_id: "LOCAL.PROJECT_RAM_HARD_CAP_GIB"
+      class: "HARD_BINDING_CONSTANT"
+      value_type: "DECIMAL"
+      unit: "GiB"
+      exact_value: 10
+    - parameter_id: "LOCAL.MIN_SYSTEM_AVAILABLE_RAM_GIB"
+      class: "HARD_BINDING_CONSTANT"
+      value_type: "DECIMAL"
+      unit: "GiB"
+      exact_value: 8
+    - parameter_id: "LOCAL.COMBINED_CPU_TARGET_PERCENT"
+      class: "HARD_BINDING_CONSTANT"
+      value_type: "PERCENT"
+      unit: "percent"
+      exact_value: 55
+    - parameter_id: "LOCAL.CPU_THROTTLE_THRESHOLD_PERCENT"
+      class: "HARD_BINDING_CONSTANT"
+      value_type: "PERCENT"
+      unit: "percent"
+      exact_value: 70
+    - parameter_id: "LOCAL.CPU_THROTTLE_SUSTAINED_SECONDS"
+      class: "HARD_BINDING_CONSTANT"
+      value_type: "DURATION"
+      unit: "second"
+      exact_value: 15
+
+executor_pool_parameters_not_yet_pinned:
+  rule: "DO_NOT_GUESS; CALIBRATE_FROM_SLICE_B_REALITY_AUDIT"
+  parameters:
+    - "WB.LOGICAL_SLOT_CAPACITY_MAX"
+    - "WB.RUNNING_EXECUTOR_CAPACITY_DEFAULT"
+    - "WB.LEASE_HEARTBEAT_INTERVAL_SECONDS"
+    - "WB.LEASE_EXPIRY_SECONDS"
+    - "WB.LIGHT_TASK_CPU_TOKEN"
+    - "WB.LIGHT_TASK_RAM_GIB_TOKEN"
+    - "WB.BROWSER_SESSION_CAPACITY"
+    - "WB.GPU_HEAVY_CAPACITY"
+  desired_floor_is_not_canonical_value: true
+
+experiment_ledger:
+  design_patterns: ["MLFLOW_RUN_TRACKING", "DVC_VERSIONED_EXPERIMENTS", "OPENLINEAGE_PROVENANCE"]
+  experiment_identity:
+    required:
+      - "experiment_id"
+      - "run_id"
+      - "project_id"
+      - "question_or_hypothesis_id"
+      - "code_sha"
+      - "parameter_snapshot_id"
+      - "input_artifact_or_dataset_refs"
+      - "start_time"
+      - "end_state"
+  run_payload:
+    required:
+      - "parameters"
+      - "metrics"
+      - "artifacts_or_digests"
+      - "environment_or_runtime_identity"
+      - "selection_status"
+      - "failure_or_exception_when_any"
+  failed_and_rejected_trials_are_retained: true
+  winning_trial_only_storage_forbidden: true
+
+trading_research_extension:
+  applies_to: "TRADING_SYSTEM research/model/strategy selection"
+  required_when_applicable:
+    - "point_in_time_asof"
+    - "data/provider/version provenance"
+    - "market calendar/rule version"
+    - "corporate action adjustment policy"
+    - "feature/label definition digest"
+    - "search space digest"
+    - "trial sequence and total known trials"
+    - "in-sample/out-of-sample/walk-forward partition identity"
+    - "transaction cost/slippage model/version"
+    - "T+1/price-limit/suspension assumptions"
+    - "selection criterion"
+  search_adjusted_evidence:
+    PBO_CSCV:
+      use_when: "multiple strategy/configuration searches make overfit probability material"
+    DEFLATED_SHARPE_RATIO:
+      use_when: "Sharpe-based performance is selected after multiple trials and/or non-normality is material"
+    minimum_backtest_or_sample_length:
+      use_when: "sample size is material to search complexity and claimed reliability"
+  result_without_trial_count_or_search_history: "RESEARCH_INTEGRITY_INCOMPLETE"
+
+software_hardware_style_rule:
+  principle: >-
+    Treat important numeric contracts like hardware register definitions or typed protocol fields:
+    address/identity, type, unit, legal range, reset/default semantics, source version and change gate are explicit.
+  scattered_magic_numbers: "FORBIDDEN_FOR_ACCEPTANCE_CRITICAL_VALUES"
+  generated_constants_allowed: true
+  source_generated_constants_must_bind_registry_version: true
+  regression_tests_should_check:
+    - "exact value or legal range"
+    - "unit"
+    - "sign convention"
+    - "comparison/tolerance"
+    - "source/version"
+    - "serialization digest when reproducibility-critical"
+
+handoff_and_review:
+  every_nontrivial_workbuddy_task_should_bind_numeric_snapshot: true
+  every_experiment_should_bind_parameter_snapshot: true
+  review_should_compare_expected_vs_observed_parameter_world: true
+  material_parameter_change_after_exact_head_review: "REVALIDATE_IF_IT_CHANGES_CANDIDATE_SEMANTICS"
+
+anti_drift_tests_for_future_implementation:
+  - "8 processes cannot silently become 80 due string/zero/default parsing"
+  - "0.55 ratio cannot silently equal 55 percent"
+  - "basis points cannot silently equal percent"
+  - "inflow-positive convention cannot silently flip to outflow-positive"
+  - "stale observed runtime value cannot satisfy current hard gate"
+  - "range widening requires explicit version/change evidence"
+  - "NaN/missing/parse failure cannot become zero/default"
+  - "experiment winner remains linked to all known attempted trials/search-space identity"
+  - "same numeric snapshot serializes deterministically to the same digest"
