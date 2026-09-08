@@ -1,0 +1,77 @@
+schema: AGENT_IDENTITY_REGISTRY/v1
+control_plane_repository: vxz2datoubo/second-brain-coordination
+registry_status: ACTIVE
+created_by: workbuddy-agent
+created_at_utc: "2026-09-08T21:45:00Z"
+owner_directive_authority:
+  date: "2026-09-08"
+  directive: >-
+    Owner (波仔/vxz2datoubo) explicitly directed: all three operating agents
+    (WorkBuddy local, Codex local, GPT web-side) must have individually
+    identifiable commit identities and the highest available repository
+    permissions, including explicit allowance of direct pushes to main.
+    No branch protection is requested at this time.
+github_accounts:
+  vxz2datoubo:
+    role: OWNER_PRIMARY_ACCOUNT
+    repo_permission: admin
+    used_by: [workbuddy-agent, codex-agent]
+    notes: gh CLI on the local machine authenticates as this account.
+  vxz1datoubo:
+    role: GPT_WEB_CONNECTOR_ACCOUNT
+    registered_at: "2026-08-25"
+    native_commit_email: 15322898848@163.com
+    repo_permission: admin_pending_acceptance
+    admin_invitation_id: 332252450
+    notes: >-
+      Author of the R187 authority candidate commits (PR #613 branch) and the
+      2026-09-08 owner-directive draft + rollback pair on main. Admin upgrade
+      issued 2026-09-08 via remove-and-reinvite (REST PUT on an existing
+      outside collaborator silently no-ops); requires one-time acceptance by
+      the account itself.
+agent_git_identities:
+  - agent_id: WORKBUDDY_AGENT
+    display_name: 迪迪 (WorkBuddy)
+    git_user_name: "vxz2datoubo (workbuddy-agent)"
+    git_user_email: 137051967+vxz2datoubo@users.noreply.github.com
+    enforcement: repo-local git config (already configured in this repository)
+    historical_note: >-
+      Commits before 2026-09-08 authored locally (e.g. 61ff56f1, PR #615 head)
+      carry the legacy machine-global identity "QClaw <qclaw@super-jarvis.local>";
+      that label means WorkBuddy-authored, not the QClaw compute engine.
+  - agent_id: CODEX_AGENT
+    display_name: Codex (local)
+    git_user_name: "vxz2datoubo (codex-agent)"
+    git_user_email: 137051967+vxz2datoubo@users.noreply.github.com
+    enforcement: ~/.codex/AGENTS.md global instruction (must use explicit git -c overrides per commit)
+  - agent_id: GPT_WEB_AGENT
+    display_name: GPT (network-side, ChatGPT connector)
+    github_account: vxz1datoubo
+    git_identity: native GitHub account identity (commit author strings originate connector-side)
+permissions_matrix:
+  workbuddy-agent:
+    github_account: vxz2datoubo
+    repo_permission: admin
+    direct_main_push: ALLOWED
+    merge_rights: ALLOWED
+    workflow_dispatch: ALLOWED
+  codex-agent:
+    credential_source: machine credential manager (vxz2datoubo over https)
+    repo_permission: admin (inherits via vxz2datoubo credentials)
+    direct_main_push: ALLOWED
+    merge_rights: ALLOWED
+  gpt-web-agent:
+    github_account: vxz1datoubo
+    repo_permission: admin_pending_acceptance
+    direct_main_push: ALLOWED
+    merge_rights: ALLOWED
+governance_boundary:
+  notes: >-
+    Direct main push is an Owner-granted permission, not a governance bypass.
+    S1 governance tasks (freeze / exact-head CI / independent review /
+    canonicalization) still require the canonical PR pipeline per their own
+    task contracts. This registry grants capability; task contracts bind usage.
+provenance:
+  evidence:
+    - "commit identity audit 2026-09-08: git show --format across 5967215d/e6c5c1e0/2327c3c2/5fea61a6/44641097"
+    - "REST PUT collaborator permission upgrade no-op confirmed twice (204 without effect); resolved via DELETE + reinvite at admin"
