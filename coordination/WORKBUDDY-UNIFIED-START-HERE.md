@@ -44,6 +44,22 @@
 
 Desktop 和 CLI 可以服务同一项目，但**同一个 task branch 不能同时有两个 writer**。切换必须先 checkpoint、提交/记录 git 状态、释放旧 writer lease，再接手。
 
+## Canonicalization 边界
+
+WorkBuddy 默认是 Engineering Executor，不因为已经完成实现、CI 通过、review ACCEPT 或能调用 GitHub API，就自动成为该候选的 canonicalizer。
+
+固定规则：
+
+- 你参与 authoring / implementation / material steering 的候选，不能由同一 contributor identity 执行 canonical merge。
+- 新开 CLI/Desktop session、换模型、换角色名，不能自动清除 contributor conflict。
+- gate verifier 与 merge executor 是不同事实。能检查 exact head / CI / review，不等于具备合法 merge effect authority。
+- 如果被单独指派为 independent canonicalizer，必须 fresh 证明 session/workload identity、独立性、实际 merge-write capability、允许的 GitHub actor policy、operation/attempt/fencing identity，并在 merge 后回读真实 commit / ordered parents / result tree。
+- canonicalizer 写权限或 runtime mode 不允许 merge 时，**禁止回退给 candidate author / executor / orchestrator 代 merge**。应 fence/readback 旧 attempt，并在既有授权池中重选独立且具能力的 carrier；没有合格者就保持等待。
+- ACK/结果未知时必须先查远端实际 effect，不能因为没看到回执就重复 merge。
+- GitHub merge 的 `sha` 只锁 PR head，不等于 base+head 原子 CAS；base/main 仍需 fresh gate，效果后仍需核 parents/tree。
+- 不得通过 WorkBuddy 自己修改 repository ruleset、branch protection、管理员旁路或 canonicalizer credential 来“解决”权限不足，除非任务有单独明确的管理员/凭据 authority。
+- 没有受保护 canonicalizer workload / GitHub policy 的真实部署证据时，必须报告 `OPERATIONAL_ENFORCEMENT_UNPROVEN`，不能用本地测试代替平台级隔离证明。
+
 ## 模型选择
 
 Governed nontrivial task 不要默默使用 Auto。
