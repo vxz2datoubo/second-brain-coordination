@@ -1,8 +1,8 @@
-schema_version: "1.2"
+schema_version: "1.3"
 protocol_id: "UNIFIED-AGENT-EXECUTION-FABRIC-v1"
 status: "CANDIDATE_EXTENSION_PENDING_INDEPENDENT_REVIEW"
 source_issue: 596
-latest_extension_issue: 605
+latest_extension_issue: 619
 authority:
   owner_decision: "ONE_GLOBAL_CONTROL_PLANE_WITH_PROJECT_ADAPTERS"
   canonical_engineering_sync_repo: "vxz2datoubo/second-brain-coordination"
@@ -21,6 +21,7 @@ architecture:
     - "SINGLE_WRITER_PER_COLLISION_DOMAIN"
     - "EXACT_HEAD_INDEPENDENT_REVIEW"
     - "COMPUTE_CAPITAL_ALLOCATION_BY_MARGINAL_VALUE"
+    - "CANONICALIZATION_EFFECT_PROVENANCE"
   global_port:
     owns:
       - "task classification"
@@ -33,6 +34,8 @@ architecture:
       - "local bridge admission"
       - "concurrency/collision admission"
       - "exact-head review lifecycle"
+      - "canonicalizer role/capability admission"
+      - "canonicalization effect fencing and reconciliation"
       - "productivity telemetry"
     does_not_own:
       - "project domain truth"
@@ -74,6 +77,8 @@ roles:
       - "compress Reality Map -> Architecture Gap Map -> Decision Set -> bounded frontier questions for large inputs"
     cannot:
       - "claim independent ACCEPT for a candidate it authored/steered"
+      - "execute canonical merge for a candidate it authored/executed/materially steered"
+      - "take over canonical merge merely because the selected canonicalizer lacks write capability"
       - "use expensive frontier compute merely because a task is large or prestigious"
   CODEX_STANDARD_ENGINEER:
     role: "OPTIONAL_CODE_CENTRIC_HIGH_QUALITY_EXECUTION_OR_SECOND_OPINION"
@@ -130,10 +135,19 @@ roles:
       - "key verdict to exact head"
     cannot:
       - "reuse verdict after head movement"
+      - "be represented as the merge executor solely because it verified gates"
   CANONICALIZER:
     must:
-      - "be separate from candidate author/executor"
+      - "be separate from candidate author/executor/materially-steering orchestrator"
       - "fresh reconcile mergeability, head identity, review and current main"
+      - "prove runtime/session/workload identity independently of caller role strings"
+      - "prove actual merge-write capability before MERGE_REQUESTED"
+      - "bind operation/attempt/fencing identity before requesting the effect"
+      - "reconcile actual GitHub actor, merge parents and result tree after the effect"
+    cannot:
+      - "modify the reviewed candidate"
+      - "synthesize missing review acceptance"
+      - "delegate merge back to a candidate contributor when its own write path is unavailable"
 
 task_classes:
   S0:
@@ -191,8 +205,47 @@ routing_algorithm:
   - "freeze_exact_head_after_return"
   - "run_exact_head_CI"
   - "separate_GPT_independent_review"
-  - "separate_canonicalization"
+  - "select_independent_merge_capable_canonicalizer"
+  - "fresh_role_and_capability_admission"
+  - "fresh_canonicalization_gates"
+  - "request_merge_effect_with_operation_attempt_and_fencing_identity"
+  - "reconcile_remote_merge_actor_parents_and_tree"
+  - "record_canonicalization_only_after_effect_reconciliation"
   - "record_productivity_codex_standard_and_frontier_compute_receipt_learning"
+
+canonicalization_effect_isolation:
+  core_validator: "coordination/GOVERNANCE/unified_execution_canonicalization_extension.py"
+  core_has_github_side_effects: false
+  core_can_mint_merge_authority: false
+  contributor_conflict_set_includes:
+    - "candidate author"
+    - "executor"
+    - "actual code contributors"
+    - "materially-steering orchestrator"
+    - "relevant runtime/session/workload and GitHub principal identities"
+  state_machine:
+    - REVIEW_ACCEPTED
+    - SELECT_ELIGIBLE_CANONICALIZER
+    - ROLE_AND_CAPABILITY_ADMISSION
+    - FRESH_CANONICALIZATION_GATES
+    - MERGE_REQUESTED
+    - REMOTE_EFFECT_RECONCILED
+    - CANONICALIZATION_RECORDED
+  write_unavailable_behavior: >-
+    Fence or read back the old attempt, then select another already-authorized independent carrier
+    and repeat fresh admission. If none exists, persist NO_ELIGIBLE_CANONICALIZER.
+  author_or_orchestrator_merge_fallback: FORBIDDEN
+  caller_role_string_is_independence_authority: false
+  caller_write_capable_boolean_is_authority: false
+  github_merge_sha_semantics: "HEAD_LOCK_ONLY_NOT_ATOMIC_BASE_AND_HEAD_CAS"
+  unknown_effect_behavior: "READBACK_BEFORE_ANY_RETRY"
+  post_effect_required:
+    - "actual merge request actor identity"
+    - "GitHub actor"
+    - "merge commit"
+    - "ordered parents"
+    - "result tree"
+  actor_or_tree_mismatch_behavior: "PRESERVE_PHYSICAL_FACT_REGISTER_INCIDENT_NO_CLEAN_CANONICAL_RECEIPT"
 
 references:
   interfaces: "coordination/GOVERNANCE/UNIFIED-EXECUTION-INTERFACE-SCHEMAS-v1.0.yaml"
@@ -214,6 +267,9 @@ global_invariants:
   accept_is_not_canonical: true
   no_self_review: true
   no_self_merge: true
+  no_author_or_orchestrator_merge_fallback_on_canonicalizer_failure: true
+  canonicalization_effect_provenance_required: true
+  canonicalization_verifier_is_not_implicitly_merge_executor: true
   no_silent_model_switch_for_governed_nontrivial_task: true
   no_silent_carrier_switch: true
   no_silent_architecture_authority_transfer: true
@@ -251,3 +307,4 @@ activation:
   this_candidate_does_not_activate_local_execution: true
   this_candidate_does_not_modify_active_workbuddy_task: true
   this_candidate_does_not_grant_trade_authority: true
+  this_candidate_does_not_install_repository_admin_policy_or_credentials: true
