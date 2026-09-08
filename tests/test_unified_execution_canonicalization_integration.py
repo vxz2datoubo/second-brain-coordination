@@ -34,6 +34,17 @@ class CanonicalizationGovernanceIntegrationTests(unittest.TestCase):
         self.assertFalse(mod.CANONICALIZATION_EFFECT_CORE_HAS_GITHUB_SIDE_EFFECTS)
         self.assertFalse(mod.CANONICALIZATION_EFFECT_CORE_CAN_MINT_MERGE_AUTHORITY)
 
+    def test_canonical_entrypoint_does_not_export_evidence_issuer_or_factory(self):
+        mod = load_module(
+            "unified_execution_validation_canonicalization_anti_mint_test",
+            GOV / "unified_execution_validation.py",
+        )
+        self.assertFalse(hasattr(mod, "_CANONICALIZATION_ISSUER"))
+        self.assertFalse(hasattr(mod, "_issue_verified_canonicalizer_evidence"))
+        forged = mod.VerifiedCanonicalizerEvidence({}, object())
+        with self.assertRaisesRegex(Exception, "untrusted issuer"):
+            mod.admit_canonicalizer(forged, {"candidate-author"})
+
     def test_fresh_trust_gate_reexports_same_validator_types(self):
         gate = load_module(
             "unified_execution_trust_gate_canonicalization_test",
@@ -43,6 +54,7 @@ class CanonicalizationGovernanceIntegrationTests(unittest.TestCase):
         self.assertIs(gate.VerifiedCanonicalizerEvidence, gate.base.VerifiedCanonicalizerEvidence)
         self.assertIs(gate.validate_pre_merge_effect_gate, gate.base.validate_pre_merge_effect_gate)
         self.assertIs(gate.reconcile_merge_effect, gate.base.reconcile_merge_effect)
+        self.assertFalse(hasattr(gate, "_issue_verified_canonicalizer_evidence"))
 
     def test_uef_requires_effect_provenance_and_forbids_author_fallback(self):
         text = (GOV / "UNIFIED-AGENT-EXECUTION-FABRIC-v1.0.yaml").read_text(encoding="utf-8")
