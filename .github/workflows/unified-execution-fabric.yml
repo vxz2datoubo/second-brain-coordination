@@ -71,6 +71,7 @@ jobs:
           echo "normalized_expected_head=${normalized_expected_head}" >> "${GITHUB_OUTPUT}"
 
       - name: Exact-head checkout
+        id: exact_checkout
         if: github.event_name == 'workflow_dispatch'
         uses: actions/checkout@v4
         with:
@@ -220,6 +221,7 @@ jobs:
           exit "${hygiene_exit_code}"
 
       - name: Publish exact-head audit evidence
+        id: exact_head_audit
         if: always() && github.event_name == 'workflow_dispatch'
         shell: bash
         env:
@@ -227,6 +229,12 @@ jobs:
           NORMALIZED_HEAD: ${{ steps.validate_expected_head.outputs.normalized_expected_head }}
           ACTUAL_CHECKOUT_SHA: ${{ steps.exact_identity.outputs.actual_checkout_sha }}
           REV_PARSE_HEAD: ${{ steps.exact_identity.outputs.rev_parse_head }}
+          VALIDATION_OUTCOME: ${{ steps.validate_expected_head.outcome }}
+          CHECKOUT_OUTCOME: ${{ steps.exact_checkout.outcome }}
+          IDENTITY_OUTCOME: ${{ steps.exact_identity.outcome }}
+          JOB_ID_OUTCOME: ${{ steps.job_identity.outcome }}
+          TEST_OUTCOME: ${{ steps.unified_tests.outcome }}
+          HYGIENE_OUTCOME: ${{ steps.hygiene.outcome }}
           VALIDATION_EXIT_CODE: ${{ steps.validate_expected_head.outputs.validation_exit_code }}
           IDENTITY_EXIT_CODE: ${{ steps.exact_identity.outputs.identity_exit_code }}
           JOB_ID: ${{ steps.job_identity.outputs.job_id }}
@@ -235,7 +243,124 @@ jobs:
           STDOUT_SHA256: ${{ steps.unified_tests.outputs.stdout_sha256 }}
           STDERR_SHA256: ${{ steps.unified_tests.outputs.stderr_sha256 }}
           HYGIENE_EXIT_CODE: ${{ steps.hygiene.outputs.hygiene_exit_code }}
+          WORKFLOW_REF: ${{ github.workflow_ref }}
+          WORKFLOW_SHA: ${{ github.workflow_sha }}
         run: |
+          set -u
+
+          exact_head_authority=false
+          checkout_identity_class="WORKFLOW_DISPATCH_EXACT_COMMIT_FAILED_OR_INCOMPLETE"
+          audit_record_status="FAILURE_OR_INCOMPLETE"
+          failure_reasons=()
+
+          require_success_outcome() {
+            local label="$1"
+            local outcome="$2"
+            if [[ "${outcome}" != "success" ]]; then
+              failure_reasons+=("${label}_OUTCOME_${outcome:-MISSING}")
+            fi
+          }
+
+          require_nonempty() {
+            local label="$1"
+            local value="$2"
+            if [[ -z "${value}" ]]; then
+              failure_reasons+=("MISSING_OUTPUT_${label}")
+            fi
+          }
+
+          require_success_outcome "VALIDATION" "${VALIDATION_OUTCOME}"
+          require_success_outcome "CHECKOUT" "${CHECKOUT_OUTCOME}"
+          require_success_outcome "IDENTITY" "${IDENTITY_OUTCOME}"
+          require_success_outcome "JOB_ID" "${JOB_ID_OUTCOME}"
+          require_success_outcome "TESTS" "${TEST_OUTCOME}"
+          require_success_outcome "HYGIENE" "${HYGIENE_OUTCOME}"
+
+          require_nonempty "REQUESTED_HEAD" "${REQUESTED_HEAD}"
+          require_nonempty "NORMALIZED_HEAD" "${NORMALIZED_HEAD}"
+          require_nonempty "ACTUAL_CHECKOUT_SHA" "${ACTUAL_CHECKOUT_SHA}"
+          require_nonempty "REV_PARSE_HEAD" "${REV_PARSE_HEAD}"
+          require_nonempty "VALIDATION_EXIT_CODE" "${VALIDATION_EXIT_CODE}"
+          require_nonempty "IDENTITY_EXIT_CODE" "${IDENTITY_EXIT_CODE}"
+          require_nonempty "JOB_ID" "${JOB_ID}"
+          require_nonempty "TEST_EXIT_CODE" "${TEST_EXIT_CODE}"
+          require_nonempty "TEST_RESULT" "${TEST_RESULT}"
+          require_nonempty "STDOUT_SHA256" "${STDOUT_SHA256}"
+          require_nonempty "STDERR_SHA256" "${STDERR_SHA256}"
+          require_nonempty "HYGIENE_EXIT_CODE" "${HYGIENE_EXIT_CODE}"
+          require_nonempty "WORKFLOW_REF" "${WORKFLOW_REF}"
+          require_nonempty "WORKFLOW_SHA" "${WORKFLOW_SHA}"
+          require_nonempty "WORKFLOW_RUN_ID" "${GITHUB_RUN_ID}"
+
+          if [[ "${GITHUB_EVENT_NAME}" != "workflow_dispatch" ]]; then
+            failure_reasons+=("EVENT_NOT_WORKFLOW_DISPATCH")
+          fi
+          if [[ ! "${REQUESTED_HEAD}" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            failure_reasons+=("REQUESTED_HEAD_NOT_FULL_40_HEX")
+          fi
+          if [[ ! "${NORMALIZED_HEAD}" =~ ^[0-9a-f]{40}$ ]]; then
+            failure_reasons+=("NORMALIZED_HEAD_NOT_FULL_40_HEX")
+          fi
+          if [[ "${REQUESTED_HEAD,,}" != "${NORMALIZED_HEAD}" ]]; then
+            failure_reasons+=("REQUESTED_NORMALIZED_HEAD_MISMATCH")
+          fi
+          if [[ ! "${ACTUAL_CHECKOUT_SHA}" =~ ^[0-9a-f]{40}$ ]]; then
+            failure_reasons+=("ACTUAL_CHECKOUT_SHA_NOT_FULL_40_HEX")
+          fi
+          if [[ ! "${REV_PARSE_HEAD}" =~ ^[0-9a-f]{40}$ ]]; then
+            failure_reasons+=("REV_PARSE_HEAD_NOT_FULL_40_HEX")
+          fi
+          if [[ "${ACTUAL_CHECKOUT_SHA}" != "${NORMALIZED_HEAD}" ]]; then
+            failure_reasons+=("ACTUAL_CHECKOUT_SHA_MISMATCH")
+          fi
+          if [[ "${REV_PARSE_HEAD}" != "${NORMALIZED_HEAD}" ]]; then
+            failure_reasons+=("REV_PARSE_HEAD_MISMATCH")
+          fi
+          if [[ "${VALIDATION_EXIT_CODE}" != "0" ]]; then
+            failure_reasons+=("VALIDATION_EXIT_CODE_NOT_ZERO")
+          fi
+          if [[ "${IDENTITY_EXIT_CODE}" != "0" ]]; then
+            failure_reasons+=("IDENTITY_EXIT_CODE_NOT_ZERO")
+          fi
+          if [[ ! "${JOB_ID}" =~ ^[0-9]+$ ]]; then
+            failure_reasons+=("JOB_ID_NOT_NUMERIC")
+          fi
+          if [[ "${TEST_EXIT_CODE}" != "0" ]]; then
+            failure_reasons+=("TEST_EXIT_CODE_NOT_ZERO")
+          fi
+          if [[ "${TEST_RESULT}" != "PASS" ]]; then
+            failure_reasons+=("TEST_RESULT_NOT_PASS")
+          fi
+          if [[ ! "${STDOUT_SHA256}" =~ ^[0-9a-f]{64}$ ]]; then
+            failure_reasons+=("STDOUT_SHA256_MISSING_OR_INVALID")
+          fi
+          if [[ ! "${STDERR_SHA256}" =~ ^[0-9a-f]{64}$ ]]; then
+            failure_reasons+=("STDERR_SHA256_MISSING_OR_INVALID")
+          fi
+          if [[ "${HYGIENE_EXIT_CODE}" != "0" ]]; then
+            failure_reasons+=("HYGIENE_EXIT_CODE_NOT_ZERO")
+          fi
+          if [[ ! "${WORKFLOW_SHA}" =~ ^[0-9a-f]{40}$ ]]; then
+            failure_reasons+=("WORKFLOW_SHA_MISSING_OR_INVALID")
+          fi
+          if [[ ! "${GITHUB_RUN_ID}" =~ ^[0-9]+$ ]]; then
+            failure_reasons+=("WORKFLOW_RUN_ID_MISSING_OR_INVALID")
+          fi
+
+          if [[ "${#failure_reasons[@]}" -eq 0 ]]; then
+            exact_head_authority=true
+            checkout_identity_class="WORKFLOW_DISPATCH_EXACT_COMMIT"
+            audit_record_status="AUTHORITATIVE"
+            failure_reason="NONE"
+          else
+            failure_reason="$(IFS=';'; echo "${failure_reasons[*]}")"
+          fi
+
+          echo "exact_head_authority=${exact_head_authority}" >> "${GITHUB_OUTPUT}"
+          echo "checkout_identity_class=${checkout_identity_class}" >> "${GITHUB_OUTPUT}"
+          echo "audit_record_status=${audit_record_status}" >> "${GITHUB_OUTPUT}"
+          echo "failure_reason=${failure_reason}" >> "${GITHUB_OUTPUT}"
+
           cat <<EOF
           EXACT_HEAD_CI_EVIDENCE/v1
           requested_expected_head=${REQUESTED_HEAD}
@@ -245,9 +370,15 @@ jobs:
           workflow_run_id=${GITHUB_RUN_ID}
           job_id=${JOB_ID}
           event=${GITHUB_EVENT_NAME}
-          workflow_ref=${{ github.workflow_ref }}
-          workflow_sha=${{ github.workflow_sha }}
+          workflow_ref=${WORKFLOW_REF}
+          workflow_sha=${WORKFLOW_SHA}
           command_set=git log -1 --format=%H ; git rev-parse HEAD ; python -m unittest discover -s tests -p 'test_unified_execution*.py' -v ; git diff-tree --check --root HEAD
+          validation_outcome=${VALIDATION_OUTCOME}
+          checkout_outcome=${CHECKOUT_OUTCOME}
+          identity_outcome=${IDENTITY_OUTCOME}
+          job_id_outcome=${JOB_ID_OUTCOME}
+          test_outcome=${TEST_OUTCOME}
+          hygiene_outcome=${HYGIENE_OUTCOME}
           validation_exit_code=${VALIDATION_EXIT_CODE}
           identity_exit_code=${IDENTITY_EXIT_CODE}
           test_exit_code=${TEST_EXIT_CODE}
@@ -255,8 +386,11 @@ jobs:
           stdout_sha256=${STDOUT_SHA256}
           stderr_sha256=${STDERR_SHA256}
           hygiene_exit_code=${HYGIENE_EXIT_CODE}
-          exact_head_authority=true
-          checkout_identity_class=WORKFLOW_DISPATCH_EXACT_COMMIT
+          audit_record_status=${audit_record_status}
+          failure_reason=${failure_reason}
+          exact_head_authority=${exact_head_authority}
+          checkout_identity_class=${checkout_identity_class}
+          authority_promotion_condition=ALL_REQUIRED_GATES_SUCCESS_AND_REQUIRED_OUTPUTS_COMPLETE
           EOF
 
           cat >> "${GITHUB_STEP_SUMMARY}" <<EOF
@@ -269,9 +403,15 @@ jobs:
           - workflow run id: \`${GITHUB_RUN_ID}\`
           - job id: \`${JOB_ID}\`
           - event: \`${GITHUB_EVENT_NAME}\`
-          - workflow ref: \`${{ github.workflow_ref }}\`
-          - workflow SHA: \`${{ github.workflow_sha }}\`
+          - workflow ref: \`${WORKFLOW_REF}\`
+          - workflow SHA: \`${WORKFLOW_SHA}\`
           - command set: \`git log -1 --format=%H\`; \`git rev-parse HEAD\`; \`python -m unittest discover -s tests -p 'test_unified_execution*.py' -v\`; \`git diff-tree --check --root HEAD\`
+          - validation outcome: \`${VALIDATION_OUTCOME}\`
+          - checkout outcome: \`${CHECKOUT_OUTCOME}\`
+          - identity outcome: \`${IDENTITY_OUTCOME}\`
+          - job-id outcome: \`${JOB_ID_OUTCOME}\`
+          - test outcome: \`${TEST_OUTCOME}\`
+          - hygiene outcome: \`${HYGIENE_OUTCOME}\`
           - validation exit code: \`${VALIDATION_EXIT_CODE}\`
           - identity exit code: \`${IDENTITY_EXIT_CODE}\`
           - test exit code: \`${TEST_EXIT_CODE}\`
@@ -279,6 +419,9 @@ jobs:
           - stdout sha256: \`${STDOUT_SHA256}\`
           - stderr sha256: \`${STDERR_SHA256}\`
           - hygiene exit code: \`${HYGIENE_EXIT_CODE}\`
-          - exact-head authority: \`true\`
-          - checkout identity class: \`WORKFLOW_DISPATCH_EXACT_COMMIT\`
+          - audit record status: \`${audit_record_status}\`
+          - failure / incomplete reason: \`${failure_reason}\`
+          - exact-head authority: \`${exact_head_authority}\`
+          - checkout identity class: \`${checkout_identity_class}\`
+          - authority promotion condition: \`ALL_REQUIRED_GATES_SUCCESS_AND_REQUIRED_OUTPUTS_COMPLETE\`
           EOF
