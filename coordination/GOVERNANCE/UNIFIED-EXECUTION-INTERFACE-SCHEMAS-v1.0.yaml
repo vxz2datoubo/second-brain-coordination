@@ -1,8 +1,9 @@
-schema_version: "1.4"
+schema_version: "1.5"
 schema_family: "UNIFIED-EXECUTION-INTERFACES-v1"
 status: "CANDIDATE_REMEDIATED_PENDING_INDEPENDENT_REVIEW"
 source_issue: 596
 owner_reporting_extension_source_issue: 598
+canonicalization_effect_extension_source_issue: 619
 
 common_identity:
   composition_rule: "EVERY_AUTHORITY_BEARING_MACHINE_OBJECT_MUST_EXPLICITLY_INCLUDE_ALL_COMMON_IDENTITY_FIELDS"
@@ -202,6 +203,113 @@ GPT_INDEPENDENT_REVIEW_REQUEST_v1:
     - "any_head_movement_requires_new_review_request"
     - "ACCEPT_is_not_canonical"
 
+CANONICALIZER_ROLE_AND_CAPABILITY_ADMISSION_v1:
+  purpose: >-
+    Admit an independent merge-capable canonicalizer using trusted workload/session and capability
+    evidence. Role names, booleans and caller-computed digests are not authority.
+  core_validator: "admit_canonicalizer"
+  required:
+    - repository
+    - pull_request
+    - exact_head_sha
+    - candidate_contributor_conflict_set_digest
+    - canonicalizer_identity
+    - session_or_workload_identity
+    - carrier
+    - runtime_mode
+    - independence_evidence_source
+    - capability_evidence_source
+    - merge_write_capable
+    - github_principal
+    - allowed_github_actors
+    - permission_policy_digest
+    - fencing_identity
+    - observed_at
+  contributor_conflict_set_must_include:
+    - candidate_author
+    - executor
+    - actual_code_contributors
+    - materially_steering_orchestrator
+    - relevant_session_workload_and_github_principal_identities
+  trusted_independence_evidence_sources:
+    - PROTECTED_WORKLOAD_IDENTITY
+    - GOVERNED_SESSION_ATTESTATION
+    - SEPARATE_GITHUB_APP_IDENTITY
+  trusted_capability_evidence_sources:
+    - PROTECTED_CAPABILITY_PROBE
+    - GITHUB_INSTALLATION_SCOPE_ATTESTATION
+    - GOVERNED_MERGE_ADAPTER_ATTESTATION
+  forbidden_runtime_modes:
+    - READ_ONLY
+    - PLAN_ONLY
+    - REVIEW_ONLY
+  invariants:
+    - "canonicalizer_must_not_intersect_contributor_conflict_set"
+    - "new_session_or_role_name_does_not_clear_conflict_by_itself"
+    - "merge_write_capability_must_be_proven_before_effect_request"
+    - "caller_supplied_independent_true_is_not_authority"
+    - "caller_supplied_write_capable_true_is_not_authority"
+    - "admission_is_not_merge_authority_and_has_no_github_side_effect"
+
+CANONICALIZATION_EFFECT_REQUEST_v1:
+  purpose: "fresh exact-bound pre-merge effect admission"
+  core_validator: "validate_pre_merge_effect_gate"
+  required:
+    - repository
+    - pull_request
+    - exact_head_sha
+    - fresh_main_sha
+    - observed_base_sha
+    - candidate_tree_sha
+    - operation_id
+    - attempt_id
+    - fencing_identity
+    - canonicalizer_admission_digest
+    - review_evidence_ref
+    - exact_head_ci_when_required
+    - head_lock_semantics
+  invariants:
+    - "fresh_main_must_equal_observed_base_before_request"
+    - "independent_review_verdict_must_bind_exact_head"
+    - "authoritative_CI_actual_checkout_must_bind_exact_head_when_required"
+    - "github_merge_sha_is_HEAD_ONLY_NOT_BASE_CAS"
+    - "head_or_base_policy_drift_fails_closed"
+    - "old_attempt_or_fencing_identity_cannot_be_reused"
+    - "effect_request_does_not_itself_perform_merge"
+
+CANONICALIZATION_EFFECT_RECEIPT_v1:
+  purpose: "reconcile the actual remote merge effect before recording canonicalization"
+  core_validator: "reconcile_merge_effect"
+  required:
+    - effect_status
+    - operation_id
+    - attempt_id
+    - fencing_identity
+    - merge_request_actor_identity
+    - github_actor
+    - observed_pr_head
+    - merge_commit_sha
+    - ordered_parent_shas
+    - result_tree_sha
+  success_requires:
+    - "effect_status_MERGED"
+    - "operation_attempt_fencing_exact_match"
+    - "observed_PR_head_matches_admitted_exact_head"
+    - "merge_request_actor_matches_admitted_canonicalizer_workload_identity"
+    - "github_actor_matches_admitted_policy"
+    - "parents_equal_observed_base_then_exact_head"
+    - "result_tree_equals_candidate_tree"
+  failure_semantics:
+    MERGE_EFFECT_UNKNOWN: "READBACK_BEFORE_RETRY"
+    MERGE_ACTOR_MISMATCH: "PRESERVE_EFFECT_REGISTER_INCIDENT_NO_CLEAN_RECEIPT"
+    MERGED_WITH_UNEXPECTED_BASE_OR_TREE: "INDEPENDENT_ADJUDICATION_NO_CLEAN_RECEIPT"
+    LEASE_OR_FENCING_INVALID: "REJECT_STALE_OR_LATE_ATTEMPT"
+  invariants:
+    - "gate_verifier_merge_request_actor_github_actor_and_publisher_are_distinct_fields"
+    - "one_agent_id_must_not_collapse_effect_provenance"
+    - "physical_merge_fact_is_never_erased_by_governance_failure"
+    - "author_or_orchestrator_fallback_merge_is_forbidden"
+
 ENGINEERING_PRODUCTIVITY_RECEIPT_v1:
   purpose: "calibrate future executor/model/carrier routing from comparable task evidence"
   required:
@@ -362,4 +470,9 @@ executable_validation:
     - validate_carrier_handoff
     - validate_project_adapter
     - parse_and_validate_project_adapter
-  rule: "BRIDGE_IMPLEMENTATION_MUST_USE_EQUIVALENT_OR_STRONGER_VALIDATION_BEFORE_PROCESS_START"
+    - build_contributor_conflict_set
+    - admit_canonicalizer
+    - validate_pre_merge_effect_gate
+    - reconcile_merge_effect
+    - validate_pr615_prospective_adjudication
+  rule: "BRIDGE_IMPLEMENTATION_MUST_USE_EQUIVALENT_OR_STRONGER_VALIDATION_BEFORE_PROCESS_START_OR_CANONICAL_MERGE_EFFECT"

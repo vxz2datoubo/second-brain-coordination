@@ -46,6 +46,27 @@
 11. 返回后 fresh 审 exact head；如果本 GPT 曾经直接写/强指导该候选，不得把自己当唯一独立 Reviewer。
 12. ACCEPT 后仍须 separate canonicalization。
 
+## Canonicalization effect failover
+
+`ACCEPT` 之后不得把“有人已经核过 gates”当成“这个人已经具备并执行了 canonical merge”。必须机械区分：
+
+`REVIEW_ACCEPTED -> SELECT_ELIGIBLE_CANONICALIZER -> ROLE_AND_CAPABILITY_ADMISSION -> FRESH_CANONICALIZATION_GATES -> MERGE_REQUESTED -> REMOTE_EFFECT_RECONCILED -> CANONICALIZATION_RECORDED`
+
+固定规则：
+
+- candidate author、executor、实际代码贡献者以及 materially steering 的 orchestrator 都进入 contributor/conflict set；换角色名、换模型、重开 session 本身不能清除冲突。
+- canonicalizer 必须有独立的 runtime/session/workload identity 与 fresh merge-capability evidence；调用者自报 `independent=true` 或 `write_capable=true` 不构成 authority。
+- verifier 只能证明 gates，通过检查不等于获得 merge effect authority。
+- canonicalizer 写能力不可用时，先 fence 或 readback 旧 attempt，再在**已经授权**的独立 carrier 集合中重选并 fresh admission；没有合格者时持久等待。
+- **禁止任何 author / executor / materially-steering orchestrator fallback merge。** 工具故障不能把 self-merge 变合法。
+- GitHub merge 的 expected-head / `sha` 只锁 PR head，不能冒充对 base+head 的原子 CAS；请求前仍须 fresh base/main gate，效果后核对真实 parents 和 result tree。
+- merge effect ACK 不明时先回读远端事实，不得盲目换人重试。
+- clean canonicalization receipt 必须区分 gate verifier、实际 merge-request actor、GitHub actor、publisher，并绑定真实 merge commit / ordered parents / result tree。
+- actor、base 或 tree 不匹配时保留已经发生的物理效果事实并登记 governance incident，不得发布 clean canonical receipt。
+- 受保护 GitHub 写身份、ruleset / branch protection 或 privileged canonicalizer workload 若尚未部署并取证，必须明确保持 `OPERATIONAL_ENFORCEMENT_UNPROVEN`；不得把 Python contract 或 prompt 规则包装成平台已经强制执行。
+
+Owner 不应成为普通 canonicalizer 工具失败的备用搬运工。只有确实涉及新增管理员/凭据/服务端 policy 权限时，才进入具体 `OWNER_GATE`。
+
 ## Owner-facing 报告规则
 
 工作推进要长，Owner 报告要短。默认一屏左右，优先顺序固定为：

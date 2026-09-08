@@ -1,4 +1,5 @@
 from contextlib import ExitStack
+import json
 from pathlib import Path
 import subprocess
 import unittest
@@ -10,6 +11,7 @@ from coordination.GOVERNANCE import unified_execution_validation_base as base
 
 ROOT = Path(__file__).resolve().parents[1]
 RUNTIME_MAIN = "5fea61a6eb98d3c9599daee93e20f161064a292b"
+R187_RELEASE_HEAD = "61ff56f1f1ad9c84e40bb68b3860a10bd1d6befb"
 MOCK_MAIN = "f" * 40
 R187_INDEX = "coordination/EXECUTION/ACTIVE-WORKBUDDY-R187-S1-SELECTED-WEB-SOURCE-CUTOFF-FRONTIER-PROBE.yaml"
 R187_ROUTE = "coordination/ROUTES/WORKBUDDY-R187-S1-SELECTED-WEB-SOURCE-CUTOFF-FRONTIER-PROBE.yaml"
@@ -34,9 +36,9 @@ class R187RuntimeCompletionReleaseTests(unittest.TestCase):
         stack.enter_context(patch.object(registry.gate, "_terminal_remote_main_recheck"))
         return stack
 
-    def _git_show_runtime_main(self, path):
+    def _git_show(self, ref, path):
         proc = subprocess.run(
-            ["git", "show", f"{RUNTIME_MAIN}:{path}"],
+            ["git", "show", f"{ref}:{path}"],
             cwd=ROOT,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -44,6 +46,12 @@ class R187RuntimeCompletionReleaseTests(unittest.TestCase):
         )
         self.assertEqual(proc.returncode, 0, proc.stderr.decode("utf-8", errors="replace"))
         return proc.stdout
+
+    def _git_show_runtime_main(self, path):
+        return self._git_show(RUNTIME_MAIN, path)
+
+    def _git_show_release_head(self, path):
+        return self._git_show(R187_RELEASE_HEAD, path)
 
     def test_release_witness_binds_exact_original_writer_lease(self):
         release_text = self._read(RELEASE).decode("utf-8")
@@ -82,21 +90,25 @@ class R187RuntimeCompletionReleaseTests(unittest.TestCase):
         self.assertIs(base._scalar(route, "execution_allowed"), False)
         self.assertIs(base._scalar(route, "automatic_resume_within_batch"), False)
 
-    def test_registry_preserves_r175_and_r184_as_the_only_registered_authorities(self):
-        with self._registry_tree():
-            authorities = registry.build_registered_authorities(".")
-        tasks = {item.as_mapping()["task_id"] for item in authorities}
-        self.assertEqual(
-            tasks,
-            {
-                "WORKBUDDY-R175-ORDERED-BATCH",
-                "WORKBUDDY-R184-LOCAL-WORKBUDDY-BRIDGE",
-            },
-        )
+    def test_r187_release_head_preserved_r175_and_r184_as_only_registered_authorities(self):
+        historical_registry = json.loads(self._git_show_release_head(REGISTRY).decode("utf-8"))
+        refs = {
+            entry["active_task_index_ref"]
+            for entry in historical_registry["entries"]
+            if entry.get("status") == "REGISTERED"
+        }
+        self.assertEqual(refs, {R175_INDEX, R184_INDEX})
+        self.assertNotIn(R187_INDEX, refs)
 
-    def test_r175_and_r184_active_indexes_are_byte_exact_unchanged_from_runtime_main(self):
-        self.assertEqual(self._read(R175_INDEX), self._git_show_runtime_main(R175_INDEX))
-        self.assertEqual(self._read(R184_INDEX), self._git_show_runtime_main(R184_INDEX))
+    def test_r175_and_r184_were_byte_exact_unchanged_at_r187_release_head(self):
+        self.assertEqual(
+            self._git_show_release_head(R175_INDEX),
+            self._git_show_runtime_main(R175_INDEX),
+        )
+        self.assertEqual(
+            self._git_show_release_head(R184_INDEX),
+            self._git_show_runtime_main(R184_INDEX),
+        )
 
     def test_runtime_review_findings_and_unknowns_are_carried_forward(self):
         text = self._read(RELEASE).decode("utf-8")
@@ -131,9 +143,9 @@ class R187RuntimeCompletionReleaseTests(unittest.TestCase):
         self.assertIn('r184_started_by_r187: false', text)
         self.assertIn('next_s1_execution_authority_created_by_this_release: false', text)
 
-    def test_r187_release_candidate_diff_is_governance_only_and_does_not_touch_r175_or_r184(self):
+    def test_r187_release_candidate_diff_is_historically_frozen_and_does_not_touch_r175_or_r184(self):
         proc = subprocess.run(
-            ["git", "diff", "--name-only", RUNTIME_MAIN, "HEAD"],
+            ["git", "diff", "--name-only", RUNTIME_MAIN, R187_RELEASE_HEAD],
             cwd=ROOT,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
