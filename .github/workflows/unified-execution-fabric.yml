@@ -150,19 +150,7 @@ jobs:
             "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/jobs?filter=latest&per_page=100" \
             -o "${jobs_json}"
 
-          job_id="$(python - "${jobs_json}" "${JOB_NAME}" <<'PY'
-import json
-import sys
-
-path, expected_name = sys.argv[1:]
-with open(path, "r", encoding="utf-8") as handle:
-    payload = json.load(handle)
-ids = [str(job["id"]) for job in payload.get("jobs", []) if job.get("name") == expected_name]
-if len(ids) != 1:
-    raise SystemExit(f"expected exactly one job named {expected_name!r}, observed {len(ids)}")
-print(ids[0])
-PY
-          )"
+          job_id="$(python -c 'import json,sys; data=json.load(open(sys.argv[1], encoding="utf-8")); ids=[str(job["id"]) for job in data.get("jobs", []) if job.get("name")==sys.argv[2]]; len(ids)==1 or (_ for _ in ()).throw(SystemExit(f"expected exactly one matching job, observed {len(ids)}")); print(ids[0])' "${jobs_json}" "${JOB_NAME}")"
           echo "workflow_run_id=${GITHUB_RUN_ID}"
           echo "job_id=${job_id}"
           echo "job_id=${job_id}" >> "${GITHUB_OUTPUT}"
