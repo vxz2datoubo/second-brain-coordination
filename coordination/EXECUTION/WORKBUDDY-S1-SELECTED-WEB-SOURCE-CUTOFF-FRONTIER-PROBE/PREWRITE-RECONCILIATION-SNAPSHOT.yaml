@@ -56,6 +56,11 @@ concurrency_reconciliation:
   collision_domain_duplication_observed: false
   authorized_path_overlap_observed: false
   release_rule: "R175_R184_R187_MAY_COEXIST_ONLY_WHILE_REGISTRY_WIDE_FRESH_CONFLICT_ADMISSION_PASSES"
+current_codex_route:
+  route_epoch: 187
+  source_issue: 609
+  status: "READY"
+  execution_allowed: true
 ordered_batch:
   prepared_ref: "coordination/EXECUTION/WORKBUDDY-S1-SELECTED-WEB-SOURCE-CUTOFF-FRONTIER-PROBE/TASK-BRIEF.yaml"
   executable_ref: "coordination/EXECUTION/WORKBUDDY-S1-SELECTED-WEB-SOURCE-CUTOFF-FRONTIER-PROBE/EXECUTABLE-BATCH.json"
@@ -72,6 +77,9 @@ capability_boundaries_entering:
   HARD_CAPTURE_CHECKPOINT_COMPLETE: "BLOCKED"
   PROGRAM_S2_STARTED: false
 activation_gate:
+  snapshot_precedes_workbuddy_branch: true
+  requires_post_branch_fresh_readback: true
+  activation_commit_required: true
   snapshot_precedes_workbuddy_execution_branch: true
   execution_allowed_now: false
   requires_post_canonicalization_fresh_readback: true
