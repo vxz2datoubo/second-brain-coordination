@@ -1,0 +1,394 @@
+schema_version: "1.0"
+protocol_id: "MULTI-GPT-N-WORKBUDDY-EXECUTOR-POOL-ARCHITECTURE-v1"
+status: "CANDIDATE_PENDING_INDEPENDENT_REVIEW"
+source_issue: 627
+effective_spec_snapshot_id: "SECOND-BRAIN-ISSUE627-MULTI-EXECUTOR-EPISTEMIC-NUMERIC-003"
+effective_spec_snapshot_ref: "issuecomment-5594276488"
+canonical_base: "b6964f32b983d6b58c2cad935217cbf1d3abf4fa"
+
+purpose: >-
+  Extend the existing Unified Agent Execution Fabric so three or more GPT architecture lanes and
+  three-to-N logical WorkBuddy engineering executors can coexist safely across registered projects.
+  This contract defines pool topology, scheduling, resource admission, lease/fencing, lineage,
+  observability and rollout semantics. It does not itself activate a second WorkBuddy slot.
+
+inheritance:
+  reuse_not_replace:
+    - "coordination/GOVERNANCE/UNIFIED-AGENT-EXECUTION-FABRIC-v1.0.yaml"
+    - "coordination/GOVERNANCE/EXECUTION-CARRIER-AND-CONCURRENCY-CONTRACT-v1.0.yaml"
+    - "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
+    - "coordination/GOVERNANCE/LOCAL-EXECUTION-RESOURCE-BUDGET-AND-PROCESS-LIFECYCLE-PROTOCOL-v1.0.yaml"
+    - "coordination/GOVERNANCE/LOCAL-WORKBUDDY-BRIDGE-CONTRACT-v1.0.yaml"
+    - "coordination/EXECUTION/PROJECT-REGISTRY.yaml"
+  historical_predecessor_evidence:
+    issue: 579
+    prs: [580, 585, 590]
+    latest_reviewed_head: "8d812c767065f2910bd8c657bd18b8fed400a478"
+    latest_verdict: "CHANGES_REQUIRED"
+    verdict_transfer_allowed: false
+
+role_topology:
+  OWNER:
+    responsibilities: ["intent", "portfolio_priority", "consequential_user_gates"]
+    implementation_default: false
+  GPT_ARCHITECTURE_LANE:
+    cardinality: "3_OR_MORE_ALLOWED"
+    responsibilities:
+      - "project architecture and decomposition"
+      - "fresh canonical reconciliation"
+      - "evidence compression and gap analysis"
+      - "task DAG and acceptance definition"
+      - "integration of WorkBuddy return packages"
+    writer_rule: "ONE_WRITER_PER_CANONICAL_OBJECT_OR_COLLISION_DOMAIN"
+  CODEX:
+    role: "SCARCE_HIGH_LEVERAGE_COMPUTE"
+    routine_default: "DO_NOT_USE"
+    use_cases:
+      - "trading-system frontier/high-competition research and architecture"
+      - "high-rework whole-system decisions"
+      - "high-risk correctness"
+      - "bounded unresolved root-cause escalation"
+    self_dispatch_by_workbuddy: false
+  WORKBUDDY_EXECUTOR_POOL:
+    logical_cardinality: "3_TO_N"
+    responsibilities:
+      - "local reality audit"
+      - "bounded implementation"
+      - "tests/debug/benchmarks"
+      - "local integration and measurable execution evidence"
+    architecture_owner: false
+    self_review: false
+    self_merge: false
+  INDEPENDENT_REVIEWER:
+    exact_head_bound: true
+    production_write_on_reviewed_head: false
+  CANONICALIZER:
+    separate_from_candidate_author_or_material_steerer: true
+
+capacity_model:
+  rule: "LOGICAL_SLOT_CAPACITY_IS_NOT_PHYSICAL_RUNNING_CAPACITY"
+  logical_slot_capacity:
+    desired_floor: 3
+    upper_bound: "CONFIGURABLE_AND_GOVERNED"
+    meaning: "number of distinct governed task slots that can be represented"
+  running_executor_capacity:
+    value: "CALIBRATED_BY_ACTIVE_LOCAL_RESOURCE_POLICY_AND_REALITY_AUDIT"
+    desired_floor_when_safe: 3
+    fail_closed_if_unproven: true
+  resource_token_capacity:
+    source_of_truth: "ACTIVE_LOCAL_RESOURCE_POLICY_PLUS_RUNTIME_READBACK"
+  collision_domain_capacity:
+    default: 1
+    rule: "one active writer for a conflicting canonical object/path/interface/authority domain"
+  heavy_stage_capacity:
+    source_of_truth: "ACTIVE local resource/process protocol"
+    current_binding_behavior: "SERIAL_OR_EXPLICITLY_BOUNDED; NEVER_INFER_FROM_LOGICAL_SLOT_COUNT"
+
+current_binding_local_resource_floor:
+  source: "coordination/GOVERNANCE/LOCAL-EXECUTION-RESOURCE-BUDGET-AND-PROCESS-LIFECYCLE-PROTOCOL-v1.0.yaml"
+  values_are_mirrors_not_new_authority: true
+  project_owned_python_process_hard_cap: 8
+  project_owned_cpu_bound_worker_hard_cap: 4
+  project_owned_ram_target_gib: 8
+  project_owned_ram_hard_cap_gib: 10
+  minimum_system_available_ram_gib: 8
+  combined_cpu_target_percent: 55
+  throttle_cpu_percent: 70
+  throttle_sustained_seconds: 15
+  nested_parallelism: "FORBIDDEN"
+  heavy_local_stage: "SERIALIZED_UNDER_EXISTING_MUTEX"
+  completion_requires_zero_orphans: true
+
+executor_slot_identity:
+  required_fields:
+    - "executor_id"
+    - "worker_slot_id"
+    - "run_id"
+    - "trace_id"
+    - "repository"
+    - "project_id"
+    - "task_id"
+    - "route_epoch"
+    - "issue"
+    - "branch"
+    - "exact_base"
+    - "worktree_identity"
+    - "collision_domains"
+    - "resource_request"
+    - "acquired_resource_leases"
+    - "model_profile"
+    - "carrier"
+    - "completion_signal"
+  optional_when_not_applicable: ["pull_request"]
+  scalar_identity_closed_typed: true
+  duplicate_executable_identity: "FAIL_CLOSED"
+
+execution_authority_chain:
+  required_for_write_execution:
+    - "active task slot registry projection"
+    - "canonical route"
+    - "work claim"
+    - "task lease"
+    - "executor reservation"
+    - "acquired resource lease/reservation receipts for every granted resource"
+    - "prewrite snapshot"
+    - "executable batch or bounded handoff when required"
+    - "project adapter"
+  authority_graph_digest_required: true
+  caller_supplied_equivalent_strings_are_authority: false
+  missing_unknown_or_stale_input: "FAIL_CLOSED_NO_PROCESS_START"
+
+lease_and_fencing:
+  design_pattern: "KUBERNETES_LEASE_INSPIRED_WITHOUT_KUBERNETES_DEPENDENCY"
+  required_fields:
+    - "lease_id"
+    - "holder_executor_id"
+    - "holder_worker_slot_id"
+    - "lease_generation"
+    - "fencing_token"
+    - "acquired_at"
+    - "renewed_at"
+    - "expires_at"
+    - "authority_graph_digest"
+  heartbeat_required_while_running: true
+  heartbeat_interval: "CALIBRATED_PARAMETER_NOT_HARDCODED_HERE"
+  expiry_timeout: "CALIBRATED_PARAMETER_NOT_HARDCODED_HERE"
+  stale_holder_behavior: "NO_NEW_WRITE_AFTER_EXPIRY"
+  failover_rule: >-
+    A successor executor must obtain a strictly newer lease generation/fencing token and fresh
+    canonical authority. Old holder state is historical evidence only.
+
+resource_allocation_binding:
+  purpose: >-
+    Bind what the scheduler actually granted, not merely what an executor requested or what appeared
+    available, into the executor/run admission and provenance chain.
+  acquired_resource_lease_record:
+    required_fields:
+      - "resource_lease_id"
+      - "resource_id"
+      - "resource_type"
+      - "holder_executor_id"
+      - "holder_worker_slot_id"
+      - "run_id"
+      - "requested_quantity"
+      - "granted_quantity"
+      - "unit"
+      - "lease_generation"
+      - "acquired_at"
+      - "expires_at_or_release_condition"
+      - "scheduler_admission_receipt_digest"
+      - "authority_graph_digest"
+    immutable_identity_fields:
+      - "resource_lease_id"
+      - "resource_id"
+      - "holder_executor_id"
+      - "holder_worker_slot_id"
+      - "run_id"
+      - "lease_generation"
+      - "scheduler_admission_receipt_digest"
+    exclusive_or_mutable_resource_additional_required_fields:
+      - "resource_fencing_token"
+  binding_rules:
+    executor_identity_must_bind_exact_acquired_resource_lease_ids: true
+    run_identity_must_bind_exact_acquired_resource_lease_ids: true
+    holder_executor_id_must_equal_executor_identity: true
+    holder_worker_slot_id_must_equal_executor_identity: true
+    run_id_must_equal_executor_run_id: true
+    requested_and_granted_resource_type_and_unit_must_match: true
+    granted_quantity_cannot_exceed_governed_capacity: true
+    availability_observation_is_not_allocation: true
+    caller_supplied_resource_lease_equivalent_is_authority: false
+    missing_stale_mismatched_superseded_or_cross_run_allocation: "FAIL_CLOSED_NO_PROCESS_START_OR_NEW_EFFECT"
+    exclusive_or_mutable_resource_requires_fresh_fencing_token: true
+    release_or_expiry_must_be_recorded: true
+    resource_lease_mints_business_or_task_scope_authority: false
+  completion_evidence:
+    required:
+      - "acquired resource lease ids and generations"
+      - "scheduler admission receipt digests"
+      - "resource lease release/expiry state"
+      - "exclusive/mutable resource fencing token status when applicable"
+
+state_machine:
+  normal:
+    - "DECLARED"
+    - "ADMISSION_PENDING"
+    - "LEASED"
+    - "RUNNING"
+    - "CHECKPOINTED"
+    - "ENGINEERING_COMPLETE"
+    - "REVIEW_HANDOFF"
+    - "RELEASED"
+    - "CLOSED"
+  stop_states:
+    - "BLOCKED"
+    - "EXPIRED"
+    - "SUPERSEDED"
+    - "CANCELLED"
+    - "RESOURCE_THROTTLED"
+    - "COLLISION_WAIT"
+  unknown_state_executable: false
+
+scheduler:
+  model: "DEPENDENCY_AWARE_PRIORITY_FAIR_QUEUE_WITH_RESOURCE_AND_LOCK_ADMISSION"
+  task_graph: "DAG"
+  admission_order:
+    - "fresh authority validation"
+    - "dependency readiness"
+    - "collision lock availability"
+    - "resource-token availability"
+    - "acquired-resource lease/reservation issuance and executor/run binding"
+    - "lease/fencing acquisition"
+    - "local process preflight"
+    - "process start"
+  priority_inputs:
+    - "explicit Owner priority"
+    - "dependency unblock value"
+    - "risk/severity"
+    - "age/starvation prevention"
+    - "resource fit"
+  priority_must_not_override:
+    - "authority"
+    - "collision"
+    - "resource hard caps"
+    - "project adapter hard boundaries"
+  nested_parallelism: "FORBIDDEN_BY_DEFAULT"
+
+lock_model:
+  lock_types: ["MUTEX", "COUNTING_SEMAPHORE", "READ_SHARED", "EXCLUSIVE_LEASE"]
+  dimensions:
+    - "canonical object / file path / glob containment"
+    - "task branch ownership"
+    - "interface/schema ownership"
+    - "service lifecycle/configuration"
+    - "TCP/HTTP port"
+    - "shared mutable runtime/environment/package installation"
+    - "credential/secret surface"
+    - "licensed real-data entitlement where exclusivity applies"
+    - "GPU device or generation carrier"
+    - "browser interactive session when exclusive"
+    - "account/order execution authority"
+    - "review/canonicalization authority"
+    - "local heavy test/mutation/provider stage"
+  multiple_locks_atomic_admission: true
+  partial_lock_acquisition_for_process_start: false
+
+resource_model:
+  design_pattern: "RAY_STYLE_LOGICAL_ADMISSION_PLUS_OS_LEVEL_PHYSICAL_GUARDS"
+  resource_types:
+    - "CPU_LIGHT"
+    - "CPU_BOUND_WORKER"
+    - "RAM_GIB"
+    - "PYTHON_PROCESS"
+    - "GPU_LOCAL"
+    - "BROWSER_SESSION"
+    - "MARKET_DATA_READ"
+    - "SERVICE_PORT"
+    - "HEAVY_LOCAL_STAGE"
+    - "CUSTOM_PROJECT_RESOURCE"
+  declared_resource_request_required: true
+  acquired_resource_lease_required_before_process_start_for_each_granted_resource: true
+  resource_availability_check_alone_can_authorize_process_start: false
+  logical_tokens_do_not_guarantee_physical_isolation: true
+  physical_guard_sources:
+    - "Windows Job Object/process-group ownership"
+    - "PID/PPID/creation-time/command-digest registry"
+    - "resource monitor and adaptive throttling"
+    - "thread/process environment caps"
+
+workspace_isolation:
+  mechanism: "ONE_GIT_WORKTREE_OR_ISOLATED_CLONE_PER_ACTIVE_WRITE_TASK"
+  same_branch_multiple_writers: false
+  shared_dirty_primary_workspace: false
+  exact_base_recorded_before_write: true
+  force_push: false
+  history_rewrite: false
+
+durable_execution:
+  pattern: "TEMPORAL_STYLE_CHECKPOINT_AND_RECONCILE_WITHOUT_TEMPORAL_DEPENDENCY"
+  checkpoint_minimum:
+    - "authority_graph_digest"
+    - "exact base/head"
+    - "branch/worktree"
+    - "lease generation/fencing token"
+    - "acquired resource lease ids/generations/admission receipt digests"
+    - "completed bounded steps"
+    - "test/results digest"
+    - "resource/process state"
+  restart_rule: "FRESH_RECONCILE_THEN_RESUME_OR_RESTART_BOUNDED_STEP; NEVER_BLINDLY_REPLAY_SIDE_EFFECTS"
+  unknown_remote_effect: "READ_BACK_BEFORE_RETRY"
+
+observability_and_lineage:
+  trace_pattern: "OPENTELEMETRY_INSPIRED"
+  trace_id_scope: "Owner intent -> GPT decomposition -> WB run -> CI -> review -> canonicalization"
+  required_signals:
+    traces: true
+    metrics: true
+    logs: true
+    baggage_or_cross_component_context: "NON_AUTHORITY_METADATA_ONLY"
+  lineage_pattern: "OPENLINEAGE_INSPIRED"
+  run_identity: "run_id"
+  entities: ["JOB_OR_TASK", "RUN", "INPUT_ARTIFACT", "OUTPUT_ARTIFACT"]
+  lineage_edges_explicit: true
+  no_cartesian_inference_of_dependencies: true
+  source_code_git_sha_required_for_engineering_runs: true
+
+return_package:
+  required:
+    - "executor_id / worker_slot_id / run_id / trace_id"
+    - "exact base/head and changed paths"
+    - "commands/tests and exit states"
+    - "failures/repairs/UNKNOWNs"
+    - "input/output lineage and artifact/config digests"
+    - "numeric parameter snapshot digest"
+    - "acquired resource lease ids/generations/admission receipt digests and release state"
+    - "peak process/CPU/RAM and resource-token use"
+    - "postflight zero-orphan proof"
+    - "collision-domain proof"
+    - "secret-value scan"
+    - "next gate"
+
+historical_r579_blockers_mandatory_for_clean_successor:
+  - "FIXED_REGISTRY_AND_LEGACY_PROJECTION_TRUST_ROOT_STATE_MUST_BE_FATAL"
+  - "ABA_AUTHORITY_REPLACEMENT_MUST_NOT_PASS"
+  - "MULTISLOT_CI_MUST_ACCEPT_LEGAL_MULTI_EXECUTABLE_REGISTRY_WITH_EXPLICIT_SELECTION"
+  - "R175_MUST_NOT_BE_PERMANENTLY_HARDCODED_IN_REPOSITORY_WIDE_CI"
+  - "CURRENT_MAIN_INTEGRATION_AND_ANCESTRY_EVIDENCE_REQUIRED"
+
+rollout:
+  stage_0: "ADDITIVE_ARCHITECTURE_ONLY"
+  stage_1: "READ_ONLY_LOCAL_REALITY_AUDIT"
+  stage_2: "CLEAN_R579_SUCCESSOR_IMPLEMENTATION"
+  stage_3: "INDEPENDENT_REVIEW_AND_SEPARATE_CANONICALIZATION"
+  stage_4: "LOW_RISK_DISJOINT_MULTI_SLOT_CANARY"
+  stage_5: "CALIBRATE_RUNNING_CAPACITY"
+  stage_6: "PROJECT_ROLLOUT_SECOND_BRAIN_TRADING_INTERACTIVE_FILM"
+  no_stage_skipping: true
+
+security_and_authority_boundaries:
+  no_second_global_router: true
+  no_second_control_tower: true
+  no_r175_preemption: true
+  no_execution_authority_from_architecture_file: true
+  no_trade_account_order_funds_authority: true
+  no_secret_values_in_public_git: true
+  no_self_review: true
+  no_self_merge: true
+  operational_bridge_enforcement_proven: false
+  branch_protection_enforcement_proven: false
+
+acceptance_tests_for_future_implementation:
+  - "three disjoint logical slots can be represented without changing active business authority"
+  - "two or more legal executable slots make bare selection safely ambiguous while explicit selection succeeds"
+  - "overlapping path/interface/service/authority locks reject or wait deterministically"
+  - "resource admission cannot exceed ACTIVE physical hard caps"
+  - "resource availability without matching acquired lease/reservation receipt cannot start an executor"
+  - "missing, stale, mismatched, superseded or cross-run acquired resource lease fails closed"
+  - "exclusive or mutable resource fencing token cannot be replayed after successor allocation"
+  - "heavy-stage semaphore prevents concurrent heavy local stages"
+  - "stale lease/fencing token cannot write after successor acquisition"
+  - "fixed registry/legacy projection symlink escape fails closed"
+  - "ABA replace-validate-restore cannot influence PASS"
+  - "R175 is preserved but not permanently hardcoded into repository-wide CI"
+  - "task process trees clean to zero orphans on success/error/timeout/cancel"
+  - "trace/run/lineage joins Owner intent through canonicalization without becoming authority"

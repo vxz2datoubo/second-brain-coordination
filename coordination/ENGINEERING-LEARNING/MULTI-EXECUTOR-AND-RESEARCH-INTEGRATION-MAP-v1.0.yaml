@@ -1,0 +1,174 @@
+schema_version: "1.0"
+map_id: "MULTI-EXECUTOR-AND-RESEARCH-INTEGRATION-MAP-v1"
+status: "CANDIDATE_REFERENCE_MAP"
+source_issue: 627
+purpose: >-
+  Record which external mature patterns inform the internal architecture, exactly what is adopted,
+  what is not adopted, and where validation belongs. This is a reference/evidence map, not external
+  dependency authority.
+
+sources:
+  - source_id: "GIT_WORKTREE"
+    source_type: "PRIMARY_OFFICIAL"
+    url: "https://git-scm.com/docs/git-worktree"
+    extracted_pattern: "one repository can maintain multiple working trees for multiple branches"
+    adopt:
+      - "one active write task per isolated worktree/branch"
+      - "explicit worktree lifecycle and identity"
+    do_not_assume:
+      - "worktree isolation alone prevents service/resource/authority collision"
+    internal_targets:
+      - "MULTI-GPT-N-WORKBUDDY-EXECUTOR-POOL-ARCHITECTURE-v1"
+
+  - source_id: "KUBERNETES_LEASE"
+    source_type: "PRIMARY_OFFICIAL"
+    url: "https://kubernetes.io/docs/concepts/architecture/leases/"
+    extracted_pattern: "lightweight coordination lease with holder/renewal/expiry semantics"
+    adopt:
+      - "holder executor identity"
+      - "renewal heartbeat"
+      - "expiry and successor generation/fencing"
+    dependency_install: false
+
+  - source_id: "ARGO_SYNCHRONIZATION"
+    source_type: "PRIMARY_OFFICIAL"
+    url: "https://argo-workflows.readthedocs.io/en/latest/synchronization/"
+    extracted_pattern: "mutex, semaphore, multiple locks and parallelism constraints"
+    adopt:
+      - "lock-set admission"
+      - "counting semaphores for bounded resources"
+      - "mutex for exclusive heavy/service/authority surfaces"
+    caution: "multiple-lock head-of-line blocking must be observable and scheduler-aware"
+
+  - source_id: "RAY_RESOURCES"
+    source_type: "PRIMARY_OFFICIAL"
+    url: "https://docs.ray.io/en/latest/ray-core/scheduling/resources.html"
+    extracted_pattern: "logical resource requests are scheduler admission controls, not physical CPU isolation"
+    adopt:
+      - "typed logical resource tokens"
+      - "custom resources for GPU/browser/provider/service constraints"
+    preserve_internal_physical_guards:
+      - "Windows Job Objects/process ownership"
+      - "hard process caps"
+      - "CPU/RAM throttling"
+      - "nested-parallelism prohibition"
+    dependency_install: false
+
+  - source_id: "GITHUB_ACTIONS_CONCURRENCY"
+    source_type: "PRIMARY_OFFICIAL"
+    url: "https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency"
+    extracted_pattern: "concurrency groups serialize conflicting workflow/job execution and can queue"
+    adopt:
+      - "CI collision-domain groups where useful"
+      - "queued CI for conflicting validation surfaces"
+    hard_boundary: "CI concurrency state never mints WorkBuddy execution authority"
+
+  - source_id: "OPENTELEMETRY_SIGNALS"
+    source_type: "PRIMARY_OFFICIAL"
+    url: "https://opentelemetry.io/docs/concepts/signals/"
+    extracted_pattern: "traces, metrics, logs and contextual baggage"
+    adopt:
+      - "trace_id across architecture/execution/review chain"
+      - "metrics for queue/resource/throughput/error state"
+      - "logs for lifecycle events"
+    caution: "baggage/context is non-authority and may propagate beyond intended boundaries"
+
+  - source_id: "OPENLINEAGE"
+    source_type: "PRIMARY_OFFICIAL"
+    url: "https://openlineage.io/docs/spec/facets/"
+    extracted_pattern: "Run/Job/Dataset entities with extensible facets and explicit lineage"
+    adopt:
+      - "run/job/input/output identity"
+      - "explicit dependency/data lineage instead of inferred Cartesian edges"
+      - "code/config/artifact provenance facets"
+    dependency_install: false
+
+  - source_id: "MLFLOW_TRACKING"
+    source_type: "PRIMARY_OFFICIAL"
+    url: "https://mlflow.org/docs/latest/ml/tracking"
+    extracted_pattern: "runs record parameters, code versions, metrics and output artifacts"
+    adopt:
+      - "experiment run identity"
+      - "parameters + metrics + artifacts + code SHA"
+    dependency_install: "DEFER_UNTIL_STORAGE/UI_VALUE_JUSTIFIES_IT"
+
+  - source_id: "DVC_EXPERIMENT_VERSIONING"
+    source_type: "INSTITUTIONAL_REFERENCE_IMPLEMENTATION"
+    url: "https://dvc.org/blog/ml-experiment-versioning/"
+    extracted_pattern: "versioned experiment state and reproducibility"
+    adopt:
+      - "data/config/artifact version identity"
+      - "restore/reproduce semantics"
+    dependency_install: "DEFER; MAY_REUSE_PATTERN_WITH_EXISTING_GIT_FIRST"
+
+  - source_id: "TEMPORAL_DURABLE_EXECUTION"
+    source_type: "PRIMARY_OFFICIAL"
+    url: "https://docs.temporal.io/"
+    extracted_pattern: "durable workflow execution resumes after failure"
+    adopt:
+      - "checkpoint/reconcile/resume design principle"
+      - "idempotency/readback before retry"
+    dependency_install: false
+
+  - source_id: "HIDDEN_TECHNICAL_DEBT_ML"
+    source_type: "PRIMARY_RESEARCH"
+    url: "https://papers.nips.cc/paper/2015/hash/86df7dcfd896fcaf2674f757a2463eba-Abstract.html"
+    extracted_pattern: "boundary erosion, entanglement, hidden feedback, undeclared consumers, data/config dependencies and external change"
+    adopt:
+      - "reverse-consumer map"
+      - "explicit data/config dependency graph"
+      - "external-change drift triggers"
+      - "unknown-unknown discovery from hidden coupling"
+
+  - source_id: "QLIB_PAPER"
+    source_type: "PRIMARY_RESEARCH"
+    url: "https://arxiv.org/abs/2009.11189"
+    extracted_pattern: "AI-oriented quantitative investment infrastructure and workflow integration"
+    adopt_for: "TRADING_SYSTEM"
+    use: "reference architecture/benchmark only; do not replace existing trading SoRs or adapters"
+
+  - source_id: "PBO_CSCV"
+    source_type: "PRIMARY_RESEARCH"
+    url: "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2326253"
+    extracted_pattern: "estimate probability of backtest overfitting using combinatorially symmetric cross-validation"
+    adopt_for: "TRADING_SYSTEM research integrity when multiple search trials make overfit risk material"
+
+  - source_id: "DEFLATED_SHARPE_RATIO"
+    source_type: "PRIMARY_RESEARCH"
+    url: "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2460551"
+    extracted_pattern: "adjust Sharpe inference for selection bias/multiple testing and non-normality"
+    adopt_for: "TRADING_SYSTEM search-adjusted performance evidence when applicable"
+
+  - source_id: "DSR_UNIFIED_2026"
+    source_type: "PRIMARY_RESEARCH_RECENT"
+    url: "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7198158"
+    extracted_pattern: "research is a search process; winner must be judged against search process, not as pre-specified"
+    adopt_for: "future trading research-integrity review after independent technical validation"
+    note: "recent research reference; do not make canonical math implementation without dedicated review"
+
+integration_decisions:
+  install_new_orchestration_platform_now: false
+  rationale: >-
+    Existing Control Tower, leases, GitHub desired-state coordination and WorkBuddy bridge contracts already
+    cover the required authority universe. Borrow mature semantics first; avoid adding Kubernetes/Ray/Argo/Temporal
+    operational dependencies until measured scale or reliability needs justify them.
+  build_second_global_router: false
+  build_shared_numeric_and_lineage_contracts: true
+  add_external_source_refresh_and_version_fields: true
+
+validation_matrix:
+  scheduler_and_locks:
+    methods: ["schema tests", "adversarial collision tests", "multi-slot canary", "resource saturation tests"]
+  lease_fencing:
+    methods: ["stale holder tests", "generation replay tests", "expiry/failover tests", "ABA/TOCTOU tests"]
+  observability_lineage:
+    methods: ["trace completeness", "input/output edge correctness", "no authority from telemetry metadata"]
+  numeric_drift:
+    methods: ["unit/sign/tolerance tests", "snapshot determinism", "stale-observation rejection"]
+  trading_research_integrity:
+    methods: ["PIT/no-lookahead", "trial/search ledger completeness", "OOS/walk-forward", "PBO/DSR when applicable"]
+
+refresh_policy:
+  external_sources_are_current_forever: false
+  fresh_research_required_before_material_adoption: true
+  breaking_api_or_standard_change: "OPEN_REVALIDATION_GAP"
