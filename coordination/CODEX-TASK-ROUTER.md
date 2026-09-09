@@ -1,5 +1,19 @@
 # Codex任务路由协议
 
+## 第一优先 Owner 行为准则
+
+Fresh 读取 canonical `main` 后、在决定是否询问 Owner、是否等待第二条命令、是否 AUTO_CONTINUE 前，必须读取：
+
+`coordination/GOVERNANCE/OWNER-AGENT-BEHAVIOR-AND-INTERRUPTION-PROTOCOL-v1.0.yaml`
+
+关键语义：
+
+- 默认 NORMAL_AUTONOMY：合法 scope/authority 内的普通工程实现、测试、debug、bounded remediation、证据与 handoff 连续推进，不用低价值问题打断 Owner。
+- 普通技术方向问题先结构化回传 GPT Architecture Owner；除非是真正 Owner gate，不要求 Owner 代替工程/架构判断。
+- `睡觉自动运行模式` → SLEEP_AUTONOMY：不得向 Owner 提问，也不得把沉默当授权；遇 Owner gate 必须 checkpoint 受阻项，并继续其他合法、非依赖、非冲突工作。
+- `开始收尾` → WRAP_UP：不开新 major mission，完成当前安全 bounded step、checkpoint 并整理证据/待决 gate。
+- 本协议不改变 Codex 的 no-self-review / no-self-merge / no-secret / no-trading / no-authority-expansion 边界。
+
 ## 永久短命令语义
 
 当用户对Codex说`读取任务`、`执行任务`、`开始任务`或同义短句时，必须遵守：
@@ -44,7 +58,7 @@ Codex在执行涉及Windows、PowerShell、Python、YAML/JSON、中文/Unicode�
 
 1. 验证规范仓库身份和规范main，不把未经确认的本地remote-tracking ref当权威。
 2. 安全同步或远程读取最新规范`main`；本地有未提交内容时不得覆盖。
-3. 读取本协议、RTCE协议、任务租约与完成新鲜度协议、进行中可见性协议、AMED、PMA-BIG、WPDCR、PDER、双层主观能动性宪法、本地凭据协议和`LOCAL-EXECUTION-ISSUE-PATTERNS.yaml`。
+3. 首先读取`OWNER-AGENT-BEHAVIOR-AND-INTERRUPTION-PROTOCOL-v1.0.yaml`，再读取本协议、RTCE协议、任务租约与完成新鲜度协议、进行中可见性协议、AMED、PMA-BIG、WPDCR、PDER、双层主观能动性宪法、本地凭据协议和`LOCAL-EXECUTION-ISSUE-PATTERNS.yaml`。
 4. 读取规范main上的最新`coordination/ACTIVE-CODEX-TASK.yaml`，不得使用旧缓存、聊天记忆或其他Agent索引代替。
 5. 读取活动索引中的task_id、route_epoch、Issue、PR、branch、base、status、execution_allowed、completion_signal、依赖、模式、任务简报、影响预测、探索预算、权限和停止条件。
 6. 读取活动Issue正文、全部评论和相关PR证据。
