@@ -2,8 +2,8 @@ schema_version: "1.0"
 protocol_id: "MULTI-GPT-N-WORKBUDDY-EXECUTOR-POOL-ARCHITECTURE-v1"
 status: "CANDIDATE_PENDING_INDEPENDENT_REVIEW"
 source_issue: 627
-effective_spec_snapshot_id: "SECOND-BRAIN-ISSUE627-MULTI-EXECUTOR-EPISTEMIC-NUMERIC-002"
-effective_spec_snapshot_ref: "issuecomment-5593821946"
+effective_spec_snapshot_id: "SECOND-BRAIN-ISSUE627-MULTI-EXECUTOR-EPISTEMIC-NUMERIC-003"
+effective_spec_snapshot_ref: "issuecomment-5594276488"
 canonical_base: "b6964f32b983d6b58c2cad935217cbf1d3abf4fa"
 
 purpose: >-
@@ -115,6 +115,7 @@ executor_slot_identity:
     - "worktree_identity"
     - "collision_domains"
     - "resource_request"
+    - "acquired_resource_leases"
     - "model_profile"
     - "carrier"
     - "completion_signal"
@@ -129,6 +130,7 @@ execution_authority_chain:
     - "work claim"
     - "task lease"
     - "executor reservation"
+    - "acquired resource lease/reservation receipts for every granted resource"
     - "prewrite snapshot"
     - "executable batch or bounded handoff when required"
     - "project adapter"
@@ -155,6 +157,57 @@ lease_and_fencing:
   failover_rule: >-
     A successor executor must obtain a strictly newer lease generation/fencing token and fresh
     canonical authority. Old holder state is historical evidence only.
+
+resource_allocation_binding:
+  purpose: >-
+    Bind what the scheduler actually granted, not merely what an executor requested or what appeared
+    available, into the executor/run admission and provenance chain.
+  acquired_resource_lease_record:
+    required_fields:
+      - "resource_lease_id"
+      - "resource_id"
+      - "resource_type"
+      - "holder_executor_id"
+      - "holder_worker_slot_id"
+      - "run_id"
+      - "requested_quantity"
+      - "granted_quantity"
+      - "unit"
+      - "lease_generation"
+      - "acquired_at"
+      - "expires_at_or_release_condition"
+      - "scheduler_admission_receipt_digest"
+      - "authority_graph_digest"
+    immutable_identity_fields:
+      - "resource_lease_id"
+      - "resource_id"
+      - "holder_executor_id"
+      - "holder_worker_slot_id"
+      - "run_id"
+      - "lease_generation"
+      - "scheduler_admission_receipt_digest"
+    exclusive_or_mutable_resource_additional_required_fields:
+      - "resource_fencing_token"
+  binding_rules:
+    executor_identity_must_bind_exact_acquired_resource_lease_ids: true
+    run_identity_must_bind_exact_acquired_resource_lease_ids: true
+    holder_executor_id_must_equal_executor_identity: true
+    holder_worker_slot_id_must_equal_executor_identity: true
+    run_id_must_equal_executor_run_id: true
+    requested_and_granted_resource_type_and_unit_must_match: true
+    granted_quantity_cannot_exceed_governed_capacity: true
+    availability_observation_is_not_allocation: true
+    caller_supplied_resource_lease_equivalent_is_authority: false
+    missing_stale_mismatched_superseded_or_cross_run_allocation: "FAIL_CLOSED_NO_PROCESS_START_OR_NEW_EFFECT"
+    exclusive_or_mutable_resource_requires_fresh_fencing_token: true
+    release_or_expiry_must_be_recorded: true
+    resource_lease_mints_business_or_task_scope_authority: false
+  completion_evidence:
+    required:
+      - "acquired resource lease ids and generations"
+      - "scheduler admission receipt digests"
+      - "resource lease release/expiry state"
+      - "exclusive/mutable resource fencing token status when applicable"
 
 state_machine:
   normal:
@@ -184,6 +237,7 @@ scheduler:
     - "dependency readiness"
     - "collision lock availability"
     - "resource-token availability"
+    - "acquired-resource lease/reservation issuance and executor/run binding"
     - "lease/fencing acquisition"
     - "local process preflight"
     - "process start"
@@ -233,6 +287,8 @@ resource_model:
     - "HEAVY_LOCAL_STAGE"
     - "CUSTOM_PROJECT_RESOURCE"
   declared_resource_request_required: true
+  acquired_resource_lease_required_before_process_start_for_each_granted_resource: true
+  resource_availability_check_alone_can_authorize_process_start: false
   logical_tokens_do_not_guarantee_physical_isolation: true
   physical_guard_sources:
     - "Windows Job Object/process-group ownership"
@@ -255,6 +311,7 @@ durable_execution:
     - "exact base/head"
     - "branch/worktree"
     - "lease generation/fencing token"
+    - "acquired resource lease ids/generations/admission receipt digests"
     - "completed bounded steps"
     - "test/results digest"
     - "resource/process state"
@@ -284,6 +341,7 @@ return_package:
     - "failures/repairs/UNKNOWNs"
     - "input/output lineage and artifact/config digests"
     - "numeric parameter snapshot digest"
+    - "acquired resource lease ids/generations/admission receipt digests and release state"
     - "peak process/CPU/RAM and resource-token use"
     - "postflight zero-orphan proof"
     - "collision-domain proof"
@@ -324,6 +382,9 @@ acceptance_tests_for_future_implementation:
   - "two or more legal executable slots make bare selection safely ambiguous while explicit selection succeeds"
   - "overlapping path/interface/service/authority locks reject or wait deterministically"
   - "resource admission cannot exceed ACTIVE physical hard caps"
+  - "resource availability without matching acquired lease/reservation receipt cannot start an executor"
+  - "missing, stale, mismatched, superseded or cross-run acquired resource lease fails closed"
+  - "exclusive or mutable resource fencing token cannot be replayed after successor allocation"
   - "heavy-stage semaphore prevents concurrent heavy local stages"
   - "stale lease/fencing token cannot write after successor acquisition"
   - "fixed registry/legacy projection symlink escape fails closed"
