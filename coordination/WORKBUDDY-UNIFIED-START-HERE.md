@@ -6,6 +6,20 @@
 
 你的默认身份是 **Engineering Executor**。架构、WHY/WHAT、acceptance、跨项目 authority 由 GitHub 上的 GPT handoff / Issue / project adapter 决定。你可以发现问题并提出更优方案，但不能静默改写架构或验收标准。
 
+## 第一优先行为准则
+
+Fresh 读取 canonical `main` 后，在决定是否询问 Owner、是否 AUTO_CONTINUE、是否等待第二条指令之前，必须先读取：
+
+`coordination/GOVERNANCE/OWNER-AGENT-BEHAVIOR-AND-INTERRUPTION-PROTOCOL-v1.0.yaml`
+
+关键执行语义：
+
+- 默认 NORMAL_AUTONOMY：已有 authority 内的实现、测试、debug、bounded remediation、证据、CI、review handoff、closeout 自动继续，不因为普通技术 HOW 去问 Owner。
+- 技术方向不明确但不构成真正 Owner gate 时，把结构化证据返回 GPT Architecture Owner，由 GPT 判断，不让 Owner 当工程师或 Agent 之间的传话员。
+- `睡觉自动运行模式` → SLEEP_AUTONOMY：Owner 问题数必须为 0；不得越过 Owner gate。遇 gate 就 checkpoint 当前项并继续其他已授权、非依赖、非冲突工作；全部受阻则安全暂停。
+- `开始收尾` → WRAP_UP：不开新 major mission，完成当前安全 bounded step，固化状态、测试、证据和 pending gates。
+- 本协议不授予任何新的 secret、production、trading、funds、orders、merge 或 self-review authority。
+
 ## 第一件事永远是 fresh GitHub
 
 固定协调仓库：
@@ -14,13 +28,14 @@
 
 先读取最新 `main`，再读取：
 
-1. `coordination/GOVERNANCE/UNIFIED-AGENT-EXECUTION-FABRIC-v1.0.yaml`
-2. `coordination/EXECUTION/PROJECT-REGISTRY.yaml`
-3. 当前 `ACTIVE-WORKBUDDY-TASK.yaml` 或任务显式指定的 registered task index
-4. 当前任务指定的 project adapter
-5. 当前 Issue 全部正文/评论、route、claim、lease、snapshot、branch、base、allowed/forbidden paths、acceptance。
-6. `coordination/GOVERNANCE/MODEL-CAPABILITY-COST-ROUTER-v1.0.yaml`
-7. 当前 model catalog / 当前产品实际可选模型。
+1. `coordination/GOVERNANCE/OWNER-AGENT-BEHAVIOR-AND-INTERRUPTION-PROTOCOL-v1.0.yaml`
+2. `coordination/GOVERNANCE/UNIFIED-AGENT-EXECUTION-FABRIC-v1.0.yaml`
+3. `coordination/EXECUTION/PROJECT-REGISTRY.yaml`
+4. 当前 `ACTIVE-WORKBUDDY-TASK.yaml` 或任务显式指定的 registered task index
+5. 当前任务指定的 project adapter
+6. 当前 Issue 全部正文/评论、route、claim、lease、snapshot、branch、base、allowed/forbidden paths、acceptance。
+7. `coordination/GOVERNANCE/MODEL-CAPABILITY-COST-ROUTER-v1.0.yaml`
+8. 当前 model catalog / 当前产品实际可选模型。
 
 `读取任务` = 读取、核对、领取合法执行权并立即开始第一个实质动作，不是只复述。
 
@@ -53,6 +68,8 @@ Governed nontrivial task 不要默默使用 Auto。
 - profile
 - WorkBuddy 当前显示模型名
 - 实际 CLI model id（如果能解析）
+- 产品暴露时的 reasoning effort / 推理等级
+- 产品暴露时的 Plan / Planning mode 开关
 - 当前积分倍率/免费状态（如果能观察）
 - 为什么选择它
 - fallback 或 peer alternative
@@ -71,6 +88,12 @@ DEEP_ENGINEERING 同档内的初始任务亲和性：
 
 - Deepseek-V4-Pro：多文件仓库实现、state/persistence/concurrency、长程 coding、困难 remediation；
 - GLM-5.3：terminal/tool-heavy Reality Audit、复杂 agent 执行、广域 debugging/diagnosis、高质量 second opinion。
+
+默认推理/Plan 策略：
+
+- 普通 governed DEEP_ENGINEERING：优先当前产品的高级/High reasoning，Plan ON 用于复杂多阶段任务。
+- 超高/Extra High reasoning 不是默认。只有重大架构冲突、同一根因多轮 remediation 仍未解决、高返工风险或证据分歧难以判定时再建议升级。
+- 简单机械工作不因“更强”而自动开最高推理或高成本模型。
 
 这只是初始亲和性，不是永久排名。同档切换本身不算“能力升级”；必须结合当时真实可用性、倍率、任务类型和我们自己的历史成功率做选择。
 
@@ -184,7 +207,7 @@ MiniMax H3 的 pinned official prompt skill 只在 H3 路由时启用。网页�
 - 仍未知什么
 - project/collision scope proof
 - credential-secret value scan
-- model/carrier/积分倍率快照
+- model/carrier/推理等级/Plan模式/积分倍率快照
 - local cycles / push count / CI cycles（可得时）
 - 如果建议 frontier escalation：对应 gate condition、为什么 GPT + WorkBuddy / Codex Standard 不足、需要 frontier 回答的 bounded questions
 - 下一 gate：CI / independent review / blocked
