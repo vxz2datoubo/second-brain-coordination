@@ -1,0 +1,132 @@
+schema: GOVERNANCE_RECOVERY_RECEIPT/v1
+receipt_id: R188-GOVERNANCE-RECOVERY-RECEIPT-v1
+project: SECOND_BRAIN
+repository: vxz2datoubo/second-brain-coordination
+recovery_target_issue: 639
+source_issue: 635
+governance_issue: 636
+
+# ---------------------------------------------------------------------------
+# Classification
+# ---------------------------------------------------------------------------
+classification: INDEPENDENT_GOVERNANCE_RECOVERY_ADJUDICATION
+recovery_decision: RETAIN_CONTENT_AND_RELEGALIZE
+non_retroactive: >-
+  The erroneous merge f39e876f2c5b826491028ee6d1c3415feaed5e2f remains
+  canonicalization-invalid AT THE TIME it occurred. This receipt does NOT relabel
+  that event as valid canonicalization. Physical merge and valid canonicalization
+  are explicitly distinguished. This receipt establishes a NEW, separately-reviewed,
+  separately-canonicalized recovery record.
+
+# ---------------------------------------------------------------------------
+# Incident identities
+# ---------------------------------------------------------------------------
+incident:
+  candidate_pr: 637
+  candidate_title: WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL
+  candidate_author: vxz2datoubo
+  independent_reviewer: vxz1datoubo
+  authenticated_merge_principal: vxz1datoubo
+  required_relation: "author != reviewer != canonicalizer"
+  violated_relation: "reviewer == canonicalizer/merge principal"
+  accepted_exact_candidate_head: ac0ef16e240bf5983601e54f3abc8a2ebbdcb86a
+  pre_merge_main: d3e83dde61ec8d942db45cd8aba70ee484013024
+  observed_incident_merge_commit: f39e876f2c5b826491028ee6d1c3415feaed5e2f
+  merge_parents:
+    - d3e83dde61ec8d942db45cd8aba70ee484013024
+    - ac0ef16e240bf5983601e54f3abc8a2ebbdcb86a
+  exact_head_ci:
+    run: 34305940774
+    job: 102322524560
+    conclusion: success
+    exact_head_authority: true
+    tests_pass: 191
+  independent_review_evidence:
+    review_id: pullrequestreview-5149485730
+    verdict: ACCEPT_WITH_BOUNDED_NONBLOCKING_FINDINGS
+    commit_id: ac0ef16e240bf5983601e54f3abc8a2ebbdcb86a
+  pre_merge_fail_closed_evidence: "issuecomment-5595544229"
+  corrected_invalidation_evidence: "issuecomment-5595720955"
+
+# ---------------------------------------------------------------------------
+# Machine recovery adjudication
+# ---------------------------------------------------------------------------
+machine_adjudication:
+  adjudicator_principal: "second-brain-reviewer-vxz2[bot]"
+  adjudicator_app_id: 4886726
+  adjudicator_installation_id: 160366748
+  decision_receipt: GOVERNANCE_RECOVERY_DECISION/v1
+  decision_issue_comment: "issuecomment-5605982316"
+  chosen_option: A
+  option: RETAIN_CONTENT_AND_RELEGALIZE
+  rejected_option: B
+  rejected_option_reason: >-
+    No content defect was ever observed; the accepted tree is byte-unchanged with
+    authoritative CI and independent ACCEPT. A revert+republish is materially more
+    destructive and adds collision/TOCTOU surface with no identified content benefit.
+
+# ---------------------------------------------------------------------------
+# Content integrity: unchanged R188 governed content (fresh recomputed blob identities)
+# ---------------------------------------------------------------------------
+content_integrity:
+  verdict: PASS
+  fresh_main_at_adjudication: f8273719fd611c16d8695021d6b6f45cc1557ff7
+  r188_active_index_blob: 9ca71c8780b22e220207e82e3a5e894814c652e6
+  r188_route_blob: a5423444962cfb8109a3da443c8d915406b1fd39
+  execution_chain_blobs:
+    evidence_contract: dbfab8d9c1fe76f5575ad0ce1f360789eedf8e90
+    executable_batch: 30a3acb0023d5bb3aaa54dd4361187ac2fb0233a
+    executor_reservation: 34c829d8f2c6cede5c89694b669e5718299f4674
+    prewrite_reconciliation_snapshot: dc208268e8c0ba04eb4026e278844669e78fbbf8
+    task_brief: a606bbf93db514e1bdaa2e68f366063d7d2f1544
+    task_lease: a9da3e94a049714e86b1728df3b961b52402c2c3
+    work_claim: d2e5fecf5a281b208021a39ece0341130d86d7e2
+  inherited_dependency_blobs:
+    executor_pool_architecture: 8ccd17c9ee21f80fa42afc127edf9455980b0d61
+    typed_numeric_ledger: d7127a9d42aa558f7439c4c27e7cf79ec75c9e0c
+  post_incident_drift: NONE
+
+# ---------------------------------------------------------------------------
+# Prospective recovery canonicalization (identities filled at terminal receipt)
+# ---------------------------------------------------------------------------
+recovery_canonicalization:
+  recovery_branch: governance/r188-recovery-relegalize
+  recovery_pr: PENDING
+  recovery_exact_head: PENDING
+  recovery_exact_head_ci_run: PENDING
+  recovery_review_id: PENDING
+  recovery_reviewer: "second-brain-reviewer-vxz2[bot]"
+  recovery_canonicalizer: "second-brain-canonicalizer-vxz2[bot]"
+  recovery_merge_commit: PENDING
+  R188_RECOVERY_CANONICALIZED: false
+
+# ---------------------------------------------------------------------------
+# Phase B activation eligibility
+# ---------------------------------------------------------------------------
+phase_b_activation:
+  eligible_after: >-
+    Only after this recovery receipt is canonically merged AND the terminal receipt
+    declares R188_RECOVERY_CANONICALIZED=true.
+  r188_process_start: >-
+    Remains subject to its own canonical start-command, fresh model resolution,
+    collision/resource admission, and process-start gates. second_user_start_command_required
+    is PRESERVED. This receipt does not start R188.
+
+# ---------------------------------------------------------------------------
+# Hard boundaries preserved
+# ---------------------------------------------------------------------------
+hard_boundaries:
+  no_history_rewrite: true
+  no_direct_main_revert: true
+  no_r188_content_mutation: true
+  no_second_registry_or_control_plane: true
+  no_phase_b_implementation_start: true
+  no_r184_local_bridge_start: true
+  no_real_capture: true
+  no_operational_w3: true
+  no_program_s2: true
+  no_production: true
+  no_trading_funds_orders: true
+  no_secret_output: true
+  no_self_review: true
+  no_self_merge: true
