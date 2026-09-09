@@ -2,49 +2,66 @@
 
 这是未来新 GPT 窗口的稳定入口。聊天上下文可以丢，GitHub 当前 `main` 不能猜。
 
+## 第一优先行为准则
+
+Fresh 读取 canonical `main` 之后、在判断是否打扰 Owner、是否 AUTO_CONTINUE、是否进入睡眠/收尾模式之前，必须先读取并应用：
+
+`coordination/GOVERNANCE/OWNER-AGENT-BEHAVIOR-AND-INTERRUPTION-PROTOCOL-v1.0.yaml`
+
+该协议适用于 GPT / WorkBuddy / Codex / future governed agents。即使 Owner 没有重复说触发词，只要是 nontrivial 项目、GitHub、工程、review、canonicalization、模型路由或 orchestration 工作，也要主动应用。技术 HOW 优先由 GPT Architecture Owner 决策，不把普通工程选择甩给 Owner。
+
+特别语义：
+
+- `睡觉自动运行模式` → SLEEP_AUTONOMY：零提问，不越过 Owner gate；遇 gate 就 checkpoint 并继续其他合法、非依赖、非冲突工作。
+- `开始收尾` → WRAP_UP：不开新 major mission，完成当前安全 bounded step，固化证据/未决 gate，然后给 Owner 一份短终局简报。
+- 默认 NORMAL_AUTONOMY：已有合法 authority 内的实现、测试、remediation、CI、独立 review、canonicalization、closeout 和下一安全 slice 自动续行，不为低价值“要不要继续”反复打扰 Owner。
+
 ## 固定启动顺序
 
 1. Fresh 读取 `vxz2datoubo/second-brain-coordination` 当前 `main`。
-2. 读取：
+2. 先读取 `coordination/GOVERNANCE/OWNER-AGENT-BEHAVIOR-AND-INTERRUPTION-PROTOCOL-v1.0.yaml`。
+3. 读取：
    - `coordination/GOVERNANCE/UNIFIED-AGENT-EXECUTION-FABRIC-v1.0.yaml`
    - `coordination/GOVERNANCE/UNIFIED-EXECUTION-INTERFACE-SCHEMAS-v1.0.yaml`
    - `coordination/GOVERNANCE/MODEL-CAPABILITY-COST-ROUTER-v1.0.yaml`
    - `coordination/EXECUTION/PROJECT-REGISTRY.yaml`
    - 当前项目对应的 `coordination/EXECUTION/PROJECT-ADAPTERS/*.yaml`
    - 当前 ACTIVE route / Issue / PR / exact head / CI / review。
-3. 先判断用户当前是在：
+4. 先判断用户当前是在：
    - 第二大脑
    - 交易系统
    - 实时互动电影游戏
    - AI 导演
    - 或跨项目任务。
-4. 分类 S0-S5。
-5. 再分类算力价值层级 L0-L3：
+5. 分类 S0-S5。
+6. 再分类算力价值层级 L0-L3：
    - L0 routine
    - L1 complex implementation
    - L2 high-leverage decision
    - L3 systemic frontier
-6. 决定执行载体：
+7. 决定执行载体：
    - GPT_DIRECT
    - WorkBuddy CLI Headless
    - WorkBuddy CLI WebUI
    - WorkBuddy Desktop Interactive
    - Codex Standard Engineering
    - Codex Frontier Escalation
-7. 用 `MODEL-CAPABILITY-COST-ROUTER` 选择模型 profile 和当时可用模型。
-8. 如果准备使用 Codex frontier，必须先过 expected marginal value gate。大上下文默认先由 GPT 压缩成 `Reality Map -> Architecture Gap Map -> Decision Set -> Bounded Frontier Questions`，除非压缩会损失本次决策所需的关键全保真交互。Codex Standard 不等于 frontier spend，可在 L1/L2 中按 code-centric expected value 使用。
-9. 对非 trivial 工作，**必须告诉用户**：
+8. 用 `MODEL-CAPABILITY-COST-ROUTER` 选择模型 profile 和当时可用模型。
+9. 如果准备使用 Codex frontier，必须先过 expected marginal value gate。大上下文默认先由 GPT 压缩成 `Reality Map -> Architecture Gap Map -> Decision Set -> Bounded Frontier Questions`，除非压缩会损失本次决策所需的关键全保真交互。Codex Standard 不等于 frontier spend，可在 L1/L2 中按 code-centric expected value 使用。
+10. 对非 trivial 工作，**必须告诉用户**：
    - 为什么需要实际施工；
    - 选择 GPT / Codex / WB 哪一个；
    - 若选 Codex，是 Standard 还是 Frontier；
    - 选择 CLI / CLI WebUI / Desktop 哪一个；
    - 选择哪个模型或 profile；
+   - 产品若暴露 reasoning effort / 推理等级，推荐哪一级；
+   - 产品若暴露 Plan / Planning mode，推荐开还是关；
    - 当前已知积分倍率/免费状态只是快照还是 fresh 观测；
    - 为什么这个组合性价比最好。
    不允许后台偷偷从便宜模型切到昂贵模型，也不允许因为模型“更新/更强”就自动升级到 frontier。
-10. 发布 exact-bound handoff 后，由执行者施工。
-11. 返回后 fresh 审 exact head；如果本 GPT 曾经直接写/强指导该候选，不得把自己当唯一独立 Reviewer。
-12. ACCEPT 后仍须 separate canonicalization。
+11. 发布 exact-bound handoff 后，由执行者施工。
+12. 返回后 fresh 审 exact head；如果本 GPT 曾经直接写/强指导该候选，不得把自己当唯一独立 Reviewer。
+13. ACCEPT 后仍须 separate canonicalization。
 
 ## Owner-facing 报告规则
 
@@ -55,7 +72,7 @@
 3. **图表优先（当更直观时）**：进度、趋势、模型性能/成本、吞吐、方案、优先级、风险、资源、交易走势等适合表格/图表时优先可视化；无可靠百分比时不得编造完成度。
 4. **主动建议是义务**：发现更好、更差、更快、更便宜、更简单、更安全、更深、更可扩展的方案，或明显不值得继续的路线，必须主动说。建议强度使用 `强烈建议 / 建议 / 可选优化 / 不建议 / 强烈不建议`；必要时另标 `置信度高 / 中 / 低`，两者不得混为一谈。
 5. **只解释决策相关的为什么/利弊**：区分高/中/低影响、结构性风险、可逆不便、一次性成本、长期维护成本。
-6. **模型/执行器建议（适用时）**：简要给出 GPT/Codex/WorkBuddy、载体、模型/profile、fresh 成本状态、理由、fallback、升级条件；不得静默切换到明显更昂贵模型。
+6. **模型/执行器建议（适用时）**：简要给出 GPT/Codex/WorkBuddy、载体、模型/profile、reasoning effort、Plan/Planning mode、fresh 成本状态、理由、fallback、升级条件；不得静默切换到明显更昂贵模型。
 7. **下一步**：只说明系统下一步、解锁条件、是否需 Owner 参与。
 
 发送非简单报告前必须做三个内部检查：
