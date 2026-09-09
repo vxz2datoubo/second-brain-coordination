@@ -170,10 +170,10 @@ worker_slots:
     parent_issue: 31
     branch: "gpt/r182-w2-market-semantic-capability-gate"
     pr: 551
-    exact_head: "7445dbb31e5b9fd86b2b54597da132d4e19d14e8"
-    status: "ENGINEERING_STOPPED_WAITING_INDEPENDENT_REVIEW"
+    exact_head: "fd66a90267faac1b3b6cb0dbe74824b070dac2e5"
+    status: "CANONICAL_MERGED_WORKER_CLOSED"
     execution_allowed: false
-    substantive_write_gate: "CLOSED_POST_ENGINEERING_HANDOFF"
+    substantive_write_gate: "CLOSED_POST_CANONICAL_MERGE"
     route: "coordination/ROUTES/GPT-W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182.yaml"
     task_brief: "coordination/TASK-BRIEFS/GPT-W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182.yaml"
     work_claim: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182/WORK-CLAIM.yaml"
@@ -193,28 +193,29 @@ worker_slots:
     read_domains: [W2, W3, W12]
     write_domains: []
     authority_claims:
-      - "R182_BOUNDED_W2_MARKET_DATA_SEMANTIC_VALIDATION_ONLY"
+      - "HISTORICAL_R182_CANONICAL_MARKET_SEMANTIC_GATE_ONLY"
       - "OFFICIAL_DOCUMENTED_NEVER_EQUALS_LOCAL_RUNTIME_VERIFIED"
       - "NO_SECOND_A_SHARE_RULE_OR_MARKET_DATA_AUTHORITY"
-      - "NO_SECOND_PROBABILITY_OR_USER_MASTERY_AUTHORITY"
-      - "RESEARCH_ONLY_NO_TRADE"
-    resource_class: "REVIEW_WAIT_SLOT_OCCUPIED"
-    concurrency:
-      concurrent_gpt_task: "GPT-DS10-RESEARCH-INTEGRITY-P0A-R183"
-      concurrent_codex_task: "CODEX-A2-2-SHOT-BUNDLE-R181"
-      overlap_class: "O0_NO_MATERIAL_WRITE_OVERLAP"
-      nested_parallelism: "FORBIDDEN"
+      - "NO_REVIEW_MERGE_RELEASE_OR_TRADE_AUTHORITY"
+    resource_class: "FROZEN_NO_EXECUTION"
     provenance:
       source_issue: 550
-      snapshot: "W2-MARKET-SEMANTIC-CAPABILITY-R182-2026-09-01-001"
-      review_request: "issuecomment-5512374141"
-      engineering_handoff: "issuecomment-5512371211"
-      exact_head_frozen_for_review: true
-      slot_remains_occupied_until_accept_merge_closeout: true
-    reviewer_role: "GPT_INDEPENDENT_REVIEWER"
+      accepted_exact_head: "fd66a90267faac1b3b6cb0dbe74824b070dac2e5"
+      independent_review: "pullrequestreview-5095449147"
+      review_result: "issuecomment-5516893526"
+      review_verdict: "ACCEPT"
+      implementation_merge: "a9669e31a9b59c72fff66d6d364c92d4eec51f49"
+      post_merge_closeout: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182/POST-MERGE-WORKER-CLOSEOUT.yaml"
+      closeout_exact_head: "633073cf68d3c5c4a0f20f0cbcb3609d0152e528"
+      closeout_independent_review: "pullrequestreview-5104622695"
+      closeout_merge: "a23a54ae5fafc041bb12b6be805a66d805c8fb66"
+      closeout_merge_is_ancestor_of_projection_main: true
+      migration_snapshot: "issuecomment-5551908105"
+      historical_write_surface_preserved_in_route_and_git_history: true
+    reviewer_role: "HISTORICAL_GPT_INDEPENDENT_REVIEWER"
     reviewer_separation: "EXECUTION_IDENTITY_NOT_ACCEPTANCE_AUTHORITY"
-    activation_state: "REVIEW_WAIT"
-    closure_state: null
+    activation_state: "CLOSED"
+    closure_state: "CANONICAL_MERGED_AND_WORKER_RELEASED"
 
   - worker_slot_id: "GPT-WORKER-R183-DS10-RESEARCH-INTEGRITY-1"
     agent_type: "GPT_ENGINEERING_WORKER"
@@ -226,11 +227,11 @@ worker_slots:
     parent_issue: 31
     skill_issue: 63
     branch: "gpt/r183-ds10-research-integrity-p0a"
-    pr: null
-    pr_creation_gate: "AFTER_ISSUE_552_EFFECTIVE_SPEC_SNAPSHOT_AND_FIRST_SUBSTANTIVE_COMMIT"
-    status: "ACTIVE_GOVERNED_PREWRITE"
-    execution_allowed: true
-    substantive_write_gate: "CLOSED_UNTIL_ISSUE_552_EFFECTIVE_SPEC_SNAPSHOT"
+    pr: 557
+    exact_head: "60e5ce6a5bace143942d77bb2d9c5359c8aa1118"
+    status: "CANONICAL_MERGED_WORKER_CLOSED"
+    execution_allowed: false
+    substantive_write_gate: "CLOSED_POST_CANONICAL_MERGE"
     route: "coordination/ROUTES/GPT-DS10-RESEARCH-INTEGRITY-P0A-R183.yaml"
     task_brief: "coordination/TASK-BRIEFS/GPT-DS10-RESEARCH-INTEGRITY-P0A-R183.yaml"
     work_claim: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A-R183/WORK-CLAIM.yaml"
@@ -239,7 +240,8 @@ worker_slots:
     task_lease: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A-R183/TASK-LEASE.yaml"
     executor_reservation: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A-R183/EXECUTOR-RESERVATION.yaml"
     control_tower_scan: "coordination/CONTROL-TOWER/R183-DS10-RESEARCH-INTEGRITY-ACTIVATION-SCAN.yaml"
-    write_paths:
+    write_paths: []
+    historical_write_paths:
       - ".github/workflows/ds10-research-integrity-p0a.yml"
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/RESEARCH-INTEGRITY-AUDIT.schema.json"
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/LOCKBOX-ACCESS-RECEIPT.schema.json"
@@ -257,30 +259,27 @@ worker_slots:
     read_domains: [W2, W4, W7, W9, W12]
     write_domains: []
     authority_claims:
-      - "DS10_AUDIT_EVIDENCE_ONLY"
+      - "HISTORICAL_R183_DS10_RESEARCH_INTEGRITY_ONLY"
       - "W4_REMAINS_STRATEGY_EXPERIMENT_AUTHORITY"
       - "W7_REMAINS_VALIDATION_AND_FINAL_RISK_AUTHORITY"
-      - "NO_SECOND_TRIAL_LEDGER_OR_EXPERIMENT_SYSTEM_OF_RECORD"
       - "NO_PROBABILITY_POSITION_ORDER_OR_TRADE_AUTHORITY"
-      - "RESEARCH_ONLY_NO_TRADE"
-    resource_class: "MEDIUM_IMPLEMENTATION"
-    concurrency:
-      concurrent_gpt_task: "GPT-W2-MARKET-SEMANTIC-CAPABILITY-GATE-R182"
-      concurrent_codex_task: "CODEX-A2-2-SHOT-BUNDLE-R181"
-      overlap_class: "O0_NO_MATERIAL_WRITE_OVERLAP"
-      nested_parallelism: "FORBIDDEN"
+      - "NO_REVIEW_MERGE_RELEASE_AUTHORITY"
+    resource_class: "FROZEN_NO_EXECUTION"
     provenance:
       source_issue: 552
-      release_basis: "CURRENT_EXPLICIT_USER_DIRECTION_CONTINUE_LARGE_SCALE_IMPLEMENTATION"
-      r168_closeout_releases_slot: true
-      route_precedes_snapshot: true
-      claim_precedes_snapshot: true
-      witness_precedes_snapshot: true
-      lease_precedes_snapshot: true
-      reservation_precedes_snapshot: true
-      branch_absent_before_governance_release: true
-      snapshot_required_before_substantive_write: true
-    reviewer_role: "GPT_INDEPENDENT_REVIEWER"
+      accepted_exact_head: "60e5ce6a5bace143942d77bb2d9c5359c8aa1118"
+      independent_review: "pullrequestreview-5096788228"
+      review_result: "issuecomment-5518820285"
+      review_verdict: "ACCEPT"
+      implementation_merge: "982842be022ae2af8e7a2ce026937d50077d843f"
+      post_merge_closeout: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A-R183/POST-MERGE-WORKER-CLOSEOUT.yaml"
+      closeout_exact_head: "ff736f743b3f5c98b6549226299b03e453a8ac7d"
+      closeout_independent_review: "pullrequestreview-5107033275"
+      closeout_merge: "09a15abbe7b27728e6067b47cfead90b5ffd95d5"
+      closeout_merge_is_ancestor_of_projection_main: true
+      migration_snapshot: "issuecomment-5551908105"
+      historical_write_surface_preserved_in_route_and_git_history: true
+    reviewer_role: "HISTORICAL_GPT_INDEPENDENT_REVIEWER"
     reviewer_separation: "EXECUTION_IDENTITY_NOT_ACCEPTANCE_AUTHORITY"
-    activation_state: "PREWRITE_RESERVED"
-    closure_state: null
+    activation_state: "CLOSED"
+    closure_state: "CANONICAL_MERGED_AND_WORKER_RELEASED"

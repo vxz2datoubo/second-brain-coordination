@@ -1,0 +1,99 @@
+schema_version: "R572-GPT-LIFECYCLE-PROJECTION-MIGRATION-RECEIPT/v1"
+receipt_id: "R572-GPT-LIFECYCLE-PROJECTION-MIGRATION-CLEAN-20260909-001"
+program_id: "SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001"
+issue: 572
+mode: "GOVERNANCE_ONLY_ATOMIC_PROJECTION_RECONCILIATION"
+baseline_sha: "55236f2b70ef7d573a6c57bcc22513cfa5f1b6b8"
+effective_spec_snapshot_ref: "issuecomment-5609530017"
+clean_successor_branch: "gpt/r572-worker-lifecycle-projection-migration-r7-clean-20260909"
+
+projection_files:
+  - "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+  - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+
+migration_source:
+  prior_pr: 599
+  prior_exact_head: "62b2bb655d181a236144b8a284250314ea28bf3a"
+  disposition: "MIGRATION_SOURCE_EVIDENCE_ONLY_NOT_REVIVED"
+  byte_safe_composition_proof:
+    active_gpt_workers_current_base_blob: "5f46d1b16baca40aa2593354ba93484af6416755"
+    active_gpt_workers_prior_pr_base_blob_prefix: "5f46d1b16"
+    active_gpt_workers_replacement_blob: "ef980f4971bbf7abc6fd22da4c8f60fcccf677d2"
+    active_program_lanes_current_base_blob: "1669942250e6efd96c332671f8cb8e154b44d6f3"
+    active_program_lanes_prior_pr_base_blob_prefix: "166994225"
+    active_program_lanes_replacement_blob: "95393ebe1491eb4ed612871018b5236107972462"
+    result: "PASS_CURRENT_FILES_BYTE_IDENTICAL_TO_PRIOR_MIGRATION_BASE"
+    implication: "SAFE_TO_REUSE_ONLY_THE_TWO_PROVEN_REPLACEMENT_BLOBS_ON_FRESH_CURRENT_MAIN_TREE"
+
+source_evidence:
+  r182:
+    implementation_issue: 550
+    implementation_pr: 551
+    accepted_exact_head: "fd66a90267faac1b3b6cb0dbe74824b070dac2e5"
+    implementation_review: "pullrequestreview-5095449147"
+    implementation_review_result: "issuecomment-5516893526"
+    implementation_merge: "a9669e31a9b59c72fff66d6d364c92d4eec51f49"
+    closeout_pr: 567
+    closeout_exact_head: "633073cf68d3c5c4a0f20f0cbcb3609d0152e528"
+    closeout_review: "pullrequestreview-5104622695"
+    closeout_merge: "a23a54ae5fafc041bb12b6be805a66d805c8fb66"
+  r183:
+    implementation_issue: 552
+    implementation_pr: 557
+    accepted_exact_head: "60e5ce6a5bace143942d77bb2d9c5359c8aa1118"
+    implementation_review: "pullrequestreview-5096788228"
+    implementation_review_result: "issuecomment-5518820285"
+    implementation_merge: "982842be022ae2af8e7a2ce026937d50077d843f"
+    closeout_pr: 570
+    closeout_exact_head: "ff736f743b3f5c98b6549226299b03e453a8ac7d"
+    closeout_review: "pullrequestreview-5107033275"
+    closeout_merge: "09a15abbe7b27728e6067b47cfead90b5ffd95d5"
+
+reconciled_truth:
+  r182_current_execution: false
+  r182_current_write: false
+  r182_terminal: true
+  r183_current_execution: false
+  r183_current_write: false
+  r183_terminal: true
+  lane_a_current_gpt_implementation: false
+  lane_b_current_gpt_implementation: false
+
+capacity_semantics:
+  hard_coded_free_capacity_forbidden: true
+  successor_released_by_this_receipt: false
+  successor_release_authority: false
+  capacity_must_be_recomputed_from_canonical_projection: true
+  downstream_priority_candidate: "ISSUE_573_CAPTURE_UNIT_SLICE_A"
+  downstream_release_requires_separate_fresh_authority: true
+
+authority:
+  execution: false
+  domain_runtime_write: false
+  memory_capture_activation: false
+  w3_write: false
+  review: false
+  acceptance: false
+  merge: false
+  successor_release: false
+  broker_account_order_funds: false
+  trade: false
+
+invariants:
+  - "TASK_LOCAL_CLOSEOUT_IS_NOT_GLOBAL_CAPACITY_TRUTH"
+  - "TERMINAL_HISTORY_IS_NOT_CURRENT_EXECUTION_AUTHORITY"
+  - "ACTIVE_WORKER_AND_PROGRAM_LANE_PROJECTIONS_DESCRIBE_THE_SAME_WORLD"
+  - "NO_SUCCESSOR_RELEASE_FROM_MIGRATION_RECEIPT"
+  - "NO_DOMAIN_RUNTIME_W3_CAPTURE_OR_TRADE_AUTHORITY"
+  - "PR599_IS_SOURCE_EVIDENCE_NOT_CURRENT_CANDIDATE"
+  - "CURRENT_MAIN_POST_BASE_TREE_IS_PRESERVED_OUTSIDE_THE_TWO_BYTE_PROVEN_PROJECTION_FILES"
+
+next_lifecycle:
+  - "FREEZE_NEW_EXACT_HEAD"
+  - "AUTHORITATIVE_EXACT_HEAD_CI"
+  - "INDEPENDENT_EXACT_HEAD_REVIEW"
+  - "SEPARATE_CANONICALIZATION"
+  - "FRESH_CAPACITY_RECOMPUTATION"
+  - "SEPARATE_SUCCESSOR_AUTHORITY_IF_LEGAL"
+
+status: "ENGINEERING_CANDIDATE_REQUIRES_EXACT_HEAD_CI_AND_INDEPENDENT_REVIEW"
