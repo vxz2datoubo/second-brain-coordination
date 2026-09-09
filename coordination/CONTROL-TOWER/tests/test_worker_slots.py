@@ -18,6 +18,7 @@ from worker_slots import (  # noqa: E402
     MAINTENANCE_TOMBSTONES_FILE,
     R3_MAINTENANCE_ADOPTION_FILE,
     R4_MAINTENANCE_ADOPTION_FILE,
+    R6_MAINTENANCE_ADOPTION_FILE,
     R144_TASK_BRIEF_FILE,
     load_worker_slots,
     validate_worker_slots,
@@ -35,6 +36,9 @@ R3_AUTHORITY_ID = "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-0001"
 RELEASED_SCOPE = "NO_FURTHER_MODIFIER_WRITES_AUTHORIZED_BY_THIS_ARTIFACT"
 R4_RELEASE_COMMIT = "8a2eb5c41f9b67328211569ac7c8d4c71d0cf6d1"
 R5_RELEASE_PARENT_HEAD = "bf212c4413cef72506a841c177c972b52af60acc"
+R6_AUTHORITY_ID = "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R6-0001"
+R6_RELEASE_PARENT_HEAD = "04124e233dc813cca4054851ef6a470b342d82fe"
+R6_REVIEW = 5108092436
 
 
 def _slot(
@@ -229,6 +233,25 @@ def _r4_released_authority() -> dict[str, Any]:
     }
 
 
+def _r6_released_authority() -> dict[str, Any]:
+    return {
+        "schema_version": "1.0",
+        "authority_id": R6_AUTHORITY_ID,
+        "authority_type": "GPT_ARCHITECTURE_OWNER_CORRECTIVE_MAINTENANCE_ADOPTION",
+        "issuer": "USER",
+        "actor": "GPT_ARCHITECTURE_OWNER",
+        "state": "RELEASED",
+        "release_reason": "R6_LIFECYCLE_FOUNDATION_INDEPENDENTLY_ACCEPTED_AND_CANONICALIZED",
+        "released_scope_status": RELEASED_SCOPE,
+        "release_transition": {
+            "from_state": "ACTIVE",
+            "to_state": "RELEASED",
+            "terminal_for_authority_id": True,
+            "next_activation_requires_new_user_issued_authority_id": True,
+        },
+    }
+
+
 def _maintenance_authority(**overrides: Any) -> dict:
     doc: dict[str, Any] = {
         "schema_version": "1.0",
@@ -301,7 +324,16 @@ def _terminal_tombstones(*, include_r5: bool = False) -> dict[str, Any]:
             "released_scope_status": RELEASED_SCOPE,
             "reactivation_allowed": False,
             "terminality_source_review": R5_REVIEW,
-        }
+        },
+        {
+            "authority_id": R6_AUTHORITY_ID,
+            "authority_file": R6_MAINTENANCE_ADOPTION_FILE,
+            "terminal_state": "RELEASED",
+            "release_parent_head": R6_RELEASE_PARENT_HEAD,
+            "released_scope_status": RELEASED_SCOPE,
+            "reactivation_allowed": False,
+            "terminality_source_review": R6_REVIEW,
+        },
     ]
     if include_r5:
         records.append(
@@ -396,6 +428,7 @@ class WorkerRepo:
             )
             self._write(R3_MAINTENANCE_ADOPTION_FILE, _r3_released_authority())
             self._write(R4_MAINTENANCE_ADOPTION_FILE, _r4_released_authority())
+            self._write(R6_MAINTENANCE_ADOPTION_FILE, _r6_released_authority())
             self._write(
                 MAINTENANCE_TOMBSTONES_FILE,
                 _terminal_tombstones(include_r5=maintenance.get("state") == "RELEASED"),
