@@ -2,8 +2,8 @@ schema_version: "1.0"
 contract_id: "TYPED-NUMERIC-PARAMETER-AND-EXPERIMENT-LEDGER-v1"
 status: "CANDIDATE_PENDING_INDEPENDENT_REVIEW"
 source_issue: 627
-effective_spec_snapshot_id: "SECOND-BRAIN-ISSUE627-MULTI-EXECUTOR-EPISTEMIC-NUMERIC-002"
-effective_spec_snapshot_ref: "issuecomment-5593821946"
+effective_spec_snapshot_id: "SECOND-BRAIN-ISSUE627-MULTI-EXECUTOR-EPISTEMIC-NUMERIC-003"
+effective_spec_snapshot_ref: "issuecomment-5594276488"
 
 purpose: >-
   Prevent numeric direction drift, unit drift, stale-value promotion, hidden default changes and
@@ -47,6 +47,7 @@ parameter_record_schema:
     - "effective_from"
     - "comparison_semantics"
     - "mutation_policy"
+    - "revalidation_triggers"
   value_types:
     - "INTEGER"
     - "DECIMAL"
@@ -76,6 +77,65 @@ parameter_record_schema:
     currency: "required for MONEY unless unit already encodes it"
     timezone: "required for local wall-clock timestamps"
 
+revalidation_trigger_schema:
+  cardinality: "ONE_OR_MORE_PER_PARAMETER_RECORD"
+  empty_or_missing_list: "SCHEMA_INVALID_FAIL_CLOSED"
+  valid_until_is_not_a_substitute_for_revalidation_triggers: true
+  required_fields_per_trigger:
+    - "trigger_id"
+    - "trigger_type"
+    - "watched_ref_or_condition"
+    - "comparison_or_event_semantics"
+    - "action_on_fire"
+  trigger_types:
+    - "CANONICAL_SOURCE_VERSION_CHANGE"
+    - "EVIDENCE_OR_CALIBRATION_EXPIRY"
+    - "VALID_UNTIL_REACHED"
+    - "DEPENDENCY_VERSION_CHANGE"
+    - "FORMULA_VERSION_CHANGE"
+    - "UNIT_OR_SCHEMA_CHANGE"
+    - "DRIFT_THRESHOLD_CROSSED"
+    - "RUNTIME_ENVIRONMENT_CHANGE"
+    - "MARKET_RULE_OR_POLICY_VERSION_CHANGE"
+    - "DATA_PROVIDER_OR_DISTRIBUTION_CHANGE"
+    - "GOVERNANCE_INVALIDATION"
+  action_on_fire_allowed:
+    - "MARK_REVALIDATION_REQUIRED"
+    - "BLOCK_CURRENT_USE_UNTIL_REVALIDATED"
+    - "EXPIRE_CURRENT_OBSERVATION"
+  default_action_when_material: "BLOCK_CURRENT_USE_UNTIL_REVALIDATED"
+  trigger_state_unknown: "REVALIDATION_REQUIRED"
+  fired_without_successful_revalidation: "INVALID_FOR_CURRENT_DECISION_WHEN_MATERIAL"
+  successful_revalidation_requires:
+    - "fresh evidence or source readback"
+    - "new validation receipt identity"
+    - "parameter version or observation identity handling consistent with class"
+    - "trigger state reset/closure evidence"
+  trigger_metadata_must_be_machine_readable: true
+  free_text_only_trigger_is_valid: false
+
+minimum_revalidation_semantics_by_class:
+  HARD_BINDING_CONSTANT:
+    must_cover:
+      - "CANONICAL_SOURCE_VERSION_CHANGE"
+      - "UNIT_OR_SCHEMA_CHANGE"
+  CALIBRATED_POLICY_PARAMETER:
+    must_cover:
+      - "EVIDENCE_OR_CALIBRATION_EXPIRY"
+      - "CANONICAL_SOURCE_VERSION_CHANGE or DEPENDENCY_VERSION_CHANGE"
+      - "DRIFT_THRESHOLD_CROSSED when a governed threshold exists"
+  OBSERVED_RUNTIME_VALUE:
+    must_cover:
+      - "freshness expiry via VALID_UNTIL_REACHED or equivalent governed freshness condition"
+      - "DATA_PROVIDER_OR_DISTRIBUTION_CHANGE or RUNTIME_ENVIRONMENT_CHANGE when material"
+  DERIVED_METRIC:
+    must_cover:
+      - "FORMULA_VERSION_CHANGE"
+      - "DEPENDENCY_VERSION_CHANGE"
+  EXPERIMENT_PARAMETER:
+    must_cover:
+      - "search/trial/environment identity change through a typed dependency or environment trigger"
+
 unit_and_direction_rules:
   canonical_unit_required: true
   implicit_unit_conversion: false
@@ -98,6 +158,8 @@ missing_and_unknown_semantics:
   unknown_is_no_change: false
   NaN_inf_handling_must_be_explicit: true
   stale_observation_is_current_truth: false
+  missing_revalidation_trigger_is_valid: false
+  fired_trigger_without_revalidation_is_current_truth: false
   fail_closed_when_value_controls_authority_or_safety: true
 
 comparison_semantics:
@@ -126,9 +188,11 @@ numeric_snapshot:
     - "parameter_ids_and_versions"
     - "canonical_source_refs"
     - "serialized_snapshot_digest"
+    - "revalidation_trigger_state_digest"
   posthoc_mutation: false
   later_parameter_change_invalidates_historical_snapshot: false
   later_parameter_change_requires_fresh_current_run_when_material: true
+  fired_material_trigger_requires_fresh_current_snapshot: true
 
 drift_model:
   record:
@@ -165,11 +229,16 @@ change_control:
     change_gate: "input or formula version change creates new result identity"
   EXPERIMENT_PARAMETER:
     change_gate: "new trial identity"
+  common_revalidation_gate: >-
+    When any material revalidation trigger fires, the current record cannot remain eligible for a
+    current safety/authority/acceptance decision until successful revalidation is durably recorded.
 
 current_active_resource_parameter_mirrors:
   source_ref: "coordination/GOVERNANCE/LOCAL-EXECUTION-RESOURCE-BUDGET-AND-PROCESS-LIFECYCLE-PROTOCOL-v1.0.yaml"
   source_status_expected: "ACTIVE_BINDING"
   conflict_rule: "SOURCE_CONTRACT_WINS_AND_MIRROR_MISMATCH_FAILS_VALIDATION"
+  projection_rows_are_not_complete_parameter_records: true
+  materialization_as_parameter_record_requires_full_parameter_record_schema: true
   values:
     - parameter_id: "LOCAL.PROJECT_OWNED_PYTHON_PROCESS_HARD_CAP"
       class: "HARD_BINDING_CONSTANT"
@@ -224,6 +293,7 @@ executor_pool_parameters_not_yet_pinned:
     - "WB.BROWSER_SESSION_CAPACITY"
     - "WB.GPU_HEAVY_CAPACITY"
   desired_floor_is_not_canonical_value: true
+  future_materialization_requires_typed_revalidation_triggers: true
 
 experiment_ledger:
   design_patterns: ["MLFLOW_RUN_TRACKING", "DVC_VERSIONED_EXPERIMENTS", "OPENLINEAGE_PROVENANCE"]
@@ -285,12 +355,14 @@ software_hardware_style_rule:
     - "sign convention"
     - "comparison/tolerance"
     - "source/version"
+    - "typed revalidation trigger presence and state"
     - "serialization digest when reproducibility-critical"
 
 handoff_and_review:
   every_nontrivial_workbuddy_task_should_bind_numeric_snapshot: true
   every_experiment_should_bind_parameter_snapshot: true
   review_should_compare_expected_vs_observed_parameter_world: true
+  review_must_check_material_revalidation_trigger_states: true
   material_parameter_change_after_exact_head_review: "REVALIDATE_IF_IT_CHANGES_CANDIDATE_SEMANTICS"
 
 anti_drift_tests_for_future_implementation:
@@ -301,5 +373,9 @@ anti_drift_tests_for_future_implementation:
   - "stale observed runtime value cannot satisfy current hard gate"
   - "range widening requires explicit version/change evidence"
   - "NaN/missing/parse failure cannot become zero/default"
+  - "parameter record missing revalidation_triggers fails schema validation"
+  - "empty or free-text-only revalidation trigger metadata fails closed"
+  - "material fired trigger blocks current use until fresh revalidation receipt exists"
+  - "valid_until alone cannot satisfy mandatory event/evidence/version revalidation semantics"
   - "experiment winner remains linked to all known attempted trials/search-space identity"
   - "same numeric snapshot serializes deterministically to the same digest"
