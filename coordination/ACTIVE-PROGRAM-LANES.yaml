@@ -1,4 +1,4 @@
-schema_version: "3.30"
+schema_version: "3.31"
 registry_id: AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001
 control_tower_issue: 310
 owner: USER
@@ -13,21 +13,24 @@ portfolio_capacity_policy:
   same_canonical_object_writers_max: 1
   nested_parallelism: FORBIDDEN
 current_user_release_policy:
-  decision: R181_CODEX_A2_2_SHOT_BUNDLE + R182_W2_REVIEW_WAIT + R183_DS10_RESEARCH_INTEGRITY + R168_CANONICAL_CLOSED + R166_ACCEPTED_EXECUTION_RELEASED
+  decision: R181_CODEX_PRIORITY_PARK + R182_W2_REVIEW_WAIT + R183_DS10_RESEARCH_INTEGRITY + R168_CANONICAL_CLOSED + R166_ACCEPTED_EXECUTION_RELEASED
   rationale: >-
     R168 PR #517 is independently ACCEPTED at exact head 6a00939495ec7d8c974e5fbe8a8940a56dec3855 and canonical merged as
     7c77e303a124f1debfb52f497eccd1db3f9f7cb4, which is an ancestor of current main. Its execution slot is therefore closed.
     R182 PR #551 is frozen at exact head 7445dbb31e5b9fd86b2b54597da132d4e19d14e8 awaiting independent review and remains an occupied
     review-wait slot. Current explicit user direction is continued large-scale trading-system construction, so the released second
-    GPT slot is assigned to non-overlapping DS-10 P0A research-integrity implementation. CODEX R181 remains a separate agent/type.
+    GPT slot is assigned to non-overlapping DS-10 P0A research-integrity implementation. Owner priority transition parks CODEX R181
+    at its preserved executor checkpoint and releases only its execution slot; no Trading successor route is created by this projection.
   auxiliary_bounded_releases:
     - task_id: CODEX-A2-2-SHOT-BUNDLE-R181
       route_epoch: 181
       issue: 548
       agent_type: CODEX
       branch: codex/r181-a2-2-shot-bundle-static-compiler
-      status: ACTIVE_GOVERNED_EXECUTION
-      execution_allowed: true
+      pr: 549
+      exact_head: 0aa32e31f0130bf144d43ebecef03613f3f268e4
+      status: PARKED_PRIORITY_TRANSITION
+      execution_allowed: false
     - task_id: GPT-CANONICAL-CI-STATE-ISOLATION-R168
       route_epoch: 168
       issue: 496
@@ -104,7 +107,8 @@ observed_agent_state:
     observed_task_id: CODEX-A2-2-SHOT-BUNDLE-R181
     observed_route_epoch: 181
     observed_issue: 548
-    execution_allowed: true
+    observed_status: PARKED_NO_ACTIVE_CODEX_EXECUTION
+    execution_allowed: false
   GPT_ENGINEERING_WORKER:
     observed_status: R182_REVIEW_WAIT_SLOT_OCCUPIED + R183_ACTIVE_PREWRITE + R168_CANONICAL_CLOSED + R166_ACCEPTED_EXECUTION_RELEASED
 program_lanes:
@@ -121,11 +125,11 @@ program_lanes:
     trading_authorized: false
     predecessor_r166: INDEPENDENTLY_ACCEPTED_EXECUTION_RELEASED_AWAITING_CANONICALIZATION
   - lane_id: LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP
-    mission: Bounded interactive-film A2.2 immutable ShotBundle and shot-responsibility compilation.
-    observed_state: R181_CODEX_A2_2_ACTIVE
-    current_phase: EXECUTION
-    implementation_owner: CODEX
-    worker_slot_id: CODEX-R181-SHOT-BUNDLE-A2-2-1
+    mission: Preserve the R181 A2.2 executor checkpoint while its Codex execution authority is priority-parked.
+    observed_state: R181_CODEX_A2_2_PRIORITY_PARKED
+    current_phase: PRIORITY_PARK
+    implementation_owner: NONE_ACTIVE
+    prior_worker_slot_id: CODEX-R181-A2-2-SHOT-BUNDLE-1
     canonical_knowledge_write_authorized: false
 cross_lane_overlap_matrix:
   - pair: [LANE-A-HARNESS-INTEGRATION, LANE-B-A-SHARE-REMEDIATION]
