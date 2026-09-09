@@ -30,6 +30,9 @@ from worker_lifecycle import (  # noqa: E402
 
 PRE_R6_WORKER_SLOTS_BLOB = "00a863a79a35524cb6db950529dabc9ff32761fa"
 R6_AUTHORITY = "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R6.yaml"
+TOMBSTONES = "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-TERMINAL-TOMBSTONES.yaml"
+R6_AUTHORITY_ID = "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R6-0001"
+R6_FOUNDATION_MERGE = "04124e233dc813cca4054851ef6a470b342d82fe"
 WORKER_SLOTS = "coordination/CONTROL-TOWER/worker_slots.py"
 WORKER_REGISTRY = "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
 PROGRAM_LANES = "coordination/ACTIVE-PROGRAM-LANES.yaml"
@@ -620,9 +623,11 @@ class RepositoryAuditTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.repo_root = Path(__file__).resolve().parents[3]
 
-    def test_first_slice_does_not_modify_legacy_worker_slots_validator(self) -> None:
-        data = (self.repo_root / WORKER_SLOTS).read_bytes()
-        self.assertEqual(_git_blob_sha(data), PRE_R6_WORKER_SLOTS_BLOB)
+    def test_first_slice_worker_slots_now_binds_r6_terminal_record(self) -> None:
+        data = (self.repo_root / WORKER_SLOTS).read_text(encoding="utf-8")
+        self.assertIn(R6_AUTHORITY_ID, data)
+        self.assertIn(R6_FOUNDATION_MERGE, data)
+        self.assertIn("5108092436", data)
 
     def test_current_registry_audit_is_valid_and_capacity_full(self) -> None:
         audit = audit_worker_registry_lifecycle(self.repo_root)
@@ -656,13 +661,23 @@ class RepositoryAuditTests(unittest.TestCase):
             with self.subTest(slot_id=slot_id):
                 self.assertEqual(by_id[slot_id]["lifecycle_state"], lifecycle)
 
-    def test_r6_authority_is_narrow_non_runtime_non_merge(self) -> None:
+    def test_r6_authority_is_released_narrow_non_runtime_non_merge(self) -> None:
         authority = yaml.safe_load((self.repo_root / R6_AUTHORITY).read_text(encoding="utf-8"))
+        self.assertEqual(authority["authority_id"], R6_AUTHORITY_ID)
+        self.assertEqual(authority["state"], "RELEASED")
         self.assertEqual(
-            authority["authority_id"],
-            "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R6-0001",
+            authority["released_scope_status"],
+            "NO_FURTHER_MODIFIER_WRITES_AUTHORIZED_BY_THIS_ARTIFACT",
         )
-        self.assertEqual(authority["state"], "ACTIVE")
+        self.assertEqual(
+            authority["release_transition"],
+            {
+                "from_state": "ACTIVE",
+                "to_state": "RELEASED",
+                "terminal_for_authority_id": True,
+                "next_activation_requires_new_user_issued_authority_id": True,
+            },
+        )
         for field in (
             "execution_allowed",
             "runtime_write_allowed",
@@ -680,6 +695,19 @@ class RepositoryAuditTests(unittest.TestCase):
                 "coordination/ACTIVE-PROGRAM-LANES.yaml",
             },
         )
+
+    def test_r6_terminal_tombstone_is_monotonic_and_bound(self) -> None:
+        tombstones = yaml.safe_load((self.repo_root / TOMBSTONES).read_text(encoding="utf-8"))
+        records = {r["authority_id"]: r for r in tombstones["terminal_authorities"]}
+        r6 = records[R6_AUTHORITY_ID]
+        self.assertEqual(r6["terminal_state"], "RELEASED")
+        self.assertEqual(r6["release_parent_head"], R6_FOUNDATION_MERGE)
+        self.assertEqual(
+            r6["released_scope_status"],
+            "NO_FURTHER_MODIFIER_WRITES_AUTHORIZED_BY_THIS_ARTIFACT",
+        )
+        self.assertIs(r6["reactivation_allowed"], False)
+        self.assertEqual(r6["terminality_source_review"], 5108092436)
 
 
 if __name__ == "__main__":
