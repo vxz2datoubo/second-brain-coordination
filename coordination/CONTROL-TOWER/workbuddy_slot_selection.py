@@ -20,6 +20,7 @@ except ModuleNotFoundError:  # loaded together by the sibling CLI/test harness
 
 SELECTION_SCHEMA = "WORKBUDDY_SLOT_SELECTION_RESULT/v1"
 RUNTIME_BINDING_SCHEMA = "WORKBUDDY_RUNTIME_BINDING/v1"
+WORKTREE_EXPECTATION_SCHEMA = "WORKBUDDY_EXPECTED_WORKTREE_BINDING/v1"
 SELECTED = "SELECTED"
 AMBIGUOUS = "AMBIGUOUS_WORKBUDDY_SLOT_SELECTION"
 NO_ELIGIBLE = "NO_ELIGIBLE_WORKBUDDY_SLOT"
@@ -187,9 +188,48 @@ def _require_sha256_digest(value: Any, label: str) -> str:
     return text
 
 
+def _sha256_digest_hex(value: Any, label: str) -> str:
+    text = _require_sha256_digest(value, label)
+    return text[len("sha256:"):] if text.startswith("sha256:") else text
+
+
 def _canonical_json_digest(value: Mapping[str, Any]) -> str:
     payload = json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
     return "sha256:" + sha256(payload).hexdigest()
+
+
+def _expected_worktree_binding(slot_value: Any) -> tuple[str, str]:
+    """Derive trusted structural worktree identity from canonical slot authority.
+
+    The path digest here binds the logical worktree locator to the canonical task/branch/slot
+    identity. It is not a claim that a physical filesystem path exists. Physical path/process
+    attestation remains reserved for the separately governed canary/runtime witness gate.
+    """
+    slot = _slot_mapping(slot_value)
+    canonical_main_sha = _require_nonempty_string(slot.get("canonical_main_sha"), "slot canonical_main_sha")
+    if not re.fullmatch(r"[0-9a-f]{40}", canonical_main_sha):
+        raise SlotSelectionError("runtime_admission: slot canonical_main_sha must be a full lowercase commit SHA")
+    worker_slot_id = _require_nonempty_string(slot.get("worker_slot_id"), "slot worker_slot_id")
+    task_id = _require_nonempty_string(slot.get("task_id"), "slot task_id")
+    execution_repository = _require_nonempty_string(slot.get("execution_repository"), "slot execution_repository")
+    implementation_branch = _require_nonempty_string(slot.get("implementation_branch"), "slot implementation_branch")
+    route_epoch = slot.get("route_epoch")
+    if not isinstance(route_epoch, int) or isinstance(route_epoch, bool) or route_epoch < 1:
+        raise SlotSelectionError("runtime_admission: slot route_epoch must be a positive integer")
+
+    material = {
+        "schema": WORKTREE_EXPECTATION_SCHEMA,
+        "canonical_main_sha": canonical_main_sha,
+        "execution_repository": execution_repository,
+        "implementation_branch": implementation_branch,
+        "task_id": task_id,
+        "route_epoch": route_epoch,
+        "worker_slot_id": worker_slot_id,
+    }
+    payload = json.dumps(material, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    worktree_id_digest = sha256(b"workbuddy-worktree-id-v1\x00" + payload).hexdigest()
+    worktree_path_digest = sha256(b"workbuddy-worktree-path-v1\x00" + payload).hexdigest()
+    return "WB-WORKTREE-" + worktree_id_digest[:24], worktree_path_digest
 
 
 def _validate_acquired_resource_leases(
@@ -270,8 +310,14 @@ def validate_runtime_binding(slot_value: Any, envelope: Mapping[str, Any]) -> Ru
     if envelope.get("writer_lease_identity") != slot.get("writer_lease_identity"):
         raise SlotSelectionError("runtime_admission: task writer-lease identity mismatch")
 
+    expected_worktree_id, expected_worktree_path_digest = _expected_worktree_binding(slot)
     worktree_id = _require_nonempty_string(envelope.get("worktree_id"), "worktree_id")
-    worktree_path_digest = _require_sha256_digest(envelope.get("worktree_path_digest"), "worktree_path_digest")
+    if worktree_id != expected_worktree_id:
+        raise SlotSelectionError("runtime_admission: worktree_id mismatch")
+    worktree_path_digest = _sha256_digest_hex(envelope.get("worktree_path_digest"), "worktree_path_digest")
+    if worktree_path_digest != expected_worktree_path_digest:
+        raise SlotSelectionError("runtime_admission: worktree_path_digest mismatch")
+
     lease_ids = _validate_acquired_resource_leases(
         envelope.get("acquired_resource_leases"),
         executor_id=executor_id,
