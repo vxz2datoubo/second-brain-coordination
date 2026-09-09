@@ -1,0 +1,77 @@
+schema: R181_PRIORITY_PARK_TRANSITION_RECEIPT/v1
+repository: vxz2datoubo/second-brain-coordination
+source_issue: 548
+source_requirement: R181_PRIORITY_PARK_TRANSITION_REQUIREMENT/v1
+source_requirement_ref: issuecomment-5608838868
+owner_checkpoint_ref: issuecomment-5608831977
+task_id: CODEX-A2-2-SHOT-BUNDLE-R181
+route_epoch: 181
+transition: PRIORITY_PARK
+transition_reason: OWNER_PORTFOLIO_REPRIORITIZATION
+observed_canonical_main_at_prepare: e29a84acd08e4126400ed62b0d6c97f0c10c0a5c
+preserved_candidate:
+  pull_request: 549
+  branch: codex/r181-a2-2-shot-bundle-static-compiler
+  exact_head: 0aa32e31f0130bf144d43ebecef03613f3f268e4
+  draft: true
+  merged: false
+  independent_reviews_observed: 0
+  branch_mutated_by_transition: false
+verification:
+  executor_regression:
+    conclusion: PASS
+    count: 95
+  clean_clone_regression:
+    conclusion: PASS
+    count: 95
+  exact_scope_verifier: PASS
+  diff_check: PASS
+  github_exact_head_checks:
+    - name: offline-r181
+      workflow_run: 33591068255
+      job: 100125000084
+      head_sha: 0aa32e31f0130bf144d43ebecef03613f3f268e4
+      conclusion: SUCCESS
+    - name: offline-contracts
+      workflow_run: 33591068168
+      job: 100124999772
+      head_sha: 0aa32e31f0130bf144d43ebecef03613f3f268e4
+      conclusion: SUCCESS
+return_package:
+  status: COMPLETE_WITH_EXPLICIT_FINAL_HEAD_BINDING_DISCLOSURE
+  present:
+    - AI_HANDOFF.yaml
+    - AMED-EXECUTION-RECEIPT.yaml
+    - IMPLEMENTATION-RECEIPT.yaml
+    - SYSTEM-DISCOVERY-REPORT.md
+  final_head_binding:
+    status: AGGREGATE_EVIDENCE_COMPLETE_EMBEDDED_ARTIFACT_BINDING_PARTIAL
+    detail: >-
+      AI_HANDOFF.yaml and IMPLEMENTATION-RECEIPT.yaml retain intermediate implementation checkpoint
+      93acda43b7a4902a659828630cb3ff1dfdaf434d. Final head identity and exact-head check success are
+      bound by PR 549, owner checkpoint issuecomment-5608831977, this receipt, and GitHub check records.
+      The implementation branch remains unchanged as required by the priority-park transition.
+authority_boundary:
+  independent_accept_asserted: false
+  canonicalization_asserted: false
+  merge_asserted: false
+  implementation_completion_asserted: false
+  project_completion_asserted: false
+  retroactive_authority_asserted: false
+  trade_authority_created: false
+slot_release:
+  codex_worker_slot: CODEX-R181-A2-2-SHOT-BUNDLE-1
+  state: RELEASED_BY_PRIORITY_PARK
+  successor_route_published: false
+  successor_condition: FRESH_CURRENT_MAIN_COLLISION_AND_CAPACITY_ADMISSION
+resume:
+  checkpoint_reusable: true
+  required_before_execution:
+    - NEW_FRESH_ROUTE
+    - NEW_FRESH_CLAIM
+    - NEW_FRESH_LEASE
+    - NEW_FRESH_RESERVATION
+    - PRESERVED_HEAD_RECONCILIATION
+rollback: >-
+  Revert only the canonical priority-park transition before publishing another active Codex route.
+  Do not mutate or rewrite PR 549 history. Any R181 resume requires fresh authority.
