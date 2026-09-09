@@ -25,6 +25,10 @@ R188_PATHS = [
 ]
 EVIDENCE_CONTRACT = "coordination/EXECUTION/WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL/EVIDENCE-CONTRACT.yaml"
 BATCH = "coordination/EXECUTION/WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL/EXECUTABLE-BATCH.json"
+ROUTE = "coordination/ROUTES/WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL.yaml"
+PREWRITE = "coordination/EXECUTION/WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL/PREWRITE-RECONCILIATION-SNAPSHOT.yaml"
+EXECUTOR_POOL_ARCHITECTURE = "coordination/GOVERNANCE/MULTI-GPT-N-WORKBUDDY-EXECUTOR-POOL-ARCHITECTURE-v1.0.yaml"
+TYPED_NUMERIC_LEDGER = "coordination/GOVERNANCE/TYPED-NUMERIC-PARAMETER-AND-EXPERIMENT-LEDGER-v1.0.yaml"
 base = registry.base
 
 
@@ -156,6 +160,58 @@ class R188PhaseBDurableMissionKernelGovernanceTests(unittest.TestCase):
                     R188_PATHS,
                     f"batch item {item['item_id']} write_path outside reservation: {write_path}",
                 )
+
+    def test_r188_route_declares_governed_branch_write_not_identity_only(self):
+        text = self._read(ROUTE).decode("utf-8")
+        self.assertNotIn("branch_identity_only_no_branch_write: true", text)
+        self.assertIn(
+            'branch_write_semantics: "GOVERNED_IMPLEMENTATION_BRANCH_WRITE_AUTHORIZED"',
+            text,
+        )
+        self.assertIn("candidate_branch_write_allowed: true", text)
+        self.assertIn("direct_main_write_allowed: false", text)
+        self.assertIn("history_rewrite_allowed: false", text)
+
+    def test_r188_batch_allows_candidate_branch_write_but_denies_main_and_rewrite(self):
+        batch = json.loads(self._read(BATCH).decode("utf-8"))
+        dispatch = batch["runtime_dispatch"]
+        self.assertTrue(dispatch["github_write_allowed"])
+        self.assertTrue(dispatch["branch_write_allowed"])
+        self.assertFalse(dispatch["direct_main_write_allowed"])
+        self.assertFalse(dispatch["history_rewrite_allowed"])
+        self.assertFalse(dispatch["production_deployment_allowed"])
+
+    def test_r188_active_index_retains_main_and_history_rewrite_denials(self):
+        text = self._read(R188_INDEX).decode("utf-8")
+        self.assertIn('- "NO_DIRECT_MAIN_WRITE"', text)
+        self.assertIn('- "NO_FORCE_PUSH_REBASE_RESET_AMEND_HISTORY_REWRITE"', text)
+        self.assertIn('- "NO_SELF_REVIEW"', text)
+        self.assertIn('- "NO_SELF_MERGE"', text)
+
+    def test_r188_route_reuses_executor_pool_and_typed_numeric_ledger(self):
+        text = self._read(ROUTE).decode("utf-8")
+        self.assertIn(EXECUTOR_POOL_ARCHITECTURE, text)
+        self.assertIn(TYPED_NUMERIC_LEDGER, text)
+        self.assertIn("reuse_not_replace: true", text)
+        self.assertIn("duplicate_control_plane_forbidden: true", text)
+        self.assertIn("duplicate_numeric_ledger_forbidden: true", text)
+        self.assertIn("second_control_tower_forbidden: true", text)
+
+    def test_r188_route_hard_stops_ban_duplicate_control_plane_and_numeric_ledger(self):
+        text = self._read(ROUTE).decode("utf-8")
+        self.assertIn(
+            "a second control plane, second control tower, or duplicate numeric/experiment ledger would need to be created instead of reusing the canonical executor-pool architecture and typed numeric ledger",
+            text,
+        )
+
+    def test_r188_prewrite_records_fresh_main_and_reused_contracts(self):
+        text = self._read(PREWRITE).decode("utf-8")
+        self.assertIn("fresh_main_at_remediation", text)
+        self.assertIn("d3e83dde61ec8d942db45cd8aba70ee484013024", text)
+        self.assertIn(EXECUTOR_POOL_ARCHITECTURE, text)
+        self.assertIn(TYPED_NUMERIC_LEDGER, text)
+        self.assertIn("duplicate_control_plane_forbidden: true", text)
+        self.assertIn("duplicate_numeric_ledger_forbidden: true", text)
 
 
 if __name__ == "__main__":

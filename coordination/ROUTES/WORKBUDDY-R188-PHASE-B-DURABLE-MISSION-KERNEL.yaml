@@ -38,11 +38,17 @@ governance_sources:
   fresh_trust_contract: "coordination/GOVERNANCE/UNIFIED-EXECUTION-FRESH-TRUST-GATE-v1.0.yaml"
   project_adapter: "coordination/EXECUTION/PROJECT-ADAPTERS/SECOND-BRAIN.yaml"
   model_router: "coordination/GOVERNANCE/MODEL-CAPABILITY-COST-ROUTER-v1.0.yaml"
+  executor_pool_architecture: "coordination/GOVERNANCE/MULTI-GPT-N-WORKBUDDY-EXECUTOR-POOL-ARCHITECTURE-v1.0.yaml"
+  typed_numeric_ledger: "coordination/GOVERNANCE/TYPED-NUMERIC-PARAMETER-AND-EXPERIMENT-LEDGER-v1.0.yaml"
 
 execution:
   implementation_branch: "workbuddy/r188-phase-b-durable-mission-kernel"
   governance_branch: "workbuddy/r188-phase-b-durable-mission-kernel-governed-release"
-  branch_identity_only_no_branch_write: true
+  branch_write_semantics: "GOVERNED_IMPLEMENTATION_BRANCH_WRITE_AUTHORIZED"
+  candidate_branch_write_allowed: true
+  candidate_branch_write_scope: "IMPLEMENTATION_BRANCH_AND_GOVERNANCE_BRANCH_ONLY_WITHIN_LISTED_RESERVATION"
+  direct_main_write_allowed: false
+  history_rewrite_allowed: false
   executable_batch: "coordination/EXECUTION/WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL/EXECUTABLE-BATCH.json"
   fixed_order: ["B0", "B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8"]
   reorder_allowed: false
@@ -109,12 +115,27 @@ bindings:
   prewrite_snapshot: "coordination/EXECUTION/WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL/PREWRITE-RECONCILIATION-SNAPSHOT.yaml"
   active_task: "coordination/EXECUTION/ACTIVE-WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL.yaml"
 
+inherited_canonical_contracts:
+  reuse_not_replace: true
+  executor_pool_architecture:
+    ref: "coordination/GOVERNANCE/MULTI-GPT-N-WORKBUDDY-EXECUTOR-POOL-ARCHITECTURE-v1.0.yaml"
+    binding: "R188_REUSES_POOL_TOPOLOGY_SCHEDULING_RESOURCE_ADMISSION_LEASE_FENCING_LINEAGE_AND_ROLLOUT_SEMANTICS"
+    duplicate_control_plane_forbidden: true
+    second_control_tower_forbidden: true
+    r188_scope_is_bounded_executor_slot_not_new_control_plane: true
+  typed_numeric_ledger:
+    ref: "coordination/GOVERNANCE/TYPED-NUMERIC-PARAMETER-AND-EXPERIMENT-LEDGER-v1.0.yaml"
+    binding: "R188_REUSES_TYPED_PARAMETER_CLASSES_REVALIDATION_TRIGGERS_ANTI_DRIFT_AND_EXPERIMENT_LEDGER_SEMANTICS"
+    duplicate_numeric_ledger_forbidden: true
+    r188_numeric_parameters_are_bound_through_existing_typed_ledger: true
+
 hard_stops:
   - "route epoch, task identity, execution branch, governance branch or collision reservation is no longer unique"
   - "R175 or R184 differs from the fresh release baseline"
   - "registry-wide conflict admission fails"
   - "any unlisted write path is required"
   - "canonical trust-gate or protected transport would need to be weakened or replaced instead of reused"
+  - "a second control plane, second control tower, or duplicate numeric/experiment ledger would need to be created instead of reusing the canonical executor-pool architecture and typed numeric ledger"
   - "R184 or Local Bridge activation, real capture, operational W3 write, Program S2 start, production deployment, trading/funds/orders, or secret/token/cookie plaintext persistence would be required"
   - "core DEEP_ENGINEERING model resolves ambiguously or is unavailable"
   - "direct main write, force push, rebase, amend, reset or history rewrite would be required"
