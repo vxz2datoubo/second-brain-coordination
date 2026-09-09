@@ -2,8 +2,8 @@ schema_version: "1.0"
 contract_id: "TYPED-NUMERIC-PARAMETER-AND-EXPERIMENT-LEDGER-v1"
 status: "CANDIDATE_PENDING_INDEPENDENT_REVIEW"
 source_issue: 627
-effective_spec_snapshot_id: "SECOND-BRAIN-ISSUE627-MULTI-EXECUTOR-EPISTEMIC-NUMERIC-003"
-effective_spec_snapshot_ref: "issuecomment-5594276488"
+effective_spec_snapshot_id: "SECOND-BRAIN-ISSUE627-MULTI-EXECUTOR-EPISTEMIC-NUMERIC-004"
+effective_spec_snapshot_ref: "issuecomment-5594511432"
 
 purpose: >-
   Prevent numeric direction drift, unit drift, stale-value promotion, hidden default changes and
@@ -104,8 +104,27 @@ revalidation_trigger_schema:
     - "BLOCK_CURRENT_USE_UNTIL_REVALIDATED"
     - "EXPIRE_CURRENT_OBSERVATION"
   default_action_when_material: "BLOCK_CURRENT_USE_UNTIL_REVALIDATED"
-  trigger_state_unknown: "REVALIDATION_REQUIRED"
+  trigger_state_unknown: "REVALIDATION_REQUIRED_AND_BLOCK_CURRENT_USE_WHEN_MATERIAL"
+  revalidation_required_is_advisory_only: false
   fired_without_successful_revalidation: "INVALID_FOR_CURRENT_DECISION_WHEN_MATERIAL"
+  materially_relevant_unknown_without_successful_revalidation: "INVALID_FOR_CURRENT_SAFETY_AUTHORITY_ACCEPTANCE_USE"
+  current_use_eligibility_gate:
+    blocked_states_when_material:
+      - "FIRED"
+      - "UNKNOWN"
+      - "REVALIDATION_REQUIRED"
+    blocked_decision_surfaces:
+      - "SAFETY"
+      - "AUTHORITY"
+      - "ACCEPTANCE"
+    blocked_behavior: "BLOCK_CURRENT_USE_UNTIL_REVALIDATED"
+    caller_or_implementation_may_treat_blocking_state_as_warning_only: false
+    unblock_requires:
+      - "fresh successful revalidation receipt identity"
+      - "fresh evidence or canonical source readback"
+      - "durable trigger state closure/reset evidence"
+      - "parameter version or observation identity handling consistent with class"
+    unknown_state_can_be_unblocked_by_assumption_default_or_timeout: false
   successful_revalidation_requires:
     - "fresh evidence or source readback"
     - "new validation receipt identity"
@@ -160,7 +179,9 @@ missing_and_unknown_semantics:
   stale_observation_is_current_truth: false
   missing_revalidation_trigger_is_valid: false
   fired_trigger_without_revalidation_is_current_truth: false
-  fail_closed_when_value_controls_authority_or_safety: true
+  materially_relevant_unknown_revalidation_state_is_current_truth: false
+  materially_relevant_unknown_revalidation_state_may_drive_safety_authority_or_acceptance: false
+  fail_closed_when_value_controls_safety_authority_or_acceptance: true
 
 comparison_semantics:
   modes:
@@ -193,6 +214,7 @@ numeric_snapshot:
   later_parameter_change_invalidates_historical_snapshot: false
   later_parameter_change_requires_fresh_current_run_when_material: true
   fired_material_trigger_requires_fresh_current_snapshot: true
+  materially_relevant_unknown_trigger_requires_fresh_current_snapshot_after_revalidation: true
 
 drift_model:
   record:
@@ -230,8 +252,11 @@ change_control:
   EXPERIMENT_PARAMETER:
     change_gate: "new trial identity"
   common_revalidation_gate: >-
-    When any material revalidation trigger fires, the current record cannot remain eligible for a
-    current safety/authority/acceptance decision until successful revalidation is durably recorded.
+    When any material revalidation trigger fires, or when a materially relevant trigger state is
+    UNKNOWN / REVALIDATION_REQUIRED, the current record is mechanically ineligible for current
+    safety, authority, or acceptance use until a fresh successful revalidation receipt and durable
+    trigger-state closure/reset are recorded. UNKNOWN / REVALIDATION_REQUIRED is a blocking state,
+    never a warning-only or advisory state for those decision surfaces.
 
 current_active_resource_parameter_mirrors:
   source_ref: "coordination/GOVERNANCE/LOCAL-EXECUTION-RESOURCE-BUDGET-AND-PROCESS-LIFECYCLE-PROTOCOL-v1.0.yaml"
@@ -363,6 +388,7 @@ handoff_and_review:
   every_experiment_should_bind_parameter_snapshot: true
   review_should_compare_expected_vs_observed_parameter_world: true
   review_must_check_material_revalidation_trigger_states: true
+  materially_relevant_unknown_or_revalidation_required_state_blocks_acceptance: true
   material_parameter_change_after_exact_head_review: "REVALIDATE_IF_IT_CHANGES_CANDIDATE_SEMANTICS"
 
 anti_drift_tests_for_future_implementation:
@@ -376,6 +402,8 @@ anti_drift_tests_for_future_implementation:
   - "parameter record missing revalidation_triggers fails schema validation"
   - "empty or free-text-only revalidation trigger metadata fails closed"
   - "material fired trigger blocks current use until fresh revalidation receipt exists"
+  - "materially relevant UNKNOWN or REVALIDATION_REQUIRED trigger state blocks current safety/authority/acceptance use until fresh successful revalidation receipt and durable state closure exist"
+  - "UNKNOWN or REVALIDATION_REQUIRED cannot be downgraded to warning-only current acceptance eligibility"
   - "valid_until alone cannot satisfy mandatory event/evidence/version revalidation semantics"
   - "experiment winner remains linked to all known attempted trials/search-space identity"
   - "same numeric snapshot serializes deterministically to the same digest"
