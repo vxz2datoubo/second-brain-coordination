@@ -1,0 +1,99 @@
+schema_version: "1.0"
+authority_id: "R7-GPT-ARCHITECTURE-OWNER-LIFECYCLE-PROJECTION-MIGRATION-0001"
+authority_type: "GPT_ARCHITECTURE_OWNER_CORRECTIVE_MAINTENANCE_ADOPTION"
+issuer: "USER"
+actor: "GPT_ARCHITECTURE_OWNER"
+state: "ACTIVE"
+
+predecessor_authority:
+  path: "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R6.yaml"
+  authority_id: "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R6-0001"
+  required_state: "RELEASED"
+  required_terminal_scope_status: "NO_FURTHER_MODIFIER_WRITES_AUTHORIZED_BY_THIS_ARTIFACT"
+
+purpose: >-
+  Issue #572 R7 clean post-R6 atomic lifecycle projection migration. Consume canonical
+  worker_lifecycle.py as the single lifecycle/schema/capacity authority from the legacy
+  worker_slots.py integration surface, reconcile stale R182/R183 aggregate projections,
+  and preserve all R5/R6 maintenance, tombstone, identity, claim and collision guards.
+  This authority grants no runtime, W3, capture, review, merge, successor-release or trade authority.
+
+task_id: "GPT-R572-R7-LIFECYCLE-PROJECTION-MIGRATION"
+maintenance_generation: 7
+issue: 572
+branch: "gpt/r572-r7-lifecycle-adapter-post-r6-20260909"
+pr: null
+pr_binding_state: "PENDING_DRAFT_PR_BINDING"
+owner_authorization_comment: 5609806985
+prewrite_snapshot_comment: 5609851045
+activation_parent_head: "e29a84acd08e4126400ed62b0d6c97f0c10c0a5c"
+canonical_main_at_authorization: "e29a84acd08e4126400ed62b0d6c97f0c10c0a5c"
+
+execution_allowed: false
+runtime_write_allowed: false
+trade_allowed: false
+merge_authority: false
+acceptance_authority: false
+self_review_allowed: false
+retroactive_workbuddy_authorization: false
+successor_release_authority: false
+real_capture_allowed: false
+operational_w3_write_allowed: false
+r184_local_bridge_start_allowed: false
+workbuddy_start_allowed: false
+independent_review_required: true
+same_pr_required: true
+fresh_exact_head_ci_required: true
+
+allowed_write_paths:
+  - "coordination/CONTROL-TOWER/worker_slots.py"
+  - "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+  - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+  - "coordination/CONTROL-TOWER/tests/test_worker_slots.py"
+  - "coordination/CONTROL-TOWER/tests/test_worker_lifecycle.py"
+  - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R7.yaml"
+  - "coordination/CONTROL-TOWER/R572-GPT-LIFECYCLE-PROJECTION-MIGRATION-RECEIPT.yaml"
+
+state_machine:
+  active_scope_status: "BOUNDED_CORRECTIVE_MAINTENANCE_OPEN"
+  released_scope_status_required: "NO_FURTHER_MODIFIER_WRITES_AUTHORIZED_BY_THIS_ARTIFACT"
+  released_is_terminal_for_authority_id: true
+  next_activation_requires_new_user_issued_authority_id: true
+  terminality_must_not_depend_on_mutable_release_receipt_presence: true
+
+required_invariants:
+  lifecycle_truth_module: "coordination/CONTROL-TOWER/worker_lifecycle.py"
+  worker_slots_is_thin_integration_adapter: true
+  duplicate_lifecycle_state_machine_forbidden: true
+  canonical_registry_schema: "1.5"
+  legacy_registry_schema_compatibility: ["1.0"]
+  unknown_registry_schema_fails_closed: true
+  unknown_lifecycle_fails_closed_and_holds_capacity: true
+  r182_r183_terminal_release_required: true
+  r182_r183_current_write_surfaces_empty: true
+  lane_a_b_closed_no_active_gpt_binding: true
+  lane_c_semantics_preserved: true
+  free_capacity_is_derived_observation_only: true
+  successor_release_authority_must_remain_false: true
+  no_direct_main_write: true
+
+provenance:
+  source: "CURRENT_OWNER_EXPLICIT_SCOPE_EXPANSION"
+  source_issue: 572
+  owner_authorization_text: "允许扩展 R7 兼容层范围"
+  owner_authorization_comment: 5609806985
+  effective_spec_snapshot: 5609851045
+  deprecated_pre_r6_candidate_pr: 655
+  deprecated_pre_r6_candidate_head: "3f808ca50951a6022c89c9a60f7c47b378dd39d3"
+  r6_terminal_main: "e29a84acd08e4126400ed62b0d6c97f0c10c0a5c"
+  r6_authority_id: "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R6-0001"
+  r6_foundation_merge: "04124e233dc813cca4054851ef6a470b342d82fe"
+  r6_independent_review: "pullrequestreview-5108092436"
+  truth_rule: "R7_NEW_AUTHORITY_ID != R6_REACTIVATION"
+
+completion_gate:
+  required_disposition: "SEPARATE_GPT_INDEPENDENT_REVIEW"
+  keep_draft_until_review: true
+  no_merge_before_independent_accept: true
+  release_this_authority_after_successful_canonicalization: true
+  later_maintenance_requires_new_user_issued_authority_id: true
