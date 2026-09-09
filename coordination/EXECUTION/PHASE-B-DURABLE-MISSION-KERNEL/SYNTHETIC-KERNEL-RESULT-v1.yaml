@@ -1,0 +1,52 @@
+schema: RESULT_RECEIPT/v1
+result_class: SYNTHETIC_KERNEL_RESULT
+value: PASS
+task_id: WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL
+route_epoch: 188
+execution_mode: SYNTHETIC_AND_DISPOSABLE_FIXTURE_ONLY
+
+coverage:
+  B0: spec + schemas + role contracts + write surfaces + CI oracle
+  B1: deterministic state reducers + RFC8785/JCS canonical bytes + SHA-256 hash chain + verifier
+  B2: single-controller SQLite mission ledger + transaction + checkpoint/replay + backup/recovery
+  B3: action/effect ledger + outbox + idempotency + budgets + runtime lease + fencing
+  B5: headless adapter + runtime/model attestation + context rollover
+  B6: reviewer/canonicalizer independence + no-self-merge + reroute/fail-closed
+  B7: synthetic endurance canary + failure injection
+
+deterministic_evidence:
+  golden_genesis_hash: "a563409ca9f311474b6012094bc7528228c9e8aeb889d570fdccfe48e90ab2be"
+  golden_plan_started_hash: "e12f5595a3405b7a54565cdfcb98fde447be60d4f10456177f1d898011f26a10"
+  golden_plan_completed_hash: "fbc190bf85dae1c0dad50ed80d9f01453960980872ca8a76c8c7449d6287ee14"
+  hash_chain_tamper_detected: true
+  illegal_transition_fail_closed: true
+  effect_ack_loss_marks_OUTCOME_UNKNOWN: true
+  effect_idempotency_verified: true
+  budget_envelope_enforced: true
+  lease_fencing_enforced: true
+  stale_worker_replacement_enforced: true
+  checkpoint_replay_no_effect_reissue: true
+  backup_recovery_verified: true
+  crash_reopen_chain_consistent: true
+  endurance_canary_passed: true
+  endurance_worker_failures_injected: 1
+  endurance_context_rollovers: 3
+  independence_contract_enforced: true
+  no_self_merge_enforced: true
+  no_self_review_enforced: true
+
+test_suite:
+  oracle: tests/test_unified_execution_durable_mission_kernel.py
+  kernel_unit_dir: tests/durable_mission_kernel/
+  oracle_result: "61 tests OK (oracle + aggregated kernel suite)"
+  full_repo_suite_result: "289 tests OK (skipped=2)"
+
+negative_readiness_claims:
+  DURABLE_MISSION_KERNEL_IMPLEMENTED: true
+  PRODUCTION_READY: false
+  REAL_INDEPENDENT_CANONICALIZER_PASS: false
+  PROGRAM_S2_STARTED: false
+  LOCAL_BRIDGE_STARTED: false
+
+note: >-
+  synthetic PASS does not imply production/real-canonicalizer readiness.

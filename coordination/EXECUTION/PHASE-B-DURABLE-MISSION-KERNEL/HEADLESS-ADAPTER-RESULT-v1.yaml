@@ -1,0 +1,25 @@
+schema: RESULT_RECEIPT/v1
+result_class: HEADLESS_ADAPTER_RESULT
+value: PASS
+task_id: WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL
+route_epoch: 188
+execution_mode: SYNTHETIC_AND_DISPOSABLE_FIXTURE_ONLY
+
+coverage:
+  - runtime/model attestation (python version, platform, machine, model_id, model_profile)
+  - context rollover (serializable checkpoint: verified facts, unresolved, counter-evidence, next action, exact git head)
+  - headless episode launch record
+
+deterministic_evidence:
+  attestation_captures_runtime: true
+  context_rollover_roundtrip: true
+  launch_episode_record: true
+
+model_resolution:
+  model_profile: DEEP_ENGINEERING
+  resolved_model: Deepseek-V4-Pro
+  task_affinity: state/persistence/concurrency + multi-file repository implementation
+
+note: >-
+  The adapter models the bounded headless interface (launch/checkpoint/rollover); it does
+  NOT reimplement the WorkBuddy SDK and does not perform real SDK calls.

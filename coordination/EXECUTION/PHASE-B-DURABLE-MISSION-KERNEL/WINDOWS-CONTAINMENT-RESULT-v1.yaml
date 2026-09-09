@@ -1,0 +1,29 @@
+schema: RESULT_RECEIPT/v1
+result_class: WINDOWS_CONTAINMENT_RESULT
+value: PASS
+task_id: WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL
+route_epoch: 188
+execution_mode: SYNTHETIC_AND_DISPOSABLE_FIXTURE_ONLY
+
+containment_mode: HARD_JOB_OBJECT
+probe_supported: true
+platform: win32
+
+capability_evidence:
+  job_object_created: true
+  kill_on_close_applied: true
+  assign_process_to_job: true
+  terminate_job_object: true
+
+failure_injection_evidence:
+  terminate_job_kills_owned_process: PASS
+  kill_on_close_terminates_owned_process: PASS
+  unrelated_process_survives: PASS
+  no_silent_downgrade_contract: PASS
+
+no_silent_downgrade: >-
+  If Job Object hard containment were unavailable, the provider returns PARTIAL/BLOCKED
+  with exact evidence and never degrades to bare process execution. Verified on this
+  machine: HARD_JOB_OBJECT is available and applied.
+
+note: synthetic fixture only; this does not imply production hardening.

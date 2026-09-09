@@ -1,0 +1,25 @@
+schema: RESULT_RECEIPT/v1
+result_class: SYNTHETIC_REVIEW_CANONICALIZATION_RESULT
+value: PASS
+task_id: WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL
+route_epoch: 188
+execution_mode: SYNTHETIC_AND_DISPOSABLE_FIXTURE_ONLY
+
+coverage:
+  B6: reviewer/canonicalizer protocols + carrier/principal/credential capability preflight + no-self-merge + reroute + negative tests
+
+deterministic_evidence:
+  three_distinct_principals_ok: true
+  author_reviewer_equal_violates: true
+  self_merge_forbidden: true
+  self_review_forbidden: true
+  canonicalizer_ready_requires_merge_capability: true
+  canonicalizer_read_only_not_ready: true
+  reroute_uses_legitimate_canonicalizer: true
+  reroute_never_self_merge: true
+  reroute_fails_closed_when_no_capability: true
+
+real_canonicalizer_note: >-
+  This receipt is the *synthetic* protocol layer. REAL_CANONICALIZER_CAPABILITY_RESULT is
+  produced separately in B8 by an actual independent GitHub App canonicalizer performing
+  a real merge + remote readback (never by the author/orchestrator).
