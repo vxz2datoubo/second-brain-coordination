@@ -1,0 +1,161 @@
+schema: "WORKBUDDY_TASK_BRIEF/v1"
+project: "SECOND_BRAIN"
+repository: "vxz2datoubo/second-brain-coordination"
+task_id: "WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL"
+route_epoch: 188
+source_issue: 635
+governance_issue: 636
+purpose: >-
+  Implement and verify a Windows-local resumable Durable Mission Kernel that
+  extends the existing Unified Execution Fabric rather than creating a second
+  control plane. Preserve long-horizon progress across bounded episodes, context
+  rollover and worker failure using durable transactional state, checkpoints,
+  explicit effect reconciliation and machine-verifiable provenance.
+
+target_architecture: >-
+  SECOND_BRAIN_CONTROL_PLANE -> DURABLE_MISSION_KERNEL -> WORKBUDDY HEADLESS/SDK
+  EPISODES -> DETERMINISTIC VERIFIERS -> INDEPENDENT REVIEWER -> INDEPENDENT
+  CANONICALIZER
+
+execution_mode: "SYNTHETIC_AND_DISPOSABLE_FIXTURE_ONLY"
+primary_executor: "WORKBUDDY_ENGINEERING_EXECUTOR"
+model_profile: "DEEP_ENGINEERING"
+model_resolution: "FRESH_AT_DISPATCH"
+
+implementation_sequence:
+  B0: "Effective spec + schemas + role contracts + exact write surfaces + CI oracle."
+  B1: "Pure deterministic state reducers, event canonicalization/hash profile, golden vectors, independent verifier."
+  B2: "Single-controller SQLite mission ledger, transaction semantics, checkpoint/replay and consistent backup/recovery."
+  B3: "Action/effect ledger, outbox, idempotency, budgets, runtime lease, fencing and stale-worker replacement."
+  B4: "Windows suspended launch + Job Object hard process-tree containment + ownership registry + soft orphan reaper + port/worktree isolation."
+  B5: "WorkBuddy headless adapter, runtime/model attestation, context rollover, selected SDK capability verification."
+  B6: "Reviewer / Canonicalizer protocols, carrier/principal/credential capability preflight, no-self-merge enforcement, legal reroute and negative tests."
+  B7: "Failure injection + 30-60 minute synthetic endurance canary with at least one worker failure and one context/episode rollover."
+  B8: "Freeze candidate exact head -> authoritative exact-head CI -> independent review -> separate independent canonicalization."
+
+state_machine:
+  minimal_states:
+    - "CREATED"
+    - "PLANNING"
+    - "READY"
+    - "EPISODE_RUNNING"
+    - "CHECKPOINTED"
+    - "VERIFYING"
+    - "REMEDIATING"
+    - "REVIEW_READY"
+    - "REVIEWING"
+    - "CANONICALIZATION_READY"
+    - "CANONICALIZING"
+    - "COMPLETE"
+  terminal_or_wait_states:
+    - "PAUSED_OWNER_GATE"
+    - "PAUSED_DEPENDENCY"
+    - "BLOCKED"
+    - "FAILED_CIRCUIT_BREAKER"
+    - "CANCELLED"
+  transitions_must_be_explicit_and_machine_validated: true
+
+event_journal_requirements:
+  append_only: true
+  fields:
+    - "mission_id"
+    - "run_id"
+    - "state_seq (monotonic integer)"
+    - "event_type"
+    - "previous_event_hash"
+    - "event_hash"
+    - "actor/executor identity"
+    - "timestamps"
+    - "policy/skill/model digests where relevant"
+    - "input/output/artifact digests"
+  replay_reconstruction_required: true
+
+checkpoint_requirements:
+  - "checkpoint every phase boundary"
+  - "bounded periodic checkpoint during long episodes"
+  - "delta checkpoints + periodic full snapshots"
+  - "verified facts, unresolved uncertainty, counter-evidence, exact git/data identities and next action must survive context rollover"
+
+lease_heartbeat_requirements:
+  - "executor lease with owner mission, collision domain, executor_id, start/expiry/renewal"
+  - "heartbeats independent from LLM prose"
+  - "dead worker detection"
+  - "stale lease expiration before replacement worker resumes"
+  - "thresholds must be policy values and benchmarked, not magic constants baked into code"
+
+windows_containment_requirements:
+  default_design: "Windows Job Object hard process-tree containment + soft orphan reaper defense-in-depth"
+  required_failure_injection_tests:
+    - "parent kill -> descendants terminate when hard containment active"
+    - "crash -> lease eventually becomes stale"
+    - "orphan reaper sees no mission-owned orphan after hard cleanup"
+    - "unrelated Desktop/WorkBuddy process survives"
+  no_silent_downgrade: "If Job Object containment is incompatible with the selected WorkBuddy/CLI/SDK path, return PARTIAL/BLOCKED with exact evidence; do not silently degrade to bare process execution and call it hard containment."
+  do_not_kill_unrelated_processes_by_name: true
+
+idempotency_requirements:
+  retriable_side_effects_need_idempotency_key:
+    - "branch/worktree creation"
+    - "workflow dispatch"
+    - "issue/review publication"
+    - "artifact write"
+    - "external state-changing tool calls"
+
+budget_envelope:
+  pins:
+    - "allowed repos/paths/collision domains"
+    - "max wall time"
+    - "max episode time"
+    - "max retries/remediation rounds"
+    - "allowed model profiles/carriers"
+    - "allowed tool classes/network/connectors"
+    - "forbidden consequential actions"
+    - "credit/token budget when observable"
+
+canonicalizer_hardening_618:
+  - "author/orchestrator cannot fallback self-merge"
+  - "reviewer/canonicalizer are separate carriers/authority contexts"
+  - "canonicalizer capability check occurs before entering canonicalization-ready state"
+  - "if canonicalizer cannot perform required mechanical action, fail closed / reroute to another legitimate canonicalizer carrier"
+  - "do not ask Owner to become the courier unless a genuine Owner gate exists"
+
+verification_ladder:
+  - "schema/precondition"
+  - "deterministic unit/integration/property/replay checks"
+  - "hash/provenance verification"
+  - "exact-head CI for candidate repo changes"
+  - "isolated independent reviewer"
+  - "isolated canonicalizer with its own actual mechanical authority"
+
+required_result_classes:
+  - "SYNTHETIC_KERNEL_RESULT"
+  - "WINDOWS_CONTAINMENT_RESULT"
+  - "HEADLESS_ADAPTER_RESULT"
+  - "SDK_ADAPTER_RESULT"
+  - "SYNTHETIC_REVIEW_CANONICALIZATION_RESULT"
+  - "REAL_CANONICALIZER_CAPABILITY_RESULT"
+  - "EXACT_HEAD_CI_RESULT"
+  - "INDEPENDENT_REVIEW_RESULT"
+  - "CANONICALIZATION_RESULT"
+unknown_result_values:
+  - "NOT_TESTED"
+  - "UNKNOWN_REQUIRING_EVIDENCE"
+  - "PARTIAL"
+  - "BLOCKED"
+
+hard_boundaries:
+  - "NO_R184_OR_LOCAL_BRIDGE_ACTIVATION"
+  - "NO_REAL_CAPTURE"
+  - "NO_OPERATIONAL_W3_WRITE"
+  - "NO_PROGRAM_S2_START"
+  - "NO_PRODUCTION_DEPLOYMENT_OR_BACKGROUND_SERVICE_ACTIVATION"
+  - "NO_TRADING_FUNDS_ORDERS"
+  - "NO_SECRET_TOKEN_COOKIE_PLAINTEXT_PERSISTENCE"
+  - "NO_DIRECT_MAIN_WRITE"
+  - "NO_SELF_REVIEW"
+  - "NO_SELF_MERGE"
+  - "NO_R175_MUTATION"
+  - "NO_R184_MUTATION"
+
+return_target: "GPT_ARCHITECTURE_OWNER"
+completion_signal: "WORKBUDDY_R188_PHASE_B_DURABLE_MISSION_KERNEL_COMPLETE_RETURN_TO_GPT"
