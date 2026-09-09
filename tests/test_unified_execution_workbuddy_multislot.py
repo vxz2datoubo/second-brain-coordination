@@ -24,14 +24,18 @@ selection = _load("workbuddy_slot_selection", CONTROL / "workbuddy_slot_selectio
 
 SHA = "a" * 40
 DIGEST = "sha256:" + "b" * 64
-PATH_DIGEST = "c" * 64
 
 
-def slot(task: str, slot_id: str, *, state: str = "DECLARED", main: str = SHA, legacy=False):
+def slot(task: str, slot_id: str, *, state: str = "DECLARED", main: str = SHA, legacy=False,
+         route_epoch: int = 1, execution_repository: str = "vxz2datoubo/second-brain-coordination",
+         implementation_branch: str = "workbuddy/task-a"):
     return {
         "canonical_main_sha": main,
         "worker_slot_id": slot_id,
         "task_id": task,
+        "route_epoch": route_epoch,
+        "execution_repository": execution_repository,
+        "implementation_branch": implementation_branch,
         "logical_state": state,
         "authority_chain_receipt_digest": DIGEST,
         "writer_lease_identity": "LEASE-ID-" + task,
@@ -63,6 +67,9 @@ def resource_lease(*, slot_id="WB-SLOT-A", executor="EXEC-1", run="RUN-1", gener
 
 
 def runtime_envelope(**overrides):
+    expected_worktree_id, expected_worktree_path_digest = selection._expected_worktree_binding(
+        slot("TASK-A", "WB-SLOT-A")
+    )
     value = {
         "executor_id": "EXEC-1",
         "run_id": "RUN-1",
@@ -70,8 +77,8 @@ def runtime_envelope(**overrides):
         "canonical_main_sha": SHA,
         "authority_chain_receipt_digest": DIGEST,
         "writer_lease_identity": "LEASE-ID-TASK-A",
-        "worktree_id": "WT-EXEC-1-RUN-1",
-        "worktree_path_digest": PATH_DIGEST,
+        "worktree_id": expected_worktree_id,
+        "worktree_path_digest": expected_worktree_path_digest,
         "acquired_resource_leases": [resource_lease()],
         "process_ownership_receipt": {
             "executor_id": "EXEC-1",
@@ -150,10 +157,36 @@ class WorkBuddyRuntimeBindingTests(unittest.TestCase):
 
     def test_valid_structural_runtime_binding_still_cannot_start_process(self):
         result = selection.validate_runtime_binding(self.slot, runtime_envelope())
+        expected_id, expected_path_digest = selection._expected_worktree_binding(self.slot)
+        self.assertEqual(result.worktree_id, expected_id)
+        self.assertEqual(result.worktree_path_digest, expected_path_digest)
         self.assertEqual(result.status, selection.PROCESS_START_BLOCKED)
         self.assertFalse(result.process_start_authorized)
         self.assertIn("SEPARATE_PHYSICAL_CANARY_GATE_REQUIRED", result.blockers)
         self.assertEqual(result.acquired_resource_lease_ids, ("RES-CPU-1",))
+
+    def test_wrong_worktree_id_fails_closed(self):
+        env = runtime_envelope(worktree_id="WB-WORKTREE-WRONG-BUT-NONEMPTY")
+        with self.assertRaises(selection.SlotSelectionError):
+            selection.validate_runtime_binding(self.slot, env)
+
+    def test_wrong_well_formed_worktree_path_digest_fails_closed(self):
+        env = runtime_envelope(
+            worktree_path_digest="9" * 64,
+            trusted=True,
+            start=True,
+            process_start_authorized=True,
+        )
+        with self.assertRaises(selection.SlotSelectionError):
+            selection.validate_runtime_binding(self.slot, env)
+
+    def test_worktree_expectation_is_bound_to_canonical_branch_identity(self):
+        alternate = slot(
+            "TASK-A", "WB-SLOT-A",
+            implementation_branch="workbuddy/different-branch",
+        )
+        with self.assertRaises(selection.SlotSelectionError):
+            selection.validate_runtime_binding(alternate, runtime_envelope())
 
     def test_cross_run_resource_lease_fails_closed(self):
         env = runtime_envelope(acquired_resource_leases=[resource_lease(run="RUN-OLD")])
