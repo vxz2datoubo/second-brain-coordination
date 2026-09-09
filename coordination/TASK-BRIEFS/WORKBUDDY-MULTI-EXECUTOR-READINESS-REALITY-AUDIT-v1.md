@@ -2,7 +2,7 @@
 
 Status: `CANDIDATE / OWNER-CARRIED READ-ONLY AUDIT / NO REPO WRITE AUTHORITY`
 
-Source: Issue #627  
+Source: Issue #627
 Architecture snapshot: `SECOND-BRAIN-ISSUE627-MULTI-EXECUTOR-EPISTEMIC-NUMERIC-001` / `issuecomment-5592959662`
 
 ## Purpose
