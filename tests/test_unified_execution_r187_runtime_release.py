@@ -83,7 +83,7 @@ class R187RuntimeCompletionReleaseTests(unittest.TestCase):
         self.assertIs(base._scalar(route, "execution_allowed"), False)
         self.assertIs(base._scalar(route, "automatic_resume_within_batch"), False)
 
-    def test_registry_preserves_r175_and_r184_and_admits_r188_successor(self):
+    def test_registry_preserves_only_r175_and_r184_after_r188_terminalization(self):
         with self._registry_tree():
             authorities = registry.build_registered_authorities(".")
         tasks = {item.as_mapping()["task_id"] for item in authorities}
@@ -92,7 +92,6 @@ class R187RuntimeCompletionReleaseTests(unittest.TestCase):
             {
                 "WORKBUDDY-R175-ORDERED-BATCH",
                 "WORKBUDDY-R184-LOCAL-WORKBUDDY-BRIDGE",
-                "WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL",
             },
         )
 
