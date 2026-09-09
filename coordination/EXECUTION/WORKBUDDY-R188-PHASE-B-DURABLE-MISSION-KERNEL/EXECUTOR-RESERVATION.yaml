@@ -1,0 +1,49 @@
+schema: "ExecutorReservation/v1"
+project: "SECOND_BRAIN"
+repository: "vxz2datoubo/second-brain-coordination"
+task_id: "WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL"
+route_epoch: 188
+source_issue: 635
+active_issue: 635
+governance_issue: 636
+executor_agent_type: "WORKBUDDY"
+executor_role: "BOUNDED_SYNTHETIC_DURABLE_MISSION_KERNEL_IMPLEMENTATION_EXECUTOR"
+reservation_state: "ACTIVE"
+implementation_branch: "workbuddy/r188-phase-b-durable-mission-kernel"
+branch_must_not_exist_before_snapshot: true
+pull_request: null
+
+reservation_scope:
+  - "tools/durable_mission_kernel/**"
+  - "tests/durable_mission_kernel/**"
+  - "tests/test_unified_execution_durable_mission_kernel.py"
+  - "coordination/EXECUTION/PHASE-B-DURABLE-MISSION-KERNEL/**"
+  - "coordination/EXECUTION/WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL/**"
+reservation_scope_semantics: "CANONICAL_COLLISION_RESERVATION_FOR_LISTED_PATHS_ONLY"
+reservation_exclusions:
+  - "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+  - "coordination/EXECUTION/ACTIVE-WORKBUDDY-R184-LOCAL-BRIDGE.yaml"
+  - "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/**"
+  - "tools/local_workbuddy_bridge/**"
+  - "tests/fixtures/local_workbuddy_bridge/**"
+  - "tests/test_unified_execution_local_bridge.py"
+  - "tests/workbuddy/**"
+  - "tools/workbuddy/**"
+  - "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/WORKBUDDY-R175/**"
+  - "coordination/GOVERNANCE/**"
+  - "coordination/EXECUTION/unified_active_task_registry.py"
+  - ".github/workflows/unified-execution-fabric.yml"
+  - "direct main"
+  - "all repository and branch writes outside the listed reservation scope"
+activation_requires:
+  - "independent review ACCEPT"
+  - "separate canonicalization to main"
+  - "fresh registry-wide readback of R175, R184 and R188"
+  - "core DEEP_ENGINEERING model resolves fresh at dispatch"
+  - "all required hard boundaries and denials are preserved"
+reservation_effect:
+  execution_identity_reserved: true
+  substantive_write_authorized_now: true
+  substantive_write_semantics: "CANONICAL_WRITE_AUTHORITY_FOR_LISTED_PATHS_ONLY_AFTER_INDEPENDENT_REVIEW_AND_CANONICALIZATION"
+  review_authority: false
+  merge_authority: false

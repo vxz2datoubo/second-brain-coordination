@@ -1,0 +1,98 @@
+schema: "WorkBuddyPrewriteReconciliationSnapshot/v1"
+snapshot_id: "WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL-PREWRITE-001"
+project: "SECOND_BRAIN"
+repository: "vxz2datoubo/second-brain-coordination"
+created_by: "WORKBUDDY_AGENT"
+created_at: "2026-09-09T01:58:00Z"
+canonical_main_before_release: "b6964f32b983d6b58c2cad935217cbf1d3abf4fa"
+source_issue: 635
+active_issue: 635
+governance_issue: 636
+task_id: "WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL"
+route_epoch: 188
+source_checkpoint:
+  observed_main_head: "b6964f32b983d6b58c2cad935217cbf1d3abf4fa"
+  immutable_checkpoint_ref: "refs/heads/main"
+  immutable_checkpoint_exact_head: "b6964f32b983d6b58c2cad935217cbf1d3abf4fa"
+  baseline: "b6964f32b983d6b58c2cad935217cbf1d3abf4fa"
+  identity_status: "PASS_EXACT_CANONICAL_MAIN_CHECKPOINT_FROZEN_BY_SHA"
+active_peers:
+  r175:
+    route_epoch: 175
+    registered_ref: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+    preserved: true
+  r184:
+    route_epoch: 184
+    registered_ref: "coordination/EXECUTION/ACTIVE-WORKBUDDY-R184-LOCAL-BRIDGE.yaml"
+    preserved: true
+terminalized_predecessors:
+  r186:
+    route_epoch: 186
+    registered: false
+    execution_allowed: false
+    active: false
+    replay_allowed: false
+    lifecycle: "TERMINALIZED_RELEASED_NONEXECUTABLE"
+  r187:
+    route_epoch: 187
+    registered: false
+    execution_allowed: false
+    active: false
+    replay_allowed: false
+    lifecycle: "TERMINALIZED_RELEASED_NONEXECUTABLE"
+new_identity_scan:
+  selected_route_epoch: 188
+  route_epoch_found_in_canonical_tree_before_release: false
+  candidate_task_id_found_before_release: false
+  candidate_execution_branch_found_before_release: false
+  candidate_governance_branch_found_before_release: false
+  execution_identity_branch: "workbuddy/r188-phase-b-durable-mission-kernel"
+  governance_branch: "workbuddy/r188-phase-b-durable-mission-kernel-governed-release"
+concurrency_reconciliation:
+  existing_r175_preserved: true
+  existing_r184_preserved: true
+  proposed_r188_registered_ref: "coordination/EXECUTION/ACTIVE-WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL.yaml"
+  r188_reservation_surface:
+    - "tools/durable_mission_kernel/**"
+    - "tests/durable_mission_kernel/**"
+    - "tests/test_unified_execution_durable_mission_kernel.py"
+    - "coordination/EXECUTION/PHASE-B-DURABLE-MISSION-KERNEL/**"
+    - "coordination/EXECUTION/WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL/**"
+  r188_collision_domain_expected: "WRITESET_SHA256:9c0a00896e480f96bc8d1e5ad3b451b05a997fdffca8e0e78ca29a0c9406d53d"
+  duplicate_task_identity_observed: false
+  duplicate_route_epoch_observed: false
+  implementation_branch_overlap_observed: false
+  governance_branch_overlap_observed: false
+  collision_domain_duplication_observed: false
+  authorized_path_overlap_observed: false
+  release_rule: "R175_R184_R188_MAY_COEXIST_ONLY_WHILE_REGISTRY_WIDE_FRESH_CONFLICT_ADMISSION_PASSES"
+current_codex_route:
+  route_epoch: 188
+  source_issue: 635
+  status: "READY"
+  execution_allowed: true
+ordered_batch:
+  prepared_ref: "coordination/EXECUTION/WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL/TASK-BRIEF.yaml"
+  executable_ref: "coordination/EXECUTION/WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL/EXECUTABLE-BATCH.json"
+  fixed_order: ["B0", "B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8"]
+  order_changed: false
+  architecture_changed: false
+capability_boundaries_entering:
+  DURABLE_MISSION_KERNEL: "NOT_IMPLEMENTED"
+  WINDOWS_JOB_OBJECT_CONTAINMENT: "NOT_IMPLEMENTED"
+  HEADLESS_ADAPTER: "NOT_IMPLEMENTED"
+  SDK_ADAPTER: "NOT_IMPLEMENTED"
+  CANONICALIZER_CAPABILITY: "UNKNOWN_REQUIRING_EVIDENCE"
+  PROGRAM_S2_STARTED: false
+  LOCAL_BRIDGE_STARTED: false
+activation_gate:
+  snapshot_precedes_workbuddy_branch: true
+  requires_post_branch_fresh_readback: true
+  activation_commit_required: true
+  snapshot_precedes_workbuddy_execution_branch: true
+  execution_allowed_now: false
+  requires_post_canonicalization_fresh_readback: true
+  independent_review_required: true
+  canonicalization_required: true
+  explicit_owner_dispatch_required: true
+return_target: "GPT_ARCHITECTURE_OWNER"

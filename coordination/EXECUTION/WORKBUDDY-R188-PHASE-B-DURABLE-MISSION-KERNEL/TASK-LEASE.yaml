@@ -1,0 +1,43 @@
+schema: "TaskLease/v1"
+project: "SECOND_BRAIN"
+repository: "vxz2datoubo/second-brain-coordination"
+task_id: "WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL"
+route_epoch: 188
+source_issue: 635
+active_issue: 635
+governance_issue: 636
+agent_type: "WORKBUDDY"
+implementation_branch: "workbuddy/r188-phase-b-durable-mission-kernel"
+pull_request: null
+lease_state: "ACTIVE"
+execution_allowed: true
+substantive_write_allowed: true
+substantive_write_semantics: "CANONICAL_WRITE_AUTHORITY_FOR_LISTED_PATHS_ONLY_AFTER_INDEPENDENT_REVIEW_AND_CANONICALIZATION"
+source_checkpoint: "b6964f32b983d6b58c2cad935217cbf1d3abf4fa"
+checkpoint_remote_ref: "refs/heads/main"
+exclusive_write_surface:
+  - "tools/durable_mission_kernel/**"
+  - "tests/durable_mission_kernel/**"
+  - "tests/test_unified_execution_durable_mission_kernel.py"
+  - "coordination/EXECUTION/PHASE-B-DURABLE-MISSION-KERNEL/**"
+  - "coordination/EXECUTION/WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL/**"
+concurrency:
+  r175_active: true
+  r184_active: true
+  r175_may_continue_non_overlapping_work: true
+  r184_must_not_be_started_or_mutated_by_r188: true
+  same_surface_second_writer_forbidden: true
+  registry_wide_conflict_admission_required: true
+  overlap_disposition: "FAIL_CLOSED_AND_RETURN_FINDING_TO_GPT"
+freshness:
+  route: "coordination/ROUTES/WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL.yaml"
+  work_claim: "coordination/EXECUTION/WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL/WORK-CLAIM.yaml"
+  executor_reservation: "coordination/EXECUTION/WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL/EXECUTOR-RESERVATION.yaml"
+  prewrite_snapshot: "coordination/EXECUTION/WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL/PREWRITE-RECONCILIATION-SNAPSHOT.yaml"
+  executable_batch: "coordination/EXECUTION/WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL/EXECUTABLE-BATCH.json"
+  active_task: "coordination/EXECUTION/ACTIVE-WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL.yaml"
+  evidence_contract: "coordination/EXECUTION/WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL/EVIDENCE-CONTRACT.yaml"
+  mismatch_action: "LEASE_INVALID_FAIL_CLOSED"
+review_authority: false
+merge_authority: false
+lease_expiry: "ON_RETURN_BLOCKING_FINDING_GOVERNANCE_SUPERSESSION_OR_POST_REVIEW_HANDOFF"
