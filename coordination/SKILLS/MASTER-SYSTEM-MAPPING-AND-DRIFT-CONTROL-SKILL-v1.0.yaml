@@ -1,0 +1,320 @@
+schema_version: "1.0"
+skill_id: "MASTER-SYSTEM-MAPPING-AND-DRIFT-CONTROL-SKILL-v1"
+status: "CANDIDATE_PENDING_INDEPENDENT_REVIEW"
+source_issue: 627
+effective_spec_snapshot_id: "SECOND-BRAIN-ISSUE627-MULTI-EXECUTOR-EPISTEMIC-NUMERIC-002"
+effective_spec_snapshot_ref: "issuecomment-5593821946"
+
+mission: >-
+  Maintain one evidence-backed map connecting Owner intent, explicit and tacit knowledge,
+  system architecture, real capabilities, unknowns, authority, dependencies, numeric contracts,
+  experiments, external research, implementation tasks and learning prerequisites. The skill is a
+  reasoning/navigation layer, not a second execution authority or a mind-reading mechanism.
+
+scope:
+  projects:
+    - "SECOND_BRAIN"
+    - "TRADING_SYSTEM"
+    - "REALTIME_INTERACTIVE_FILM_GAME"
+    - "AI_DIRECTOR"
+  cross_project: true
+  global_router_authority: false
+  execution_authority: false
+  review_authority: false
+  trade_authority: false
+
+epistemic_classes:
+  K1_EXPLICIT_KNOWN:
+    definition: "Owner has explicitly stated or demonstrated the proposition in a directly attributable source."
+    may_be_treated_as_owner_intent_or_known_fact: true
+    required_evidence: "exact user statement, accepted Owner decision, or equivalent direct evidence"
+  K2_TACIT_OR_INFERRED_KNOWN:
+    definition: >-
+      The proposition appears behaviorally known or strongly implied but was not explicitly stated.
+      This state is an inference hypothesis, never a license to pretend the Owner said it.
+    may_be_treated_as_fact_without_validation: false
+    required_fields: ["inference_basis", "confidence", "validation_path"]
+  K3_LEGIBLE_UNKNOWN:
+    definition: >-
+      The Owner does not currently have the concept/answer, but can reasonably understand and evaluate
+      it after explanation, comparison, visualization, or bounded evidence.
+    action: "TEACH_TO_DECISION_LEVEL_THEN_REQUEST_DECISION_ONLY_IF_OWNER_AUTHORITY_IS_NEEDED"
+  K4_OPAQUE_UNKNOWN:
+    definition: >-
+      The Owner cannot yet reliably evaluate technical correctness even after a short explanation,
+      or the decision requires specialized evidence/experimentation beyond reasonable Owner adjudication.
+    action: >-
+      Do not ask the Owner to guess. Route to reality audit, formal test, specialist source, independent
+      review, or prerequisite teaching; return a compressed decision surface only when Owner judgment is actually required.
+
+confidence_policy:
+  range: [0.0, 1.0]
+  confidence_is_authority: false
+  K2_auto_promotion_to_K1: false
+  stale_evidence_decays_or_requires_revalidation: true
+  contradictory_evidence: "PRESERVE_BOTH_AND_OPEN_RECONCILIATION_GAP"
+
+graph_model:
+  node_types:
+    - "OWNER_INTENT"
+    - "REQUIREMENT"
+    - "ARCHITECTURE_OBJECT"
+    - "CAPABILITY"
+    - "RUNTIME_REALITY"
+    - "TASK"
+    - "EXECUTOR"
+    - "AUTHORITY"
+    - "DEPENDENCY"
+    - "CONSUMER"
+    - "DATASET"
+    - "ARTIFACT"
+    - "PARAMETER"
+    - "METRIC"
+    - "EXPERIMENT"
+    - "RISK"
+    - "INCIDENT"
+    - "UNKNOWN"
+    - "CONCEPT"
+    - "SKILL"
+    - "SOURCE"
+    - "REVIEW_FINDING"
+  edge_types:
+    - "REQUIRES"
+    - "DEPENDS_ON"
+    - "PRODUCES"
+    - "CONSUMES"
+    - "GOVERNS"
+    - "VALIDATES"
+    - "CONTRADICTS"
+    - "SUPERSEDES"
+    - "DERIVES_FROM"
+    - "BLOCKS"
+    - "IMPLEMENTS"
+    - "OBSERVES"
+    - "TEACHES"
+    - "APPLIES_TO"
+    - "HANDOFF_TO"
+    - "MUST_CHANGE_WITH"
+    - "REVALIDATE_WITH"
+
+required_submaps:
+  owner_intent_map:
+    purpose: "what outcome matters and what the Owner explicitly decided"
+    must_separate: ["goal", "preference", "hard_constraint", "hypothesis", "temporary_instruction"]
+  architecture_map:
+    purpose: "system/module/interface/SoR topology and canonical object ownership"
+  capability_reality_map:
+    purpose: "documented capability versus locally observed/verified capability"
+    states: ["DOCUMENTED", "LOCALLY_OBSERVED", "VERIFIED", "UNAVAILABLE", "STALE", "UNKNOWN"]
+  dependency_consumer_map:
+    purpose: "forward dependencies and reverse consumers; hidden consumers are explicit gaps"
+  authority_map:
+    purpose: "who may decide/write/execute/review/canonicalize/order; capability is not authority"
+  lineage_map:
+    purpose: "input -> run/job -> output/artifact/data lineage with source/code/config digests"
+  numeric_parameter_map:
+    purpose: "typed units, values, tolerances, versions, sign conventions and drift triggers"
+  experiment_map:
+    purpose: "all trials/search attempts, not only winning result"
+  risk_unknown_map:
+    purpose: "known risks, assumptions, evidence gaps, unknown-unknown discovery candidates"
+  mastery_learning_map:
+    purpose: "what the Owner can currently evaluate and what prerequisite explanation is needed"
+  handoff_map:
+    purpose: "department/agent input-output contracts and completion signals"
+
+knowledge_intake_pipeline:
+  steps:
+    - "capture exact source/provenance"
+    - "classify statement as observation / inference / decision / requirement / hypothesis / evidence"
+    - "assign project/domain and graph node identity"
+    - "assign epistemic class only when Owner-related knowledge is relevant"
+    - "link dependencies, consumers, authorities and numeric parameters"
+    - "detect contradictions and stale references"
+    - "compute gap candidates"
+    - "route to architecture, reality audit, experiment, teaching, review or Owner gate"
+  chat_memory_is_not_sole_authority: true
+  repository_and_runtime_sors_preserved: true
+
+unknown_unknown_discovery:
+  inputs:
+    - "reverse-consumer analysis"
+    - "incident/postmortem patterns"
+    - "review findings and carry-forward"
+    - "runtime telemetry anomalies"
+    - "external-world/documentation drift"
+    - "schema/data distribution drift"
+    - "cross-project interface gaps"
+    - "unexplained numeric changes"
+    - "failed predictions/experiments"
+    - "security/authority threat modeling"
+  output: "UNKNOWN_CANDIDATE"
+  rule: "UNKNOWN_CANDIDATE_IS_NOT_FACT; it must carry discovery evidence and a closure method"
+
+explanation_routing:
+  for_K1: "do not re-teach unless useful"
+  for_K2: "validate inference unobtrusively when possible; ask only if material"
+  for_K3:
+    format: "plain-language model -> concrete example -> tradeoff -> decision surface"
+    avoid: "unnecessary jargon wall"
+  for_K4:
+    format: "evidence/test first -> expert synthesis -> compact Owner-facing consequence"
+    owner_should_not_be_used_as_technical_oracle: true
+
+source_quality_ladder:
+  tiers:
+    T0_CANONICAL_INTERNAL:
+      examples: ["accepted repository contract", "runtime SoR", "exact-head evidence"]
+    T1_PRIMARY_OFFICIAL:
+      examples: ["official documentation", "standards", "vendor API spec", "exchange/provider rules"]
+    T2_PRIMARY_RESEARCH:
+      examples: ["peer-reviewed paper", "top conference paper", "authoritative preprint from source authors"]
+    T3_INSTITUTIONAL_OR_REFERENCE_IMPLEMENTATION:
+      examples: ["mature open-source project", "institutional engineering publication", "reproducible benchmark"]
+    T4_HIGH_QUALITY_SECONDARY:
+      examples: ["technical synthesis", "expert survey"]
+    T5_COMMUNITY_ANECTODAL:
+      examples: ["forum/community experience"]
+  lower_tier_cannot_silently_override_higher_tier: true
+  current_external_facts_require_freshness: true
+
+external_pattern_library:
+  git_worktree:
+    concept: "multiple isolated working trees for distinct branches"
+    internal_mapping: "one active write task -> one worktree/branch"
+    dependency_required: false
+  kubernetes_lease:
+    concept: "holder identity + renew time + expiry/leadership coordination"
+    internal_mapping: "WB executor heartbeat/lease generation/fencing"
+    dependency_required: false
+  argo_workflows:
+    concept: "DAG + parallelism + mutex + semaphore + multiple locks"
+    internal_mapping: "task dependencies + collision locks + resource semaphores"
+    dependency_required: false
+  ray_resources:
+    concept: "logical resource admission separate from physical enforcement"
+    internal_mapping: "WB resource-token scheduler plus Windows/process hard guards"
+    dependency_required: false
+  github_actions_concurrency:
+    concept: "workflow/job concurrency groups and queueing"
+    internal_mapping: "CI collision serialization only"
+    execution_authority: false
+  opentelemetry:
+    concept: "traces + metrics + logs + contextual baggage"
+    internal_mapping: "cross-agent trace/run observability"
+    baggage_as_authority: false
+  openlineage:
+    concept: "Run/Job/Dataset facets and explicit lineage edges"
+    internal_mapping: "input/run/output provenance and dependency graph"
+  mlflow_dvc:
+    concept: "runs/parameters/metrics/artifacts and versioned reproducibility"
+    internal_mapping: "experiment ledger and reproducible configuration/data state"
+  temporal:
+    concept: "durable resume after failures"
+    internal_mapping: "checkpoint/reconcile/resume pattern"
+    dependency_required: false
+  hidden_technical_debt_ml:
+    concept: "boundary erosion, entanglement, hidden feedback, undeclared consumers, data/config dependencies"
+    internal_mapping: "reverse-consumer and external-change gap discovery"
+
+cross_skill_and_project_interop:
+  SECOND_BRAIN:
+    consumes:
+      - "Owner intent/epistemic map"
+      - "memory/capture capability reality"
+      - "source provenance"
+    does_not_replace: ["W3 MemoryStore authority", "Control Tower authority"]
+  TRADING_SYSTEM:
+    consumes:
+      - "numeric parameter ledger"
+      - "experiment/search ledger"
+      - "dataset lineage"
+      - "PIT/no-lookahead evidence"
+      - "provider capability witnesses"
+    additional_frontier_escalation_value: "HIGH_WHEN_WORLD_CLASS_COMPETITIVE_OR_HIGH_RISK"
+  REALTIME_INTERACTIVE_FILM_GAME:
+    consumes:
+      - "runtime/asset/interface lineage"
+      - "resource/GPU/browser claims"
+      - "world/director interface dependencies"
+  AI_DIRECTOR:
+    explicit_adapter_transition_required: true
+
+trading_research_integrity_extension:
+  goal: "prevent research-process selection bias from disappearing behind the winning backtest"
+  required_search_ledger_fields:
+    - "research_question_id"
+    - "dataset_snapshot_or_asof"
+    - "code_sha"
+    - "feature_set_digest"
+    - "strategy_family"
+    - "parameter_search_space_digest"
+    - "trial_id"
+    - "trial_sequence_number"
+    - "total_trials_known_so_far"
+    - "training_validation_test_or_walkforward_partition"
+    - "transaction_cost_and_slippage_contract"
+    - "metric_set"
+    - "selection_rule"
+    - "selected_or_rejected"
+  advanced_validation_when_applicable:
+    - "PBO/CSCV"
+    - "Deflated Sharpe Ratio or search-adjusted performance inference"
+    - "out-of-sample / walk-forward"
+    - "minimum sample/backtest length reasoning"
+  winning_trial_without_search_history: "RESEARCH_INTEGRITY_INCOMPLETE"
+
+handoff_contract:
+  architecture_to_workbuddy:
+    required:
+      - "task purpose and non-goals"
+      - "exact base/branch/project/collision domains"
+      - "authorized/forbidden paths"
+      - "architecture decisions and invariants"
+      - "acceptance tests"
+      - "resource profile"
+      - "numeric parameter snapshot"
+      - "stop/escalation conditions"
+      - "return package schema"
+  workbuddy_to_architecture:
+    required:
+      - "actual environment facts"
+      - "changed files/head/tests"
+      - "failures and repairs"
+      - "resource/process metrics"
+      - "unknowns and proposed architecture deviations"
+      - "lineage/digest evidence"
+  reviewer_to_engineering:
+    required_sections:
+      - "MUST_FIX_BLOCKERS"
+      - "SHOULD_CONSIDER"
+      - "FUTURE_OPPORTUNITIES"
+      - "REMEDIATION_GUIDANCE"
+      - "CARRY_FORWARD"
+
+anti_pattern_guards:
+  - "DO_NOT_TREAT_USER_SILENCE_AS_KNOWLEDGE"
+  - "DO_NOT_ASK_OWNER_TO_GUESS_K4_TECHNICAL_CORRECTNESS"
+  - "DO_NOT_CREATE_SECOND_AUTHORITY_GRAPH"
+  - "DO_NOT_HIDE_REVERSE_CONSUMERS"
+  - "DO_NOT_KEEP_ONLY_WINNING_EXPERIMENT"
+  - "DO_NOT_PROMOTE_STALE_RUNTIME_OBSERVATION_TO_CURRENT_TRUTH"
+  - "DO_NOT_ALLOW_EXTERNAL_RESEARCH_TO_SILENTLY_OVERRIDE_CANONICAL_INTERNAL_CONTRACT"
+  - "DO_NOT_CONFUSE_EXPLANATION_CONFIDENCE_WITH_EXECUTION_AUTHORITY"
+
+skill_outputs:
+  - "SYSTEM_MAP/v1"
+  - "ARCHITECTURE_GAP_MAP/v1"
+  - "EPISTEMIC_COVERAGE_MAP/v1"
+  - "UNKNOWN_CANDIDATE_REGISTER/v1"
+  - "NUMERIC_DRIFT_MAP/v1"
+  - "EXPERIMENT_SEARCH_LEDGER/v1"
+  - "DEPARTMENT_HANDOFF_MAP/v1"
+  - "BOUNDED_TASK_PACKAGE/v1"
+
+success_criteria:
+  - "a new GPT window can recover the cross-system map from canonical artifacts without chat-history dependence"
+  - "Owner-facing decisions distinguish K1/K2/K3/K4 instead of pretending equal expertise everywhere"
+  - "unknowns have explicit closure routes"
+  - "every cross-department handoff has producer/consumer/schema/authority/completion identity"
+  - "numeric and experiment values can be traced to versioned sources and are drift-testable"
