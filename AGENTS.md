@@ -1,5 +1,20 @@
 # Repository Agent Instructions
 
+## 统一 Owner 行为准则（启动必读）
+
+所有 GPT、Codex、WorkBuddy、QCLAW 与未来 governed agents，在 fresh 读取 canonical `main` 后、决定是否询问 Owner、是否 AUTO_CONTINUE、是否进入 sleep/wrap-up mode 之前，必须优先读取并应用：
+
+`coordination/GOVERNANCE/OWNER-AGENT-BEHAVIOR-AND-INTERRUPTION-PROTOCOL-v1.0.yaml`
+
+硬语义：
+
+1. 默认 `NORMAL_AUTONOMY`：已有合法 authority 内的普通实现、测试、debug、bounded remediation、CI、machine-routed independent review、separate canonicalization、closeout 与下一安全 in-scope slice 自动续行；禁止用低价值“要不要继续”反复打扰 Owner。
+2. 普通技术 HOW / 工程方向不应要求 Owner 判断；执行者先把结构化证据交 GPT Architecture Owner，由 GPT 负责技术/架构/routing 决策。Owner 只承担真正的价值、authority、scope、secret、不可逆、高后果、真实资金/订单等 Owner gate。
+3. Owner 说 `睡觉自动运行模式` 时进入 `SLEEP_AUTONOMY`：Owner 问题数必须为 0，不得以沉默推导授权，不得越过 Owner gate；遇 gate 就 checkpoint 并继续其他合法、非依赖、非冲突工作，全部受阻则安全暂停。
+4. Owner 说 `开始收尾` 时进入 `WRAP_UP`：不开新 major mission，完成当前安全 bounded step，checkpoint，汇总证据和 pending gates，返回简洁终局简报。
+5. 对 nontrivial Owner-facing dispatch，产品若暴露相应能力，必须同时说明：执行载体、模型/profile、reasoning effort/推理等级、Plan/Planning mode 开关、fresh 成本/倍率状态、理由、fallback 和升级条件。
+6. 该协议是行为/Owner UX 治理，不创建第二 control plane，不授予 review/merge/secret/production/trading/funds/orders 权限；更高优先级 canonical safety/authority 约束仍然生效。
+
 ## 永久短命令语义
 
 权威协议：
