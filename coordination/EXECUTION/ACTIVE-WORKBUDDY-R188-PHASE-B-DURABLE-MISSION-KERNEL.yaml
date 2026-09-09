@@ -1,0 +1,84 @@
+schema_version: "4.8"
+router_protocol: "coordination/WORKBUDDY-TASK-ROUTER.md"
+task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
+registry_protocol: "coordination/EXECUTION/ACTIVE-TASK-INDEX-REGISTRY.json"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "WORKBUDDY"
+trigger_phrases: ["读取R188任务", "执行R188任务", "开始R188任务", "读取Phase B Durable Mission Kernel任务"]
+
+active_issue: 635
+source_issue: 635
+governance_issue: 636
+pull_request: null
+task_id: "WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL"
+route_epoch: 188
+mode: "synthetic_and_disposable_fixture_only_phase_b_durable_mission_kernel_implementation"
+mode_label: "R188 Phase B Durable Mission Kernel bounded synthetic implementation"
+status: "READY"
+execution_allowed: true
+active: true
+blocked_by: "INDEPENDENT_REVIEW_AND_CANONICAL_PUBLICATION_BEFORE_PROCESS_START"
+automatic_resume: false
+automatic_resume_within_task: false
+automatic_resume_within_batch: false
+second_user_start_command_required: true
+
+canonical_route: "coordination/ROUTES/WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL.yaml"
+task_brief: "coordination/EXECUTION/WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL/TASK-BRIEF.yaml"
+work_claim: "coordination/EXECUTION/WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL/WORK-CLAIM.yaml"
+task_lease: "coordination/EXECUTION/WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL/TASK-LEASE.yaml"
+executor_reservation: "coordination/EXECUTION/WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL/EXECUTOR-RESERVATION.yaml"
+prewrite_snapshot: "coordination/EXECUTION/WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL/PREWRITE-RECONCILIATION-SNAPSHOT.yaml"
+executable_batch: "coordination/EXECUTION/WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL/EXECUTABLE-BATCH.json"
+evidence_contract: "coordination/EXECUTION/WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL/EVIDENCE-CONTRACT.yaml"
+
+source_checkpoint:
+  branch: "main"
+  checkpoint_remote_ref: "refs/heads/main"
+  exact_head: "b6964f32b983d6b58c2cad935217cbf1d3abf4fa"
+  baseline: "b6964f32b983d6b58c2cad935217cbf1d3abf4fa"
+implementation_branch: "workbuddy/r188-phase-b-durable-mission-kernel"
+governance_branch: "workbuddy/r188-phase-b-durable-mission-kernel-governed-release"
+
+fixed_order: ["B0", "B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8"]
+continue_without_user_message: false
+return_target: "GPT_ARCHITECTURE_OWNER"
+completion_signal: "WORKBUDDY_R188_PHASE_B_DURABLE_MISSION_KERNEL_COMPLETE_RETURN_TO_GPT"
+
+model_profile: "DEEP_ENGINEERING"
+model_resolution: "FRESH_AT_DISPATCH"
+core_model_unavailable_action: "FAIL_CLOSED_RETURN_TO_GPT"
+
+carrier_bootstrap: "WORKBUDDY_DESKTOP_INTERACTIVE"
+execution_mode: "SYNTHETIC_AND_DISPOSABLE_FIXTURE_ONLY"
+
+authorized_paths:
+  - "tools/durable_mission_kernel/**"
+  - "tests/durable_mission_kernel/**"
+  - "tests/test_unified_execution_durable_mission_kernel.py"
+  - "coordination/EXECUTION/PHASE-B-DURABLE-MISSION-KERNEL/**"
+  - "coordination/EXECUTION/WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL/**"
+hard_boundaries:
+  - "NO_R184_OR_LOCAL_BRIDGE_ACTIVATION"
+  - "NO_REAL_CAPTURE"
+  - "NO_OPERATIONAL_W3_WRITE"
+  - "NO_PROGRAM_S2_START"
+  - "NO_PRODUCTION_DEPLOYMENT_OR_BACKGROUND_SERVICE_ACTIVATION"
+  - "NO_TRADING_FUNDS_ORDERS"
+  - "NO_SECRET_TOKEN_COOKIE_PLAINTEXT_PERSISTENCE"
+  - "NO_DIRECT_MAIN_WRITE"
+  - "NO_SELF_REVIEW"
+  - "NO_SELF_MERGE"
+  - "NO_R175_MUTATION"
+  - "NO_R184_MUTATION"
+  - "NO_FORCE_PUSH_REBASE_RESET_AMEND_HISTORY_REWRITE"
+  - "NO_BROAD_COORDINATION_OR_UNRELATED_WILDCARD_AUTHORITY"
+  - "NO_SILENT_DOWNGRADE_FROM_JOB_OBJECT_HARD_CONTAINMENT_TO_BARE_PROCESS_EXECUTION"
+
+read_behavior:
+  on_read_task: "SELECT_THIS_EXPLICIT_REGISTERED_INDEX_THEN_RUN_REGISTRY_WIDE_FRESH_CONFLICT_ADMISSION"
+  legacy_default_fallback_forbidden: true
+  arbitrary_issue_or_comment_as_execution_authority: false
+after_read: "DO_NOT_START_UNTIL_INDEPENDENT_REVIEW_ACCEPT_AND_SEPARATE_CANONICALIZATION; THEN_EXECUTE_B0_TO_B8_WITH_AUTO_CONTINUE_WITHIN_SAFE_BOUNDS"
+updated_by: "WORKBUDDY_AGENT"
+updated_at: "2026-09-09T01:58:00Z"

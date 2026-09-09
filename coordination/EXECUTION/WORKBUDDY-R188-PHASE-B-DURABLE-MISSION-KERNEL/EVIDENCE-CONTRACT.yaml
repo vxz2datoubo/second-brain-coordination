@@ -1,0 +1,113 @@
+schema: "PHASE_B_DURABLE_MISSION_KERNEL_EVIDENCE_CONTRACT/v1"
+project: "SECOND_BRAIN"
+repository: "vxz2datoubo/second-brain-coordination"
+task_id: "WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL"
+route_epoch: 188
+source_issue: 635
+governance_issue: 636
+
+result_class_contract:
+  required_result_classes:
+    - "SYNTHETIC_KERNEL_RESULT"
+    - "WINDOWS_CONTAINMENT_RESULT"
+    - "HEADLESS_ADAPTER_RESULT"
+    - "SDK_ADAPTER_RESULT"
+    - "SYNTHETIC_REVIEW_CANONICALIZATION_RESULT"
+    - "REAL_CANONICALIZER_CAPABILITY_RESULT"
+    - "EXACT_HEAD_CI_RESULT"
+    - "INDEPENDENT_REVIEW_RESULT"
+    - "CANONICALIZATION_RESULT"
+  unknown_or_unmeasured_values:
+    - "NOT_TESTED"
+    - "UNKNOWN_REQUIRING_EVIDENCE"
+    - "PARTIAL"
+    - "BLOCKED"
+  collapse_forbidden: "Do not collapse the whole mission into one generic PASS."
+  self_critique_is_advisory_only: true
+  deterministic_or_external_evidence_gates_correctness: true
+
+durable_transaction_requirements:
+  - "transactional event/state/effect/budget commit"
+  - "monotonic state_seq"
+  - "RFC8785/JCS-compatible canonical event bytes or an independently verified equivalent versioned profile"
+  - "SHA-256 event hash chain with explicit genesis/previous hash semantics"
+  - "checkpoint/replay without reissuing historical external effects"
+  - "independent chain-head/verifier receipt"
+  - "exact toolchain/model/policy/skill/environment provenance without exposing secrets"
+  - "Decimal/scaled-integer semantics for monetary/credit values where applicable"
+  - "explicit units/tolerances/formula versions for numerical checks"
+
+versioned_runtime_facts:
+  classification_rules:
+    VERSION_PINNED_SNAPSHOT: "observed concrete version, treated as versioned snapshot not permanent constant"
+    RUNTIME_DISCOVERY: "runtime observation, not a hard invariant"
+    BENCHMARK_TUNED_POLICY: "experiment value, not production default"
+  observed_facts:
+    - fact: "Desktop embedded CLI observed version"
+      value: "2.137.1"
+      classification: "VERSION_PINNED_SNAPSHOT"
+    - fact: "npm CLI observed version"
+      value: "2.138.0"
+      classification: "VERSION_PINNED_SNAPSHOT"
+    - fact: "Agent SDK observed version"
+      value: "0.3.255"
+      classification: "VERSION_PINNED_SNAPSHOT"
+    - fact: "default gateway timeout observed ms"
+      value: 1800000
+      classification: "RUNTIME_DISCOVERY"
+    - fact: "Desktop service observed on port"
+      value: "127.0.0.1:7657"
+      classification: "RUNTIME_DISCOVERY"
+    - fact: "SERVER__PORT=0 collision workaround"
+      value: "measured workaround candidate, not permanent policy"
+      classification: "RUNTIME_DISCOVERY"
+    - fact: "Automation snapshot concurrency/tick/activeTick/missedWindow"
+      value: "3 / 30s / 5s / 12h"
+      classification: "BENCHMARK_TUNED_POLICY"
+  no_silent_promotion: "Never silently promote one observation into a hard invariant."
+
+windows_containment_evidence:
+  default_target: "Windows Job Object hard process-tree containment + soft orphan reaper defense-in-depth"
+  required_disposable_failure_tests:
+    - "root/child/grandchild termination on parent kill"
+    - "parent/controller crash"
+    - "process ownership"
+    - "unrelated same-name process survival"
+    - "port cleanup"
+    - "worktree preservation"
+  incompatible_action: "Return PARTIAL/BLOCKED with exact evidence; do not silently degrade to bare process execution and call it hard containment."
+
+canonicalizer_618_evidence:
+  reviewer_canonicalizer_independence: "Reviewer and Canonicalizer must be actual independent carriers/authority contexts."
+  canonicalizer_ready_requires: "Actual capability evidence, not only a read-only gate check. It must itself perform the mechanical merge and GitHub remote readback in the later real publication lifecycle."
+  capability_unavailable_action: "Classify CANONICALIZER_CAPABILITY_UNAVAILABLE; machine-reroute only to an already legitimate independent canonicalizer carrier; otherwise durable wait/fail closed."
+  self_merge_permanently_forbidden: true
+  synthetic_vs_real:
+    synthetic_pass: "SYNTHETIC_CANONICALIZATION_PROTOCOL_PASS"
+    real_pass_requires: "REAL_INDEPENDENT_CANONICALIZER_PASS (a real independent merge is required)"
+
+core_hard_invariants:
+  - "one writer per collision domain"
+  - "no direct-main implementation write"
+  - "no self-review"
+  - "no self-merge"
+  - "exact-head identity binds CI/review/canonicalization"
+  - "head movement invalidates prior review identity"
+  - "runtime lease never replaces canonical task lease"
+  - "old attempt must be fenced before replacement can emit effects"
+  - "external action timeout/ACK loss => OUTCOME_UNKNOWN until reconciled, never automatic NOT_EXECUTED"
+  - "retry/worker/model/context rollover does not reset mission budget or remediation counters"
+  - "LLM prose/self-critique is advisory; deterministic/external evidence gates correctness"
+  - "synthetic PASS does not imply production/real canonicalizer readiness"
+
+negative_readiness_claims:
+  DURABLE_MISSION_KERNEL_IMPLEMENTED: false
+  WINDOWS_JOB_OBJECT_CONTAINMENT_VERIFIED: false
+  HEADLESS_ADAPTER_VERIFIED: false
+  SDK_ADAPTER_VERIFIED: false
+  REAL_INDEPENDENT_CANONICALIZER_PASS: false
+  PRODUCTION_READY: false
+  PROGRAM_S2_STARTED: false
+  LOCAL_BRIDGE_STARTED: false
+
+stop_rule: "RETURN_FINDINGS_TO_GPT_WITHOUT_SELF_REVIEW_OR_SELF_MERGE_OR_AUTHORITY_EXPANSION"
