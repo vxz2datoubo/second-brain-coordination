@@ -1,4 +1,4 @@
-schema_version: "3.30"
+schema_version: "3.31"
 registry_id: AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001
 control_tower_issue: 310
 owner: USER
@@ -14,16 +14,19 @@ portfolio_capacity_policy:
   nested_parallelism: FORBIDDEN
 current_user_release_policy:
   held_lanes: []
-  decision: R181_CODEX_ACTIVE_GPT_R182_R183_CLOSED_NO_SUCCESSOR_RELEASED
+  decision: R181_CODEX_PRIORITY_PARK_GPT_R182_R183_CLOSED_NO_SUCCESSOR_RELEASED
   rationale: >-
-    R182 and R183 implementation and closeout chains are canonical history. This migration only reconciles stale aggregate projections.
-    It does not release a successor task. CODEX R181 remains a separate active agent type.
+    R182 and R183 implementation and closeout chains are canonical history. Owner priority transition parks CODEX R181 at its
+    preserved executor checkpoint (PR #549 exact head 0aa32e31f0130bf144d43ebecef03613f3f268e4) and releases only its Codex
+    execution slot. No Trading successor route is published by this projection; a clean current-main successor Codex route
+    requires fresh collision and capacity admission first.
 observed_agent_state:
   CODEX:
     observed_task_id: CODEX-A2-2-SHOT-BUNDLE-R181
     observed_route_epoch: 181
     observed_issue: 548
-    execution_allowed: true
+    observed_status: PARKED_NO_ACTIVE_CODEX_EXECUTION
+    execution_allowed: false
   GPT_ENGINEERING_WORKER:
     observed_status: CLOSED_NO_ACTIVE_IMPLEMENTATION
     execution_allowed: false
@@ -62,20 +65,20 @@ program_lanes:
     worker_slot_id: null
     trading_authorized: false
   - lane_id: LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP
-    mission: Bounded interactive-film A2.2 immutable ShotBundle and shot-responsibility compilation.
+    mission: Preserve the R181 A2.2 executor checkpoint while its Codex execution authority is priority-parked.
     owner: USER
     architecture_owner: GPT
-    desired_state: ACTIVE
-    observed_state: R181_CODEX_A2_2_ACTIVE
+    desired_state: PAUSED
+    observed_state: R181_CODEX_A2_2_PRIORITY_PARKED
     primary_system_positions: [W8]
-    current_phase: EXECUTION
-    active_execution_route: CODEX-A2-2-SHOT-BUNDLE-R181
+    current_phase: PRIORITY_PARK
+    active_execution_route: null
     dependencies: []
     shared_interfaces: []
-    next_gate: R181_COMPLETION
-    maturity: ACTIVE_GOVERNED_EXECUTION
-    implementation_owner: CODEX
-    worker_slot_id: CODEX-R181-SHOT-BUNDLE-A2-2-1
+    next_gate: FRESH_CODEX_ROUTE_COLLISION_AND_CAPACITY_ADMISSION_BEFORE_RESUME
+    maturity: PRIORITY_PARKED_RESUMABLE_CHECKPOINT
+    implementation_owner: NONE_ACTIVE
+    prior_worker_slot_id: CODEX-R181-A2-2-SHOT-BUNDLE-1
     canonical_knowledge_write_authorized: false
 cross_lane_overlap_matrix:
   - pair: [LANE-A-HARNESS-INTEGRATION, LANE-B-A-SHARE-REMEDIATION]
