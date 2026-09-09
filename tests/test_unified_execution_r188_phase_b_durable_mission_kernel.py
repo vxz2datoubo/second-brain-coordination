@@ -50,7 +50,7 @@ class R188PhaseBDurableMissionKernelGovernanceTests(unittest.TestCase):
     def _authority(self):
         return registry.build_verified_canonical_authority_for_task_index(".", R188_INDEX)
 
-    def test_registry_wide_r175_r184_r188_and_full_r188_chain_pass(self):
+    def test_registry_wide_r175_r184_only_after_r188_terminalization(self):
         with self._trusted_tree():
             authorities = registry.build_registered_authorities(".")
         by_task = {item.as_mapping()["task_id"]: item.as_mapping() for item in authorities}
@@ -59,13 +59,8 @@ class R188PhaseBDurableMissionKernelGovernanceTests(unittest.TestCase):
             {
                 "WORKBUDDY-R175-ORDERED-BATCH",
                 "WORKBUDDY-R184-LOCAL-WORKBUDDY-BRIDGE",
-                "WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL",
             },
         )
-        r188 = by_task["WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL"]
-        self.assertEqual(list(r188["authorized_paths"]), R188_PATHS)
-        self.assertEqual(r188["collision_domain"], R188_COLLISION)
-        self.assertIn("WRITE_AUTHORIZED_PATHS", r188["authority_grants"])
 
     def test_r188_collision_domain_matches_canonical_reservation_surface(self):
         digest = sha256(
@@ -92,23 +87,30 @@ class R188PhaseBDurableMissionKernelGovernanceTests(unittest.TestCase):
                     f"{r188_path} overlaps {peer_path}",
                 )
 
-    def test_r188_registry_membership_replaces_terminal_r186_r187_without_replay(self):
+    def test_r188_removed_from_active_registry_and_cannot_replay(self):
         text = self._read(registry.REGISTRY_REF).decode("utf-8")
         self.assertIn(R175_INDEX, text)
         self.assertIn(R184_INDEX, text)
-        self.assertIn(R188_INDEX, text)
+        self.assertNotIn(R188_INDEX, text)
         self.assertNotIn(R186_INDEX, text)
         self.assertNotIn(R187_INDEX, text)
+        with self._trusted_tree():
+            with self.assertRaises(registry.ExecutionContractError) as ctx:
+                registry.build_verified_canonical_authority_for_task_index(".", R188_INDEX)
+        self.assertIn("not registered", str(ctx.exception))
 
-    def test_r188_active_index_blocks_until_independent_review_and_canonicalization(self):
+    def test_r188_active_index_is_terminal_non_executable(self):
         text = self._read(R188_INDEX).decode("utf-8")
-        self.assertIn(
-            'blocked_by: "INDEPENDENT_REVIEW_AND_CANONICAL_PUBLICATION_BEFORE_PROCESS_START"',
-            text,
-        )
-        self.assertIn("execution_allowed: true", text)
-        self.assertIn("second_user_start_command_required: true", text)
+        self.assertIn('status: "CLOSED_HISTORY_ONLY_CANONICALIZED"', text)
+        self.assertIn("execution_allowed: false", text)
+        self.assertIn("active: false", text)
+        self.assertIn("blocked_by: null", text)
+        self.assertIn("second_user_start_command_required: false", text)
         self.assertIn("automatic_resume: false", text)
+        self.assertIn("completion_evidence:", text)
+        self.assertIn(
+            'canonical_merge: "d062dee5a8690cc0564b22b7ba8486a46226e854"', text
+        )
 
     def test_r188_evidence_contract_freezes_hard_invariants_and_result_classes(self):
         text = self._read(EVIDENCE_CONTRACT).decode("utf-8")

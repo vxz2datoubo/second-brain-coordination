@@ -14,14 +14,14 @@ task_id: "WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL"
 route_epoch: 188
 mode: "synthetic_and_disposable_fixture_only_phase_b_durable_mission_kernel_implementation"
 mode_label: "R188 Phase B Durable Mission Kernel bounded synthetic implementation"
-status: "READY"
-execution_allowed: true
-active: true
-blocked_by: "INDEPENDENT_REVIEW_AND_CANONICAL_PUBLICATION_BEFORE_PROCESS_START"
+status: "CLOSED_HISTORY_ONLY_CANONICALIZED"
+execution_allowed: false
+active: false
+blocked_by: null
 automatic_resume: false
 automatic_resume_within_task: false
 automatic_resume_within_batch: false
-second_user_start_command_required: true
+second_user_start_command_required: false
 
 canonical_route: "coordination/ROUTES/WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL.yaml"
 task_brief: "coordination/EXECUTION/WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL/TASK-BRIEF.yaml"
@@ -79,6 +79,16 @@ read_behavior:
   on_read_task: "SELECT_THIS_EXPLICIT_REGISTERED_INDEX_THEN_RUN_REGISTRY_WIDE_FRESH_CONFLICT_ADMISSION"
   legacy_default_fallback_forbidden: true
   arbitrary_issue_or_comment_as_execution_authority: false
-after_read: "DO_NOT_START_UNTIL_INDEPENDENT_REVIEW_ACCEPT_AND_SEPARATE_CANONICALIZATION; THEN_EXECUTE_B0_TO_B8_WITH_AUTO_CONTINUE_WITHIN_SAFE_BOUNDS"
+after_read: "TASK_IS_TERMINAL_COMPLETED_AND_CANONICALIZED; NO_EXECUTION; FUTURE_DURABLE_MISSION_PROCESS_ACTIVATION_REQUIRES_SEPARATE_FRESH_GOVERNED_TASK"
+completion_evidence:
+  implementation_pr: 650
+  implementation_head: "6442e991d893d59799a111b9d6de94a347aa9a9c"
+  canonical_merge: "d062dee5a8690cc0564b22b7ba8486a46226e854"
+  exact_head_ci_run: 34403619847
+  independent_review: 5159742207
+  reconciled_by_issue: 651
+  reconciled_slice: "B"
+  terminal_state: "TERMINAL_HISTORY_ONLY_NON_EXECUTABLE"
+  future_process_activation: "SEPARATE_FRESH_GOVERNED_TASK_REQUIRED"
 updated_by: "WORKBUDDY_AGENT"
-updated_at: "2026-09-09T01:58:00Z"
+updated_at: "2026-09-09T20:55:00Z"
