@@ -629,22 +629,16 @@ class RepositoryAuditTests(unittest.TestCase):
         self.assertIn(R6_FOUNDATION_MERGE, data)
         self.assertIn("5108092436", data)
 
-    def test_current_registry_audit_is_valid_and_capacity_full(self) -> None:
+    def test_current_registry_audit_is_valid_and_capacity_reconciled_free(self) -> None:
         audit = audit_worker_registry_lifecycle(self.repo_root)
         self.assertTrue(audit.valid_for_observability)
         self.assertEqual(audit.schema_version, "1.5")
         self.assertEqual(audit.configured_capacity_limit, 2)
-        self.assertEqual(audit.occupied_capacity_count, 2)
-        self.assertEqual(audit.free_capacity_count, 0)
+        self.assertEqual(audit.occupied_capacity_count, 0)
+        self.assertEqual(audit.free_capacity_count, 2)
         self.assertEqual(audit.capacity_state, "KNOWN_OBSERVATION")
         self.assertFalse(audit.successor_release_authority)
-        self.assertEqual(
-            set(audit.occupied_capacity_slots),
-            {
-                "GPT-WORKER-R182-W2-MARKET-SEMANTICS-1",
-                "GPT-WORKER-R183-DS10-RESEARCH-INTEGRITY-1",
-            },
-        )
+        self.assertEqual(set(audit.occupied_capacity_slots), set())
 
     def test_current_slots_resolve_to_expected_lifecycles(self) -> None:
         audit = audit_worker_registry_lifecycle(self.repo_root)
@@ -654,8 +648,8 @@ class RepositoryAuditTests(unittest.TestCase):
             "GPT-WORKER-R164-W5-EVENT-COVERAGE-2": LIFECYCLE_FROZEN,
             "GPT-WORKER-R166-W5-EVENT-COVERAGE-2": LIFECYCLE_RELEASED,
             "GPT-WORKER-R168-CANONICAL-CI-STATE-ISOLATION-1": LIFECYCLE_RELEASED,
-            "GPT-WORKER-R182-W2-MARKET-SEMANTICS-1": LIFECYCLE_REVIEW_WAIT,
-            "GPT-WORKER-R183-DS10-RESEARCH-INTEGRITY-1": LIFECYCLE_RESERVED,
+            "GPT-WORKER-R182-W2-MARKET-SEMANTICS-1": LIFECYCLE_RELEASED,
+            "GPT-WORKER-R183-DS10-RESEARCH-INTEGRITY-1": LIFECYCLE_RELEASED,
         }
         for slot_id, lifecycle in expected.items():
             with self.subTest(slot_id=slot_id):

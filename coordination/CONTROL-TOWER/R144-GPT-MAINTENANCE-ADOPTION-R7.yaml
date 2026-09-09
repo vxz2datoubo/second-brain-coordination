@@ -1,0 +1,92 @@
+schema_version: "1.0"
+authority_id: "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R7-0001"
+authority_type: "GPT_ARCHITECTURE_OWNER_CORRECTIVE_MAINTENANCE_ADOPTION"
+issuer: "USER"
+actor: "GPT_ARCHITECTURE_OWNER"
+state: "ACTIVE"
+
+predecessor_authority:
+  path: "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R6.yaml"
+  authority_id: "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R6-0001"
+  required_state: "RELEASED"
+  required_terminal_scope_status: "NO_FURTHER_MODIFIER_WRITES_AUTHORIZED_BY_THIS_ARTIFACT"
+
+purpose: >-
+  Atomic post-R6 projection reconciliation for Issue #572. Migrate the stale canonical aggregate projections
+  ACTIVE-GPT-ENGINEERING-WORKERS.yaml and ACTIVE-PROGRAM-LANES.yaml so both describe the same world after the R182/R183
+  implementation + closeout chains became canonical history. This slice consumes (does not replace) the canonical R6
+  worker_lifecycle.py resolver and its schema semantics, and derives no successor release authority of its own.
+
+task_id: "GPT-CONTROL-TOWER-WORKER-LIFECYCLE-PROJECTION-MIGRATION-R7"
+maintenance_generation: 7
+issue: 572
+branch: "gpt/r572-r7-projection-migration-post-r6"
+pr: null
+pr_binding_state: "PENDING_PR_CREATION"
+first_slice_mode: "ATOMIC_PROJECTION_RECONCILIATION_ONLY"
+user_authorization_comment: null
+prewrite_snapshot_comment: null
+activation_parent_head: "e29a84acd08e4126400ed62b0d6c97f0c10c0a5c"
+canonical_main_at_authorization: "e29a84acd08e4126400ed62b0d6c97f0c10c0a5c"
+
+execution_allowed: false
+runtime_write_allowed: false
+trade_allowed: false
+merge_authority: false
+acceptance_authority: false
+self_review_allowed: false
+retroactive_workbuddy_authorization: false
+independent_review_required: true
+same_pr_required: true
+fresh_exact_head_ci_required: true
+
+allowed_write_paths:
+  - "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+  - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+  - "coordination/CONTROL-TOWER/tests/test_worker_lifecycle.py"
+  - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R7.yaml"
+  - "coordination/CONTROL-TOWER/R572-GPT-LIFECYCLE-PROJECTION-MIGRATION-RECEIPT.yaml"
+
+explicitly_forbidden_write_paths:
+  - "coordination/CONTROL-TOWER/worker_lifecycle.py"
+  - "coordination/CONTROL-TOWER/worker_slots.py"
+
+state_machine:
+  active_scope_status: "BOUNDED_CORRECTIVE_MAINTENANCE_OPEN"
+  released_scope_status_required: "NO_FURTHER_MODIFIER_WRITES_AUTHORIZED_BY_THIS_ARTIFACT"
+  released_is_terminal_for_authority_id: true
+  next_activation_requires_new_user_issued_authority_id: true
+  terminality_must_not_depend_on_mutable_release_receipt_presence: true
+
+required_invariants:
+  consume_canonical_r6_resolver_not_replace: true
+  active_worker_and_program_lane_projections_describe_same_world: true
+  r182_terminal_non_executable_non_capacity: true
+  r183_terminal_non_executable_non_capacity: true
+  lane_a_and_b_closed_no_active_implementation: true
+  no_hard_coded_free_capacity_truth: true
+  no_successor_release_from_this_slice: true
+  no_worker_lifecycle_or_worker_slots_code_change: true
+  no_domain_runtime_w3_capture_or_trade_authority: true
+
+provenance:
+  source: "FRESH_USER_AUTHORIZED_CORRECTIVE_MAINTENANCE"
+  source_issue: 572
+  r6_terminal_predecessor: true
+  r6_authority_id: "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R6-0001"
+  r6_canonical_foundation_merge: "04124e233dc813cca4054851ef6a470b342d82fe"
+  r6_terminal_closeout_merge: "e29a84acd08e4126400ed62b0d6c97f0c10c0a5c"
+  deprecated_prior_candidates: ["PR #599", "PR #655"]
+  migration_source_evidence_retained: true
+  r182_closeout_merge: "a23a54ae5fafc041bb12b6be805a66d805c8fb66"
+  r183_closeout_merge: "09a15abbe7b27728e6067b47cfead90b5ffd95d5"
+  truth_rule: "R7_NEW_AUTHORITY_ID != R6_REACTIVATION"
+
+completion_gate:
+  required_disposition: "SEPARATE_GPT_INDEPENDENT_REVIEW"
+  keep_draft_until_review: true
+  no_merge_before_independent_accept: true
+  no_domain_runtime_write: true
+  no_worker_lifecycle_or_worker_slots_write: true
+  capacity_recomputed_only_after_canonical_migration: true
+  next_successor_release_requires_separate_fresh_authority: true
