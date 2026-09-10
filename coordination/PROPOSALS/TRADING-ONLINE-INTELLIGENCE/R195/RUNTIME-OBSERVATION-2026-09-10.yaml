@@ -1,0 +1,161 @@
+schema_version: "1.0"
+observation_bundle_id: "R195-ONLINE-GPT-REALITY-2026-09-10"
+status: "CANDIDATE_EVIDENCE / NOT_CANONICAL_MARKET_TRUTH"
+source_issue: 690
+roadmap_issue: 688
+observed_from: "ONLINE_CHATGPT_CONNECTED_TOOLS"
+local_runtime_observed: false
+trade_authority: false
+
+runtime_context:
+  github_main_at_reconcile: "2d8421cbd4d599e56321306a023c499b65eba05a"
+  candidate_branch: "gpt/r195-online-gpt-trading-runtime"
+  local_tdx_tq_l2_required_for_this_observation: false
+
+observations:
+  - observation_id: "LONGBRIDGE-QUOTE-300418-20260910"
+    provider: "Longbridge"
+    capability: "quote"
+    evidence_class: "CONNECTED_ONLINE_RUNTIME_OBSERVED"
+    subject: "300418.SZ"
+    source_timestamp: "2026-09-10T07:00:00Z"
+    observed_values:
+      last_done: "44.26"
+      prev_close: "45.69"
+      open: "45.35"
+      high: "45.70"
+      low: "44.25"
+      volume_raw: 368959
+      turnover_raw: "1648134366.17"
+      trade_status: "Normal"
+    semantic_disposition:
+      price_fields: "OBSERVED_PROVIDER_VALUES"
+      volume_raw: "UNIT_SCALE_NOT_YET_PROMOTED_TO_CANONICAL_SEMANTIC"
+      turnover_raw: "CURRENCY/UNIT_SEMANTIC_REQUIRES_FIELD_BINDING_BEFORE_CANONICAL_PERSISTENCE"
+
+  - observation_id: "LONGBRIDGE-QUOTE-300058-20260910"
+    provider: "Longbridge"
+    capability: "quote"
+    evidence_class: "CONNECTED_ONLINE_RUNTIME_OBSERVED"
+    subject: "300058.SZ"
+    source_timestamp: "2026-09-10T07:00:00Z"
+    observed_values:
+      last_done: "13.46"
+      prev_close: "13.60"
+      open: "13.69"
+      high: "13.85"
+      low: "13.43"
+      volume_raw: 1479866
+      turnover_raw: "2007692691.23"
+      trade_status: "Normal"
+    semantic_disposition:
+      price_fields: "OBSERVED_PROVIDER_VALUES"
+      volume_raw: "UNIT_SCALE_NOT_YET_PROMOTED_TO_CANONICAL_SEMANTIC"
+      turnover_raw: "CURRENCY/UNIT_SEMANTIC_REQUIRES_FIELD_BINDING_BEFORE_CANONICAL_PERSISTENCE"
+
+  - observation_id: "LONGBRIDGE-CN-TEMPERATURE-20260910"
+    provider: "Longbridge"
+    capability: "market_temperature"
+    evidence_class: "CONNECTED_ONLINE_RUNTIME_OBSERVED"
+    subject: "CN_MARKET"
+    source_timestamp: "2026-09-10T13:20:04Z"
+    observed_values:
+      temperature: 44
+      description: "Neutral & gradually dropping"
+      valuation: 79
+      sentiment: 9
+    semantic_disposition:
+      provider_indicator_only: true
+      exchange_truth: false
+
+  - observation_id: "LONGBRIDGE-CN-SCREENER-20260910"
+    provider: "Longbridge"
+    capability: "screener_search"
+    evidence_class: "CONNECTED_ONLINE_RUNTIME_PARTIAL"
+    subject: "CN_MARKET"
+    query_predicates:
+      - "prevchg >= 3%"
+      - "turnover_rate >= 3%"
+    provider_reported_total: 150
+    first_page_size: 20
+    observed_semantic_defects:
+      - field: "marketcap"
+        example_symbol: "301689.SZ"
+        example_raw_value: "50106812328"
+        provider_display_unit: "亿"
+        disposition: "AMBIGUOUS_UNIT_SCALE / EXCLUDE_FROM_CANONICAL_USE"
+    conclusion: "WHOLE_MARKET_CANDIDATE_FUNNEL_FEASIBLE; RETURNED_FIELDS_REQUIRE_SEMANTIC_BINDING"
+
+  - observation_id: "BIGDATA-SECURITY-300418-20260910"
+    provider: "Bigdata.com"
+    capability: "find_securities"
+    evidence_class: "CONNECTED_ONLINE_RUNTIME_OBSERVED"
+    subject: "300418"
+    provider_observed_at: "2026-09-10T23:46:48.735580Z"
+    observed_values:
+      rp_entity_id: "9852A1"
+      name: "Kunlun Tech Co. Ltd."
+      listing_type: "PUBLIC"
+      listing: "XSHE:300418"
+      country: "China"
+    conclusion: "SECURITY_ENTITY_RESOLUTION_OBSERVED"
+
+  - observation_id: "BIGDATA-KUNLUN-TEARSHEET-20260910"
+    provider: "Bigdata.com"
+    underlying_source: "Corporate Fundamentals / FMP"
+    capability: "company_tearsheet"
+    evidence_class: "CONNECTED_ONLINE_RUNTIME_OBSERVED"
+    subject: "Kunlun Tech Co., Ltd. / 300418"
+    provider_as_of: "2026-09-10T23:46:56.770798Z"
+    source_timestamp: "2026-09-10T07:04:40Z"
+    observed_values:
+      price: 44.26
+      change: -1.43
+      change_percentage: -3.12979
+      volume_shares: 36895869
+      market_cap_cny: 56875427800
+      latest_earnings_period: "2026-Q2"
+      latest_earnings_revenue_actual: 2759444000
+      latest_earnings_revenue_estimated: 2789401000
+    conclusion: "FINANCIAL_AND_CROSS_SOURCE_MARKET_EVIDENCE_OBSERVED"
+
+cross_source_candidate_checks:
+  - check_id: "KUNLUN-CLOSE-PRICE-CHECK"
+    subject: "300418"
+    field: "price"
+    longbridge_value: 44.26
+    bigdata_value: 44.26
+    disposition: "AGREES_AT_OBSERVED_TIMESTAMPS"
+    canonical_semantic_promotion: false
+    note: "Agreement is evidence, not authority transfer."
+
+  - check_id: "KUNLUN-VOLUME-SCALE-HYPOTHESIS"
+    subject: "300418"
+    field: "volume"
+    longbridge_raw: 368959
+    bigdata_shares: 36895869
+    candidate_transform: "Longbridge raw * 100 = 36,895,900"
+    residual_vs_bigdata_shares: 31
+    disposition: "STRONG_SCALE_HYPOTHESIS / NOT_CANONICAL"
+    reason: >-
+      The values strongly suggest Longbridge volume may be expressed in 100-share lots while
+      Bigdata reports shares, but the observed 31-share residual and missing authoritative
+      field-unit binding mean R195 must not silently promote this inference to canonical semantics.
+    next_verification: "bind Longbridge quote volume to documented/runtime-verified unit semantics and test multiple symbols/dates"
+
+capability_gaps_observed:
+  - "TRUE_L2_DEPTH_HISTORY"
+  - "TICK_RECONSTRUCTED_DELTA"
+  - "CVD"
+  - "ABSORPTION"
+  - "FOOTPRINT"
+  - "EXCHANGE_QUEUE_MICROSTRUCTURE"
+
+conclusion:
+  online_gpt_mode_feasible: true
+  online_broad_scan_feasible: true
+  online_financial_research_feasible: true
+  cross_source_quorum_feasible: true
+  local_deep_layer_still_higher_value_for_microstructure: true
+  production_background_service_proven: false
+  order_authority_created: false
