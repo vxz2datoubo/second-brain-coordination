@@ -1,0 +1,65 @@
+schema: ROUTE_PUBLICATION_RECEIPT/v1
+task_id: CODEX-DS10-P0B-DEFLATED-SHARPE-R192
+route_epoch: 192
+project: TRADING_SYSTEM
+parent_program: SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001
+source_issue: 561
+upstream_completed_issue: 552
+upstream_completion_signal_ref: pr-671-canonical-merge-cb59993b
+owner_direction_ref: issuecomment-5615609881
+executor: CODEX_STANDARD
+boundary: RESEARCH_ONLY / NO_TRADE
+canonical_main_at_prepare: cb59993b963f3150537973e0deb4331fcbd63707
+
+purpose: >-
+  Record the pre-dispatch publication of a clean, unique, lawful TRADING_SYSTEM Codex Standard execution
+  route for Issue #561 (DS-10 P0B Deflated Sharpe reference module). This receipt publishes execution
+  authority only; it does not implement #561, does not write inside W4 or DS-10 P0A ownership, and does
+  not claim acceptance or canonicalization.
+
+upstream_dependency:
+  predecessor_route: CODEX-DS10-P0A-W4-READ-BINDING-INTEGRATION-R191
+  predecessor_state: TERMINAL_COMPLETED
+  predecessor_delivered_head: 43ed200eac3ce21516470285f8d275520fa90a26
+  predecessor_canonical_merge: cb59993b963f3150537973e0deb4331fcbd63707
+  upstream_signal_satisfied: true
+
+read_surface_inventory_result:
+  canonical_p0a_reuse: research_integrity.audit_research_integrity -> trial completeness / ELIGIBLE_FOR_W7_VALIDATION (canonicalized cb59993b)
+  canonical_w4_read_binding_reuse: W4 read_binding.verify_canonical_family_receipt -> CanonicalExperimentFamilyReadReceipt/v1 (canonicalized 286c67d8)
+  second_registry_found: NONE
+  second_trial_ledger_found: NONE
+  ds10_p0b_module: THIS_ROUTE_OWNS_THE_DS10_P0B_REFERENCE_MODULE
+  conclusion: CONSUME_CANONICAL_P0A_W4_CHAIN_VIA_NEW_DS10_P0B_MODULE
+
+collision_and_capacity_admission:
+  codex_slot_before: RELEASED_BY_R191_TERMINAL_CLOSEOUT
+  codex_active_routes_before: 0
+  codex_active_routes_max: 1
+  codex_active_routes_after: 1
+  result: PASS
+  overlapping_open_pr_on_target_files: NONE
+  gpt_worker_r182_r183: CANONICAL_HISTORY_NO_ACTIVE_IMPLEMENTATION
+  codex_r181_pr549: PRESERVED_UNCHANGED_0aa32e31f0130bf144d43ebecef03613f3f268e4
+  downstream_issue_562_p0c: NOT_STARTED_AWAITS_THIS_ROUTE_CANONICAL
+
+published_authority_files:
+  - coordination/ACTIVE-CODEX-TASK.yaml
+  - coordination/ACTIVE-PROGRAM-LANES.yaml
+  - coordination/ROUTES/CODEX-DS10-P0B-DEFLATED-SHARPE-R192.yaml
+  - coordination/TASK-BRIEFS/CODEX-DS10-P0B-DEFLATED-SHARPE-R192.yaml
+  - coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-DS10-P0B-DEFLATED-SHARPE-R192/EXECUTOR-RESERVATION.yaml
+  - coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-DS10-P0B-DEFLATED-SHARPE-R192/TASK-LEASE.yaml
+  - coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-DS10-P0B-DEFLATED-SHARPE-R192/WORK-CLAIM.yaml
+  - coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-DS10-P0B-DEFLATED-SHARPE-R192/AUTHORIZATION-WITNESS.yaml
+  - coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-DS10-P0B-DEFLATED-SHARPE-R192/ALLOWED-PATHS.yaml
+  - coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-DS10-P0B-DEFLATED-SHARPE-R192/PREWRITE-RECONCILIATION-SNAPSHOT.yaml
+
+non_assertions:
+  - no independent ACCEPT
+  - no canonical project completion
+  - no W4 ownership write
+  - no DS-10 P0A ownership write
+  - no second experiment/trial/read-receipt store
+  - no caller-minted trust root or trial-count authority
+  - no W7 ACCEPT authority

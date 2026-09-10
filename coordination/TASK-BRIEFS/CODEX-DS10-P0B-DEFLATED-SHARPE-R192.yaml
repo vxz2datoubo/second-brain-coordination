@@ -1,0 +1,79 @@
+schema: TASK_BRIEF/v1
+task_id: CODEX-DS10-P0B-DEFLATED-SHARPE-R192
+route_epoch: 192
+project: SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001
+project_alias: TRADING_SYSTEM
+source_issue: 561
+parent_program_issue: 31
+executor: CODEX_STANDARD
+boundary: RESEARCH_ONLY / NO_TRADE
+canonical_main_at_prepare: cb59993b963f3150537973e0deb4331fcbd63707
+
+objective: >-
+  Implement a deterministic, versioned reference Deflated Sharpe Ratio (DSR) module (Bailey & Lopez de
+  Prado, JPM 40(5), 2014, SSRN 2460551) that answers: given one selected observed Sharpe, finite sample
+  size, return skewness/kurtosis, and a provenance-bound effective trial-family estimate, how strong is
+  the Sharpe evidence after selection among multiple trials and non-normality? It does NOT answer whether
+  the strategy is tradable, whether capacity/cost pass, whether the W4 family is complete, whether PBO is
+  low, whether W7 accepts, or whether capital should be allocated.
+
+step_one_read_surface_inventory:
+  - Confirm DS-10 P0A research-integrity kernel is canonical at main cb59993b (audit_research_integrity with w4_read_receipt, ELIGIBLE_FOR_W7_VALIDATION != W7 ACCEPT).
+  - Confirm canonical W4 read binding (read_binding.py + registry.py) is present for trial-count provenance.
+  - Confirm no P0B module directory exists yet (DS10-DEFLATED-SHARPE-P0B).
+
+step_two_input_authority_chain:
+  - P0B must consume trial-count/family provenance ONLY from the canonical chain: #560 canonical StrategyExperimentFamily -> #559 verified canonical read receipt -> R183/P0A complete-family integrity -> P0B trial-count/dependence input.
+  - A raw/effective trial count from #78, an LLM, user input, or a backtest summary cannot mint DSR authority. Non-canonical/incomplete/lockbox-contaminated/PIT-invalid/unbound family -> INPUT_INTEGRITY_BLOCKED, never a numerical p-value.
+
+step_three_method_separation:
+  - Expose distinct types: ObservedSharpeEvidence, SharpeSamplingMoments, IndependentTrialEstimate, ExpectedMaxSharpeBenchmark, ProbabilisticSharpeResult, DeflatedSharpeResult. No opaque dsr(returns, trials) helper.
+
+step_four_numerical_contract:
+  - Governed inputs: observed_sharpe, sample_count, return_frequency, annualization_policy, return_definition_ref, net_or_gross_metric, cost_model_ref; sample_skewness, sample_kurtosis, kurtosis_semantics PEARSON|EXCESS; exact family/read-receipt refs, raw economic trial count M, effective independent trial estimate N_eff, N_eff method, dependence evidence; dsr_method_id/paper/version/code-digest/tolerance.
+  - Reproduce DSR: expected max Sharpe benchmark via extreme-value approximation (Euler-Mascheroni + Normal inverse CDF scaled by cross-sectional Sharpe dispersion and governed independent-trial count); PSR transform against benchmark; skew/kurtosis adjustment in Sharpe sampling denominator; substitution into PSR to obtain DSR evidence.
+  - N_eff > M invalid; N_eff <= 0 invalid; N_eff == 1 -> NOT_APPLICABLE_SINGLE_TRIAL; correlated trials not independent; uncertainty preserved as interval/scenario; cannot estimate dependence -> EFFECTIVE_TRIAL_COUNT_UNRESOLVED / ABSTAIN.
+
+step_five_result_contract:
+  - DeflatedSharpeResult/v1 with result_id, method_id/version, experiment_family_ref/revision/digest, selected_trial_id, observed_sharpe, sample_count, skewness, kurtosis, raw_trial_count, effective_trial_count, trial_count_method_ref, sharpe_cross_section_variance, expected_max_sharpe_benchmark, probabilistic_sharpe_against_benchmark, deflated_sharpe_probability, numerical_diagnostics, input_integrity_state, method_state, uncertainties, computation_digest.
+  - method_state enum: PASS_COMPUTED (numerical success, NOT validation pass), NOT_APPLICABLE_SINGLE_TRIAL, INSUFFICIENT_SAMPLE, EFFECTIVE_TRIAL_COUNT_UNRESOLVED, MOMENTS_INVALID, NUMERICAL_FAILURE, INPUT_INTEGRITY_BLOCKED, ABSTAIN.
+
+step_six_hard_numerical_guards:
+  - Fail closed on NaN/Inf, non-positive/short sample, variance<0, invalid Normal-CDF domain, zero/negative PSR denominator, incompatible skew/kurtosis convention, N_eff>M, unknown annualization, display-rounded returns, net-performance without cost-model identity, selected trial absent from family, non-canonical/incomplete family, caller recompute of family digest after changing trial count, unsupported precision coercion. No guard failure may return 0/1/p=1/DSR=0.5 or other plausible numeric fallback.
+
+step_seven_determinism:
+  - float64 for transcendental functions; source financial inputs from governed decimal/return semantics; versioned output serialization precision; Normal CDF/PPF library/version captured; no random state; same input bytes -> same result within frozen tolerance; cross-platform Python 3.11/3.13 ULP/abs-rel agreement checked.
+
+step_eight_tests:
+  - Analytic/reference: paper examples or high-precision fixtures; zero-skew Pearson-3 sanity; higher trial count raises expected-max benchmark; non-normality penalty direction; single-trial -> non-applicable-selection.
+  - Trial laundering: caller says 10 trials while family has 100 -> use family truth / fail; N_eff=1 after unfavorable DSR -> reject; duplicate correlated variants -> dependence gate failure; stale identity reuse -> reject.
+  - Numerical: NaN/Inf -> fail; impossible kurtosis -> fail; denominator<=0 -> NUMERICAL_FAILURE; extreme values no silent overflow; display rounding cannot alter replay.
+  - Authority: DSR written into DS-02 posterior -> reject; DSR as W7 ACCEPT -> reject; DSR changes position/order/trade -> reject; #78 second DSR ledger -> architecture failure.
+  - Exact-head push CI on 3.11 + 3.13.
+
+hard_boundaries:
+  - RESEARCH_ONLY / NO_TRADE
+  - NO account / broker / funds / position / order authority
+  - NO W4 write authority from DS-10
+  - NO second store / ledger / read-receipt store
+  - NO probability / W7 validation / risk / position / order / trade authority
+  - NO caller-minted trial-count trust root
+  - DSR result is NOT W7 ACCEPT
+  - NO self-review / self-merge / direct-main
+  - Issue #562 (P0C) is downstream and must NOT be started by this route
+
+allowed_write_surface:
+  - ".github/workflows/ds10-deflated-sharpe-p0b.yml"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-DEFLATED-SHARPE-P0B/**"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-DS10-P0B-DEFLATED-SHARPE-R192/**"
+
+forbidden_write_surface:
+  - "coordination/ACTIVE-CODEX-TASK.yaml"
+  - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+  - "coordination/ROUTES/**"
+  - "coordination/TASK-BRIEFS/**"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W4-STRATEGY-EXPERIMENT-FAMILY-P0/**"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/**"
+
+completion_signal: DS10_DEFLATED_SHARPE_P0B_READY_FOR_INDEPENDENT_REVIEW
+next_command: START_DS10_P0B_DEFLATED_SHARPE_REFERENCE_MODULE_THEN_VERIFY_CANONICAL_TRIAL_COUNT_CHAIN
