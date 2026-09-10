@@ -1,0 +1,41 @@
+schema: WORK_CLAIM/v1
+project: SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001
+project_alias: TRADING_SYSTEM
+task_id: CODEX-DS10-P0A-W4-READ-BINDING-INTEGRATION-R191
+route_epoch: 191
+source_issue: 552
+executor: CODEX_STANDARD
+worker_slot_id: CODEX-R191-DS10-P0A-INTEGRATION-1
+claim_state: ACTIVE_CLAIMED
+execution_allowed: true
+implementation_baseline: 286c67d8ff1f49da6762cc0cd54e1d85cc086430
+snapshot_base: 286c67d8ff1f49da6762cc0cd54e1d85cc086430
+required_branch: codex/r191-ds10-p0a-w4-read-binding-integration
+branch_head_at_activation: NOT_CREATED
+effective_spec_snapshot_id: TRADING-CODEX-R191-ISSUE552-SNAPSHOT-001
+effective_spec_snapshot_ref: issuecomment-5614860622
+single_writer_surface:
+  primary:
+    - DS10_P0A_CANONICAL_W4_READ_BINDING_INTEGRATION
+    - CONSUME_CANONICAL_EXPERIMENT_FAMILY_READ_RECEIPT_V1
+  excludes:
+    - W4_STRATEGY_EXPERIMENT_WRITE
+    - STRATEGY_EXPERIMENT_REGISTRY_WRITE
+    - MARKET_DATA_ADAPTER_AUTHORITY
+    - PIT_REPLAY_ENGINE_AUTHORITY
+    - ORDER_EXECUTION_AUTHORITY
+    - ACCOUNT_BROKER_FUNDS_POSITION_ORDER_AUTHORITY
+    - PROBABILITY_REGISTRY_AUTHORITY
+    - W7_VALIDATION_AUTHORITY
+    - BACKTEST_AUTHORITY
+    - GPT_WORKER_R8_REMEDIATION_SURFACE
+    - CODEX_R181_PARKED_CHECKPOINT
+parallel_fences:
+  GPT_ENGINEERING_WORKER_R182_R183: CANONICAL_HISTORY_NO_ACTIVE_IMPLEMENTATION
+  CODEX_R181_PR549: PRESERVE_PARKED_CHECKPOINT_UNCHANGED_NO_RESUME
+path_fence: ADDITIVE_ONLY_DS10_P0A_CONSUMER_ADAPTER_PLUS_R191_FILES
+execution_environment:
+  fresh_task_owned_standalone_clone_required: true
+project_completion_asserted: false
+independent_accept_asserted: false
+canonicalization_asserted: false

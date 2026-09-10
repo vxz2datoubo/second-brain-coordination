@@ -1,0 +1,65 @@
+schema: TASK_BRIEF/v1
+task_id: CODEX-DS10-P0A-W4-READ-BINDING-INTEGRATION-R191
+route_epoch: 191
+project: SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001
+project_alias: TRADING_SYSTEM
+source_issue: 552
+parent_program_issue: 31
+executor: CODEX_STANDARD
+boundary: RESEARCH_ONLY / NO_TRADE
+canonical_main_at_prepare: 286c67d8ff1f49da6762cc0cd54e1d85cc086430
+
+objective: >-
+  Integrate the canonical W4 read binding (CanonicalExperimentFamilyReadReceipt/v1 + verified W4
+  snapshot/read surface) into the existing R183 / PR #557 DS-10 P0A research-integrity kernel, so that
+  DS-10 can establish GENUINE canonical W4 provenance for the ExperimentFamilySnapshot it audits. Only
+  when provenance is genuinely canonical and all existing P0A gates remain clean may DS-10 remove the
+  W4_AUTHORITY_BINDING_NOT_IMPLEMENTED_P0A / EXTERNAL_CANONICAL_BINDING_REQUIRED abstention and reach
+  ELIGIBLE_FOR_W7_VALIDATION (which must remain != W7 ACCEPT).
+
+step_one_read_surface_inventory:
+  - Reconfirm the canonical W4 read binding is present at main 286c67d8 (read_binding.py + registry.py + CANONICAL-W4-STORE.yaml).
+  - Confirm DS-10 research_integrity.py currently hard-codes the abstention (finding W4_AUTHORITY_BINDING_NOT_IMPLEMENTED_P0A at UNKNOWN; w4_authority_state = EXTERNAL_CANONICAL_BINDING_REQUIRED; disposition always ABSTAIN).
+  - Confirm no second W4 registry / TrialLedger / read-receipt store exists or is needed.
+
+step_two_consumer_adapter:
+  - Add a DS-10-owned, READ-ONLY consumer adapter that loads the governed W4 read_binding module by (ref, blob_sha) with byte-level drift verification (same importlib pattern as _load_verified_w2_rule_module) and calls verify_canonical_family_receipt().
+  - Cross-check the verified receipt's canonical family identity against the audited DS-10 ExperimentFamilySnapshot: registered_family_digest == snapshot.computed_family_digest(); experiment_family_ref / selection_rule_ref / benchmark_ref / metric_id / horizon_id / search_space_ref / selected_trial_id; expected_trial_manifest_digest == digest(snapshot.expected_trial_digests).
+  - Only when the receipt primary is CANONICAL_W4_READ_VERIFIED (or POINTER_ADVANCED) AND the cross-checks pass, mark w4 provenance canonical and remove the abstention.
+
+step_three_abstention_removal_semantics:
+  - Remove W4_AUTHORITY_BINDING_NOT_IMPLEMENTED_P0A and set w4_authority_state to a verified-canonical state ONLY when the receipt verifies canonically AND cross-checks pass. Otherwise preserve the existing ABSTAIN behavior exactly.
+  - Preserve ELIGIBLE_FOR_W7_VALIDATION != W7 ACCEPT: keep w7_handoff_is_acceptance = False.
+  - Preserve all existing P0A gates: trial reconciliation, selection-bias, lockbox, PIT/no-lookahead, method-state. None of these may be relaxed.
+
+step_four_verification:
+  - Adversarial tests: caller-supplied expected_w4_snapshot_digest alone must NEVER remove the abstention (preserve test_matching_digest_never_mints_w4_authority); a forged/mismatched receipt must keep ABSTAIN; a non-canonical / wrong-family receipt must keep ABSTAIN; only a genuinely canonical receipt matching the snapshot reaches ELIGIBLE_FOR_W7_VALIDATION.
+  - Regression: all existing 45+ P0A tests must still pass.
+  - Offline CI: exact-head push run on both 3.11 and 3.13.
+
+hard_boundaries:
+  - RESEARCH_ONLY / NO_TRADE
+  - NO account / broker / funds / position / order authority
+  - NO W4 write authority from DS-10 (W4 files are READ-ONLY referenced)
+  - NO second store / ledger / read-receipt store
+  - NO probability / W7 validation / risk / position / order / trade authority
+  - NO self-review / self-merge / direct-main
+  - ELIGIBLE_FOR_W7_VALIDATION is NOT W7 ACCEPT
+  - Issue #561 (P0B Deflated Sharpe) is downstream and must NOT be started by this route
+
+allowed_write_surface:
+  - ".github/workflows/ds10-research-integrity-p0a.yml"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/RESEARCH-INTEGRITY-AUDIT.schema.json"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/src/offline_research/research_integrity.py"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/tests/test_research_integrity.py"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-DS10-P0A-W4-READ-BINDING-INTEGRATION-R191/**"
+
+forbidden_write_surface:
+  - "coordination/ACTIVE-CODEX-TASK.yaml"
+  - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+  - "coordination/ROUTES/**"
+  - "coordination/TASK-BRIEFS/**"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W4-STRATEGY-EXPERIMENT-FAMILY-P0/**"
+
+completion_signal: DS10_P0A_CANONICAL_W4_READ_BINDING_INTEGRATED_ELIGIBLE_FOR_W7_VALIDATION_NOT_ACCEPT
+next_command: START_DS10_P0A_W4_READ_BINDING_CONSUMER_ADAPTER_THEN_VERIFY_CANONICAL_PROVENANCE

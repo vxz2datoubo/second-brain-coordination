@@ -1,0 +1,71 @@
+schema: EFFECTIVE_SPEC_SNAPSHOT/v1
+spec_snapshot_id: TRADING-CODEX-R191-ISSUE552-SNAPSHOT-001
+task_id: CODEX-DS10-P0A-W4-READ-BINDING-INTEGRATION-R191
+route_epoch: 191
+source_issue: 552
+project: SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001
+project_alias: TRADING_SYSTEM
+executor: CODEX_STANDARD
+canonical_main_at_reconcile: 286c67d8ff1f49da6762cc0cd54e1d85cc086430
+owner_direction_ref: issuecomment-5614860622
+
+reconciled_contract:
+  upstream_560_sor: >-
+    W4-owned append-only SQLite event store (experiment_events, WAL) with deterministic reducer ->
+    ExperimentFamilySnapshot/v1 via Registry.read_experiment_family(). Canonicalized c94113fc.
+  upstream_559_sor: >-
+    CanonicalExperimentFamilyReadReceipt/v1 + read_binding.py (resolve_canonical_w4_store_v1 with NO caller
+    args; read_canonical_family; verify_canonical_family_receipt) proving a digest was obtained from the
+    canonical W4 read surface at canonical ref, never authored by the caller. Canonicalized 286c67d8.
+  this_route_552_sor: >-
+    DS-10 P0A consumes the canonical W4 read binding via a DS-10-owned READ-ONLY consumer adapter. Remove the
+    W4_AUTHORITY_BINDING_NOT_IMPLEMENTED_P0A / EXTERNAL_CANONICAL_BINDING_REQUIRED abstention ONLY when the
+    receipt verifies CANONICAL_W4_READ_VERIFIED and its canonical family identity matches the audited snapshot.
+    Preserve every P0A gate. ELIGIBLE_FOR_W7_VALIDATION != W7 ACCEPT.
+
+digest_compatibility_finding:
+  canonicalization: >-
+    W4 registry.digest and DS-10 research_integrity._digest are byte-identical
+    (json.dumps sort_keys separators ensure_ascii=False -> sha256 utf-8). DS-10 computed_family_digest()
+    field-set equals W4 registered_family_digest_v1() field-set exactly, so
+    receipt.registered_family_digest == snapshot.computed_family_digest() is the canonical bridge.
+
+authority_flags_all_false:
+  experiment_registry_write_authority: false
+  strategy_experiment_write_authority: false
+  probability_authority: false
+  final_validation_authority: false
+  risk_override_authority: false
+  position_authority: false
+  order_authority: false
+  trade_authority: false
+  w7_handoff_is_acceptance: false
+
+capacity:
+  codex_active_execution_routes_max: 1
+  codex_active_routes_after_admission: 1
+  gpt_engineering_worker: CLOSED_NO_ACTIVE_IMPLEMENTATION
+  codex_r181: PRIORITY_PARKED_UNCHANGED
+
+executor_model_verification:
+  policy: RUNTIME_DISCOVER_ACTUAL_CODEX_MODEL_NO_FRONTIER_NO_ASTRA
+  preferred_standard_model: gpt-5.6-terra
+  reasoning: high
+  plan_first: true
+  forbidden: [Astra, Frontier]
+
+hard_locks:
+  - NO_REAL_TRADE
+  - NO_ACCOUNT_BROKER_FUNDS_POSITION_ORDER
+  - NO_W4_WRITE_AUTHORITY_FROM_DS10
+  - NO_SECOND_STORE_OR_LEDGER
+  - NO_PROBABILITY_AUTHORITY
+  - NO_W7_VALIDATION_AUTHORITY
+  - NO_SELF_REVIEW_SELF_ACCEPT_SELF_MERGE
+  - NO_DIRECT_MAIN_WRITE
+  - NO_DS10_P0B_561_START
+
+non_assertions:
+  - no canonical project completion
+  - no W7 ACCEPT authority
+  - no acceptance or canonicality inheritance from R190
