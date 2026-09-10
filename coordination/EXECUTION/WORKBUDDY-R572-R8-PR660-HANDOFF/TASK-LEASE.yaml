@@ -1,0 +1,36 @@
+schema_version: "1.0"
+lease_id: "WORKBUDDY-R572-R8-PR660-LEASE"
+state: "AVAILABLE_FOR_CLAIM"
+repository: "vxz2datoubo/second-brain-coordination"
+project: "SECOND_BRAIN"
+source_issue: 572
+handoff_issue: 667
+pull_request: 660
+route_ref: "coordination/ROUTES/WORKBUDDY-R572-R8-PR660-HANDOFF.yaml"
+claim_ref: "coordination/EXECUTION/WORKBUDDY-R572-R8-PR660-HANDOFF/WORK-CLAIM.yaml"
+executor: "WORKBUDDY"
+collision_domain: "R572_R8_WORKER_SLOTS_COMPATIBILITY"
+exclusive_writer: true
+lease_scope:
+  implementation_paths: 6
+  branch: "gpt/r572-r8-worker-slots-compat-remediation-20260909"
+  exact_head_at_mint: "c29cea2e38b13dccfbe5af05ae83e993435c7db6"
+claim_requirements:
+  fresh_main_required: true
+  fresh_exact_head_required: true
+  no_colliding_writer_required: true
+  runtime_model_refresh_required: true
+release_conditions:
+  - "WORKBUDDY_R572_R8_PR660_REMEDIATION_COMPLETE"
+  - "blocked_by_owner_gate"
+  - "scope_expansion_required"
+  - "collision_detected"
+  - "lease_invalidated_by_exact_head_or_authority_change"
+lease_does_not_grant:
+  - "review_authority"
+  - "merge_authority"
+  - "canonicalization_authority"
+  - "real_capture_authority"
+  - "operational_w3_write_authority"
+  - "r184_start_authority"
+  - "trading_or_runtime_authority"
