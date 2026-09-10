@@ -1,0 +1,67 @@
+schema: W4_R189_REUSE_INVENTORY/v1
+task_id: CODEX-W4-STRATEGY-EXPERIMENT-FAMILY-R189
+route_epoch: 189
+issue: 560
+inventory_at_remote_main: 21227477988dccdaefea5babf8d661d44649b100
+boundary: RESEARCH_ONLY / NO_TRADE
+method:
+  repository_search: >-
+    Case-insensitive filename/content scan for StrategyExperimentFamily,
+    ExperimentTrialRecord, experiment_events, TrialLedger, experiment_ledger,
+    BacktestConfig, BacktestResult, TradingDomainV01, trading_domain.py, and
+    SweepReclaimExperimentFamily.
+  local_protected_accessible_search: >-
+    Same scan across F:/SecondBrainWorkspace excluding Git metadata and duplicate
+    checkout copies; only issue evidence, legacy classification, and duplicate
+    repository checkouts were accessible. No protected W4 runtime/store was found.
+classifications:
+  canonical_sor_reuse: []
+  canonical_component_reuse:
+    - artifact: coordination/GOVERNANCE/ENTERPRISE-BLUEPRINT-AUTHORITY-AND-INTERFACE-REGISTRY-v1.0.yaml
+      role: W4 ownership declaration for StrategyExperimentFamily / C6 producer
+      write: false
+    - artifact: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src/offline_research/engine.py
+      role: deterministic evidence-identity pattern only; not a W4 store
+      write: false
+    - artifact: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/integrated_offline_memory/replay_bridge.py
+      role: immutable ReplayReceipt reference pattern only; not a W4 writer
+      write: false
+    - artifact: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/src/offline_research/research_integrity.py
+      role: R183 canonical JSON/digest compatibility oracle; downstream read-only consumer
+      write: false
+  migration_source_only:
+    - artifact: TradingDomainV01 / brain_core/trading_domain.py references
+      role: proposed legacy adapter candidate; no accessible implementation or complete history
+    - artifact: BacktestConfig / BacktestResult references
+      role: proposed/adapt concepts only; no concrete public persistence or complete trial history
+  specialist_contract_only:
+    - artifact: coordination/SKILLS/A-SHARE-LIQUIDITY-SWEEP-RECLAIM-VALIDATION-SKILL-v1.0.yaml
+      role: SweepReclaimExperimentFamily design input; registered candidate, not global SoR
+  proposed_blueprint_only:
+    - artifact: coordination/GOVERNANCE/TYPED-NUMERIC-PARAMETER-AND-EXPERIMENT-LEDGER-v1.0.yaml
+      role: candidate pending independent review; semantic reference only
+    - artifact: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-0/ENTERPRISE-CONTRACT-REGISTRY.yaml
+      role: research.definition_experiment.v1 partial implementation; no storage proof
+    - artifact: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-1/EXISTING-TYPE-COMPATIBILITY-MATRIX.yaml
+      role: BacktestConfig/BacktestResult/ValidationReport adaptation guidance only
+  deprecated_or_unknown:
+    - artifact: F:/SecondBrainWorkspace/evidence/issue-560-fresh.json
+      role: local issue mirror/evidence, not implementation authority
+    - artifact: F:/SecondBrainWorkspace/evidence/r189-trading-predispatch-comment.md
+      role: local issue evidence, not implementation authority
+    - artifact: F:/SecondBrainWorkspace/workspace-meta/LEGACY-CLASSIFICATION.yaml
+      role: workspace classification metadata, not W4 persistence
+    - artifact: F:/SecondBrainWorkspace/workspace-meta/PRE_ASTRA_REALITY_CONVERGENCE_PACKAGE-v2.md
+      role: planning material, not W4 persistence
+decision:
+  canonical_w4_sor_found: false
+  complete_existing_trial_history_found: false
+  local_protected_w4_source_found: false
+  disposition: CREATE_MINIMAL_W4_SQLITE_PERSISTENCE
+  rationale: >-
+    No authoritative W4 StrategyExperimentFamily persistence exists in the
+    repository or locally/protected-accessible scope. The implementation reuses
+    only component semantics and never creates replay, backtest, W7 validation,
+    probability, market-data, or trade authority.
+  no_second_ledger: true
+  no_downstream_559_started: true
