@@ -1,0 +1,143 @@
+schema_version: "1.0"
+registry_id: "TRADING-ONLINE-PROVIDER-CAPABILITY-REGISTRY-R195"
+status: "CANDIDATE_EVIDENCE"
+source_issue: 690
+roadmap_issue: 688
+observed_at: "2026-09-10T23:46:56Z"
+boundary: "READ_ONLY / NO_TRADE"
+
+semantics:
+  provider_availability_is_runtime_discovered: true
+  connected_plugin_observation_is_not_local_runtime_verification: true
+  provider_metadata_is_not_canonical_field_semantics: true
+  ambiguous_fields_fail_closed: true
+  provider_specific_truth_must_preserve_provenance: true
+
+providers:
+  - provider_id: "LONGBRIDGE_CONNECTED"
+    display_name: "Longbridge"
+    transport_class: "CHATGPT_PLUGIN"
+    current_role: "STRUCTURED_A_SHARE_ONLINE_MARKET_PORT"
+    observation_class: "CONNECTED_ONLINE_RUNTIME_OBSERVED"
+    local_runtime_verified: false
+    production_server_api_verified: false
+    capabilities:
+      quote:
+        state: "OBSERVED"
+        evidence:
+          - "300418.SZ returned last/open/high/low/prev_close/volume/turnover/timestamp/trade_status"
+          - "300058.SZ returned last/open/high/low/prev_close/volume/turnover/timestamp/trade_status"
+      market_temperature:
+        state: "OBSERVED"
+        evidence:
+          - "CN temperature=44; description=Neutral & gradually dropping; valuation=79; sentiment=9"
+      screener_search:
+        state: "OBSERVED_WITH_SEMANTIC_DEFECT"
+        evidence:
+          - "CN prevchg>=3% AND turnover_rate>=3% returned total=150"
+        unresolved_fields:
+          - field: "marketcap"
+            finding: "raw-looking values such as 50106812328 were returned with display unit 亿"
+            disposition: "AMBIGUOUS_UNIT_SCALE / EXCLUDE_FROM_CANONICAL_USE"
+      depth:
+        state: "PARTIAL_OR_ENTITLEMENT_UNVERIFIED"
+        note: "Prior after-close observation returned empty; live-session capability still requires market-hours verification."
+      recent_trades:
+        state: "PARTIAL_OR_ENTITLEMENT_UNVERIFIED"
+        note: "Prior after-close observation returned empty; live-session capability still requires market-hours verification."
+      intraday:
+        state: "OBSERVED_PRIOR_SESSION"
+        note: "Minute data was observed in prior online audit; freshness and entitlement must be rechecked each run."
+      capital_flow:
+        state: "OBSERVED_WITH_SCHEMA_MISMATCH"
+        note: "Observed runtime payload shape differed from advertised multi-field semantics; do not promote to canonical net-flow semantics."
+      anomaly:
+        state: "OBSERVED_PRIOR_SESSION"
+        note: "A-share event-level anomaly observations were available; treat as provider events, not exchange truth."
+    invalidation_conditions:
+      - "plugin disconnected"
+      - "provider entitlement changes"
+      - "schema/payload shape changes"
+      - "market session or timestamp semantics cannot be reconciled"
+      - "provider rate limit or partial-page response"
+
+  - provider_id: "BIGDATA_CONNECTED"
+    display_name: "Bigdata.com"
+    transport_class: "CHATGPT_PLUGIN"
+    current_role: "FINANCIAL_RESEARCH_AND_CROSS_SOURCE_EVIDENCE_PORT"
+    observation_class: "CONNECTED_ONLINE_RUNTIME_OBSERVED"
+    local_runtime_verified: false
+    production_server_api_verified: false
+    capabilities:
+      security_resolution:
+        state: "OBSERVED"
+        evidence:
+          - "300418 resolved to Kunlun Tech Co. Ltd.; rp_entity_id=9852A1; listing XSHE:300418; listing_type=PUBLIC"
+      company_tearsheet:
+        state: "OBSERVED"
+        evidence:
+          - "Kunlun price=44.26, change=-1.43, change_percentage=-3.12979%, volume=36895869 shares, timestamp=2026-09-10T07:04:40Z"
+          - "company overview source identifies Corporate Fundamentals / provider FMP"
+          - "latest earnings Q2 2026 revenue actual=2759444000, estimated=2789401000"
+      market_data_cross_check:
+        state: "OBSERVED_CANDIDATE_QUORUM_EVIDENCE"
+        note: >-
+          Bigdata volume 36,895,869 shares and Longbridge volume 368,959 are strongly
+          suggestive of a share-vs-lot scale relationship, because 368,959*100=36,895,900,
+          but this inference is NOT canonical semantics and remains unresolved until provider
+          field-unit evidence closes the 31-share discrepancy.
+    invalidation_conditions:
+      - "plugin disconnected"
+      - "source provider coverage changes"
+      - "security mapping changes"
+      - "underlying source timestamp too stale for requested decision"
+
+  - provider_id: "TINYFISH_CONNECTED"
+    display_name: "TinyFish"
+    transport_class: "CHATGPT_PLUGIN"
+    current_role: "WEB_EVENT_ACQUISITION_PORT"
+    observation_class: "UNKNOWN"
+    local_runtime_verified: false
+    production_server_api_verified: false
+    capabilities:
+      browser_interaction:
+        state: "CONNECTED_TOOL_AVAILABLE_DOMAIN_COVERAGE_NOT_YET_VERIFIED"
+        note: "Useful for official/public web evidence acquisition; no A-share-specific runtime acceptance is minted by this registry."
+    invalidation_conditions:
+      - "plugin disconnected"
+      - "target website blocks automation"
+      - "login/session unavailable"
+      - "page evidence cannot be timestamped/provenanced"
+
+  - provider_id: "GITHUB_CONNECTED"
+    display_name: "GitHub"
+    transport_class: "CONNECTED_CONNECTOR"
+    current_role: "ENGINEERING_GOVERNANCE_TRUTH_AND_CANDIDATE_EVIDENCE_TRANSPORT"
+    observation_class: "CONNECTED_ONLINE_RUNTIME_OBSERVED"
+    local_runtime_verified: false
+    production_server_api_verified: false
+    capabilities:
+      fresh_main_read:
+        state: "OBSERVED"
+        evidence:
+          - "main=2d8421cbd4d599e56321306a023c499b65eba05a at R195 preparation"
+      isolated_candidate_branch_write:
+        state: "OBSERVED"
+        evidence:
+          - "gpt/r195-online-gpt-trading-runtime created from exact main"
+    invalidation_conditions:
+      - "repository permission changes"
+      - "main advances and candidate is not reconciled"
+
+local_deep_layer:
+  provider_ids: ["TDX", "TQ", "L2"]
+  required_for_online_mode: false
+  authority_when_available: "DEEP_MICROSTRUCTURE_READ_ONLY"
+  current_online_session_state: "NOT_REQUIRED_FOR_R195_FIRST_SLICE"
+  missing_capabilities_must_be_reported:
+    - "TRUE_L2_DEPTH_HISTORY"
+    - "TICK_RECONSTRUCTED_DELTA"
+    - "CVD"
+    - "ABSORPTION"
+    - "FOOTPRINT"
+    - "EXCHANGE_QUEUE_MICROSTRUCTURE"
