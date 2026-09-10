@@ -1,0 +1,115 @@
+schema: EFFECTIVE_SPEC_SNAPSHOT/v1
+task_id: CODEX-W4-CANONICAL-EXPERIMENT-FAMILY-READ-BINDING-R190
+route_epoch: 190
+source_issue: 559
+project: SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001
+project_alias: TRADING_SYSTEM
+executor: CODEX_STANDARD
+boundary: RESEARCH_ONLY / NO_TRADE
+gate: "#453 SPEC_SNAPSHOT_GATE/v1"
+
+repository: vxz2datoubo/second-brain-coordination
+canonical_main_at_snapshot: 58c568ca280a023ff961aae4bd15f8492d18a8ce
+predecessor_route: CODEX-W4-STRATEGY-EXPERIMENT-FAMILY-R189
+predecessor_state: TERMINAL_COMPLETED
+upstream_completed_issue: 560
+upstream_completion_signal: W4_CANONICAL_STRATEGY_EXPERIMENT_FAMILY_PERSISTENCE_READY_FOR_READ_BINDING
+upstream_signal_ref: issuecomment-5613811829
+
+# --- 1. fresh reconcile of the #560 canonical implementation / store disposition ---
+upstream_560_disposition:
+  delivered_by: R189 (PR #663 slice 1 + PR #665 slice 2, canonical c94113fc)
+  canonical_read_surface:
+    path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W4-STRATEGY-EXPERIMENT-FAMILY-P0/src/w4_experiment_family/registry.py
+    operation: "Registry.read_experiment_family(exact_family_revision) -> ExperimentFamilySnapshot/v1"
+    producer: W4
+  canonical_store_kind: W4_OWNED_APPEND_ONLY_SQLITE_EVENT_STORE
+  store_detail:
+    table: experiment_events
+    columns: [event_offset, event_id, idempotency_key, family_id, family_revision_id, family_sequence, event_type, semantic_digest, previous_event_digest, event_digest, record_json]
+    journal_mode: WAL
+    reducer: Registry.reduce_rows / reduce_family_snapshot
+    digests: [semantic_digest, event_digest, registered_family_digest_v1]
+  store_resolver_today: "open_store(path=':memory:') — NO governed resolver; caller chooses the connection"
+  second_registry_found: NONE
+  second_read_receipt_store_found: NONE
+
+# --- 2. #559 G1/G2/G2A/G2B/G3/G7/G8/G9 contract recompile against the ACTUAL SoR ---
+recompile:
+  basis: "Issue #559 comment 8 §11 — recompile against the actual canonical source; do not force #560 to match pre-release design"
+  finding: >
+    The actual #560 SoR (W4-owned append-only SQLite event store) MATCHES the G2/G2A/G3
+    SQLite-oriented assumptions. The Git-backed alternative path is therefore NOT required;
+    Git remains code/schema/governance/evidence transport. No second truth store is created.
+  contract_version_effective: G1+G2+G2A+G2B+G3+G7+G8+G9 (compiled, SQLite-backed P0)
+  git_backed_branch_status: NOT_REQUIRED_FOR_P0
+
+# --- 3. R183 / DS-10 consumer contract (read-only; adapter owned by DS-10) ---
+r183_consumer_contract:
+  consumer_path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/src/offline_research/research_integrity.py
+  consumer_entrypoint: "audit_research_integrity(snapshot, *, expected_w4_snapshot_digest, ...)"
+  current_state: "emits W4_AUTHORITY_BINDING_NOT_IMPLEMENTED_P0A; w4_authority_state=EXTERNAL_CANONICAL_BINDING_REQUIRED"
+  r190_obligation: >
+    Provide a non-caller-mintable W4 read receipt + verifier that DS-10 can consume to replace
+    'caller snapshot + expected_w4_snapshot_digest'. R190 does NOT edit DS-10 code; the DS-10
+    consumer adapter is a separate DS-10-owned governed step.
+  ds10_write: FORBIDDEN
+
+# --- 4. current main / capacity / overlap ---
+capacity_and_overlap:
+  codex_active_routes_before: 1
+  codex_active_routes_max: 1
+  codex_active_routes_after: 1
+  overlapping_open_pr_on_target_files: NONE
+  gpt_worker_r182_r183: CANONICAL_HISTORY_NO_ACTIVE_IMPLEMENTATION
+  codex_r181_pr549: PRESERVED_UNCHANGED_0aa32e31f0130bf144d43ebecef03613f3f268e4
+
+# --- 5. executor model verification (live) ---
+executor_model_verification:
+  cli: codex-cli 0.147.0
+  profile: CODEX_STANDARD
+  model: gpt-5.6-terra
+  provider: openai
+  reasoning_effort: high
+  plan: PLAN_FIRST_ENFORCED_VIA_TASK_PROMPT   # codex-cli 0.147.0 exposes no first-class --plan flag
+  sandbox_forced: workspace-write              # overrides user config danger-full-access
+  frontier_or_astra: FORBIDDEN_AND_NOT_USED
+  probe: "codex exec -m gpt-5.6-terra -c model_reasoning_effort=high -s read-only -> MODEL_PROBE_OK"
+
+# --- 6. scope / authority ---
+allowed_write_surface:
+  - coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W4-STRATEGY-EXPERIMENT-FAMILY-P0/**
+  - coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-W4-CANONICAL-EXPERIMENT-FAMILY-READ-BINDING-R190/**
+  - tests/test_w4_canonical_experiment_family_read_binding.py
+read_only_dependencies:
+  - coordination/ACTIVE-CODEX-TASK.yaml
+  - coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W4-STRATEGY-EXPERIMENT-FAMILY-P0/src/w4_experiment_family/registry.py
+forbidden:
+  - coordination/ACTIVE-CODEX-TASK.yaml           # read-only, never write
+  - coordination/ACTIVE-PROGRAM-LANES.yaml
+  - coordination/ROUTES/**
+  - coordination/TASK-BRIEFS/**
+  - any DS10_RESEARCH_INTEGRITY write surface
+  - any MARKET_DATA_ADAPTER / PIT_REPLAY_ENGINE / ORDER_EXECUTION_AUTHORITY / ACCOUNT_BROKER_FUNDS_POSITION_ORDER / PROBABILITY_REGISTRY / W7_VALIDATION_AUTHORITY / BACKTEST_AUTHORITY surface
+
+hard_locks:
+  - NO_REAL_TRADE
+  - NO_ACCOUNT_OR_BROKER_CREDENTIAL_ACCESS
+  - NO_FUNDS_OR_POSITION_AUTHORITY
+  - NO_ORDER_PLACEMENT
+  - NO_FRONTIER_OR_ASTRA_AUTHORITY
+  - NO_SECOND_EXPERIMENT_OR_TRIAL_LEDGER
+  - NO_SECOND_EXPERIMENT_FAMILY_READ_RECEIPT_STORE
+  - NO_CALLER_MINTED_TRUST_ROOT
+  - NO_DS10_WRITE
+  - NO_SELF_REVIEW_SELF_ACCEPT_SELF_MERGE
+  - NO_DIRECT_MAIN_WRITE
+
+non_assertions:
+  - no independent ACCEPT
+  - no canonical project completion
+  - no DS-10 ownership write
+  - no caller-minted trust root
+  - no Frontier/Astra authority
+
+completion_signal: W4_CANONICAL_EXPERIMENT_FAMILY_READ_BINDING_READY_FOR_DS10_INTEGRATION
