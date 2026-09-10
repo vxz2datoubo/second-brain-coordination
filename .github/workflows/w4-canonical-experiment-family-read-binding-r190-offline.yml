@@ -1,0 +1,18 @@
+name: W4 canonical experiment-family read binding R190 offline
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: {python-version: ['3.11', '3.13']}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '${{ matrix.python-version }}'}
+      - run: git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main || true
+      - run: python -m compileall coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W4-STRATEGY-EXPERIMENT-FAMILY-P0/src
+      - run: python -m unittest tests/test_w4_canonical_experiment_family_read_binding.py -v
+      - run: python -m unittest coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W4-STRATEGY-EXPERIMENT-FAMILY-P0/tests/test_experiment_family.py -v

@@ -1,0 +1,83 @@
+schema: CODEX-W4-CANONICAL-EXPERIMENT-FAMILY-READ-BINDING-R190-RECEIPT/v1
+task_id: CODEX-W4-CANONICAL-EXPERIMENT-FAMILY-READ-BINDING-R190
+route_epoch: 190
+source_issue: 559
+project: SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001
+project_alias: TRADING_SYSTEM
+executor: CODEX_STANDARD
+scope: RESEARCH_ONLY
+boundary: RESEARCH_ONLY / NO_TRADE
+canonical_main_at_branch: 58c568ca280a023ff961aae4bd15f8492d18a8ce
+implementation_branch: codex/r190-w4-canonical-experiment-family-read-binding
+upstream_completion_signal_ref: issuecomment-5613811829
+
+step_one_read_surface_inventory:
+  w4_canonical_read_surface:
+    ref: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W4-STRATEGY-EXPERIMENT-FAMILY-P0/src/w4_experiment_family/registry.py
+    operation: read_experiment_family(exact_family_revision) -> ExperimentFamilySnapshot/v1
+    disposition: REUSED_AND_EXTENDED_IN_PLACE_INSIDE_W4_OWNERSHIP
+  second_experiment_or_trial_store: NONE
+  second_read_receipt_store: NONE
+  ds10_consumer: READ_ONLY_EXTERNAL_CONSUMER
+  conclusion: REUSE_EXTEND_W4_CANONICAL_READ_SURFACE
+
+step_two_read_binding:
+  receipt_type: CanonicalExperimentFamilyReadReceipt/v1
+  receipt_schema_ref: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W4-STRATEGY-EXPERIMENT-FAMILY-P0/CANONICAL-EXPERIMENT-FAMILY-READ-RECEIPT.schema.json
+  module_ref: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W4-STRATEGY-EXPERIMENT-FAMILY-P0/src/w4_experiment_family/read_binding.py
+  non_caller_mintable: true
+  caller_selected_store_path_or_sha_parameters: NONE
+  governed_descriptor_ref: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W4-STRATEGY-EXPERIMENT-FAMILY-P0/fixtures/canonical-store/CANONICAL-W4-STORE.yaml
+  trust_root: GOVERNED_CHECKED_IN_DESCRIPTOR
+  reconstruction: FRESH_TEMP_SQLITE_PER_RESOLUTION
+  binds: [repository, canonical_main_sha, canonical_main_sha_source, w4_contract_version,
+          w4_read_surface_id, w4_read_surface_code_digest, runtime_code_digest,
+          experiment_family_ref, family_revision_id, family_content_digest,
+          expected_trial_manifest_digest, trial_id_set_digest, trial_count, ledger_head_digest,
+          ledger_head_sequence, ledger_event_count, ordered_event_digest_manifest_digest,
+          selection_rule_ref, benchmark_ref, metric_id, horizon_id, search_space_ref,
+          task_id, route_epoch, executor_role, work_claim_ref, authorization_witness_ref,
+          read_at, as_of, receipt_digest, authority]
+
+step_three_verification:
+  adversarial_tests:
+    caller_minted_digest: PASS
+    invented_canonical_sha: PASS
+    foreign_work_claim_ref: PASS
+    mutable_local_copy_read: PASS
+    cross_revision_manifest_digest: PASS
+    noncanonical_ref: PASS
+    receipt_reuse_across_family_and_revision: PASS
+    snapshot_alias_schema_coverage: PASS
+    read_call_contract_pinned: PASS
+    authority_flags_cannot_be_forged: PASS
+    canonical_state_unavailable_fails_closed: PASS
+    no_write_adapter_and_store_read_only: PASS
+  regression_no_560_read_surface_loss: PASS
+  carried_forward_findings:
+    pullrequestreview-5163176901_finding_1_snapshot_alias_schema_coverage: CLOSED
+    pullrequestreview-5163176901_finding_4_read_call_contract: CLOSED
+  additional_hardening:
+    stdlib_validator_const_keyword: ADDED (SCHEMA_CONST_INVALID); no prior W4 schema used const, so additive-only
+  cross_environment_impersonation_check:
+    feature_branch_or_local_copy_receipt_against_canonical_main_verifier: REJECTED_W4_STORE_IDENTITY_MISMATCH
+    ci_no_local_main_ref_behaviour: RESOLVES_VIA_REFETCHED_ORIGIN_MAIN_OR_LAST_RESORT_HEAD
+  commands:
+    - python -m compileall -q coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W4-STRATEGY-EXPERIMENT-FAMILY-P0/src
+    - python -m unittest tests/test_w4_canonical_experiment_family_read_binding.py -v
+    - python -m unittest coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W4-STRATEGY-EXPERIMENT-FAMILY-P0/tests/test_experiment_family.py -v
+  observed_counts:
+    read_binding_tests: 11
+    regression_tests: 9
+  result: PASS
+
+non_assertions:
+  - no second experiment or trial store created
+  - no second read-receipt store created
+  - no DS-10 ownership write
+  - no caller-minted trust root
+  - no Frontier or Astra authority
+  - no W7 / probability / risk / position / order / trade authority
+  - no independent ACCEPT asserted
+  - no canonicalization asserted
+  - no real trade or order
