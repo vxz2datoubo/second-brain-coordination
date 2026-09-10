@@ -1,6 +1,7 @@
 {
   "schema": "CreativeExecutorWorkBatch/v1",
   "batch_id": "SECOND-BRAIN-R194-DURABLE-MISSION-CLI-CARRIER-001",
+  "authority": "CANONICAL_BOUND_BATCH_EXECUTABLE",
   "control_plane_repository": "vxz2datoubo/second-brain-coordination",
   "execution_repository": "vxz2datoubo/second-brain-coordination",
   "project_id": "SECOND_BRAIN",
@@ -77,6 +78,7 @@
       "kind": "FRESH_CLI_AND_KERNEL_REUSE_AUDIT",
       "status": "PLANNED",
       "depends_on": [],
+      "write_paths": ["coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/**"],
       "outcome": "Fresh-read canonical authority and current kernel; discover CLI version/model without creating a second carrier/control plane."
     },
     {
@@ -85,6 +87,7 @@
       "kind": "REAL_BOUNDED_CLI_EPISODE_AND_RESUME_ADAPTER",
       "status": "PLANNED",
       "depends_on": ["C0"],
+      "write_paths": ["tools/durable_mission_kernel/**", "tests/durable_mission_kernel/**"],
       "outcome": "Implement bounded codebuddy -p episode execution, session identity, --resume across new process and kernel-owned exit/result attestation."
     },
     {
@@ -93,6 +96,7 @@
       "kind": "MISSION_PROGRESS_WATCHDOG",
       "status": "PLANNED",
       "depends_on": ["C1"],
+      "write_paths": ["tools/durable_mission_kernel/**", "tests/durable_mission_kernel/**"],
       "outcome": "Detect live-but-stalled carriers using mission progress deadlines independent of process heartbeat."
     },
     {
@@ -101,6 +105,7 @@
       "kind": "CRASH_RECOVERY_AND_IDEMPOTENT_EPISODE_RECONCILIATION",
       "status": "PLANNED",
       "depends_on": ["C2"],
+      "write_paths": ["tools/durable_mission_kernel/**", "tests/durable_mission_kernel/**"],
       "outcome": "Recover after supervisor crash without repeating committed episode; preserve OUTCOME_UNKNOWN until reconciled."
     },
     {
@@ -109,6 +114,7 @@
       "kind": "DETERMINISTIC_AND_LIVE_SYNTHETIC_CANARY_FREEZE",
       "status": "PLANNED",
       "depends_on": ["C3"],
+      "write_paths": ["tests/test_unified_execution_durable_mission_kernel.py", "coordination/EXECUTION/PHASE-C-DURABLE-MISSION-CLI-CARRIER/**", "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/**"],
       "outcome": "Run regression plus live V4.1 Flash episode/resume/crash-recovery canary; freeze candidate exact head and return, without self-review or merge."
     }
   ],
