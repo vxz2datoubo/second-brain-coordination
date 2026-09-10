@@ -1,0 +1,97 @@
+{
+  "schema": "CreativeExecutorWorkBatch/v1",
+  "batch_id": "SECOND-BRAIN-R572-R8-PR660-WORKBUDDY-HANDOFF-001",
+  "project_id": "SECOND_BRAIN",
+  "authority": "CANONICAL_BOUND_BATCH_EXECUTABLE",
+  "source_checkpoint": {
+    "branch": "gpt/r572-r8-worker-slots-compat-remediation-20260909",
+    "exact_head": "c29cea2e38b13dccfbe5af05ae83e993435c7db6",
+    "checkpoint_remote_ref": "refs/heads/gpt/r572-r8-worker-slots-compat-remediation-20260909"
+  },
+  "route_authority": {
+    "execution_allowed": true,
+    "task_id": "WORKBUDDY-R572-R8-PR660-REMEDIATION",
+    "active_issue": 667,
+    "route_epoch": 5728,
+    "route_ref": "coordination/ROUTES/WORKBUDDY-R572-R8-PR660-HANDOFF.yaml",
+    "claim_ref": "coordination/EXECUTION/WORKBUDDY-R572-R8-PR660-HANDOFF/WORK-CLAIM.yaml",
+    "lease_ref": "coordination/EXECUTION/WORKBUDDY-R572-R8-PR660-HANDOFF/TASK-LEASE.yaml",
+    "snapshot_ref": "coordination/EXECUTION/WORKBUDDY-R572-R8-PR660-HANDOFF/PREWRITE-RECONCILIATION-SNAPSHOT.yaml"
+  },
+  "automatic_resume_within_batch": true,
+  "items": [
+    {
+      "item_id": "WB-R8-V1",
+      "owner": "WORKBUDDY",
+      "kind": "CLEAN_REPRODUCTION_AND_REALITY_AUDIT",
+      "status": "PLANNED",
+      "complexity": "D3",
+      "depends_on": [],
+      "write_paths": [],
+      "acceptance_commands": [
+        "git rev-parse HEAD",
+        "git diff --check c29cea2e38b13dccfbe5af05ae83e993435c7db6...HEAD"
+      ],
+      "outcome": "Fresh-read the canonical registered handoff authority; create/enter the isolated WorkBuddy branch exactly from c29cea2e38b13dccfbe5af05ae83e993435c7db6; reproduce the Program Control Tower current-main-versus-candidate failure; identify the exact candidate-modified baseline failure/fingerprint and the minimal causal lines. Do not edit yet if the root cause is not proven.",
+      "architecture_change": false,
+      "acceptance_oracle_change": false,
+      "receipt_ref": null
+    },
+    {
+      "item_id": "WB-R8-S1",
+      "owner": "WORKBUDDY",
+      "kind": "DEEP_REMEDIATION",
+      "status": "PLANNED",
+      "complexity": "D4",
+      "depends_on": ["WB-R8-V1"],
+      "write_paths": [
+        "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R7.yaml",
+        "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-TERMINAL-TOMBSTONES.yaml",
+        "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R8.yaml",
+        "coordination/CONTROL-TOWER/worker_slots.py",
+        "coordination/CONTROL-TOWER/tests/test_worker_slots_r8_compat.py",
+        "coordination/CONTROL-TOWER/R572-R8-WORKER-SLOTS-COMPATIBILITY-RECEIPT.yaml"
+      ],
+      "acceptance_commands": [
+        "python -m pytest coordination/CONTROL-TOWER/tests/test_worker_slots_r8_compat.py -q",
+        "git diff --check c29cea2e38b13dccfbe5af05ae83e993435c7db6...HEAD"
+      ],
+      "outcome": "Apply the smallest repair that preserves canonical worker_lifecycle.py as the lifecycle truth, keeps worker_slots.py a thin integration adapter, and removes the candidate-only observable regression. Preserve baseline Finding/error semantics unless a changed semantic is strictly required by the frozen R8 acceptance. Never touch a seventh implementation path.",
+      "architecture_change": false,
+      "acceptance_oracle_change": false,
+      "receipt_ref": null
+    },
+    {
+      "item_id": "WB-R8-S2",
+      "owner": "WORKBUDDY",
+      "kind": "EVIDENCE_AND_RETURN",
+      "status": "PLANNED",
+      "complexity": "D2",
+      "depends_on": ["WB-R8-S1"],
+      "write_paths": [
+        "coordination/CONTROL-TOWER/R572-R8-WORKER-SLOTS-COMPATIBILITY-RECEIPT.yaml"
+      ],
+      "acceptance_commands": [
+        "python -m pytest coordination/CONTROL-TOWER/tests/test_worker_slots_r8_compat.py -q",
+        "git diff --check c29cea2e38b13dccfbe5af05ae83e993435c7db6...HEAD"
+      ],
+      "outcome": "Freeze a new exact head on the WorkBuddy branch, report changed files and commands, and return to GPT Architecture Owner. GPT orchestration may then fast-forward PR #660 branch to this exact head without content rewriting, trigger authoritative CI, and route independent review. WorkBuddy must not self-review or merge.",
+      "architecture_change": false,
+      "acceptance_oracle_change": false,
+      "receipt_ref": "coordination/CONTROL-TOWER/R572-R8-WORKER-SLOTS-COMPATIBILITY-RECEIPT.yaml"
+    }
+  ],
+  "stop_conditions": [
+    "registered handoff authority is absent, stale, moved or not canonical",
+    "PR #660 source checkpoint no longer equals c29cea2e38b13dccfbe5af05ae83e993435c7db6 before WorkBuddy branch creation",
+    "registry-wide branch or write-surface conflict is detected",
+    "any seventh implementation path is required",
+    "worker_lifecycle.py change is required",
+    "architecture or acceptance oracle change is required",
+    "real capture, operational W3, R184 Local Bridge start, trading/runtime/credential authority is encountered",
+    "direct main write, self-review, self-merge, force-push, reset, rebase, amend or history rewrite would be required"
+  ],
+  "return_package_required": true,
+  "return_target": "GPT_ARCHITECTURE_OWNER",
+  "final_review_trigger": "POST_REVIEW_REQUEST_TO_ISSUE_453_AND_STOP"
+}
