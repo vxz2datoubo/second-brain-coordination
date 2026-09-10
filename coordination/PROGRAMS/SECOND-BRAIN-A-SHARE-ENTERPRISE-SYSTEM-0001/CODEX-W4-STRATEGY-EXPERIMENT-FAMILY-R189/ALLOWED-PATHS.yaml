@@ -1,0 +1,36 @@
+schema: ALLOWED_PATHS/v1
+task_id: CODEX-W4-STRATEGY-EXPERIMENT-FAMILY-R189
+route_epoch: 189
+policy: FAIL_CLOSED_EXACT_SCOPE_ADDITIVE_ONLY
+allow:
+  - coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W4-STRATEGY-EXPERIMENT-FAMILY/**
+  - coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-W4-STRATEGY-EXPERIMENT-FAMILY-R189/**
+  - tests/test_w4_strategy_experiment_family.py
+  - coordination/CONTROL-TOWER/tests/test_w4_strategy_experiment_family.py
+  - .github/workflows/w4-strategy-experiment-family-r189-offline.yml
+read_only_dependencies:
+  - coordination/GOVERNANCE/ENTERPRISE-BLUEPRINT-AUTHORITY-AND-INTERFACE-REGISTRY-v1.0.yaml
+  - coordination/GOVERNANCE/TYPED-NUMERIC-PARAMETER-AND-EXPERIMENT-LEDGER-v1.0.yaml
+  - coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-0/ENTERPRISE-CONTRACT-REGISTRY.yaml
+  - coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/**
+  - coordination/EXECUTION/PROJECT-ADAPTERS/TRADING-SYSTEM.yaml
+forbid:
+  - coordination/GOVERNANCE/ENTERPRISE-BLUEPRINT-AUTHORITY-AND-INTERFACE-REGISTRY-v1.0.yaml
+  - coordination/GOVERNANCE/TYPED-NUMERIC-PARAMETER-AND-EXPERIMENT-LEDGER-v1.0.yaml
+  - coordination/ACTIVE-CODEX-TASK.yaml
+  - coordination/ACTIVE-PROGRAM-LANES.yaml
+  - coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A-R183/**
+  - coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/**
+  - any MARKET_DATA_ADAPTER surface
+  - any PIT_REPLAY_ENGINE surface
+  - any ORDER_EXECUTION_AUTHORITY surface
+  - any ACCOUNT_BROKER_FUNDS_POSITION_ORDER surface
+  - any PROBABILITY_REGISTRY surface
+  - any W7_VALIDATION_AUTHORITY surface
+  - any BACKTEST_AUTHORITY surface
+  - any GPT R8 worker-slots remediation surface
+  - any R181 parked checkpoint surface
+notes:
+  - R189 is additive-only and may not edit any inherited implementation, governance, or workflow layer.
+  - The W4 persistence is a fresh W4-owned canonical surface; it must not rewrite or shadow DS-10 research-integrity truth.
+  - The TYPED-NUMERIC experiment-ledger contract is reused as a read-only semantic blueprint, never replaced.

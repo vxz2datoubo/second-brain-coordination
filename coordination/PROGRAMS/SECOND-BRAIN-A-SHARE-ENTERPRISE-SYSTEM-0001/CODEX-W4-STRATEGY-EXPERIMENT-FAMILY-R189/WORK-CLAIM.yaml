@@ -1,0 +1,40 @@
+schema: WORK_CLAIM/v1
+project: SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001
+project_alias: TRADING_SYSTEM
+task_id: CODEX-W4-STRATEGY-EXPERIMENT-FAMILY-R189
+route_epoch: 189
+source_issue: 560
+executor: CODEX_STANDARD
+worker_slot_id: CODEX-R189-W4-STRATEGY-EXPERIMENT-FAMILY-1
+claim_state: ACTIVE_CLAIMED
+execution_allowed: true
+implementation_baseline: a652c26c1ffc07a21c34b19578814b4770377d57
+snapshot_base: a652c26c1ffc07a21c34b19578814b4770377d57
+required_branch: codex/r189-w4-strategy-experiment-family-persistence
+branch_head_at_activation: NOT_CREATED
+effective_spec_snapshot_id: TRADING-CODEX-R189-ISSUE560-SNAPSHOT-001
+effective_spec_snapshot_ref: issuecomment-5608834907
+single_writer_surface:
+  primary:
+    - W4_STRATEGY_EXPERIMENT_FAMILY_PERSISTENCE
+    - EXPERIMENT_TRIAL_RECORD_PERSISTENCE
+  excludes:
+    - MARKET_DATA_ADAPTER_AUTHORITY
+    - PIT_REPLAY_ENGINE_AUTHORITY
+    - ORDER_EXECUTION_AUTHORITY
+    - ACCOUNT_BROKER_FUNDS_POSITION_ORDER_AUTHORITY
+    - PROBABILITY_REGISTRY_AUTHORITY
+    - W7_VALIDATION_AUTHORITY
+    - BACKTEST_AUTHORITY
+    - DOWNSTREAM_559_READ_BINDING
+    - GPT_WORKER_R8_REMEDIATION_SURFACE
+    - CODEX_R181_PARKED_CHECKPOINT
+parallel_fences:
+  GPT_WORKER_R8_REMEDIATION_PR660: PRESERVE_SEPARATE_GPT_SINGLE_WRITER_NO_CODEX_WRITE
+  CODEX_R181_PR549: PRESERVE_PARKED_CHECKPOINT_UNCHANGED_NO_RESUME
+path_fence: ADDITIVE_ONLY_NEW_R189_FILES
+execution_environment:
+  fresh_task_owned_standalone_clone_required: true
+project_completion_asserted: false
+independent_accept_asserted: false
+canonicalization_asserted: false

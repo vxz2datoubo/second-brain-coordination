@@ -1,0 +1,32 @@
+schema: TASK_LEASE/v1
+project: SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001
+project_alias: TRADING_SYSTEM
+task_id: CODEX-W4-STRATEGY-EXPERIMENT-FAMILY-R189
+route_epoch: 189
+source_issue: 560
+executor: CODEX_STANDARD
+worker_slot_id: CODEX-R189-W4-STRATEGY-EXPERIMENT-FAMILY-1
+lease_state: ACTIVE_HELD
+execution_allowed: true
+second_user_start_command_required: false
+history_rewrite_allowed: false
+fresh_task_owned_standalone_clone_required: true
+implementation_baseline: a652c26c1ffc07a21c34b19578814b4770377d57
+snapshot_base: a652c26c1ffc07a21c34b19578814b4770377d57
+branch: codex/r189-w4-strategy-experiment-family-persistence
+branch_head_at_activation: NOT_CREATED
+effective_spec_snapshot_id: TRADING-CODEX-R189-ISSUE560-SNAPSHOT-001
+effective_spec_snapshot_ref: issuecomment-5608834907
+stop_conditions:
+  - hard_boundary_or_role_conflict
+  - overlapping_writer_surface
+  - route_or_snapshot_identity_drift
+  - missing_fresh_task_owned_standalone_clone
+  - any_real_trade_or_order_placement
+  - any_account_broker_funds_position_write
+  - any_second_experiment_or_trial_ledger_creation
+  - any_backtest_authority_or_w7_validation_or_probability_registry_creation
+  - any_market_data_truth_creation
+  - any_downstream_559_start_before_560_canonical
+  - any_write_outside_additive_allowlist
+  - future_exact_head_frozen_for_review
