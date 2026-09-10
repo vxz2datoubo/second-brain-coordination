@@ -1,0 +1,65 @@
+schema_version: "189.1"
+task_id: CODEX-W4-STRATEGY-EXPERIMENT-FAMILY-R189
+route_epoch: 189
+project: SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001
+project_alias: TRADING_SYSTEM
+source_issue: 560
+parent_program_issue: 31
+downstream_dependency_issue: 559
+executor: CODEX_STANDARD
+boundary: RESEARCH_ONLY / NO_TRADE
+first_mission: W4_CANONICAL_STRATEGY_EXPERIMENT_FAMILY_PERSISTENCE
+brief_status: READY_FOR_CODEX_EXECUTION
+
+objective: >-
+  Establish the smallest canonical W4-owned StrategyExperimentFamily persistence/snapshot
+  capability required by the already-assigned W4 authority, without creating a second
+  experiment/trial ledger, a backtest authority, a W7 validation authority, a probability
+  registry, or a market-data truth source.
+
+step_one_reuse_inventory:
+  mandate: >-
+    Freshly classify every existing W4/research/backtest/experiment-family/trial-manifest
+    artifact in the repository and the locally/protected-accessible scope into exactly one of:
+    CANONICAL_SOR_REUSE, CANONICAL_COMPONENT_REUSE, MIGRATION_SOURCE_ONLY,
+    SPECIALIST_CONTRACT_ONLY, PROPOSED_BLUEPRINT_ONLY, DEPRECATED_OR_UNKNOWN.
+  pre_dispatch_finding_verified_by_gpt: >-
+    No canonical StrategyExperimentFamily persistence/runtime exists. Authority registry declares
+    W4 owns it (C6_STRATEGY_EXPERIMENT_FAMILY). research.definition_experiment.v1 is
+    PARTIAL_IMPLEMENTATION with only IndicatorDefinition/TheoryDefinition/StrategyDefinition/
+    BacktestConfig/BacktestResult/ValidationReport fragments and no StrategyExperimentFamily.
+    TYPED-NUMERIC-PARAMETER-AND-EXPERIMENT-LEDGER-v1.0.yaml is CANDIDATE_PENDING_INDEPENDENT_REVIEW
+    (PROPOSED_BLUEPRINT_ONLY) and is reused as semantic reference, not duplicated.
+  disposition: >-
+    No real canonical W4 SoR found -> allow minimal W4-owned StrategyExperimentFamily
+    persistence. Reuse/extend the typed experiment_ledger semantics where compatible.
+
+step_two_persistence:
+  deliverable: >-
+    Minimal canonical W4 StrategyExperimentFamily / ExperimentTrialRecord persistence
+    (immutable append, deterministic snapshot, provenance-bound read surface).
+
+step_three_verification:
+  - deterministic snapshot digest
+  - adversarial provenance tests (no caller-authored trust-root)
+  - regression tests
+
+hard_boundaries:
+  - NO_REAL_TRADE
+  - NO_ACCOUNT_OR_BROKER_CREDENTIAL_ACCESS
+  - NO_FUNDS_OR_POSITION_AUTHORITY
+  - NO_ORDER_PLACEMENT
+  - READ_MARKET_DATA_DOES_NOT_IMPLY_PLACE_ORDER
+  - NO_FRONTIER_OR_ASTRA_AUTHORITY
+  - NO_SECOND_EXPERIMENT_OR_TRIAL_LEDGER
+  - NO_BACKTEST_AUTHORITY_CREATION
+  - NO_W7_VALIDATION_AUTHORITY_CREATION
+  - NO_PROBABILITY_REGISTRY_CREATION
+  - NO_MARKET_DATA_TRUTH_CREATION
+  - NO_DOWNSTREAM_559_START_BEFORE_560_CANONICAL
+
+non_goals:
+  - do not implement #559 read binding now
+  - do not implement #560's full business vertical slice
+  - do not publish Frontier/Astra authority
+  - do not touch account/broker/funds/position/order surfaces

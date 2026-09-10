@@ -14,19 +14,19 @@ portfolio_capacity_policy:
   nested_parallelism: FORBIDDEN
 current_user_release_policy:
   held_lanes: []
-  decision: R181_CODEX_PRIORITY_PARK_GPT_R182_R183_CLOSED_NO_SUCCESSOR_RELEASED
+  decision: R189_CODEX_TRADING_W4_PREWRITE_ACTIVE_R181_PARKED_R182_R183_CLOSED
   rationale: >-
-    R182 and R183 implementation and closeout chains are canonical history. Owner priority transition parks CODEX R181 at its
-    preserved executor checkpoint (PR #549 exact head 0aa32e31f0130bf144d43ebecef03613f3f268e4) and releases only its Codex
-    execution slot. No Trading successor route is published by this projection; a clean current-main successor Codex route
-    requires fresh collision and capacity admission first.
+    R182 and R183 are canonical history. R181 remains priority-parked at its preserved executor checkpoint
+    (PR #549 exact head 0aa32e31f0130bf144d43ebecef03613f3f268e4) with its Codex slot released. Fresh collision and capacity
+    admission passes, so a clean Trading System Codex Standard pre-write route (CODEX-W4-STRATEGY-EXPERIMENT-FAMILY-R189,
+    Issue #560) is published, research-only / NO_TRADE, bound to W4 canonical StrategyExperimentFamily persistence.
 observed_agent_state:
   CODEX:
-    observed_task_id: CODEX-A2-2-SHOT-BUNDLE-R181
-    observed_route_epoch: 181
-    observed_issue: 548
-    observed_status: PARKED_NO_ACTIVE_CODEX_EXECUTION
-    execution_allowed: false
+    observed_task_id: CODEX-W4-STRATEGY-EXPERIMENT-FAMILY-R189
+    observed_route_epoch: 189
+    observed_issue: 560
+    observed_status: READY
+    execution_allowed: true
   GPT_ENGINEERING_WORKER:
     observed_status: CLOSED_NO_ACTIVE_IMPLEMENTATION
     execution_allowed: false
@@ -80,12 +80,34 @@ program_lanes:
     implementation_owner: NONE_ACTIVE
     prior_worker_slot_id: CODEX-R181-A2-2-SHOT-BUNDLE-1
     canonical_knowledge_write_authorized: false
+  - lane_id: LANE-D-TRADING-SYSTEM-W4-EXPERIMENT-FAMILY
+    mission: Establish minimal canonical W4 StrategyExperimentFamily persistence for TRADING_SYSTEM (Issue #560), research-only / NO_TRADE.
+    owner: USER
+    architecture_owner: GPT
+    desired_state: ACTIVE
+    observed_state: R189_CODEX_W4_STRATEGY_EXPERIMENT_FAMILY_PREWRITE
+    primary_system_positions: [W4]
+    current_phase: PREWRITE
+    active_execution_route: CODEX-W4-STRATEGY-EXPERIMENT-FAMILY-R189
+    dependencies: []
+    shared_interfaces: []
+    next_gate: W4_CANONICAL_STRATEGY_EXPERIMENT_FAMILY_PERSISTENCE_COMPLETE
+    maturity: ACTIVE_GOVERNED_PREWRITE
+    implementation_owner: CODEX
+    worker_slot_id: CODEX-R189-W4-STRATEGY-EXPERIMENT-FAMILY-1
+    trading_authorized: false
 cross_lane_overlap_matrix:
   - pair: [LANE-A-HARNESS-INTEGRATION, LANE-B-A-SHARE-REMEDIATION]
     overlap_level: O0_NO_MATERIAL_WRITE_OVERLAP
   - pair: [LANE-A-HARNESS-INTEGRATION, LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP]
     overlap_level: O0_NO_MATERIAL_WRITE_OVERLAP
   - pair: [LANE-B-A-SHARE-REMEDIATION, LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP]
+    overlap_level: O0_NO_MATERIAL_WRITE_OVERLAP
+  - pair: [LANE-A-HARNESS-INTEGRATION, LANE-D-TRADING-SYSTEM-W4-EXPERIMENT-FAMILY]
+    overlap_level: O0_NO_MATERIAL_WRITE_OVERLAP
+  - pair: [LANE-B-A-SHARE-REMEDIATION, LANE-D-TRADING-SYSTEM-W4-EXPERIMENT-FAMILY]
+    overlap_level: O0_NO_MATERIAL_WRITE_OVERLAP
+  - pair: [LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP, LANE-D-TRADING-SYSTEM-W4-EXPERIMENT-FAMILY]
     overlap_level: O0_NO_MATERIAL_WRITE_OVERLAP
 historical_execution_refs:
   r182:
