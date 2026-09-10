@@ -1,0 +1,44 @@
+schema_version: "1.0"
+route_id: "WORKBUDDY-R572-R8-PR660-HANDOFF"
+state: "READY"
+repository: "vxz2datoubo/second-brain-coordination"
+project: "SECOND_BRAIN"
+source_issue: 572
+handoff_issue: 667
+pull_request: 660
+executor: "WORKBUDDY"
+task_ref: "coordination/EXECUTION/WORKBUDDY-R572-R8-PR660-HANDOFF/TASK.yaml"
+claim_ref: "coordination/EXECUTION/WORKBUDDY-R572-R8-PR660-HANDOFF/WORK-CLAIM.yaml"
+lease_ref: "coordination/EXECUTION/WORKBUDDY-R572-R8-PR660-HANDOFF/TASK-LEASE.yaml"
+branch: "gpt/r572-r8-worker-slots-compat-remediation-20260909"
+exact_head_at_route_mint: "c29cea2e38b13dccfbe5af05ae83e993435c7db6"
+canonical_main_at_route_mint: "58c568ca280a023ff961aae4bd15f8492d18a8ce"
+collision_domain: "R572_R8_WORKER_SLOTS_COMPATIBILITY"
+writer_policy:
+  exclusive_writer: true
+  predecessor_executor: "GPT_ARCHITECTURE_OWNER"
+  handoff_semantics: "GPT stops implementation writes once WorkBuddy claims this route; GPT retains orchestration only."
+implementation_write_surface:
+  - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R7.yaml"
+  - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-TERMINAL-TOMBSTONES.yaml"
+  - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R8.yaml"
+  - "coordination/CONTROL-TOWER/worker_slots.py"
+  - "coordination/CONTROL-TOWER/tests/test_worker_slots_r8_compat.py"
+  - "coordination/CONTROL-TOWER/R572-R8-WORKER-SLOTS-COMPATIBILITY-RECEIPT.yaml"
+completion_requires:
+  - "focused_tests_pass"
+  - "program_control_tower_exact_head_pass"
+  - "r145_success_or_mechanical_non_applicability"
+  - "new_exact_head_frozen"
+  - "return_package_to_gpt_architecture_owner"
+review_policy:
+  independent_review_required: true
+  executor_self_review_forbidden: true
+  executor_merge_forbidden: true
+hard_boundaries:
+  - "NO_SCOPE_EXPANSION"
+  - "NO_SEVENTH_IMPLEMENTATION_PATH"
+  - "NO_REAL_CAPTURE_OR_OPERATIONAL_W3"
+  - "NO_R184_START"
+  - "NO_TRADING_RUNTIME_AUTHORITY"
+  - "NO_DIRECT_MAIN_WRITE"
