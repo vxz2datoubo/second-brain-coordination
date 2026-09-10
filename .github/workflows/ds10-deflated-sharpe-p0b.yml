@@ -1,0 +1,71 @@
+name: DS10 Deflated Sharpe P0B
+
+on:
+  push:
+    paths:
+      - ".github/workflows/ds10-deflated-sharpe-p0b.yml"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-DEFLATED-SHARPE-P0B/**"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-DS10-P0B-DEFLATED-SHARPE-R192/**"
+
+permissions:
+  contents: read
+
+jobs:
+  deflated-sharpe-reference:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - name: Checkout exact pushed head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Verify checkout identity
+        run: test "$(git rev-parse HEAD)" = "${{ github.sha }}"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Materialise canonical main reference
+        run: git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+
+      - name: Compile P0B source and adversarial tests
+        run: >-
+          python -m compileall -q
+          coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-DEFLATED-SHARPE-P0B/src/offline_research/deflated_sharpe.py
+          coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-DEFLATED-SHARPE-P0B/tests/test_deflated_sharpe.py
+
+      - name: Run P0B adversarial regressions
+        run: >-
+          python -m unittest discover
+          -s coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-DEFLATED-SHARPE-P0B/tests
+          -p 'test_deflated_sharpe.py'
+          -v
+
+      - name: Enforce R192 allowed write surface
+        run: |
+          python - <<'PY'
+          import subprocess
+
+          allowed_exact = {".github/workflows/ds10-deflated-sharpe-p0b.yml"}
+          allowed_prefixes = (
+              "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-DEFLATED-SHARPE-P0B/",
+              "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-DS10-P0B-DEFLATED-SHARPE-R192/",
+          )
+          changed = {line.strip() for line in subprocess.check_output(
+              ["git", "diff", "--name-only", "origin/main...HEAD"], text=True
+          ).splitlines() if line.strip()}
+          unexpected = sorted(path for path in changed if path not in allowed_exact and not path.startswith(allowed_prefixes))
+          if unexpected:
+              raise SystemExit(f"R192_SCOPE_VIOLATION unexpected={unexpected}")
+          print(f"R192_SCOPE_PASS changed={len(changed)}")
+          PY
+
+      - name: Whitespace gate
+        run: git diff --check origin/main...HEAD
