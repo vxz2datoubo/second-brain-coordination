@@ -1,0 +1,59 @@
+schema: R190_TERMINAL_CLOSEOUT_RECEIPT/v1
+task_id: CODEX-W4-CANONICAL-EXPERIMENT-FAMILY-READ-BINDING-R190
+route_epoch: 190
+project: TRADING_SYSTEM
+parent_program: SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001
+source_issue: 559
+upstream_completed_issue: 560
+downstream_issue: 552
+executor: CODEX_STANDARD
+boundary: RESEARCH_ONLY / NO_TRADE
+closed_at_canonical_main: 286c67d8ff1f49da6762cc0cd54e1d85cc086430
+
+purpose: >-
+  Record the terminal closeout of the R190 Codex Standard execution lane after Issue #559 emitted
+  W4_CANONICAL_EXPERIMENT_FAMILY_READ_BINDING_READY_FOR_DS10_INTEGRATION (issuecomment-5614767365).
+  R190's required_scope is fully delivered and canonically merged; this closeout releases the Codex slot
+  for the DS-10 P0A W4 read-binding integration successor (R191, Issue #552).
+
+delivery_evidence:
+  implementation_pr: 669
+  exact_head: d853bb24e93b205671938b3cd9ef89c58b527b2a
+  canonical_merge: 286c67d8ff1f49da6762cc0cd54e1d85cc086430
+  exact_head_ci_push_run: 34449445273
+  independent_review: 5163938883
+  review_verdict: APPROVE
+  upstream_completion_signal: W4_CANONICAL_EXPERIMENT_FAMILY_READ_BINDING_READY_FOR_DS10_INTEGRATION
+  upstream_completion_signal_ref: issuecomment-5614767365
+
+scope_closure:
+  w4_canonical_experiment_family_read_binding: DELIVERED
+  canonical_experiment_family_read_receipt_v1: DELIVERED
+  non_caller_mintable_read_provenance: DELIVERED
+  anti_self_attestation_tests: DELIVERED
+  settle_snapshot_alias_and_read_call_contract: DELIVERED
+  bind_to_canonical_main_and_w4_read_surface_code_digest: DELIVERED
+  no_second_experiment_or_trial_registry: PRESERVED
+  no_second_read_receipt_store: PRESERVED
+  no_w4_write_authority_for_consumers: PRESERVED
+  no_validation_probability_risk_position_order_trade_authority: PRESERVED
+  issue_559_dod_gates_1_to_10: CLOSED
+
+slot_release:
+  released_worker_slot_id: CODEX-R190-W4-READ-BINDING-1
+  successor_route: CODEX-DS10-P0A-W4-READ-BINDING-INTEGRATION-R191
+  successor_worker_slot_id: CODEX-R191-DS10-P0A-INTEGRATION-1
+  successor_source_issue: 552
+  codex_active_routes_max: 1
+  codex_active_routes_after: 1
+
+non_assertions:
+  - no canonical project completion
+  - no second experiment/trial ledger
+  - no second read-receipt store
+  - no DS-10 ownership write by R190
+  - no backtest / W7 / probability / market-data truth authority
+  - no account/broker/funds/position/order authority
+  - no real trade / order
+
+terminal_state: TERMINAL_COMPLETED

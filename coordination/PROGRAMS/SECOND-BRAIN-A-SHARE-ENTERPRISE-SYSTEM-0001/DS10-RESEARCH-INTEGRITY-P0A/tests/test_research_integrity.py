@@ -4,6 +4,8 @@ import json
 import sys
 import unittest
 
+sys.dont_write_bytecode = True
+
 try:
     import jsonschema
 except ModuleNotFoundError:
@@ -15,8 +17,13 @@ except ModuleNotFoundError:
 
 SLICE_ROOT = Path(__file__).resolve().parents[1]
 SRC_ROOT = SLICE_ROOT / "src"
+W4_SRC_ROOT = SLICE_ROOT.parent / "W4-STRATEGY-EXPERIMENT-FAMILY-P0" / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
+if str(W4_SRC_ROOT) not in sys.path:
+    sys.path.insert(0, str(W4_SRC_ROOT))
+
+from w4_experiment_family import read_binding as canonical_w4_read_binding
 
 from offline_research.research_integrity import (
     Disposition,
@@ -46,8 +53,8 @@ W2_RULE_BLOB = "18311ff30beab7ea97d54c09e44fd6e6ebe921ed"
 W2_DATASET_BLOB = "934b95414a41c003392f4dd870f401474affa839"
 W2_PARAMETER_BLOB = "7b19b75714701643006ac8d846ee934d764ca224"
 W2_ENGINE_BLOB = "7c2ecacd1bebd62fd453d25d6374da5df193446e"
-R183_CLAIM_BLOB = "0c210c6daff8352516f1f80d7b5de6aabb5597c3"
-R183_AUTH_BLOB = "d75bce3a40835e63b7ef98196a3dbb7c747cfddc"
+R183_CLAIM_BLOB = "98ae9f013ba16b6274c7bf6c5e6b86cd9a41317c"
+R183_AUTH_BLOB = "c3e4afdc3f10212b976770ac29960c4383cf2813"
 ACCESSOR_ID = "GPT-WORKER-R183-DS10-RESEARCH-INTEGRITY-1"
 TASK_ID = "GPT-DS10-RESEARCH-INTEGRITY-P0A-R183"
 RULE_ID = "SSE_MAIN_NORMAL_PRE_20260706"
@@ -198,7 +205,7 @@ def bare_receipt(**overrides):
     return LockboxAccessReceipt(**base)
 
 
-def audit(snapshot=None, *, expected_digest=True, receipts=(), pit=None, methods=(), observed=OBSERVED_AT):
+def audit(snapshot=None, *, expected_digest=True, receipts=(), pit=None, methods=(), observed=OBSERVED_AT, w4_read_receipt=None):
     snapshot = snapshot or make_snapshot()
     comparison_digest = snapshot.snapshot_digest() if expected_digest else None
     return audit_research_integrity(
@@ -208,7 +215,59 @@ def audit(snapshot=None, *, expected_digest=True, receipts=(), pit=None, methods
         pit_evidence=pit or untrusted_pit(),
         method_results=methods,
         observed_at=observed,
+        w4_read_receipt=w4_read_receipt,
     )
+
+
+def canonical_w4_snapshot_and_receipt():
+    handle = canonical_w4_read_binding.resolve_canonical_w4_store_v1()
+    authorization = canonical_w4_read_binding.ReadAuthorization(
+        canonical_w4_read_binding.GOVERNED_TASK_ID,
+        canonical_w4_read_binding.GOVERNED_ROUTE_EPOCH,
+        canonical_w4_read_binding.GOVERNED_EXECUTOR_ROLE,
+        canonical_w4_read_binding.GOVERNED_WORK_CLAIM_REF,
+        canonical_w4_read_binding.GOVERNED_AUTH_WITNESS_REF,
+    )
+    w4_snapshot, w4_receipt = canonical_w4_read_binding.read_canonical_family(
+        handle.family_id,
+        handle.family_revision_id,
+        authorization=authorization,
+        observed_at="2026-09-10T00:00:00Z",
+    )
+    expected_trial_digests = {
+        row["trial_id"]: row["immutable_digest"]
+        for row in w4_snapshot["trials"]
+        if row["selection_affecting"]
+    }
+    snapshot = ExperimentFamilySnapshot(
+        experiment_family_ref=w4_receipt["experiment_family_ref"],
+        expected_trial_digests=expected_trial_digests,
+        trials=tuple(
+            trial(
+                row["trial_id"],
+                row["immutable_digest"],
+                TrialStatus(row["status"]),
+                selection_affecting=row["selection_affecting"],
+                rerun_of=row["rerun_of"],
+            )
+            for row in w4_snapshot["trials"]
+        ),
+        benchmark_ref=w4_receipt["benchmark_ref"],
+        metric_id=w4_receipt["metric_id"],
+        horizon_id=w4_receipt["horizon_id"],
+        search_space_ref=w4_receipt["search_space_ref"],
+        selection_rule_ref=w4_receipt["selection_rule_ref"],
+        registered_family_digest=w4_receipt["registered_family_digest"],
+        selection_rule_registered_at="2026-01-07T08:00:00+08:00",
+        selected_trial_id=w4_receipt["selected_trial_id"],
+        selected_at=SELECTED_AT,
+        candidate_frozen_at=FREEZE_AT,
+        family_frozen_at=FREEZE_AT,
+        lockbox_id="lockbox:w4-canonical-golden",
+        lockbox_access_history_complete=True,
+        declared_trial_count=len(expected_trial_digests),
+    )
+    return snapshot, w4_receipt
 
 
 class TrialIntegrityTests(unittest.TestCase):
@@ -265,6 +324,41 @@ class TrialIntegrityTests(unittest.TestCase):
 
 
 class SelectionAndW4BoundaryTests(unittest.TestCase):
+    def test_canonical_w4_read_receipt_allows_w7_validation_eligibility(self):
+        snapshot, w4_receipt = canonical_w4_snapshot_and_receipt()
+        result = audit(snapshot, pit=governed_pit(), w4_read_receipt=w4_receipt)
+        self.assertEqual(result["w4_authority_state"], "CANONICAL_W4_BINDING_VERIFIED")
+        self.assertEqual(result["research_integrity_disposition"], Disposition.ELIGIBLE_FOR_W7_VALIDATION.value)
+        self.assertFalse(result["w7_handoff_is_acceptance"])
+        self.assertTrue(all(value is False for value in result["authority"].values()))
+
+    def test_resealed_caller_minted_receipt_cannot_mint_w4_authority(self):
+        snapshot, w4_receipt = canonical_w4_snapshot_and_receipt()
+        forged = dict(w4_receipt)
+        forged["registered_family_digest"] = sha("0")
+        unsigned = dict(forged)
+        unsigned.pop("receipt_digest")
+        forged["receipt_digest"] = canonical_w4_read_binding.digest(unsigned)
+        result = audit(snapshot, pit=governed_pit(), w4_read_receipt=forged)
+        self.assertEqual(result["w4_authority_state"], "EXTERNAL_CANONICAL_BINDING_REQUIRED")
+        self.assertEqual(result["research_integrity_disposition"], Disposition.ABSTAIN.value)
+        self.assertIn("W4_READ_RECEIPT_NOT_CANONICAL", {item["code"] for item in result["nonblocking_findings"]})
+
+    def test_wrong_family_snapshot_cannot_reuse_canonical_receipt(self):
+        snapshot, w4_receipt = canonical_w4_snapshot_and_receipt()
+        changed = replace(snapshot, experiment_family_ref="W4-CANONICAL-GOLDEN-OTHER@rev-1")
+        wrong_family = replace(changed, registered_family_digest=changed.computed_family_digest())
+        result = audit(wrong_family, pit=governed_pit(), w4_read_receipt=w4_receipt)
+        self.assertEqual(result["w4_authority_state"], "EXTERNAL_CANONICAL_BINDING_REQUIRED")
+        self.assertEqual(result["research_integrity_disposition"], Disposition.ABSTAIN.value)
+        self.assertIn("W4_DS10_RECEIPT_BRIDGE_MISMATCH", {item["code"] for item in result["nonblocking_findings"]})
+
+    def test_no_w4_read_receipt_keeps_default_abstention(self):
+        snapshot, _ = canonical_w4_snapshot_and_receipt()
+        result = audit(snapshot, pit=governed_pit(), w4_read_receipt=None)
+        self.assertEqual(result["w4_authority_state"], "EXTERNAL_CANONICAL_BINDING_REQUIRED")
+        self.assertEqual(result["research_integrity_disposition"], Disposition.ABSTAIN.value)
+
     def test_matching_digest_never_mints_w4_authority(self):
         result = audit(pit=governed_pit())
         self.assertTrue(result["w4_snapshot_digest_matches_expected"])

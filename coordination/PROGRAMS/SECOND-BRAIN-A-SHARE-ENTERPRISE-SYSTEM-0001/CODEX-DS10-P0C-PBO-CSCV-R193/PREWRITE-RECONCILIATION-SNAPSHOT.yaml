@@ -1,0 +1,56 @@
+schema: PREWRITE_RECONCILIATION_SNAPSHOT/v1
+task_id: CODEX-DS10-P0C-PBO-CSCV-R193
+route_epoch: 193
+source_issue: 562
+project: SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001
+project_alias: TRADING_SYSTEM
+executor: CODEX_STANDARD
+boundary: RESEARCH_ONLY / NO_TRADE
+canonical_main_at_snapshot: edd852a93b89a40b1ef41189c3433cc2f213aaae
+upstream_completion_signal: DS10_DEFLATED_SHARPE_P0B_READY_FOR_INDEPENDENT_REVIEW
+upstream_signal_ref: pr-673-canonical-merge-edd852a9
+owner_direction_ref: issuecomment-5615609881
+predecessor_route: CODEX-DS10-P0B-DEFLATED-SHARPE-R192
+predecessor_state: TERMINAL_COMPLETED
+predecessor_delivered_head: cae521b817bed0d3a5527f44f198ed3bbd399111
+
+read_surface_inventory_at_snapshot:
+  ds10_p0a_research_integrity:
+    ref: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/src/offline_research/research_integrity.py
+    operation: audit_research_integrity -> ELIGIBLE_FOR_W7_VALIDATION (not ACCEPT)
+    status: CANONICALIZED_CB59993B
+  ds10_p0b_deflated_sharpe:
+    ref: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-DEFLATED-SHARPE-P0B/src/offline_research/deflated_sharpe.py
+    status: CANONICALIZED_EDD852A9
+  w4_canonical_read_binding:
+    ref: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W4-STRATEGY-EXPERIMENT-FAMILY-P0/src/w4_experiment_family/read_binding.py
+    operation: verify_canonical_family_receipt(receipt) -> CANONICAL_W4_READ_VERIFIED
+    status: CANONICALIZED_286C67D8
+    registry_blob_sha: 0f6b197c500412f814c38aee347f5a86d8fa8632
+    read_binding_blob_sha: 0e2640d3135553435ec06d99ed9f25c9d146a1e4
+  ds10_p0c_consumer:
+    ref: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-PBO-CSCV-P0C/
+    status: THIS_ROUTE_WRITES_NEW_REFERENCE_MODULE
+  existing_read_receipt_store: NONE
+  second_registry_found: NONE
+  second_trial_ledger_found: NONE
+  conclusion: CONSUME_CANONICAL_P0A_W4_CHAIN_VIA_NEW_DS10_P0C_MODULE
+
+collision_and_capacity_admission:
+  codex_slot_before: RELEASED_BY_R192_TERMINAL_CLOSEOUT
+  codex_active_routes_before: 0
+  codex_active_routes_max: 1
+  codex_active_routes_after: 1
+  result: PASS
+  overlapping_open_pr_on_target_files: NONE
+  gpt_worker_r182_r183: CANONICAL_HISTORY_NO_ACTIVE_IMPLEMENTATION
+  codex_r181_pr549: PRESERVED_UNCHANGED_0aa32e31f0130bf144d43ebecef03613f3f268e4
+  downstream_issue_563_p0d: NOT_STARTED_AWAITS_THIS_ROUTE_CANONICAL
+
+inheritance_non_assertions:
+  acceptance_inherited: false
+  canonicality_inherited: false
+  w4_write_inherited: false
+  ds10_p0a_write_inherited: false
+  ds10_p0b_write_inherited: false
+  ds10_p0d_563_start_allowed: false

@@ -72,6 +72,7 @@ def _validate_schema(value: Any, schema: Mapping[str, Any], path: str = "$") -> 
         raise RegistryError("SCHEMA_TYPE_INVALID", path)
     if "enum" in schema and value not in schema["enum"]:
         raise RegistryError("SCHEMA_ENUM_INVALID", path)
+    if "const" in schema and value != schema["const"]: raise RegistryError("SCHEMA_CONST_INVALID", path)
     if isinstance(value, str):
         if len(value) < schema.get("minLength", 0): raise RegistryError("SCHEMA_MIN_LENGTH", path)
         if "pattern" in schema and re.fullmatch(schema["pattern"], value) is None: raise RegistryError("SCHEMA_PATTERN_INVALID", path)
@@ -238,7 +239,7 @@ class Registry:
         complete = bool(state["frozen"]) and set(state["manifest"]) == {value["trial_id"] for value in economic} and all(value["status"] in TERMINAL and value.get("provenance_state") == "COMPLETE" for value in economic)
         completeness = "COMPLETE" if complete else ("LEGACY_INCOMPLETE_PROVENANCE" if any(value.get("trial_kind") == "LEGACY_INCOMPLETE_PROVENANCE" for value in economic) else "INCOMPLETE_EXPECTED_TRIALS")
         out = {"schema": "ExperimentFamilySnapshot/v1", "exact_family_revision": f"{family_id}@{family_revision_id}", "family_id": family_id, "family_revision_id": family_revision_id, "source_producer": "W4", "registered_family_digest": state.get("registered_family_digest"), "trials": trials, "economic_trial_count": len(economic), "rerun_count": len(trials) - len(economic), "status_counts": dict(sorted(Counter(value["status"] for value in state["trials"].values()).items())), "selected_trial_id": state["selected"], "selection_rule_ref": state["selection_rule"], "selection_frozen": state["candidate_frozen"], "completeness_state": completeness, "ledger_head_digest": rows[-1]["event_digest"] if rows else None, "authority": _authority()}
-        out["snapshot_digest"] = digest(out); _validate_schema(out, _schema("EXPERIMENT-FAMILY-SNAPSHOT.schema.json")); out["family_snapshot_digest"] = out["snapshot_digest"]
+        out["snapshot_digest"] = digest(out); out["family_snapshot_digest"] = out["snapshot_digest"]; _validate_schema(out, _schema("EXPERIMENT-FAMILY-SNAPSHOT.schema.json"))
         return out
 
 

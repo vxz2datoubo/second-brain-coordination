@@ -1,0 +1,58 @@
+schema: R191_TERMINAL_CLOSEOUT_RECEIPT/v1
+task_id: CODEX-DS10-P0A-W4-READ-BINDING-INTEGRATION-R191
+route_epoch: 191
+project: TRADING_SYSTEM
+parent_program: SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001
+source_issue: 552
+upstream_completed_issue: 559
+downstream_issue: 561
+executor: CODEX_STANDARD
+boundary: RESEARCH_ONLY / NO_TRADE
+closed_at_canonical_main: cb59993b963f3150537973e0deb4331fcbd63707
+
+purpose: >-
+  Record the terminal closeout of the R191 Codex Standard execution lane. R191 integrated the canonical
+  W4 read binding (CanonicalExperimentFamilyReadReceipt/v1) into the DS-10 P0A research-integrity kernel,
+  removing the W4_AUTHORITY_BINDING_NOT_IMPLEMENTED_P0A abstention ONLY on a genuinely canonical receipt
+  whose family identity matches the audited snapshot, and reaching ELIGIBLE_FOR_W7_VALIDATION (which is
+  NOT W7 ACCEPT). required_scope is fully delivered and canonically merged; this closeout releases the
+  Codex slot for the DS-10 P0B Deflated Sharpe successor (R192, Issue #561).
+
+delivery_evidence:
+  implementation_pr: 671
+  exact_head: 43ed200eac3ce21516470285f8d275520fa90a26
+  canonical_merge: cb59993b963f3150537973e0deb4331fcbd63707
+  exact_head_ci_push_run: 34456428176
+  independent_review: 5164895942
+  review_verdict: APPROVE
+  completion_signal: DS10_P0A_CANONICAL_W4_READ_BINDING_INTEGRATED_ELIGIBLE_FOR_W7_VALIDATION_NOT_ACCEPT
+
+scope_closure:
+  ds10_p0a_canonical_w4_read_binding_integration: DELIVERED
+  consume_canonical_experiment_family_read_receipt_v1: DELIVERED
+  verify_w4_provenance_genuinely_canonical: DELIVERED
+  remove_w4_authority_binding_abstention_only_when_canonical: DELIVERED
+  preserve_all_p0a_trial_lockbox_pit_method_gates: PRESERVED
+  eligible_for_w7_validation_neq_w7_accept: PRESERVED
+  no_second_store_or_ledger: PRESERVED
+  no_w4_write_authority_from_ds10: PRESERVED
+  no_validation_probability_risk_position_order_trade_authority: PRESERVED
+
+slot_release:
+  released_worker_slot_id: CODEX-R191-DS10-P0A-INTEGRATION-1
+  successor_route: CODEX-DS10-P0B-DEFLATED-SHARPE-R192
+  successor_worker_slot_id: CODEX-R192-DS10-P0B-DEFLATED-SHARPE-1
+  successor_source_issue: 561
+  codex_active_routes_max: 1
+  codex_active_routes_after: 1
+
+non_assertions:
+  - no canonical project completion
+  - no W7 ACCEPT authority
+  - no second experiment/trial ledger or read-receipt store
+  - no W4 ownership write by R191
+  - no backtest / W7 / probability / market-data truth authority
+  - no account/broker/funds/position/order authority
+  - no real trade / order
+
+terminal_state: TERMINAL_COMPLETED

@@ -12,8 +12,8 @@ upstream_signal_ref: issuecomment-5613811829
 executor: CODEX_STANDARD
 worker_slot_id: CODEX-R190-W4-READ-BINDING-1
 mode: standard_engineering_research_only
-status: READY
-execution_allowed: true
+status: TERMINAL_COMPLETED
+execution_allowed: false
 automatic_resume_within_task: false
 second_user_start_command_required: false
 merge_authorized: false
@@ -29,8 +29,8 @@ identity_fields:
   ds10_consumer_issue: 552
   related_factor_consumer_issue: 78
 branch: codex/r190-w4-canonical-experiment-family-read-binding
-branch_state_at_snapshot: NOT_CREATED
-branch_head_at_activation: NOT_CREATED
+branch_state_at_snapshot: CANONICAL_MERGED
+branch_head_at_activation: d853bb24e93b205671938b3cd9ef89c58b527b2a
 effective_spec_snapshot_id: TRADING-CODEX-R190-ISSUE559-SNAPSHOT-001
 effective_spec_snapshot_ref: issuecomment-5613538664
 first_mission: W4_CANONICAL_EXPERIMENT_FAMILY_READ_BINDING
@@ -87,5 +87,18 @@ hard_locks:
 execution_environment:
   fresh_task_owned_standalone_clone_required: true
 substantive_write_gate: OPEN_AFTER_FRESH_TASK_OWNED_STANDALONE_CLONE
-completion_signal: TRADING_CODEX_R190_W4_READ_BINDING_PREWRITE_ROUTE_PUBLISHED_EXECUTION_AUTHORIZED_RESEARCH_ONLY
-next_command: START_W4_READ_SURFACE_INVENTORY_THEN_CANONICAL_EXPERIMENT_FAMILY_READ_RECEIPT_V1
+completion_signal: W4_CANONICAL_EXPERIMENT_FAMILY_READ_BINDING_READY_FOR_DS10_INTEGRATION
+next_command: TERMINAL_CLOSED_DS10_P0A_INTEGRATION_IS_SUCCESSOR_R191
+
+terminal:
+  terminal_state: TERMINAL_COMPLETED
+  delivered_head: d853bb24e93b205671938b3cd9ef89c58b527b2a
+  canonical_merge: 286c67d8ff1f49da6762cc0cd54e1d85cc086430
+  delivered_pr: 669
+  exact_head_ci_push_run: 34449445273
+  independent_review: 5163938883
+  completion_signal: W4_CANONICAL_EXPERIMENT_FAMILY_READ_BINDING_READY_FOR_DS10_INTEGRATION
+  completion_signal_ref: issuecomment-5614767365
+  closeout_receipt: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-W4-CANONICAL-EXPERIMENT-FAMILY-READ-BINDING-R190/R190-TERMINAL-CLOSEOUT-RECEIPT.yaml
+  successor_route: CODEX-DS10-P0A-W4-READ-BINDING-INTEGRATION-R191
+  successor_worker_slot_id: CODEX-R191-DS10-P0A-INTEGRATION-1
