@@ -1,0 +1,42 @@
+schema: PREWRITE_RECONCILIATION_SNAPSHOT/v1
+task_id: CODEX-W4-CANONICAL-EXPERIMENT-FAMILY-READ-BINDING-R190
+route_epoch: 190
+source_issue: 559
+project: SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001
+project_alias: TRADING_SYSTEM
+executor: CODEX_STANDARD
+boundary: RESEARCH_ONLY / NO_TRADE
+canonical_main_at_snapshot: c94113fcb2c269e62f7968f930bf8f15dd25bebe
+upstream_completion_signal: W4_CANONICAL_STRATEGY_EXPERIMENT_FAMILY_PERSISTENCE_READY_FOR_READ_BINDING
+upstream_signal_ref: issuecomment-5613811829
+predecessor_route: CODEX-W4-STRATEGY-EXPERIMENT-FAMILY-R189
+predecessor_state: TERMINAL_COMPLETED
+predecessor_delivered_head: 6691a47fd07430693e684b3c837bbc62c7ac1226
+
+read_surface_inventory_at_snapshot:
+  w4_canonical_read_surface:
+    ref: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W4-STRATEGY-EXPERIMENT-FAMILY-P0/src/w4_experiment_family/registry.py
+    operation: read_experiment_family(exact_family_revision) -> ExperimentFamilySnapshot/v1
+    status: CANONICALIZED_C94113FC
+  ds10_consumer:
+    ref: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/src/offline_research/research_integrity.py
+    status: READ_ONLY_EXTERNAL_CONSUMER
+  existing_read_receipt_store: NONE
+  second_registry_found: NONE
+  conclusion: REUSE_EXTEND_W4_CANONICAL_READ_SURFACE
+
+collision_and_capacity_admission:
+  codex_slot_before: RELEASED_BY_R189_TERMINAL_CLOSEOUT
+  codex_active_routes_before: 0
+  codex_active_routes_max: 1
+  codex_active_routes_after: 1
+  result: PASS
+  overlapping_open_pr_on_target_files: NONE
+  gpt_worker_r182_r183: CANONICAL_HISTORY_NO_ACTIVE_IMPLEMENTATION
+  codex_r181_pr549: PRESERVED_UNCHANGED_0aa32e31f0130bf144d43ebecef03613f3f268e4
+
+inheritance_non_assertions:
+  acceptance_inherited: false
+  canonicality_inherited: false
+  ds10_write_inherited: false
+  w4_560_truth_mutation_allowed: false

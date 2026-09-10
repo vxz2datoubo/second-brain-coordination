@@ -1,0 +1,72 @@
+schema_version: "190.1"
+task_id: CODEX-W4-CANONICAL-EXPERIMENT-FAMILY-READ-BINDING-R190
+route_epoch: 190
+project: SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001
+project_alias: TRADING_SYSTEM
+source_issue: 559
+parent_program_issue: 31
+upstream_completed_issue: 560
+executor: CODEX_STANDARD
+boundary: RESEARCH_ONLY / NO_TRADE
+first_mission: W4_CANONICAL_EXPERIMENT_FAMILY_READ_BINDING
+brief_status: READY_FOR_CODEX_EXECUTION
+
+objective: >-
+  Close the trust-root gap between canonical W4 StrategyExperimentFamily truth and DS-10 research-integrity
+  consumption, by adding the smallest provenance-safe W4-owned read binding that mechanically proves an
+  expected digest was obtained from the canonical W4 read surface at a canonical ref — never authored by
+  the caller. Issue #559 must not create a second store, a second ledger, or a caller-minted trusted-digest registry.
+
+upstream_dependency_satisfied:
+  issue: 560
+  signal: W4_CANONICAL_STRATEGY_EXPERIMENT_FAMILY_PERSISTENCE_READY_FOR_READ_BINDING
+  signal_ref: issuecomment-5613811829
+  canonical_w4_read_surface: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W4-STRATEGY-EXPERIMENT-FAMILY-P0/src/w4_experiment_family/registry.py::read_experiment_family
+  canonicalized_at_main: c94113fcb2c269e62f7968f930bf8f15dd25bebe
+
+step_one_read_surface_inventory:
+  mandate: >-
+    Freshly classify every existing StrategyExperimentFamily read/export/snapshot primitive in the repository.
+    If an equivalent canonical provenance-safe read adapter already exists, reuse/extend it rather than create
+    a new one. Confirm the canonicalized `read_experiment_family(exact_family_revision) -> ExperimentFamilySnapshot/v1`
+    surface as the binding target.
+  disposition: >-
+    W4 canonical read surface exists and is canonicalized c94113fc -> REUSE/EXTEND inside W4 ownership.
+
+step_two_read_binding:
+  deliverable: >-
+    CanonicalExperimentFamilyReadReceipt/v1 produced only by the W4-owned read surface, binding:
+    repository, canonical_main_sha, w4_contract_version, w4_read_surface_id, w4_read_surface_code_digest,
+    experiment_family_ref, family_revision_id, family_content_digest, expected_trial_manifest_digest,
+    trial_id_set_digest, trial_count, selection_rule_ref, benchmark_ref, metric_id, horizon_id,
+    search_space_ref, task_id, route_epoch, executor_role, work_claim_ref, authorization_witness_ref,
+    read_at, as_of, runtime/code digest, and the machine-readable receipt digest.
+    All authority flags false except the statement that the receipt is evidence of an authorized read.
+
+step_three_verification:
+  - deterministic receipt digest
+  - anti-self-attestation negative tests (caller-minted digest, invented canonical SHA, foreign work-claim ref,
+    mutable local copy read, cross-revision manifest digest, non-canonical ref)
+  - regression tests preserving the canonicalized #560 surface
+  - settle snapshot alias schema-coverage and pin the read call contract (carry-forward from pullrequestreview-5163176901)
+
+hard_boundaries:
+  - NO_REAL_TRADE
+  - NO_ACCOUNT_OR_BROKER_CREDENTIAL_ACCESS
+  - NO_FUNDS_OR_POSITION_AUTHORITY
+  - NO_ORDER_PLACEMENT
+  - NO_FRONTIER_OR_ASTRA_AUTHORITY
+  - NO_SECOND_EXPERIMENT_OR_TRIAL_LEDGER
+  - NO_SECOND_EXPERIMENT_FAMILY_READ_RECEIPT_STORE
+  - NO_BACKTEST_AUTHORITY_CREATION
+  - NO_W7_VALIDATION_AUTHORITY_CREATION
+  - NO_PROBABILITY_REGISTRY_CREATION
+  - NO_MARKET_DATA_TRUTH_CREATION
+  - NO_CALLER_MINTED_TRUST_ROOT
+  - NO_DS10_WRITE
+
+non_goals:
+  - do not write inside DS-10 ownership (DS-10 consumer adapter is a separate DS-10-owned governed step)
+  - do not implement W7 validation, risk, position, order, or trade capability
+  - do not publish Frontier/Astra authority
+  - do not modify the canonicalized #560 W4 truth semantics
