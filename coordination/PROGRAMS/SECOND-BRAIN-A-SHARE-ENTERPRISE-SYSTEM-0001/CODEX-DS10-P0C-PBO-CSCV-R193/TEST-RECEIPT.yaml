@@ -1,0 +1,36 @@
+schema: TestReceipt/v1
+task_id: CODEX-DS10-P0C-PBO-CSCV-R193
+tested_local_head: 2d8421cbd4d599e56321306a023c499b65eba05a
+tested_working_tree: "authorized additive local P0C changes present; no commit or push by dispatch instruction"
+commands:
+  - command: "python -X utf8 coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-PBO-CSCV-P0C/tests/test_pbo_cscv.py"
+    exit_code: 0
+    count: "22 tests OK"
+    stdout_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    stderr_sha256: aac3942b2da7ee8462fbd693aa092b8486f15bb603bfb195c7e0586254aa34c8
+  - command: "python -X utf8 coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/tests/test_research_integrity.py"
+    exit_code: 0
+    count: "74 tests OK"
+    stdout_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    stderr_sha256: 5e4246d5ba8a2916a7e0a30756790222af1010d3da09aee2b7462f347162908a
+  - command: "python -X utf8 coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W4-STRATEGY-EXPERIMENT-FAMILY-P0/tests/test_experiment_family.py"
+    exit_code: 0
+    count: "9 tests OK"
+    stdout_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    stderr_sha256: 7bfd025e5406d71d2cecc76c519a04a506766a998127f5d68e5f1c5e464cc6b0
+    warnings: "Five existing sqlite ResourceWarning messages; no test failure; P0C has no W4 write authority."
+  - command: "python -X utf8 -m unittest tests/test_w4_canonical_experiment_family_read_binding.py -v"
+    exit_code: 0
+    count: "11 tests OK"
+    purpose: "Dedicated canonical read-binding regression required by P1-D."
+  - command: "python -X utf8 coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-DEFLATED-SHARPE-P0B/tests/test_deflated_sharpe.py"
+    exit_code: 0
+    count: "18 tests OK"
+    stdout_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    stderr_sha256: 720e8f708213fcd4d776ef72649a9805cd5b531977c6eace89484fb5d40bf8cd
+supplemental_checks:
+  - "python -X utf8 -m py_compile .../pbo_cscv.py; exit=0"
+  - "CSCVInput/v1, CSCVSplitResult/v1 and PBOResult/v1 JSON schema parser: PASS"
+  - "Deterministic rerun: P0C computation_digest and ordered split evidence equal across two identical executions."
+  - "R193 local allowed-write audit including untracked paths and git diff --check: PASS"
+remote_ci: NOT_RUN_BY_DISPATCH_NO_PUSH

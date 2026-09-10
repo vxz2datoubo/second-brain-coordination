@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CSCVSplitResult/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "split_id", "is_group_ids", "oos_group_ids", "selected_trial_id", "selected_trial_identity_digest", "is_score", "oos_score", "is_score_vector_digest", "oos_score_vector_digest", "oos_rank", "omega", "logit", "split_overfit", "median_mass", "tie_diagnostic", "missingness_diagnostic", "split_digest_semantics", "computation_digest"],
+  "properties": {
+    "schema": {"const": "CSCVSplitResult/v1"}, "split_id": {"type": "string", "pattern": "^split-[0-9]{5}$"},
+    "is_group_ids": {"type": "array", "minItems": 1, "items": {"type": "integer", "minimum": 0}}, "oos_group_ids": {"type": "array", "minItems": 1, "items": {"type": "integer", "minimum": 0}},
+    "selected_trial_id": {"type": "string", "minLength": 1}, "selected_trial_identity_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "is_score": {"type": "number"}, "oos_score": {"type": "number"}, "is_score_vector_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "oos_score_vector_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "oos_rank": {"type": "integer", "minimum": 1}, "omega": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1}, "logit": {"type": "number"},
+    "split_overfit": {"type": "boolean"}, "median_mass": {"type": "boolean"}, "tie_diagnostic": {"const": "NO_MATERIAL_TIES"}, "missingness_diagnostic": {"const": "COMPLETE_SYNCHRONOUS_MATRIX"}, "split_digest_semantics": {"const": "CSCV_SPLIT_V1"}, "computation_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

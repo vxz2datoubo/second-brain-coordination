@@ -1,0 +1,25 @@
+schema: AI_HANDOFF/v1
+task_id: CODEX-DS10-P0C-PBO-CSCV-R193
+route_epoch: 193
+from_agent: CODEX_STANDARD
+to_agent: EXTERNAL_INDEPENDENT_REVIEWER
+status: LOCAL_IMPLEMENTATION_READY_FOR_EXTERNAL_EXACT_HEAD_VERIFICATION
+branch: codex/r193-ds10-p0c-pbo-cscv
+base_at_claim: 2d8421cbd4d599e56321306a023c499b65eba05a
+do_not_treat_as:
+  - W7_ACCEPT
+  - probability_authority
+  - allocation_or_order_instruction
+  - trade_authority
+  - canonical_main
+  - independent_acceptance
+review_focus:
+  - "Verify all changed paths remain inside R193 allowlist plus the one named workflow."
+  - "Verify every oriented C(S,S/2) split is retained, including S=16=12870."
+  - "Verify strict tie abstention and family/matrix completeness gates cannot be bypassed."
+  - "Verify metric labels cannot select arithmetic-mean semantics unless the supported W4-bound identity/version matches."
+  - "Verify input-chain, split-vector, ordered-ledger, combination-manifest, logit and PBO numerator/denominator digests make omission or mutation detectable."
+  - "Verify CI scope gate compares origin/main...HEAD against exactly the R193 allowlist."
+  - "Run exact-head workflow after authorized push and confirm both job checkout SHAs equal the delivered head."
+known_limitations: [R193-U-001, R193-U-002, R193-U-003, R193-U-004]
+next_action: "Commit without history rewrite when ready, then let a distinct reviewer fetch and verify that exact head."

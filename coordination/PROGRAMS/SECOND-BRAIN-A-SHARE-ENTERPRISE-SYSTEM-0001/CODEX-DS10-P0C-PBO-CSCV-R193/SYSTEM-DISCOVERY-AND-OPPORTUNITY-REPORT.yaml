@@ -1,0 +1,29 @@
+schema: SystemDiscoveryAndOpportunityReport/v1
+task_id: CODEX-DS10-P0C-PBO-CSCV-R193
+discoveries:
+  - id: R193-S1-001
+    class: EXPECTED_CONFIRMATION
+    verified_fact: "Canonical W4 snapshot completion is the literal string COMPLETE, not a boolean."
+    evidence: "W4 read binding probe returned completeness_state: COMPLETE."
+    implementation_action: "P0C accepts only equality with COMPLETE; it does not use truthiness."
+    affected_scope: "P0C family integrity gate only."
+    what_it_does_not_prove: "It does not prove that any real-market strategy matrix is available or valid."
+  - id: R193-S2-001
+    class: CROSS_MODULE_EFFECT
+    verified_fact: "The direct upstream W4 regression passes but emits existing sqlite ResourceWarning messages for unclosed connections."
+    evidence: "W4 test command exit=0, 9 tests OK, stderr hash 2f9998bc26a23e5f668818cb836e3d91e2d0dbf5d8c4c41cb96dc627fe876581."
+    severity: S2
+    affected_scope: "Upstream W4 test lifecycle; P0C code does not write that ownership surface."
+    recommended_owner: "GPT Architecture Owner to route to the declared W4 surface owner if warning remediation is desired."
+    current_disposition: "PROPOSAL_ONLY_OUT_OF_SCOPE"
+opportunities:
+  - id: R193-C-001
+    AMED_class: C
+    idea: "Add an upstream W4-owned connection-lifecycle regression that turns ResourceWarning into a failing test after root-cause reproduction."
+    value: "Would make read-binding lifecycle cleanliness mechanically visible."
+    cost: "Small to moderate upstream test/ownership investigation."
+    risk: "Changing W4 lifecycle code is forbidden in R193 and must not be silently taken over."
+    owner: "W4 surface owner via GPT route"
+    activation_trigger: "A W4 owner reproduces the warning under a controlled warning-as-error run."
+    validation_gate: "Independent W4 exact-head test with no ResourceWarning and no read-binding behavior drift."
+    disposition: PROPOSAL_ONLY

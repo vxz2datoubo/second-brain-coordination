@@ -1,0 +1,16 @@
+schema: UnplannedImprovementLedger/v1
+task_id: CODEX-DS10-P0C-PBO-CSCV-R193
+entries:
+  - id: R193-B-001
+    class: B
+    improvement: "Added a closed result schema that makes every authority field literal false, instead of relying only on implementation convention."
+    evidence: "P0C schema test rejects trade_authority=true and an injected caller_winner_ledger field."
+    value: "Prevents output-shape authority laundering while remaining entirely inside P0C ownership."
+    rollback: "Remove the P0C schema and its corresponding test files only; no upstream surface changed."
+  - id: R193-B-002
+    class: B
+    improvement: "Added exact-head workflow dispatch with full 40-hex SHA validation and detached checkout assertion on Python 3.11 and 3.13."
+    evidence: "Workflow YAML parsed locally; it refuses non-40-character dispatch refs before test execution."
+    value: "Separates a future exact-head CI proof from local test evidence."
+    rollback: "Remove only .github/workflows/ds10-pbo-cscv-p0c.yml."
+proposal_only: []
