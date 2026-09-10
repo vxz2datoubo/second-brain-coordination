@@ -1,37 +1,48 @@
-schema_version: "1.0"
+schema: "TaskLeaseClaim/v1"
 claim_id: "WORKBUDDY-R572-R8-PR660-CLAIM"
-state: "CLAIMABLE"
 repository: "vxz2datoubo/second-brain-coordination"
-project: "SECOND_BRAIN"
+remote_main_head_at_claim: "58c568ca280a023ff961aae4bd15f8492d18a8ce"
+task_id: "WORKBUDDY-R572-R8-PR660-REMEDIATION"
+route_epoch: 5728
+active_issue: 667
 source_issue: 572
-handoff_issue: 667
 pull_request: 660
-route_ref: "coordination/ROUTES/WORKBUDDY-R572-R8-PR660-HANDOFF.yaml"
-task_ref: "coordination/EXECUTION/WORKBUDDY-R572-R8-PR660-HANDOFF/TASK.yaml"
-executor: "WORKBUDDY"
-collision_domain: "R572_R8_WORKER_SLOTS_COMPATIBILITY"
-exclusive_writer: true
-claim_preconditions:
-  - "fresh_current_main_read"
-  - "fresh_pr660_exact_head_read"
-  - "fresh_route_and_lease_read"
-  - "no_other_writer_claim_in_collision_domain"
-  - "runtime_model_availability_observed"
-claim_effect: >-
-  On valid claim, WorkBuddy becomes the sole implementation writer for the six authorized R8 paths.
-  GPT Architecture Owner retains orchestration but must not concurrently modify those paths.
-write_surface:
+agent: "WORKBUDDY"
+branch: "workbuddy/r572-r8-pr660-remediation"
+status_observed: "READY"
+execution_allowed_observed: true
+reviewed_or_base_head: "c29cea2e38b13dccfbe5af05ae83e993435c7db6"
+canonical_task_baseline: "c29cea2e38b13dccfbe5af05ae83e993435c7db6"
+branch_parent_required: "c29cea2e38b13dccfbe5af05ae83e993435c7db6"
+completion_signal: "WORKBUDDY_R572_R8_PR660_REMEDIATION_COMPLETE"
+dependencies:
+  - "Owner WorkBuddy handoff authorization is recorded in Issue #667 comment 5614462912"
+  - "PR #660 source checkpoint exact head is c29cea2e38b13dccfbe5af05ae83e993435c7db6 before WorkBuddy branch creation"
+  - "R175 default task remains registered and unchanged"
+  - "R184 registered task remains distinct and non-overlapping"
+  - "registry-wide write-surface and branch conflict admission passes"
+  - "runtime WorkBuddy model availability and multiplier are freshly observed"
+mode: "deep_engineering_existing_pr_clean_successor_remediation"
+task_brief: "coordination/EXECUTION/WORKBUDDY-R572-R8-PR660-HANDOFF/TASK.yaml"
+authorized_paths:
   - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R7.yaml"
   - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-TERMINAL-TOMBSTONES.yaml"
   - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R8.yaml"
   - "coordination/CONTROL-TOWER/worker_slots.py"
   - "coordination/CONTROL-TOWER/tests/test_worker_slots_r8_compat.py"
   - "coordination/CONTROL-TOWER/R572-R8-WORKER-SLOTS-COMPATIBILITY-RECEIPT.yaml"
-forbidden:
-  - "ANY_SEVENTH_IMPLEMENTATION_PATH"
-  - "SELF_REVIEW"
-  - "SELF_MERGE"
-  - "DIRECT_MAIN_WRITE"
-  - "REAL_CAPTURE"
-  - "OPERATIONAL_W3_WRITE"
-  - "R184_LOCAL_BRIDGE_START"
+hard_boundaries:
+  - "NO_SEVENTH_IMPLEMENTATION_PATH"
+  - "NO_WORKER_LIFECYCLE_PY_WRITE"
+  - "NO_ACTIVE_PROJECTION_MUTATION"
+  - "NO_REAL_CAPTURE"
+  - "NO_OPERATIONAL_W3_WRITE"
+  - "NO_R184_LOCAL_BRIDGE_START"
+  - "NO_TRADING_OR_RUNTIME_AUTHORITY"
+  - "NO_DIRECT_MAIN_WRITE"
+  - "NO_SELF_REVIEW"
+  - "NO_SELF_MERGE"
+  - "NO_FORCE_PUSH_REBASE_RESET_AMEND_HISTORY_REWRITE"
+read_claim_execute_protocol: "coordination/GOVERNANCE/AGENT-READ-TASK-CLAIM-AND-EXECUTE-COMMAND-SEMANTICS-v1.0.yaml"
+claim_state: "ACTIVE"
+claim_timestamp: "2026-09-10T01:34:00-05:00"
