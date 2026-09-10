@@ -1,0 +1,58 @@
+schema_version: "1.0"
+receipt_id: "R572-R8-WORKER-SLOTS-COMPATIBILITY-REMEDIATION-0001"
+issue: 572
+owner_authorization_comment: 5609806985
+effective_spec_comment: 5609924916
+base_canonical_main: "91d8838da370496ecd2678633a7293cc5d161ec4"
+canonical_r7_projection_pr: 658
+canonical_r7_projection_head: "940e18b6afe87af377b83347f41ef7f4e5c4b876"
+canonical_r7_projection_merge: "91d8838da370496ecd2678633a7293cc5d161ec4"
+
+failure_evidence:
+  exact_head_authority_ci:
+    run: 34414265605
+    conclusion: SUCCESS
+    scope: "EXACT_HEAD_CHECKOUT_IDENTITY + DEPENDENCY_FREE_GOVERNANCE_INVARIANTS"
+  program_control_tower:
+    run: 34414254750
+    conclusion: FAILURE
+    failed_step: "Prove current-main versus exact-candidate Control Tower delta"
+  r145_final_active_gate:
+    run: 34414254739
+    conclusion: FAILURE
+    failed_step: "Create fresh Lane-A authorization witness"
+  corroborating_fingerprint: "WORKER_REGISTRY_IDENTITY_INVALID / unsupported activation-closure states"
+
+root_cause:
+  canonical_registry_schema: "1.5"
+  legacy_worker_slots_expected_schema_before: "1.0"
+  canonical_terminal_projection: "CLOSED + CANONICAL_MERGED_AND_WORKER_RELEASED"
+  legacy_worker_slots_terminal_dialect_before: "ACTIVE | RESERVED | RELEASED only"
+  classification: "LEGACY_CONSUMER_NOT_MIGRATED_TO_CANONICAL_R6_LIFECYCLE_RESOLVER"
+
+remediation:
+  lifecycle_truth_owner: "coordination/CONTROL-TOWER/worker_lifecycle.py"
+  adapter: "coordination/CONTROL-TOWER/worker_slots.py"
+  adapter_semantics:
+    - "registry_schema_supported controls schema admission"
+    - "resolve_worker_lifecycle controls per-slot lifecycle decisions"
+    - "audit_worker_registry_lifecycle controls occupancy/capacity observation"
+    - "UNKNOWN remains fail closed"
+    - "legacy identity/surface/claim/collision/tombstone checks retained"
+  r7_terminalized: true
+  r7_tombstone_added: true
+  r8_new_authority_identity: "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R8-0001"
+  active_projection_files_modified: false
+  worker_lifecycle_modified: false
+
+required_acceptance:
+  - "Program Control Tower foundation exact candidate: SUCCESS"
+  - "R145 final active gate exact candidate: SUCCESS or independently proven obsolete/non-applicable"
+  - "focused R8 compatibility tests: PASS"
+  - "current registry audit valid_for_observability=true"
+  - "occupied_capacity_count=0 and free_capacity_count=2 derived, not hand-authored"
+  - "successor_release_authority=false"
+  - "independent exact-head review required"
+  - "separate canonicalization required"
+
+boundary: "GOVERNANCE_ONLY / NO_W3 / NO_REAL_CAPTURE / NO_RUNTIME_DOMAIN_CHANGE / NO_TRADE / NO_SELF_REVIEW / NO_SELF_MERGE / NO_SUCCESSOR_RELEASE"

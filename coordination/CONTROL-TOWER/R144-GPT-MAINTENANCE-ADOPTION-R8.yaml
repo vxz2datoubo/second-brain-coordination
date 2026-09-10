@@ -1,0 +1,97 @@
+schema_version: "1.0"
+authority_id: "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R8-0001"
+authority_type: "GPT_ARCHITECTURE_OWNER_CORRECTIVE_MAINTENANCE_ADOPTION"
+issuer: "USER"
+actor: "GPT_ARCHITECTURE_OWNER"
+state: "ACTIVE"
+
+predecessor_authority:
+  path: "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R7.yaml"
+  authority_id: "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R7-0001"
+  required_state: "RELEASED"
+  required_terminal_scope_status: "NO_FURTHER_MODIFIER_WRITES_AUTHORIZED_BY_THIS_ARTIFACT"
+
+purpose: >-
+  Owner-authorized bounded compatibility remediation after canonical R7 projection migration.
+  Make the legacy worker_slots.py integration surface consume canonical worker_lifecycle.py schema/lifecycle/capacity
+  semantics without creating a second lifecycle state machine, while preserving historical R5/R6/R7 maintenance
+  tombstones, route/claim binding, identity separation and collision guards.
+
+task_id: "GPT-R572-R8-WORKER-SLOTS-COMPATIBILITY-REMEDIATION"
+maintenance_generation: 8
+issue: 572
+branch: "gpt/r572-r8-worker-slots-compat-remediation-20260909"
+pr: 660
+pr_binding_state: "BOUND_DRAFT_PR"
+owner_authorization_comment: 5609806985
+effective_spec_snapshot: 5609924916
+activation_parent_head: "91d8838da370496ecd2678633a7293cc5d161ec4"
+canonical_main_at_authorization: "91d8838da370496ecd2678633a7293cc5d161ec4"
+
+execution_allowed: false
+runtime_write_allowed: false
+trade_allowed: false
+merge_authority: false
+acceptance_authority: false
+self_review_allowed: false
+retroactive_workbuddy_authorization: false
+successor_release_authority: false
+real_capture_allowed: false
+operational_w3_write_allowed: false
+r184_local_bridge_start_allowed: false
+workbuddy_start_allowed: false
+independent_review_required: true
+same_pr_required: true
+fresh_exact_head_ci_required: true
+
+allowed_write_paths:
+  - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R7.yaml"
+  - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-TERMINAL-TOMBSTONES.yaml"
+  - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R8.yaml"
+  - "coordination/CONTROL-TOWER/worker_slots.py"
+  - "coordination/CONTROL-TOWER/tests/test_worker_slots_r8_compat.py"
+  - "coordination/CONTROL-TOWER/R572-R8-WORKER-SLOTS-COMPATIBILITY-RECEIPT.yaml"
+
+state_machine:
+  active_scope_status: "BOUNDED_CORRECTIVE_MAINTENANCE_OPEN"
+  released_scope_status_required: "NO_FURTHER_MODIFIER_WRITES_AUTHORIZED_BY_THIS_ARTIFACT"
+  released_is_terminal_for_authority_id: true
+  next_activation_requires_new_user_issued_authority_id: true
+  terminality_must_not_depend_on_mutable_release_receipt_presence: true
+
+required_invariants:
+  lifecycle_truth_module: "coordination/CONTROL-TOWER/worker_lifecycle.py"
+  worker_slots_is_thin_integration_adapter: true
+  duplicate_lifecycle_state_machine_forbidden: true
+  canonical_registry_schema: "1.5"
+  legacy_registry_schema_compatibility: ["1.0"]
+  unknown_registry_schema_fails_closed: true
+  unknown_lifecycle_fails_closed_and_holds_capacity: true
+  current_r182_r183_terminal_projection_accepted: true
+  current_active_projection_write_forbidden: true
+  free_capacity_is_observation_not_release_authority: true
+  no_direct_main_write: true
+
+provenance:
+  source: "CURRENT_OWNER_EXPLICIT_SCOPE_EXPANSION"
+  source_issue: 572
+  owner_authorization_text: "允许扩展 R7 兼容层范围"
+  owner_authorization_comment: 5609806985
+  effective_spec_snapshot: 5609924916
+  canonical_r7_projection_pr: 658
+  canonical_r7_projection_head: "940e18b6afe87af377b83347f41ef7f4e5c4b876"
+  canonical_r7_projection_merge: "91d8838da370496ecd2678633a7293cc5d161ec4"
+  exact_head_authority_ci_success: 34414265605
+  normal_control_tower_failure: 34414254750
+  normal_r145_gate_failure: 34414254739
+  failure_fingerprint: "WORKER_REGISTRY_IDENTITY_INVALID / unsupported activation-closure states"
+  truth_rule: "R8_NEW_AUTHORITY_ID != R7_REBIND_OR_REACTIVATION"
+
+completion_gate:
+  required_disposition: "SEPARATE_GPT_INDEPENDENT_REVIEW"
+  keep_draft_until_review: true
+  no_merge_before_independent_accept: true
+  require_program_control_tower_success: true
+  require_r145_final_active_gate_success_or_explicit_non_applicability_proof: true
+  release_this_authority_after_successful_canonicalization: true
+  later_maintenance_requires_new_user_issued_authority_id: true
