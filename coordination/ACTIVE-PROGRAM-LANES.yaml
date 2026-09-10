@@ -1,4 +1,4 @@
-schema_version: "3.31"
+schema_version: "3.32"
 registry_id: AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001
 control_tower_issue: 310
 owner: USER
@@ -14,19 +14,25 @@ portfolio_capacity_policy:
   nested_parallelism: FORBIDDEN
 current_user_release_policy:
   held_lanes: []
-  decision: R189_CODEX_TRADING_W4_PREWRITE_ACTIVE_R181_PARKED_R182_R183_CLOSED
+  decision: R189_TERMINAL_COMPLETED_R190_CODEX_W4_READ_BINDING_ACTIVE_R181_PARKED_R182_R183_CLOSED
   rationale: >-
     R182 and R183 are canonical history. R181 remains priority-parked at its preserved executor checkpoint
-    (PR #549 exact head 0aa32e31f0130bf144d43ebecef03613f3f268e4) with its Codex slot released. Fresh collision and capacity
-    admission passes, so a clean Trading System Codex Standard pre-write route (CODEX-W4-STRATEGY-EXPERIMENT-FAMILY-R189,
-    Issue #560) is published, research-only / NO_TRADE, bound to W4 canonical StrategyExperimentFamily persistence.
+    (PR #549 exact head 0aa32e31f0130bf144d43ebecef03613f3f268e4) with its Codex slot released. R189
+    (Issue #560, CODEX-W4-STRATEGY-EXPERIMENT-FAMILY-R189) reached TERMINAL_COMPLETED at canonical main
+    c94113fcb2c269e62f7968f930bf8f15dd25bebe after Issue #560 emitted its read-binding readiness signal
+    (issuecomment-5613811829); its Codex slot is released. Fresh collision and capacity admission passes, so a
+    clean successor Trading System Codex Standard pre-write route
+    (CODEX-W4-CANONICAL-EXPERIMENT-FAMILY-READ-BINDING-R190, Issue #559) is published, research-only / NO_TRADE,
+    binding canonical W4 StrategyExperimentFamily truth to DS-10 consumers via a provenance-safe read receipt.
 observed_agent_state:
   CODEX:
-    observed_task_id: CODEX-W4-STRATEGY-EXPERIMENT-FAMILY-R189
-    observed_route_epoch: 189
-    observed_issue: 560
+    observed_task_id: CODEX-W4-CANONICAL-EXPERIMENT-FAMILY-READ-BINDING-R190
+    observed_route_epoch: 190
+    observed_issue: 559
     observed_status: READY
     execution_allowed: true
+    predecessor_task_id: CODEX-W4-STRATEGY-EXPERIMENT-FAMILY-R189
+    predecessor_terminal_state: TERMINAL_COMPLETED
   GPT_ENGINEERING_WORKER:
     observed_status: CLOSED_NO_ACTIVE_IMPLEMENTATION
     execution_allowed: false
@@ -81,21 +87,24 @@ program_lanes:
     prior_worker_slot_id: CODEX-R181-A2-2-SHOT-BUNDLE-1
     canonical_knowledge_write_authorized: false
   - lane_id: LANE-D-TRADING-SYSTEM-W4-EXPERIMENT-FAMILY
-    mission: Establish minimal canonical W4 StrategyExperimentFamily persistence for TRADING_SYSTEM (Issue #560), research-only / NO_TRADE.
+    mission: Bind canonical W4 StrategyExperimentFamily truth to DS-10 consumers via a provenance-safe read receipt (Issue #559), research-only / NO_TRADE.
     owner: USER
     architecture_owner: GPT
     desired_state: ACTIVE
-    observed_state: R189_CODEX_W4_STRATEGY_EXPERIMENT_FAMILY_PREWRITE
+    observed_state: R190_CODEX_W4_READ_BINDING_PREWRITE
     primary_system_positions: [W4]
     current_phase: PREWRITE
-    active_execution_route: CODEX-W4-STRATEGY-EXPERIMENT-FAMILY-R189
-    dependencies: []
+    active_execution_route: CODEX-W4-CANONICAL-EXPERIMENT-FAMILY-READ-BINDING-R190
+    dependencies: [560]
     shared_interfaces: []
-    next_gate: W4_CANONICAL_STRATEGY_EXPERIMENT_FAMILY_PERSISTENCE_COMPLETE
+    next_gate: W4_CANONICAL_EXPERIMENT_FAMILY_READ_BINDING_COMPLETE
     maturity: ACTIVE_GOVERNED_PREWRITE
     implementation_owner: CODEX
-    worker_slot_id: CODEX-R189-W4-STRATEGY-EXPERIMENT-FAMILY-1
+    worker_slot_id: CODEX-R190-W4-READ-BINDING-1
     trading_authorized: false
+    prior_completed_route: CODEX-W4-STRATEGY-EXPERIMENT-FAMILY-R189
+    prior_completed_issue: 560
+    prior_completed_state: TERMINAL_COMPLETED
 cross_lane_overlap_matrix:
   - pair: [LANE-A-HARNESS-INTEGRATION, LANE-B-A-SHARE-REMEDIATION]
     overlap_level: O0_NO_MATERIAL_WRITE_OVERLAP

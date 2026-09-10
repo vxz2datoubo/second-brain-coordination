@@ -1,0 +1,35 @@
+schema: ALLOWED_PATHS/v1
+task_id: CODEX-W4-CANONICAL-EXPERIMENT-FAMILY-READ-BINDING-R190
+route_epoch: 190
+policy: FAIL_CLOSED_EXACT_SCOPE_ADDITIVE_ONLY
+allow:
+  - coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W4-STRATEGY-EXPERIMENT-FAMILY/**
+  - coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-W4-CANONICAL-EXPERIMENT-FAMILY-READ-BINDING-R190/**
+  - tests/test_w4_canonical_experiment_family_read_binding.py
+  - coordination/CONTROL-TOWER/tests/test_w4_canonical_experiment_family_read_binding.py
+  - .github/workflows/w4-canonical-experiment-family-read-binding-r190-offline.yml
+read_only_dependencies:
+  - coordination/GOVERNANCE/ENTERPRISE-BLUEPRINT-AUTHORITY-AND-INTERFACE-REGISTRY-v1.0.yaml
+  - coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/**
+  - coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-0/ENTERPRISE-CONTRACT-REGISTRY.yaml
+forbid:
+  - coordination/ACTIVE-CODEX-TASK.yaml
+  - coordination/ACTIVE-PROGRAM-LANES.yaml
+  - coordination/ROUTES/**
+  - coordination/TASK-BRIEFS/**
+  - coordination/GOVERNANCE/ENTERPRISE-BLUEPRINT-AUTHORITY-AND-INTERFACE-REGISTRY-v1.0.yaml
+  - coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/**
+  - any DS10_RESEARCH_INTEGRITY write surface
+  - any MARKET_DATA_ADAPTER surface
+  - any PIT_REPLAY_ENGINE surface
+  - any ORDER_EXECUTION_AUTHORITY surface
+  - any ACCOUNT_BROKER_FUNDS_POSITION_ORDER surface
+  - any PROBABILITY_REGISTRY surface
+  - any W7_VALIDATION_AUTHORITY surface
+  - any BACKTEST_AUTHORITY surface
+  - any GPT R8 worker-slots remediation surface
+  - any R181 parked checkpoint surface
+notes:
+  - R190 is additive-only inside W4 ownership and may not edit inherited governance or the canonicalized #560 semantics.
+  - W4 canonical read surface (read_experiment_family) is extended in place under W4 ownership; DS-10 is read-only.
+  - The DS-10 consumer adapter is a separate DS-10-owned governed step, out of scope for R190.

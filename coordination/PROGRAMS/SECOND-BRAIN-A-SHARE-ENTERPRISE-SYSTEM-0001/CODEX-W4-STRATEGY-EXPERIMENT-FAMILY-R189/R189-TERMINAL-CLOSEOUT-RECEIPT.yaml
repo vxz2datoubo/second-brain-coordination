@@ -1,0 +1,62 @@
+schema: R189_TERMINAL_CLOSEOUT_RECEIPT/v1
+task_id: CODEX-W4-STRATEGY-EXPERIMENT-FAMILY-R189
+route_epoch: 189
+project: TRADING_SYSTEM
+parent_program: SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001
+source_issue: 560
+downstream_issue: 559
+executor: CODEX_STANDARD
+boundary: RESEARCH_ONLY / NO_TRADE
+closed_at_canonical_main: c94113fcb2c269e62f7968f930bf8f15dd25bebe
+
+purpose: >-
+  Record the terminal closeout of the R189 Codex Standard execution lane after Issue #560 emitted
+  W4_CANONICAL_STRATEGY_EXPERIMENT_FAMILY_PERSISTENCE_READY_FOR_READ_BINDING (issuecomment-5613811829).
+  R189's required_scope is fully delivered; this closeout releases the Codex slot for the successor
+  Issue #559 read-binding route (R190).
+
+delivery_evidence:
+  slice_1:
+    pr: 663
+    exact_head: f234306a93ceebce5a9e46cfe542521b2dc66af7
+    canonical_merge: ca0028c6e7e74b2e6c9adfa3fc3a6894c6d7e85d
+    review: pullrequestreview-5162555332
+  slice_2:
+    pr: 665
+    exact_head: 6691a47fd07430693e684b3c837bbc62c7ac1226
+    canonical_merge: c94113fcb2c269e62f7968f930bf8f15dd25bebe
+    exact_head_ci_push_run: 34442077963
+    independent_review: pullrequestreview-5163176901
+    review_result_ref: issuecomment-5613789811
+  upstream_completion_signal: W4_CANONICAL_STRATEGY_EXPERIMENT_FAMILY_PERSISTENCE_READY_FOR_READ_BINDING
+  upstream_completion_signal_ref: issuecomment-5613811829
+
+scope_closure:
+  w4_canonical_strategy_experiment_family_persistence: DELIVERED
+  w4_reuse_inventory_classification: DELIVERED
+  experiment_trial_record_persistence: DELIVERED
+  deterministic_snapshot_and_read_surface: DELIVERED
+  adversarial_provenance_tests: DELIVERED
+  no_second_trial_ledger_or_backtest_authority: PRESERVED
+  no_w7_validation_authority_override: PRESERVED
+  no_probability_registry: PRESERVED
+  no_market_data_truth_creation: PRESERVED
+  issue_560_owner_checklist_items_1_to_12: CLOSED
+  carry_forward_pullrequestreview_5162555332_S1_to_S6: CLOSED
+
+slot_release:
+  released_worker_slot_id: CODEX-R189-W4-STRATEGY-EXPERIMENT-FAMILY-1
+  successor_route: CODEX-W4-CANONICAL-EXPERIMENT-FAMILY-READ-BINDING-R190
+  successor_worker_slot_id: CODEX-R190-W4-READ-BINDING-1
+  codex_active_routes_max: 1
+  codex_active_routes_after: 1
+
+non_assertions:
+  - no canonical project completion
+  - no second experiment/trial ledger
+  - no backtest / W7 / probability / market-data truth authority
+  - no account/broker/funds/position/order authority
+  - no real trade / order
+  - no DS-10 ownership write
+
+terminal_state: TERMINAL_COMPLETED
