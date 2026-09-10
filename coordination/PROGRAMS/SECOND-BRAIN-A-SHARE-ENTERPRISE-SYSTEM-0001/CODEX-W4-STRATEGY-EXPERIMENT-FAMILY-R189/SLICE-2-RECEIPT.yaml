@@ -1,0 +1,27 @@
+schema: CODEX-W4-STRATEGY-EXPERIMENT-FAMILY-R189-SLICE-2-RECEIPT/v1
+scope: RESEARCH_ONLY
+producer: CODEX_STANDARD
+ds10_golden_vector_provenance:
+  fixture_path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/fixtures/research-integrity.synthetic.yaml
+  fixture_git_blob_sha: c807ced46e8750da89704a37101a40debf32ec86
+  ownership: DS10_READ_ONLY
+  derivation: complete_family expected_trial_digests are read from the DS10 fixture; compatibility is proven by byte-equivalence against DS10's own _digest implementation through a read-only import, alongside W4 registered_family_digest_v1 fixture consumption and order-independence verification, with no W4-minted digest literal. DS10 does not provide W4 benchmark, metric, horizon, search-space, or selection-rule inputs, so deterministic DS10_DERIVED placeholders are used only to prove the shared digest algorithm.
+carried_forward_findings:
+  S1_R183_golden_vector_provenance: CLOSED
+  S2_RERUN_trial_id_collision: CLOSED
+  S3_TRIAL_TERMINATED_one_shot: CLOSED
+  S4_schema_minimal_and_unwired: CLOSED
+  S5_status_vocabulary_naming: CLOSED
+  S6_registry_trailing_whitespace: CLOSED
+changes:
+  - Closed StrategyExperimentFamily, ExperimentTrialRecord, and ExperimentFamilySnapshot schemas are stdlib-validated in mutation and read paths.
+  - W4 event reduction normalizes the one canonical DS10 TrialStatus mapping and rejects unknown spellings.
+  - Read surface exposes all trials, counts, provenance, freeze/selection metadata, all-false unrelated authority flags, and deterministic snapshot_digest.
+  - Rerun collisions, terminal repeat events, hidden/winner-only manifests, post-freeze outcomes, legacy provenance, and caller-minted authority attempts fail closed or remain explicitly incomplete.
+verification:
+  commands:
+    - python -m unittest discover -s coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W4-STRATEGY-EXPERIMENT-FAMILY-P0/tests -v
+    - python -m compileall -q coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W4-STRATEGY-EXPERIMENT-FAMILY-P0/src
+    - git diff --check
+  result: PASS
+unknown_open_questions: NONE
