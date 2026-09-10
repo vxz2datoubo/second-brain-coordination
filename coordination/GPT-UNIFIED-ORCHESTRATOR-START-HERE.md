@@ -26,11 +26,19 @@ Fresh 读取 canonical `main` 之后、在判断是否打扰 Owner、是否 AUTO
    - `coordination/GOVERNANCE/MODEL-CAPABILITY-COST-ROUTER-v1.0.yaml`
    - `coordination/EXECUTION/PROJECT-REGISTRY.yaml`
    - 当前项目对应的 `coordination/EXECUTION/PROJECT-ADAPTERS/*.yaml`
-   - 当前 ACTIVE route / Issue / PR / exact head / CI / review。
-3A. **Program Control Tower pre-dispatch preflight (MANDATORY for execution/write):**
-   - Before any nontrivial repository write, executor handoff/dispatch, branch/worktree writer start, or carrier switch, fresh reconcile the Program Control Tower from current canonical `main`.
-   - At minimum resolve current worker slots, work claims, active routes, collision domains, WIP/capacity, dependencies, and authorization-witness freshness.
-   - Reuse existing `coordination/CONTROL-TOWER/` surfaces and validators. Do not create a second router, worker registry, or parallel truth source.
+   - `coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/GLOBAL-SIGNAL-INTAKE-ADAPTIVE-GATEWAY-CONTRACT.yaml`
+   - `coordination/PROGRAM-CONTROL-TOWER.md`（derived projection only）
+   - 当前 ACTIVE route / Issue / PR / exact head / CI / review / canonicalization evidence。
+3A. **Universal Owner/System Intake (MANDATORY before task formation):**
+   - Every system-relevant Owner input first passes the existing Signal Tower intake decision. This includes ideas, requirements, corrections, TODOs, unresolved questions, task requests, scheduling/prioritization directives, architecture changes, discovered defects and follow-up opportunities.
+   - Classify persistence as `EPHEMERAL / TRACE_ONLY / DURABLE_SIGNAL`, execution as `DIRECT / DOMAIN_WORKFLOW / GOVERNED_MISSION`, and materiality as `LOW / MATERIAL / HIGH_RISK` using the canonical Signal intake contract. Do not turn routine conversation into durable backlog bureaucracy.
+   - `Signal != Task`. Durable/cross-window planning value may enter the existing Signal Tower; formal work must not be silently created merely because a Signal exists. Explicit Owner no-capture/just-discussing intent wins.
+   - Raw/private conversation bodies must not be copied into the public control plane. Durable admission uses the existing R147 public-safe ingress and canonical S0C ledger/read-back path when applicable; never invent a second Signal store or claim admission without a receipt.
+   - Before any new `GOVERNED_MISSION` or formal agent/WB/Codex task is released, run the existing Global Signal Preflight, reconcile duplicates/dependencies/conflicts/current missions and produce or bind a valid `GlobalReconciliationReceipt` + `TaskReleasePacket`. No fresh valid reconciliation receipt means no new formal task release.
+3B. **Program Control Tower pre-dispatch preflight (MANDATORY for execution/write):**
+   - After Signal/Task release reconciliation and before any nontrivial repository write, executor handoff/dispatch, branch/worktree writer start, or carrier switch, fresh reconcile the Program Control Tower from current canonical `main`.
+   - At minimum resolve current worker slots, work claims, active routes, collision domains, WIP/capacity, dependencies, authorization-witness freshness, and, when currently published, latest task checkpoint/evidence/return-package references relevant to the proposed collision domain.
+   - Reuse existing `coordination/CONTROL-TOWER/` surfaces and validators. Do not create a second router, worker registry, backlog or parallel truth source.
    - Ordinary/new execution fails closed when Control Tower evidence is absent, stale, malformed, colliding, over-capacity, or authority-inconsistent.
    - Degraded repair exception: if the failing Control Tower surface itself is explicitly covered by a current bounded canonical remediation authority, only that exact remediation lane may proceed; UNKNOWN/FAIL must never be treated as O0/no-collision evidence and unrelated writes remain blocked.
    - Every concurrent WorkBuddy writer must be represented by its own governed task/route/claim/slot plus independent branch/worktree/collision-domain identity; never launch an unregistered WB writer.

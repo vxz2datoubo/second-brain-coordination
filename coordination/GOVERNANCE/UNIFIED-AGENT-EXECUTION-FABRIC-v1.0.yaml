@@ -178,6 +178,8 @@ compute_allocation:
 routing_algorithm:
   - "fresh_reconcile_current_main_and_active_routes"
   - "identify_project_and_load_project_adapter"
+  - "fresh_signal_tower_intake_decision_for_system_relevant_owner_input"
+  - "if_governed_mission_run_global_signal_preflight_and_bind_valid_reconciliation_receipt_and_task_release_packet"
   - "classify_task_S0_to_S5"
   - "classify_workload_value_tier_L0_to_L3"
   - "resolve_collision_domain_and_dependency_graph"
@@ -202,6 +204,8 @@ references:
   local_bridge: "coordination/GOVERNANCE/LOCAL-WORKBUDDY-BRIDGE-CONTRACT-v1.0.yaml"
   carrier_concurrency: "coordination/GOVERNANCE/EXECUTION-CARRIER-AND-CONCURRENCY-CONTRACT-v1.0.yaml"
   program_control_tower: "coordination/CONTROL-TOWER/README.md"
+  signal_tower_intake_contract: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/GLOBAL-SIGNAL-INTAKE-ADAPTIVE-GATEWAY-CONTRACT.yaml"
+  signal_tower_operational_ingress: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/R147-AUTOMATIC-INGRESS/README.md"
   model_snapshot: "coordination/EXECUTION/MODEL-CATALOG-SNAPSHOT-2026-09-04.yaml"
   gpt_bootstrap: "coordination/GPT-UNIFIED-ORCHESTRATOR-START-HERE.md"
   workbuddy_bootstrap: "coordination/WORKBUDDY-UNIFIED-START-HERE.md"
@@ -210,6 +214,12 @@ global_invariants:
   github_main_is_engineering_sync_truth: true
   project_runtime_sor_not_replaced_by_github: true
   active_task_route_required_for_execution: true
+  system_relevant_owner_input_requires_signal_tower_intake_decision_before_task_formation: true
+  signal_is_not_task: true
+  formal_governed_mission_requires_fresh_global_signal_reconciliation_receipt_and_task_release_packet: true
+  routine_conversation_must_not_be_forced_into_durable_signal_backlog: true
+  explicit_owner_no_capture_overrides_durable_admission: true
+  public_control_plane_forbids_raw_private_conversation_body: true
   control_tower_pre_dispatch_admission_required_for_nontrivial_repo_writes_and_executor_dispatch: true
   control_tower_stale_missing_or_inconsistent_evidence_fails_closed_for_ordinary_or_new_writes: true
   control_tower_degraded_repair_requires_explicit_current_bounded_canonical_remediation_authority: true
