@@ -1,0 +1,85 @@
+schema: "WorkBuddyPrewriteReconciliationSnapshot/v1"
+snapshot_id: "WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION-PREWRITE-001"
+repository: "vxz2datoubo/second-brain-coordination"
+control_plane_repository: "vxz2datoubo/second-brain-coordination"
+execution_repository: "vxz2datoubo/second-brain-coordination"
+project_id: "SECOND_BRAIN"
+project: "SECOND_BRAIN"
+created_by: "GPT_ARCHITECTURE_OWNER"
+created_at: "2026-09-10T16:30:00Z"
+source_issue: 681
+active_issue: 681
+governance_issue: 682
+task_id: "WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION"
+route_epoch: 194
+implementation_branch: "workbuddy/r194-durable-mission-cli-carrier"
+exact_base_sha: "2d8421cbd4d599e56321306a023c499b65eba05a"
+canonical_main_before_release: "2d8421cbd4d599e56321306a023c499b65eba05a"
+collision_domain: "WRITESET_SHA256:20eb574d28e8b72199a1e5e3aba4cedf6d4fb0bcebf9f7500344107e2ed1a980"
+source_checkpoint:
+  observed_main_head: "2d8421cbd4d599e56321306a023c499b65eba05a"
+  immutable_checkpoint_ref: "refs/heads/main"
+  immutable_checkpoint_exact_head: "2d8421cbd4d599e56321306a023c499b65eba05a"
+  identity_status: "PASS_EXACT_CANONICAL_MAIN_CHECKPOINT"
+predecessor:
+  route_epoch: 188
+  task_id: "WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL"
+  lifecycle: "CLOSED_HISTORY_ONLY_CANONICALIZED"
+  execution_allowed: false
+  reuse_kernel_not_authority: true
+active_peers:
+  r175:
+    ref: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+    write_surface_disjoint: true
+    must_remain_unmodified: true
+  r184:
+    ref: "coordination/EXECUTION/ACTIVE-WORKBUDDY-R184-LOCAL-BRIDGE.yaml"
+    write_surface_disjoint: true
+    activation_by_r194_forbidden: true
+  r193_codex:
+    ref: "coordination/ACTIVE-CODEX-TASK.yaml"
+    project: "TRADING_SYSTEM"
+    executor: "CODEX_STANDARD"
+    implementation_write_surface_disjoint: true
+concurrency_reconciliation:
+  proposed_r194_registered_ref: "coordination/EXECUTION/ACTIVE-WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION.yaml"
+  reservation_surface:
+    - "tools/durable_mission_kernel/**"
+    - "tests/durable_mission_kernel/**"
+    - "tests/test_unified_execution_durable_mission_kernel.py"
+    - "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/**"
+    - "coordination/EXECUTION/PHASE-C-DURABLE-MISSION-CLI-CARRIER/**"
+  expected_collision_domain: "WRITESET_SHA256:20eb574d28e8b72199a1e5e3aba4cedf6d4fb0bcebf9f7500344107e2ed1a980"
+  duplicate_task_identity_observed: false
+  duplicate_route_epoch_observed: false
+  known_peer_path_overlap_observed: false
+  release_rule: "R194_MAY_START_ONLY_AFTER_CANONICAL_ROUTE_AND_FRESH_REGISTRY_WIDE_CONFLICT_ADMISSION"
+ordered_batch:
+  prepared_ref: "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/TASK-BRIEF.yaml"
+  executable_ref: "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/EXECUTABLE-BATCH.json"
+  fixed_order: ["C0", "C1", "C2", "C3", "C4"]
+  order_changed: false
+  architecture_changed: false
+current_codex_route:
+  route_epoch: 194
+  source_issue: 681
+  status: "READY"
+  execution_allowed: true
+live_runtime_evidence:
+  source: "issuecomment-5621898681"
+  cli_version_observed: "2.148.0"
+  runtime_canary_model_observed: "deepseek-v4.1-flash"
+  clean_new_process_resume_observed: true
+  crash_after_committed_episode_recovery_observed: true
+  outer_job_done_is_not_success_attestation: true
+  live_pid_without_progress_requires_progress_watchdog: true
+activation_gate:
+  snapshot_precedes_workbuddy_branch: true
+  requires_post_branch_fresh_readback: true
+  activation_commit_required: true
+  snapshot_precedes_execution_branch: true
+  independent_review_required: true
+  canonicalization_required: true
+  fresh_post_canonicalization_readback_required: true
+  execution_allowed_now: false
+return_target: "GPT_ARCHITECTURE_OWNER"

@@ -1,0 +1,73 @@
+schema: "R194_DURABLE_MISSION_CLI_CARRIER_EVIDENCE_CONTRACT/v1"
+control_plane_repository: "vxz2datoubo/second-brain-coordination"
+execution_repository: "vxz2datoubo/second-brain-coordination"
+project_id: "SECOND_BRAIN"
+task_id: "WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION"
+route_epoch: 194
+source_issue: 681
+governance_issue: 682
+exact_base_sha: "2d8421cbd4d599e56321306a023c499b65eba05a"
+implementation_branch: "workbuddy/r194-durable-mission-cli-carrier"
+collision_domain: "WRITESET_SHA256:20eb574d28e8b72199a1e5e3aba4cedf6d4fb0bcebf9f7500344107e2ed1a980"
+result_classes:
+  required:
+    - "CLI_RUNTIME_ATTESTATION_RESULT"
+    - "CLI_EPISODE_RESUME_RESULT"
+    - "PROGRESS_WATCHDOG_RESULT"
+    - "CRASH_RECOVERY_IDEMPOTENCY_RESULT"
+    - "SUBPROCESS_RESULT_ATTESTATION_RESULT"
+    - "EXACT_HEAD_CI_RESULT"
+    - "INDEPENDENT_REVIEW_RESULT"
+    - "CANONICALIZATION_RESULT"
+  allowed_nonpass:
+    - "NOT_TESTED"
+    - "UNKNOWN_REQUIRING_EVIDENCE"
+    - "PARTIAL"
+    - "BLOCKED"
+  generic_pass_collapse_forbidden: true
+runtime_fact_rules:
+  cli_version_is_runtime_observation: true
+  model_availability_is_runtime_observation: true
+  credit_multiplier_is_runtime_observation: true
+  max_turns_floor_is_versioned_observation_not_permanent_constant: true
+  current_live_evidence_ref: "issuecomment-5621898681"
+required_live_evidence:
+  - "actual codebuddy --version"
+  - "actual requested model identity from transcript/structured result"
+  - "fresh episode completes with bounded exit/result"
+  - "new process resumes the same session and recalls conversation-only marker"
+  - "supervisor crash after committed episode then restart does not duplicate committed episode"
+  - "live process without mission progress is classified stalled independently of PID heartbeat"
+  - "nonzero child/supervisor exit cannot become success solely because outer Agent View says done"
+receipt_minimum_fields:
+  - "mission_id"
+  - "run_id"
+  - "episode_id"
+  - "session_id"
+  - "cli_version"
+  - "resolved_model_id"
+  - "model_profile"
+  - "started_at"
+  - "completed_at"
+  - "process_exit_code"
+  - "result_class"
+  - "output_digest"
+  - "journal_head_digest"
+  - "retry_or_resume_index"
+verification_rules:
+  process_alive_is_not_progress: true
+  agent_view_done_is_not_success: true
+  model_prose_is_not_correctness_evidence: true
+  deterministic_or_external_evidence_required: true
+  duplicate_committed_episode_forbidden: true
+  outcome_unknown_requires_reconciliation: true
+core_invariants:
+  - "one writer per collision domain"
+  - "no direct-main write"
+  - "no self-review"
+  - "no self-merge"
+  - "exact-head binds CI/review/canonicalization"
+  - "runtime lease does not replace canonical task lease"
+  - "no R184 or Local Bridge activation"
+  - "synthetic pass does not imply production/background activation"
+stop_rule: "RETURN_FINDINGS_TO_GPT_FAIL_CLOSED_WITHOUT_AUTHORITY_EXPANSION"

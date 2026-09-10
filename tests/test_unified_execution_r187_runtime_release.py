@@ -83,17 +83,18 @@ class R187RuntimeCompletionReleaseTests(unittest.TestCase):
         self.assertIs(base._scalar(route, "execution_allowed"), False)
         self.assertIs(base._scalar(route, "automatic_resume_within_batch"), False)
 
-    def test_registry_preserves_only_r175_and_r184_after_r188_terminalization(self):
+    def test_registry_preserves_r175_r184_and_allows_later_successors_after_r188_terminalization(self):
         with self._registry_tree():
             authorities = registry.build_registered_authorities(".")
         tasks = {item.as_mapping()["task_id"] for item in authorities}
-        self.assertEqual(
-            tasks,
+        self.assertTrue(
             {
                 "WORKBUDDY-R175-ORDERED-BATCH",
                 "WORKBUDDY-R184-LOCAL-WORKBUDDY-BRIDGE",
-            },
+            }.issubset(tasks)
         )
+        self.assertNotIn("WORKBUDDY-R187-S1-SELECTED-WEB-SOURCE-CUTOFF-FRONTIER-PROBE", tasks)
+        self.assertNotIn("WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL", tasks)
 
     def test_r175_and_r184_active_indexes_are_byte_exact_unchanged_from_runtime_main(self):
         self.assertEqual(self._read(R175_INDEX), self._git_show_runtime_main(R175_INDEX))

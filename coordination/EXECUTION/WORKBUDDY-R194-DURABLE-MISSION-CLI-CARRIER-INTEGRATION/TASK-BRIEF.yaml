@@ -1,0 +1,61 @@
+schema: "WORKBUDDY_TASK_BRIEF/v1"
+control_plane_repository: "vxz2datoubo/second-brain-coordination"
+execution_repository: "vxz2datoubo/second-brain-coordination"
+project_id: "SECOND_BRAIN"
+project: "SECOND_BRAIN"
+task_id: "WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION"
+route_epoch: 194
+source_issue: 681
+governance_issue: 682
+exact_base_sha: "2d8421cbd4d599e56321306a023c499b65eba05a"
+implementation_branch: "workbuddy/r194-durable-mission-cli-carrier"
+collision_domain: "WRITESET_SHA256:20eb574d28e8b72199a1e5e3aba4cedf6d4fb0bcebf9f7500344107e2ed1a980"
+purpose: >-
+  Integrate a real bounded CodeBuddy/WorkBuddy CLI episode carrier into the existing Durable Mission Kernel,
+  with model/runtime attestation, session resume across processes, kernel-owned progress watchdog,
+  explicit exit/result attestation and crash-safe idempotent recovery. This extends the existing kernel;
+  it must not create a second scheduler, ledger, authority plane or production service.
+execution_mode: "SYNTHETIC_AND_DISPOSABLE_CLI_CARRIER_INTEGRATION_ONLY"
+primary_executor: "WORKBUDDY_ENGINEERING_EXECUTOR"
+carrier: "WORKBUDDY_CLI_HEADLESS"
+model_profile: "DEEP_ENGINEERING"
+preferred_implementation_model: "deepseek-v4-pro"
+required_runtime_canary_model: "deepseek-v4.1-flash"
+model_resolution: "FRESH_AT_DISPATCH"
+implementation_sequence:
+  C0: "Fresh local/repo capability audit; bind CLI executable/version/model discovery and preserve current kernel interfaces."
+  C1: "Implement real bounded CLI episode invocation, stable session identity, new-process --resume and explicit subprocess/result attestation."
+  C2: "Implement mission progress watchdog independent of PID/process heartbeat; classify live-but-stalled carriers fail-closed."
+  C3: "Implement durable journal/checkpoint recovery so a committed episode is not repeated after supervisor crash; reconcile outcome-unknown states."
+  C4: "Run deterministic tests plus live synthetic V4.1 Flash canary; freeze exact head and return for CI/review/canonicalization."
+required_tests:
+  - "clean deepseek-v4.1-flash episode then new-process resume"
+  - "no tool/file-memory dependency in clean resume fixture"
+  - "max-turns insufficiency remains versioned runtime evidence, not permanent invariant"
+  - "live PID/heartbeat without business progress trips watchdog"
+  - "outer background job terminal label cannot assert mission success"
+  - "crash after committed episode resumes without duplicate episode"
+  - "subprocess non-zero exit and malformed result fail closed"
+  - "existing durable mission kernel regression suite remains green"
+acceptance:
+  exact_head_ci_required: true
+  independent_review_required: true
+  separate_canonicalization_required: true
+  live_synthetic_canary_required: true
+  production_activation_implied: false
+hard_boundaries:
+  - "NO_R184_OR_LOCAL_BRIDGE_ACTIVATION"
+  - "NO_REAL_CAPTURE"
+  - "NO_OPERATIONAL_W3_WRITE"
+  - "NO_PROGRAM_S2_START"
+  - "NO_PRODUCTION_DEPLOYMENT_OR_BACKGROUND_SERVICE_ACTIVATION"
+  - "NO_TRADING_FUNDS_ORDERS"
+  - "NO_SECRET_TOKEN_COOKIE_PLAINTEXT_PERSISTENCE"
+  - "NO_DIRECT_MAIN_WRITE"
+  - "NO_SELF_REVIEW"
+  - "NO_SELF_MERGE"
+  - "NO_R175_MUTATION"
+  - "NO_R184_MUTATION"
+  - "NO_FORCE_PUSH_REBASE_RESET_AMEND_HISTORY_REWRITE"
+return_target: "GPT_ARCHITECTURE_OWNER"
+completion_signal: "WORKBUDDY_R194_DURABLE_MISSION_CLI_CARRIER_READY_FOR_INDEPENDENT_REVIEW"

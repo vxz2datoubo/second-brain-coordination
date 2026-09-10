@@ -1,0 +1,46 @@
+schema: "ExecutorReservation/v1"
+repository: "vxz2datoubo/second-brain-coordination"
+control_plane_repository: "vxz2datoubo/second-brain-coordination"
+execution_repository: "vxz2datoubo/second-brain-coordination"
+project_id: "SECOND_BRAIN"
+project: "SECOND_BRAIN"
+task_id: "WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION"
+route_epoch: 194
+source_issue: 681
+active_issue: 681
+governance_issue: 682
+executor_agent_type: "WORKBUDDY"
+executor_role: "BOUNDED_SYNTHETIC_REAL_CLI_CARRIER_INTEGRATION_EXECUTOR"
+reservation_state: "ACTIVE"
+implementation_branch: "workbuddy/r194-durable-mission-cli-carrier"
+exact_base_sha: "2d8421cbd4d599e56321306a023c499b65eba05a"
+collision_domain: "WRITESET_SHA256:20eb574d28e8b72199a1e5e3aba4cedf6d4fb0bcebf9f7500344107e2ed1a980"
+reservation_scope:
+  - "tools/durable_mission_kernel/**"
+  - "tests/durable_mission_kernel/**"
+  - "tests/test_unified_execution_durable_mission_kernel.py"
+  - "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/**"
+  - "coordination/EXECUTION/PHASE-C-DURABLE-MISSION-CLI-CARRIER/**"
+reservation_scope_semantics: "CANONICAL_COLLISION_RESERVATION_FOR_LISTED_PATHS_ONLY"
+reservation_exclusions:
+  - "coordination/GOVERNANCE/**"
+  - "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+  - "coordination/EXECUTION/ACTIVE-WORKBUDDY-R184-LOCAL-BRIDGE.yaml"
+  - "coordination/ACTIVE-CODEX-TASK.yaml"
+  - "tools/local_workbuddy_bridge/**"
+  - "tools/workbuddy/**"
+  - "tests/workbuddy/**"
+  - ".github/workflows/**"
+  - "direct main"
+  - "all repository writes outside reservation_scope"
+activation_requires:
+  - "independent review ACCEPT of governance exact head"
+  - "separate canonicalization to main"
+  - "fresh registry-wide authority readback"
+  - "fresh runtime availability of required canary model"
+reservation_effect:
+  execution_identity_reserved: true
+  substantive_write_authorized_now: true
+  substantive_write_semantics: "CANONICAL_WRITE_AUTHORITY_FOR_LISTED_PATHS_ONLY_AFTER_REVIEW_AND_CANONICALIZATION"
+  review_authority: false
+  merge_authority: false
