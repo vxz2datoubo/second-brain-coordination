@@ -50,17 +50,22 @@ class R188PhaseBDurableMissionKernelGovernanceTests(unittest.TestCase):
     def _authority(self):
         return registry.build_verified_canonical_authority_for_task_index(".", R188_INDEX)
 
-    def test_registry_wide_r175_r184_only_after_r188_terminalization(self):
+    def test_registry_preserves_r175_r184_and_allows_later_registered_successors(self):
         with self._trusted_tree():
             authorities = registry.build_registered_authorities(".")
         by_task = {item.as_mapping()["task_id"]: item.as_mapping() for item in authorities}
-        self.assertEqual(
-            set(by_task),
+        self.assertTrue(
             {
                 "WORKBUDDY-R175-ORDERED-BATCH",
                 "WORKBUDDY-R184-LOCAL-WORKBUDDY-BRIDGE",
-            },
+            }.issubset(by_task)
         )
+        for terminal_task in (
+            "WORKBUDDY-R186-S1-LUOXUE-SOURCE-PROBE",
+            "WORKBUDDY-R187-S1-SELECTED-WEB-SOURCE-CUTOFF-FRONTIER-PROBE",
+            "WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL",
+        ):
+            self.assertNotIn(terminal_task, by_task)
 
     def test_r188_collision_domain_matches_canonical_reservation_surface(self):
         digest = sha256(
