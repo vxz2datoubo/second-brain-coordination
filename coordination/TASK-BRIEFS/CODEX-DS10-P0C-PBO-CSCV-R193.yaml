@@ -1,0 +1,75 @@
+schema: TASK_BRIEF/v1
+task_id: CODEX-DS10-P0C-PBO-CSCV-R193
+route_epoch: 193
+project: SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001
+project_alias: TRADING_SYSTEM
+source_issue: 562
+parent_program_issue: 31
+executor: CODEX_STANDARD
+boundary: RESEARCH_ONLY / NO_TRADE
+canonical_main_at_prepare: edd852a93b89a40b1ef41189c3433cc2f213aaae
+
+objective: >-
+  Implement a deterministic reference PBO/CSCV engine (Bailey, Borwein, Lopez de Prado & Zhu, JCF 2015,
+  SSRN 2326253 + math appendices SSRN 2568435) estimating, across combinatorially symmetric
+  in-sample/out-of-sample partitions, how often the strategy selected best in-sample ranks poorly
+  out-of-sample. It does NOT prove causal alpha, future profitability, cost/capacity viability, W7
+  validation, or low multiple-testing risk under every other method.
+
+step_one_read_surface_inventory:
+  - Confirm DS-10 P0A (research_integrity) and P0B (deflated_sharpe) are canonical at main edd852a9.
+  - Confirm canonical W4 read binding is present for trial-family provenance.
+  - Confirm no P0C module directory exists yet (DS10-PBO-CSCV-P0C).
+
+step_two_input_integrity_gate:
+  - P0C must never reconstruct a strategy family from a caller-provided winner list. Input chain: #560 canonical StrategyExperimentFamily -> #559 canonical read receipt -> R183/P0A integrity + PIT + lockbox -> P0C CSCV matrix.
+  - Missing losers/failed/aborted/selection-affecting trials or unresolved family identity -> INPUT_INTEGRITY_BLOCKED. Exclusions must be governed, enumerated, reconciled; silent survivor filtering forbidden.
+
+step_three_data_and_partition_contract:
+  - CSCVInput/v1 binds family/read/integrity refs, strategy/trial ids, ordering policy, observation/time axes, performance matrix digest, measure id/version, higher-is-better, S group count, combination enumeration policy, tie policy, missing-data policy, cost/gross-net semantics, PIT/rule/data refs, method/version/digest.
+  - Split observations into S equal groups (even S for symmetric half-split); enumerate each unique S/2-group choice as in-sample with complement OOS; select best IS strategy; evaluate its OOS rank; logit transform; PBO = empirical proportion of partition logits indicating overfit.
+
+step_four_selection_and_result_contract:
+  - Per-split CSCVSplitResult/v1 (split_id, IS/OOS group ids, selected_trial_id, IS/OOS scores, OOS rank, relative rank, logit, tie/missing diagnostics, computation digest). Split ledger is output evidence, not a new W4 ledger.
+  - PBOResult/v1 with result_id, method_id/version, family/read/integrity refs, strategy/observation counts, S, group-size vector, combination/evaluated counts, measure ref, tie/missingness policy, split-result digest, logit distribution summary, pbo_estimate, applicability state, numerical diagnostics, uncertainties, computation digest.
+  - states: PASS_COMPUTED, INSUFFICIENT_STRATEGIES, INSUFFICIENT_OBSERVATIONS, INVALID_PARTITION_DESIGN, COMBINATORIAL_BUDGET_EXCEEDED, MISSINGNESS_UNRESOLVED, NUMERICAL_FAILURE, INPUT_INTEGRITY_BLOCKED, ABSTAIN.
+
+step_five_tie_policy_and_guards:
+  - Freeze best-IS tie resolution, OOS ranking tie policy, average/dense/min/max rank, deterministic ID fallback (only when mathematically neutral and disclosed). Changing tie policy after seeing PBO requires a new method version.
+  - Fail on S<2, odd S in symmetric path, min-observation violation, too few series, unresolved ordering/time, severe missingness, family change, measure mismatch, omitted costs, lookahead leakage. No guard failure returns PBO=0/0.5/1.
+
+step_six_enumeration_and_determinism:
+  - Prefer full deterministic combination enumeration; if count exceeds governed limit return COMBINATORIAL_BUDGET_EXCEEDED/ABSTAIN (no silent random sampling). Canonical strategy/time/group/combination ordering; no hash/set iteration order dependence; float64 with explicit tolerance/domain guards; reproducible Python 3.11/3.13.
+
+step_seven_tests:
+  - Reference: paper/appendix test cases; stable strategy -> lower overfit than noise search; more noise alternatives do not spuriously improve PBO; column permutation invariance; enumeration-order invariance; deterministic rerun.
+  - Adversarial: survivor/family laundering (delete losers, omit failed trials, change family, top-N preselection); split leakage (temporal shuffle, OOS->IS contamination, revised data, future-universe); metric laundering (IS/OOS measure mismatch, metric change); tie/numerical (tie sensitivity, logit singular endpoints, NaN/Inf, odd S); authority (PBO -> W7 ACCEPT reject, PBO -> DS-02 posterior reject, PBO -> trade reject, #78 second ledger reject).
+  - Exact-head push CI on 3.11 + 3.13.
+
+hard_boundaries:
+  - RESEARCH_ONLY / NO_TRADE
+  - NO account / broker / funds / position / order authority
+  - NO W4 write from DS-10; NO DS-10 P0A/P0B write from P0C
+  - NO second store / ledger / read-receipt store
+  - NO probability / W7 validation / risk / position / order / trade authority
+  - NO caller-minted winner-list or trial-count trust root
+  - PBO result is NOT W7 ACCEPT
+  - NO self-review / self-merge / direct-main
+  - Issue #563 (P0D) is downstream and must NOT be started by this route
+
+allowed_write_surface:
+  - ".github/workflows/ds10-pbo-cscv-p0c.yml"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-PBO-CSCV-P0C/**"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-DS10-P0C-PBO-CSCV-R193/**"
+
+forbidden_write_surface:
+  - "coordination/ACTIVE-CODEX-TASK.yaml"
+  - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+  - "coordination/ROUTES/**"
+  - "coordination/TASK-BRIEFS/**"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W4-STRATEGY-EXPERIMENT-FAMILY-P0/**"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/**"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-DEFLATED-SHARPE-P0B/**"
+
+completion_signal: DS10_PBO_CSCV_P0C_READY_FOR_INDEPENDENT_REVIEW
+next_command: START_DS10_P0C_PBO_CSCV_REFERENCE_MODULE_THEN_VERIFY_CANONICAL_TRIAL_FAMILY_CHAIN

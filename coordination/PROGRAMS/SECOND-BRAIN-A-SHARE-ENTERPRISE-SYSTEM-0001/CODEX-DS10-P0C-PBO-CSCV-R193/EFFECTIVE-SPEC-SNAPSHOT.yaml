@@ -1,0 +1,68 @@
+schema: EFFECTIVE_SPEC_SNAPSHOT/v1
+spec_snapshot_id: TRADING-CODEX-R193-ISSUE562-SNAPSHOT-001
+task_id: CODEX-DS10-P0C-PBO-CSCV-R193
+route_epoch: 193
+source_issue: 562
+project: SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001
+project_alias: TRADING_SYSTEM
+executor: CODEX_STANDARD
+canonical_main_at_reconcile: edd852a93b89a40b1ef41189c3433cc2f213aaae
+owner_direction_ref: issuecomment-5615609881
+
+reconciled_contract:
+  upstream_560_sor: >-
+    W4-owned append-only SQLite event store (experiment_events, WAL) with deterministic reducer ->
+    ExperimentFamilySnapshot/v1 via Registry.read_experiment_family(). Canonicalized c94113fc.
+  upstream_559_sor: >-
+    CanonicalExperimentFamilyReadReceipt/v1 + read_binding.py. Canonicalized 286c67d8.
+  upstream_552_p0a_sor: >-
+    DS-10 P0A research-integrity kernel verifies canonical W4 read receipt; ELIGIBLE_FOR_W7_VALIDATION
+    (not ACCEPT). Canonicalized cb59993b (R191).
+  upstream_561_p0b_sor: >-
+    DS-10 P0B Deflated Sharpe reference module consumes canonical P0A/W4 trial-count chain.
+    Canonicalized edd852a9 (R192).
+  this_route_562_sor: >-
+    DS-10 P0C PBO/CSCV reference module (Bailey-Borwein-Lopez de Prado-Zhu). Consumes the canonical P0A/W4
+    trial-family chain; never reconstructs a family from a caller winner list. Non-canonical/incomplete
+    family -> INPUT_INTEGRITY_BLOCKED.
+
+authority_flags_all_false:
+  experiment_registry_write_authority: false
+  strategy_experiment_write_authority: false
+  probability_authority: false
+  final_validation_authority: false
+  risk_override_authority: false
+  position_authority: false
+  order_authority: false
+  trade_authority: false
+  pbo_result_is_w7_accept: false
+
+capacity:
+  codex_active_execution_routes_max: 1
+  codex_active_routes_after_admission: 1
+  gpt_engineering_worker: CLOSED_NO_ACTIVE_IMPLEMENTATION
+  codex_r181: PRIORITY_PARKED_UNCHANGED
+
+executor_model_verification:
+  policy: RUNTIME_DISCOVER_ACTUAL_CODEX_MODEL_NO_FRONTIER_NO_ASTRA
+  preferred_standard_model: gpt-5.6-terra
+  reasoning: high
+  plan_first: true
+  forbidden: [Astra, Frontier]
+
+hard_locks:
+  - NO_REAL_TRADE
+  - NO_ACCOUNT_BROKER_FUNDS_POSITION_ORDER
+  - NO_W4_WRITE_AUTHORITY_FROM_DS10
+  - NO_DS10_P0A_OR_P0B_WRITE_FROM_P0C
+  - NO_SECOND_STORE_OR_LEDGER
+  - NO_PROBABILITY_AUTHORITY
+  - NO_W7_VALIDATION_AUTHORITY
+  - NO_SELF_REVIEW_SELF_ACCEPT_SELF_MERGE
+  - NO_DIRECT_MAIN_WRITE
+  - NO_DS10_P0D_563_START
+
+non_assertions:
+  - no canonical project completion
+  - no W7 ACCEPT authority
+  - no acceptance or canonicality inheritance from R192
