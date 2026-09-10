@@ -1,0 +1,43 @@
+schema: "TaskLease/v1"
+control_plane_repository: "vxz2datoubo/second-brain-coordination"
+execution_repository: "vxz2datoubo/second-brain-coordination"
+project_id: "SECOND_BRAIN"
+project: "SECOND_BRAIN"
+task_id: "WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION"
+route_epoch: 194
+source_issue: 681
+active_issue: 681
+governance_issue: 682
+agent_type: "WORKBUDDY"
+implementation_branch: "workbuddy/r194-durable-mission-cli-carrier"
+exact_base_sha: "2d8421cbd4d599e56321306a023c499b65eba05a"
+source_checkpoint: "2d8421cbd4d599e56321306a023c499b65eba05a"
+checkpoint_remote_ref: "refs/heads/main"
+collision_domain: "WRITESET_SHA256:20eb574d28e8b72199a1e5e3aba4cedf6d4fb0bcebf9f7500344107e2ed1a980"
+lease_state: "ACTIVE"
+execution_allowed: true
+substantive_write_allowed: true
+substantive_write_semantics: "ONLY_AFTER_R194_GOVERNANCE_IS_INDEPENDENTLY_REVIEWED_AND_CANONICALIZED"
+exclusive_write_surface:
+  - "tools/durable_mission_kernel/**"
+  - "tests/durable_mission_kernel/**"
+  - "tests/test_unified_execution_durable_mission_kernel.py"
+  - "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/**"
+  - "coordination/EXECUTION/PHASE-C-DURABLE-MISSION-CLI-CARRIER/**"
+concurrency:
+  preserve_r175: true
+  preserve_r184: true
+  preserve_active_codex_r193: true
+  same_surface_second_writer_forbidden: true
+  registry_wide_conflict_admission_required: true
+freshness:
+  route: "coordination/ROUTES/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION.yaml"
+  work_claim: "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/WORK-CLAIM.yaml"
+  executor_reservation: "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/EXECUTOR-RESERVATION.yaml"
+  prewrite_snapshot: "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/PREWRITE-RECONCILIATION-SNAPSHOT.yaml"
+  executable_batch: "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/EXECUTABLE-BATCH.json"
+  active_task: "coordination/EXECUTION/ACTIVE-WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION.yaml"
+  mismatch_action: "LEASE_INVALID_FAIL_CLOSED"
+review_authority: false
+merge_authority: false
+lease_expiry: "ON_RETURN_BLOCKING_FINDING_GOVERNANCE_SUPERSESSION_OR_POST_REVIEW_HANDOFF"
