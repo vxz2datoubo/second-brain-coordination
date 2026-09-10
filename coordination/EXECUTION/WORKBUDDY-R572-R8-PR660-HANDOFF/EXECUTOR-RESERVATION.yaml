@@ -1,0 +1,40 @@
+schema: "ExecutorReservation/v1"
+project: "SECOND_BRAIN"
+repository: "vxz2datoubo/second-brain-coordination"
+task_id: "WORKBUDDY-R572-R8-PR660-REMEDIATION"
+route_epoch: 5728
+source_issue: 572
+active_issue: 667
+executor_agent_type: "WORKBUDDY"
+executor_role: "BOUNDED_DEEP_ENGINEERING_REMEDIATION_EXECUTOR"
+reservation_state: "ACTIVE"
+implementation_branch: "workbuddy/r572-r8-pr660-remediation"
+branch_must_not_exist_before_snapshot: true
+pull_request: 660
+reservation_scope:
+  - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R7.yaml"
+  - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-TERMINAL-TOMBSTONES.yaml"
+  - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R8.yaml"
+  - "coordination/CONTROL-TOWER/worker_slots.py"
+  - "coordination/CONTROL-TOWER/tests/test_worker_slots_r8_compat.py"
+  - "coordination/CONTROL-TOWER/R572-R8-WORKER-SLOTS-COMPATIBILITY-RECEIPT.yaml"
+reservation_exclusions:
+  - "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+  - "coordination/EXECUTION/ACTIVE-WORKBUDDY-R184-LOCAL-BRIDGE.yaml"
+  - "coordination/GOVERNANCE/**"
+  - "coordination/CONTROL-TOWER/worker_lifecycle.py"
+  - "direct main"
+  - "real capture, operational W3, R184 start, trading, runtime, credentials"
+activation_requires:
+  - "handoff governance canonical before WorkBuddy branch creation"
+  - "WorkBuddy branch created exactly from c29cea2e38b13dccfbe5af05ae83e993435c7db6"
+  - "fresh registry-wide readback of every registered task index before process start"
+  - "fresh readback of route, claim, lease, reservation, active task index, snapshot and executable batch"
+  - "PR #660 source branch still resolves to c29cea2e38b13dccfbe5af05ae83e993435c7db6 before branch creation"
+  - "R175 and R184 remain separately registered and non-overlapping"
+  - "runtime WorkBuddy DEEP_ENGINEERING model is freshly observed"
+reservation_effect:
+  execution_identity_reserved: true
+  substantive_write_authorized_now: true
+  review_authority: false
+  merge_authority: false
