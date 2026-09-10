@@ -27,6 +27,14 @@ Fresh 读取 canonical `main` 之后、在判断是否打扰 Owner、是否 AUTO
    - `coordination/EXECUTION/PROJECT-REGISTRY.yaml`
    - 当前项目对应的 `coordination/EXECUTION/PROJECT-ADAPTERS/*.yaml`
    - 当前 ACTIVE route / Issue / PR / exact head / CI / review。
+3A. **Program Control Tower pre-dispatch preflight (MANDATORY for execution/write):**
+   - Before any nontrivial repository write, executor handoff/dispatch, branch/worktree writer start, or carrier switch, fresh reconcile the Program Control Tower from current canonical `main`.
+   - At minimum resolve current worker slots, work claims, active routes, collision domains, WIP/capacity, dependencies, and authorization-witness freshness.
+   - Reuse existing `coordination/CONTROL-TOWER/` surfaces and validators. Do not create a second router, worker registry, or parallel truth source.
+   - Ordinary/new execution fails closed when Control Tower evidence is absent, stale, malformed, colliding, over-capacity, or authority-inconsistent.
+   - Degraded repair exception: if the failing Control Tower surface itself is explicitly covered by a current bounded canonical remediation authority, only that exact remediation lane may proceed; UNKNOWN/FAIL must never be treated as O0/no-collision evidence and unrelated writes remain blocked.
+   - Every concurrent WorkBuddy writer must be represented by its own governed task/route/claim/slot plus independent branch/worktree/collision-domain identity; never launch an unregistered WB writer.
+   - Read-only GitHub lookup/research does not require write admission, but a read-only task must run this preflight before it transitions into repo write or executor dispatch.
 4. 先判断用户当前是在：
    - 第二大脑
    - 交易系统
