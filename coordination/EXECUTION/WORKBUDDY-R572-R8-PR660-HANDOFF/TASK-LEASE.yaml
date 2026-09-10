@@ -1,36 +1,42 @@
-schema_version: "1.0"
-lease_id: "WORKBUDDY-R572-R8-PR660-LEASE"
-state: "AVAILABLE_FOR_CLAIM"
-repository: "vxz2datoubo/second-brain-coordination"
+schema: "TaskLease/v1"
 project: "SECOND_BRAIN"
+repository: "vxz2datoubo/second-brain-coordination"
+task_id: "WORKBUDDY-R572-R8-PR660-REMEDIATION"
+route_epoch: 5728
 source_issue: 572
-handoff_issue: 667
+active_issue: 667
+agent_type: "WORKBUDDY"
+implementation_branch: "workbuddy/r572-r8-pr660-remediation"
 pull_request: 660
-route_ref: "coordination/ROUTES/WORKBUDDY-R572-R8-PR660-HANDOFF.yaml"
-claim_ref: "coordination/EXECUTION/WORKBUDDY-R572-R8-PR660-HANDOFF/WORK-CLAIM.yaml"
-executor: "WORKBUDDY"
-collision_domain: "R572_R8_WORKER_SLOTS_COMPATIBILITY"
-exclusive_writer: true
-lease_scope:
-  implementation_paths: 6
-  branch: "gpt/r572-r8-worker-slots-compat-remediation-20260909"
-  exact_head_at_mint: "c29cea2e38b13dccfbe5af05ae83e993435c7db6"
-claim_requirements:
-  fresh_main_required: true
-  fresh_exact_head_required: true
-  no_colliding_writer_required: true
-  runtime_model_refresh_required: true
-release_conditions:
-  - "WORKBUDDY_R572_R8_PR660_REMEDIATION_COMPLETE"
-  - "blocked_by_owner_gate"
-  - "scope_expansion_required"
-  - "collision_detected"
-  - "lease_invalidated_by_exact_head_or_authority_change"
-lease_does_not_grant:
-  - "review_authority"
-  - "merge_authority"
-  - "canonicalization_authority"
-  - "real_capture_authority"
-  - "operational_w3_write_authority"
-  - "r184_start_authority"
-  - "trading_or_runtime_authority"
+lease_state: "ACTIVE"
+execution_allowed: true
+substantive_write_allowed: true
+source_checkpoint: "c29cea2e38b13dccfbe5af05ae83e993435c7db6"
+checkpoint_remote_ref: "refs/heads/gpt/r572-r8-worker-slots-compat-remediation-20260909"
+exclusive_write_surface:
+  - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R7.yaml"
+  - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-TERMINAL-TOMBSTONES.yaml"
+  - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R8.yaml"
+  - "coordination/CONTROL-TOWER/worker_slots.py"
+  - "coordination/CONTROL-TOWER/tests/test_worker_slots_r8_compat.py"
+  - "coordination/CONTROL-TOWER/R572-R8-WORKER-SLOTS-COMPATIBILITY-RECEIPT.yaml"
+concurrency:
+  r175_active: true
+  r175_may_continue_non_overlapping_work: true
+  r184_registered: true
+  r184_may_continue_non_overlapping_work: true
+  same_surface_second_writer_forbidden: true
+  registry_wide_conflict_admission_required: true
+  gpt_implementation_writer_must_stop_after_workbuddy_claim: true
+  overlap_disposition: "FAIL_CLOSED_AND_RETURN_FINDING_TO_GPT"
+freshness:
+  route: "coordination/ROUTES/WORKBUDDY-R572-R8-PR660-HANDOFF.yaml"
+  work_claim: "coordination/EXECUTION/WORKBUDDY-R572-R8-PR660-HANDOFF/WORK-CLAIM.yaml"
+  executor_reservation: "coordination/EXECUTION/WORKBUDDY-R572-R8-PR660-HANDOFF/EXECUTOR-RESERVATION.yaml"
+  prewrite_snapshot: "coordination/EXECUTION/WORKBUDDY-R572-R8-PR660-HANDOFF/PREWRITE-RECONCILIATION-SNAPSHOT.yaml"
+  executable_batch: "coordination/EXECUTION/WORKBUDDY-R572-R8-PR660-HANDOFF/EXECUTABLE-BATCH.json"
+  active_task: "coordination/EXECUTION/ACTIVE-WORKBUDDY-R572-R8-PR660.yaml"
+  mismatch_action: "LEASE_INVALID_FAIL_CLOSED"
+review_authority: false
+merge_authority: false
+lease_expiry: "ON_RETURN_BLOCKING_FINDING_GOVERNANCE_SUPERSESSION_OR_POST_REVIEW_HANDOFF"
