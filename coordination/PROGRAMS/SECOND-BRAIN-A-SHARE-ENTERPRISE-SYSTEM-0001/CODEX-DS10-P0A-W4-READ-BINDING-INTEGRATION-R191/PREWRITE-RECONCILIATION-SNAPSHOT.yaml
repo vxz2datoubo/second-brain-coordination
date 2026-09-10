@@ -1,0 +1,49 @@
+schema: PREWRITE_RECONCILIATION_SNAPSHOT/v1
+task_id: CODEX-DS10-P0A-W4-READ-BINDING-INTEGRATION-R191
+route_epoch: 191
+source_issue: 552
+project: SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001
+project_alias: TRADING_SYSTEM
+executor: CODEX_STANDARD
+boundary: RESEARCH_ONLY / NO_TRADE
+canonical_main_at_snapshot: 286c67d8ff1f49da6762cc0cd54e1d85cc086430
+upstream_completion_signal: W4_CANONICAL_EXPERIMENT_FAMILY_READ_BINDING_READY_FOR_DS10_INTEGRATION
+upstream_signal_ref: issuecomment-5614767365
+owner_direction_ref: issuecomment-5614860622
+predecessor_route: CODEX-W4-CANONICAL-EXPERIMENT-FAMILY-READ-BINDING-R190
+predecessor_state: TERMINAL_COMPLETED
+predecessor_delivered_head: d853bb24e93b205671938b3cd9ef89c58b527b2a
+
+read_surface_inventory_at_snapshot:
+  w4_canonical_read_binding:
+    ref: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W4-STRATEGY-EXPERIMENT-FAMILY-P0/src/w4_experiment_family/read_binding.py
+    operation: verify_canonical_family_receipt(receipt) -> CANONICAL_W4_READ_VERIFIED
+    status: CANONICALIZED_286C67D8
+    registry_blob_sha: 0f6b197c500412f814c38aee347f5a86d8fa8632
+    read_binding_blob_sha: 0e2640d3135553435ec06d99ed9f25c9d146a1e4
+    descriptor_blob_sha: 98112de7713c7c81910ff4633d94c0da5a053f75
+  ds10_consumer:
+    ref: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/src/offline_research/research_integrity.py
+    status: THIS_ROUTE_WRITES_CONSUMER_ADAPTER
+  existing_read_receipt_store: NONE
+  second_registry_found: NONE
+  second_trial_ledger_found: NONE
+  conclusion: REUSE_W4_CANONICAL_READ_BINDING_VIA_DS10_CONSUMER_ADAPTER
+
+collision_and_capacity_admission:
+  codex_slot_before: RELEASED_BY_R190_TERMINAL_CLOSEOUT
+  codex_active_routes_before: 0
+  codex_active_routes_max: 1
+  codex_active_routes_after: 1
+  result: PASS
+  overlapping_open_pr_on_target_files: NONE
+  gpt_worker_r182_r183: CANONICAL_HISTORY_NO_ACTIVE_IMPLEMENTATION
+  codex_r181_pr549: PRESERVED_UNCHANGED_0aa32e31f0130bf144d43ebecef03613f3f268e4
+  downstream_issue_561_p0b: NOT_STARTED_AWAITS_THIS_ROUTE_CANONICAL
+
+inheritance_non_assertions:
+  acceptance_inherited: false
+  canonicality_inherited: false
+  w4_write_inherited: false
+  w4_559_truth_mutation_allowed: false
+  ds10_p0b_561_start_allowed: false

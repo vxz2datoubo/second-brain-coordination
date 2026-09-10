@@ -1,0 +1,34 @@
+schema: TASK_LEASE/v1
+project: SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001
+project_alias: TRADING_SYSTEM
+task_id: CODEX-DS10-P0A-W4-READ-BINDING-INTEGRATION-R191
+route_epoch: 191
+source_issue: 552
+executor: CODEX_STANDARD
+worker_slot_id: CODEX-R191-DS10-P0A-INTEGRATION-1
+lease_state: ACTIVE_HELD
+execution_allowed: true
+second_user_start_command_required: false
+history_rewrite_allowed: false
+fresh_task_owned_standalone_clone_required: true
+implementation_baseline: 286c67d8ff1f49da6762cc0cd54e1d85cc086430
+snapshot_base: 286c67d8ff1f49da6762cc0cd54e1d85cc086430
+branch: codex/r191-ds10-p0a-w4-read-binding-integration
+branch_head_at_activation: NOT_CREATED
+effective_spec_snapshot_id: TRADING-CODEX-R191-ISSUE552-SNAPSHOT-001
+effective_spec_snapshot_ref: issuecomment-5614860622
+stop_conditions:
+  - hard_boundary_or_role_conflict
+  - overlapping_writer_surface
+  - route_or_snapshot_identity_drift
+  - missing_fresh_task_owned_standalone_clone
+  - any_real_trade_or_order_placement
+  - any_account_broker_funds_position_write
+  - any_w4_strategy_experiment_write
+  - any_second_experiment_or_trial_ledger_creation
+  - any_second_experiment_family_read_receipt_store_creation
+  - any_backtest_authority_or_w7_validation_or_probability_registry_creation
+  - any_market_data_truth_creation
+  - any_caller_minted_trust_root
+  - any_write_outside_additive_allowlist
+  - future_exact_head_frozen_for_review
