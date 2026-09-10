@@ -1,0 +1,44 @@
+schema: WORK_CLAIM/v1
+project: SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001
+project_alias: TRADING_SYSTEM
+task_id: CODEX-DS10-P0C-PBO-CSCV-R193
+route_epoch: 193
+source_issue: 562
+executor: CODEX_STANDARD
+worker_slot_id: CODEX-R193-DS10-P0C-PBO-CSCV-1
+claim_state: ACTIVE_CLAIMED
+execution_allowed: true
+implementation_baseline: edd852a93b89a40b1ef41189c3433cc2f213aaae
+snapshot_base: edd852a93b89a40b1ef41189c3433cc2f213aaae
+required_branch: codex/r193-ds10-p0c-pbo-cscv
+branch_head_at_activation: NOT_CREATED
+effective_spec_snapshot_id: TRADING-CODEX-R193-ISSUE562-SNAPSHOT-001
+effective_spec_snapshot_ref: issue-562-body
+single_writer_surface:
+  primary:
+    - DS10_P0C_PBO_CSCV_REFERENCE_MODULE
+    - REPRODUCE_BAILEY_BORWEIN_LOPEZ_DE_PRADO_ZHU_CSCV_PBO
+    - CONSUME_CANONICAL_P0A_W4_TRIAL_FAMILY_CHAIN
+  excludes:
+    - W4_STRATEGY_EXPERIMENT_WRITE
+    - STRATEGY_EXPERIMENT_REGISTRY_WRITE
+    - DS10_RESEARCH_INTEGRITY_WRITE
+    - DS10_DEFLATED_SHARPE_P0B_WRITE
+    - MARKET_DATA_ADAPTER_AUTHORITY
+    - PIT_REPLAY_ENGINE_AUTHORITY
+    - ORDER_EXECUTION_AUTHORITY
+    - ACCOUNT_BROKER_FUNDS_POSITION_ORDER_AUTHORITY
+    - PROBABILITY_REGISTRY_AUTHORITY
+    - W7_VALIDATION_AUTHORITY
+    - BACKTEST_AUTHORITY
+    - GPT_WORKER_R8_REMEDIATION_SURFACE
+    - CODEX_R181_PARKED_CHECKPOINT
+parallel_fences:
+  GPT_ENGINEERING_WORKER_R182_R183: CANONICAL_HISTORY_NO_ACTIVE_IMPLEMENTATION
+  CODEX_R181_PR549: PRESERVE_PARKED_CHECKPOINT_UNCHANGED_NO_RESUME
+path_fence: ADDITIVE_ONLY_DS10_P0C_PBO_CSCV_MODULE_PLUS_R193_FILES
+execution_environment:
+  fresh_task_owned_standalone_clone_required: true
+project_completion_asserted: false
+independent_accept_asserted: false
+canonicalization_asserted: false

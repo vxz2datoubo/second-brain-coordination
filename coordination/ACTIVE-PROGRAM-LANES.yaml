@@ -14,26 +14,28 @@ portfolio_capacity_policy:
   nested_parallelism: FORBIDDEN
 current_user_release_policy:
   held_lanes: []
-  decision: R191_TERMINAL_COMPLETED_R192_CODEX_DS10_P0B_DEFLATED_SHARPE_ACTIVE_R181_PARKED_R182_R183_CLOSED
+  decision: R192_TERMINAL_COMPLETED_R193_CODEX_DS10_P0C_PBO_CSCV_ACTIVE_R181_PARKED_R182_R183_CLOSED
   rationale: >-
     R182 and R183 are canonical history. R181 remains priority-parked at its preserved executor checkpoint
     (PR #549 exact head 0aa32e31f0130bf144d43ebecef03613f3f268e4) with its Codex slot released. R191
     (Issue #552, CODEX-DS10-P0A-W4-READ-BINDING-INTEGRATION-R191) reached TERMINAL_COMPLETED at canonical
-    main cb59993b963f3150537973e0deb4331fcbd63707 after integrating the canonical W4 read binding into the
-    DS-10 P0A research-integrity kernel (PR #671) and emitting
-    DS10_P0A_CANONICAL_W4_READ_BINDING_INTEGRATED_ELIGIBLE_FOR_W7_VALIDATION_NOT_ACCEPT; its Codex slot is
-    released. Owner sleep-autonomy direction (issuecomment-5615609881) orders continuation to Issue #561.
-    Fresh collision and capacity admission passes, so a clean successor Trading System Codex Standard route
-    (CODEX-DS10-P0B-DEFLATED-SHARPE-R192, Issue #561) is published, research-only / NO_TRADE, implementing
-    the Deflated Sharpe reference module.
+    main cb59993b963f3150537973e0deb4331fcbd63707; R192 (Issue #561, CODEX-DS10-P0B-DEFLATED-SHARPE-R192)
+    reached TERMINAL_COMPLETED at canonical main edd852a93b89a40b1ef41189c3433cc2f213aaae after delivering
+    the Deflated Sharpe reference module (PR #673, exact-head CI 34460526295, independent review
+    5165284701), emitting DS10_DEFLATED_SHARPE_P0B_READY_FOR_INDEPENDENT_REVIEW; its Codex slot is
+    released. Owner sleep-autonomy direction (issuecomment-5615609881) orders continuation to Issue #562
+    only after #561 is canonical and dependency gates pass. Fresh collision and capacity admission passes
+    (codex active routes 0 -> 1, no overlapping open PR, no second store/ledger), so a clean successor
+    Trading System Codex Standard route (CODEX-DS10-P0C-PBO-CSCV-R193, Issue #562) is published,
+    research-only / NO_TRADE, implementing the PBO/CSCV reference module.
 observed_agent_state:
   CODEX:
-    observed_task_id: CODEX-DS10-P0B-DEFLATED-SHARPE-R192
-    observed_route_epoch: 192
-    observed_issue: 561
+    observed_task_id: CODEX-DS10-P0C-PBO-CSCV-R193
+    observed_route_epoch: 193
+    observed_issue: 562
     observed_status: READY
     execution_allowed: true
-    predecessor_task_id: CODEX-DS10-P0A-W4-READ-BINDING-INTEGRATION-R191
+    predecessor_task_id: CODEX-DS10-P0B-DEFLATED-SHARPE-R192
     predecessor_terminal_state: TERMINAL_COMPLETED
   GPT_ENGINEERING_WORKER:
     observed_status: CLOSED_NO_ACTIVE_IMPLEMENTATION
@@ -89,23 +91,23 @@ program_lanes:
     prior_worker_slot_id: CODEX-R181-A2-2-SHOT-BUNDLE-1
     canonical_knowledge_write_authorized: false
   - lane_id: LANE-D-TRADING-SYSTEM-W4-EXPERIMENT-FAMILY
-    mission: Implement the DS-10 P0B Deflated Sharpe reference module (Issue #561) consuming the canonical P0A/W4 trial-count chain, research-only / NO_TRADE.
+    mission: Implement the DS-10 P0C PBO/CSCV reference module (Issue #562) consuming the canonical P0A/W4 trial-family chain, research-only / NO_TRADE.
     owner: USER
     architecture_owner: GPT
     desired_state: ACTIVE
-    observed_state: R192_CODEX_DS10_P0B_DEFLATED_SHARPE_PREWRITE
+    observed_state: R193_CODEX_DS10_P0C_PBO_CSCV_PREWRITE
     primary_system_positions: [W4, DS10]
     current_phase: PREWRITE
-    active_execution_route: CODEX-DS10-P0B-DEFLATED-SHARPE-R192
-    dependencies: [560, 559, 552]
+    active_execution_route: CODEX-DS10-P0C-PBO-CSCV-R193
+    dependencies: [561, 560, 559, 552]
     shared_interfaces: []
-    next_gate: DS10_P0B_DEFLATED_SHARPE_READY_FOR_INDEPENDENT_REVIEW
+    next_gate: DS10_PBO_CSCV_P0C_READY_FOR_INDEPENDENT_REVIEW
     maturity: ACTIVE_GOVERNED_PREWRITE
     implementation_owner: CODEX
-    worker_slot_id: CODEX-R192-DS10-P0B-DEFLATED-SHARPE-1
+    worker_slot_id: CODEX-R193-DS10-P0C-PBO-CSCV-1
     trading_authorized: false
-    prior_completed_route: CODEX-DS10-P0A-W4-READ-BINDING-INTEGRATION-R191
-    prior_completed_issue: 552
+    prior_completed_route: CODEX-DS10-P0B-DEFLATED-SHARPE-R192
+    prior_completed_issue: 561
     prior_completed_state: TERMINAL_COMPLETED
 cross_lane_overlap_matrix:
   - pair: [LANE-A-HARNESS-INTEGRATION, LANE-B-A-SHARE-REMEDIATION]
