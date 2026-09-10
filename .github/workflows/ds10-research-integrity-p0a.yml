@@ -1,6 +1,15 @@
 name: DS10 Research Integrity P0A
 
 on:
+  push:
+    paths:
+      - ".github/workflows/ds10-research-integrity-p0a.yml"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/RESEARCH-INTEGRITY-AUDIT.schema.json"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/LOCKBOX-ACCESS-RECEIPT.schema.json"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/fixtures/research-integrity.synthetic.yaml"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/src/offline_research/research_integrity.py"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/tests/test_research_integrity.py"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-DS10-P0A-W4-READ-BINDING-INTEGRATION-R191/**"
   pull_request:
     branches: [main]
     paths:
@@ -10,6 +19,7 @@ on:
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/fixtures/research-integrity.synthetic.yaml"
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/src/offline_research/research_integrity.py"
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/tests/test_research_integrity.py"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-DS10-P0A-W4-READ-BINDING-INTEGRATION-R191/**"
 
 permissions:
   contents: read
@@ -25,7 +35,7 @@ jobs:
       - name: Checkout exact candidate
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.sha }}
           fetch-depth: 0
 
       - name: Set up Python
@@ -35,6 +45,9 @@ jobs:
 
       - name: Install bounded test dependencies
         run: python -m pip install --disable-pip-version-check jsonschema PyYAML
+
+      - name: Materialise canonical main reference
+        run: git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main || true
 
       - name: Compile DS10 P0A runtime
         run: >-
@@ -51,13 +64,9 @@ jobs:
           -p 'test_research_integrity.py'
           -v
 
-      - name: Enforce exact six-file write scope
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      - name: Enforce R191 write scope
         run: |
           python - <<'PY'
-          import os
           import subprocess
 
           allowed = {
@@ -68,26 +77,21 @@ jobs:
               "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/src/offline_research/research_integrity.py",
               "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/tests/test_research_integrity.py",
           }
-          base = os.environ["BASE_SHA"]
-          head = os.environ["HEAD_SHA"]
+          allowed_prefixes = (
+              "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-DS10-P0A-W4-READ-BINDING-INTEGRATION-R191/",
+          )
           changed = {
               line.strip()
               for line in subprocess.check_output(
-                  ["git", "diff", "--name-only", f"{base}...{head}"], text=True
+                  ["git", "diff", "--name-only", "origin/main...HEAD"], text=True
               ).splitlines()
               if line.strip()
           }
-          unexpected = sorted(changed - allowed)
-          missing = sorted(allowed - changed)
+          unexpected = sorted(path for path in changed if path not in allowed and not path.startswith(allowed_prefixes))
           if unexpected:
-              raise SystemExit(f"R183_SCOPE_VIOLATION unexpected={unexpected}")
-          if missing:
-              raise SystemExit(f"R183_SCOPE_INCOMPLETE missing={missing}")
-          print(f"R183_SCOPE_PASS changed={len(changed)}")
+              raise SystemExit(f"R191_SCOPE_VIOLATION unexpected={unexpected}")
+          print(f"R191_SCOPE_PASS changed={len(changed)}")
           PY
 
       - name: Whitespace gate
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: git diff --check "$BASE_SHA...$HEAD_SHA"
+        run: git diff --check origin/main...HEAD

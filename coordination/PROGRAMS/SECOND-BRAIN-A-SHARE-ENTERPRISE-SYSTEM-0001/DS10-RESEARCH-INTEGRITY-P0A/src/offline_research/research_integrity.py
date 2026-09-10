@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 import re
 import sys
+import types
 from typing import Any, Mapping, Sequence
 
 AUDIT_SCHEMA = "ResearchIntegrityAudit/v1"
@@ -21,6 +22,8 @@ W2_RULE_RUNTIME_REF = "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYS
 W2_DATASET_REF = "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/fixtures/synthetic_bars.jsonl"
 W2_PARAMETER_REF = "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/fixtures/r143_cases.json"
 W2_ENGINE_REF = "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src/offline_research/engine.py"
+W4_REGISTRY_RUNTIME_REF = "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W4-STRATEGY-EXPERIMENT-FAMILY-P0/src/w4_experiment_family/registry.py"
+W4_READ_BINDING_RUNTIME_REF = "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W4-STRATEGY-EXPERIMENT-FAMILY-P0/src/w4_experiment_family/read_binding.py"
 R183_WORK_CLAIM_REF = "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A-R183/WORK-CLAIM.yaml"
 R183_AUTH_WITNESS_REF = "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A-R183/AUTHORIZATION-WITNESS.yaml"
 
@@ -29,8 +32,10 @@ _GOVERNED_ARTIFACTS = {
     W2_DATASET_REF: "934b95414a41c003392f4dd870f401474affa839",
     W2_PARAMETER_REF: "7b19b75714701643006ac8d846ee934d764ca224",
     W2_ENGINE_REF: "7c2ecacd1bebd62fd453d25d6374da5df193446e",
-    R183_WORK_CLAIM_REF: "0c210c6daff8352516f1f80d7b5de6aabb5597c3",
-    R183_AUTH_WITNESS_REF: "d75bce3a40835e63b7ef98196a3dbb7c747cfddc",
+    W4_REGISTRY_RUNTIME_REF: "0f6b197c500412f814c38aee347f5a86d8fa8632",
+    W4_READ_BINDING_RUNTIME_REF: "0e2640d3135553435ec06d99ed9f25c9d146a1e4",
+    R183_WORK_CLAIM_REF: "98ae9f013ba16b6274c7bf6c5e6b86cd9a41317c",
+    R183_AUTH_WITNESS_REF: "c3e4afdc3f10212b976770ac29960c4383cf2813",
 }
 
 
@@ -189,6 +194,115 @@ def _load_verified_w2_rule_module(ref: str, blob_sha: str):
         sys.modules.pop(module_name, None)
         raise
     return module
+
+
+def _load_verified_w4_read_binding_module():
+    """Load the W4 reader only after both governed source files match their pins."""
+    registry_path, _ = _verify_governed_artifact(
+        W4_REGISTRY_RUNTIME_REF,
+        _GOVERNED_ARTIFACTS[W4_REGISTRY_RUNTIME_REF],
+        "w4.registry",
+    )
+    binding_path, _ = _verify_governed_artifact(
+        W4_READ_BINDING_RUNTIME_REF,
+        _GOVERNED_ARTIFACTS[W4_READ_BINDING_RUNTIME_REF],
+        "w4.read_binding",
+    )
+    package_name = "w4_experiment_family"
+    registry_name = f"{package_name}.registry"
+    binding_name = f"{package_name}.read_binding"
+    package = types.ModuleType(package_name)
+    package.__package__ = package_name
+    package.__path__ = [str(registry_path.parent)]
+    sys.modules[package_name] = package
+    try:
+        registry_spec = importlib.util.spec_from_file_location(registry_name, registry_path)
+        binding_spec = importlib.util.spec_from_file_location(binding_name, binding_path)
+        if registry_spec is None or registry_spec.loader is None or binding_spec is None or binding_spec.loader is None:
+            raise IntegrityValidationError("W4_READ_BINDING_MODULE_LOAD_FAILED", "w4.read_binding", "module spec unavailable")
+        registry_module = importlib.util.module_from_spec(registry_spec)
+        sys.modules[registry_name] = registry_module
+        registry_spec.loader.exec_module(registry_module)
+        binding_module = importlib.util.module_from_spec(binding_spec)
+        sys.modules[binding_name] = binding_module
+        binding_spec.loader.exec_module(binding_module)
+    except Exception:
+        sys.modules.pop(binding_name, None)
+        sys.modules.pop(registry_name, None)
+        sys.modules.pop(package_name, None)
+        raise
+    return binding_module
+
+
+def _verify_canonical_w4_binding(
+    snapshot: ExperimentFamilySnapshot,
+    receipt: Mapping[str, Any] | None,
+) -> tuple[bool, str, list[dict[str, str]]]:
+    """Bind this DS-10 snapshot to a separately revalidated canonical W4 receipt."""
+    if receipt is None:
+        return False, "EXTERNAL_CANONICAL_BINDING_REQUIRED", []
+    try:
+        module = _load_verified_w4_read_binding_module()
+        verification = module.verify_canonical_family_receipt(receipt)
+    except IntegrityValidationError as exc:
+        return False, exc.code, [_finding(exc.code, "UNKNOWN", exc.path, exc.message)]
+    except Exception as exc:
+        return False, "W4_READ_BINDING_VERIFICATION_FAILED", [
+            _finding(
+                "W4_READ_BINDING_VERIFICATION_FAILED",
+                "UNKNOWN",
+                "w4_read_receipt",
+                f"{type(exc).__name__}:{exc}",
+            )
+        ]
+
+    primary = verification.get("primary") if isinstance(verification, Mapping) else None
+    verified_primaries = {
+        module.ReadVerificationState.CANONICAL_W4_READ_VERIFIED.value,
+        module.ReadVerificationState.CANONICAL_W4_READ_VERIFIED_POINTER_ADVANCED.value,
+    }
+    state = str(verification.get("verification_state", primary)) if isinstance(verification, Mapping) else "INVALID_W4_VERIFICATION_RESULT"
+    if primary not in verified_primaries:
+        return False, state, [
+            _finding(
+                "W4_READ_RECEIPT_NOT_CANONICAL",
+                "UNKNOWN",
+                "w4_read_receipt",
+                f"verification_state={state}; primary={primary!r}",
+            )
+        ]
+
+    expected_manifest_digest = _digest(dict(sorted(snapshot.expected_trial_digests.items())))
+    identity_fields = (
+        "experiment_family_ref",
+        "selection_rule_ref",
+        "benchmark_ref",
+        "metric_id",
+        "horizon_id",
+        "search_space_ref",
+        "selected_trial_id",
+    )
+    mismatches = [
+        name
+        for name in identity_fields
+        if receipt.get(name) != getattr(snapshot, name)
+    ]
+    if receipt.get("registered_family_digest") != snapshot.registered_family_digest:
+        mismatches.append("receipt.registered_family_digest")
+    if snapshot.registered_family_digest != snapshot.computed_family_digest():
+        mismatches.append("snapshot.registered_family_digest")
+    if receipt.get("expected_trial_manifest_digest") != expected_manifest_digest:
+        mismatches.append("expected_trial_manifest_digest")
+    if mismatches:
+        return False, "W4_DS10_BRIDGE_MISMATCH", [
+            _finding(
+                "W4_DS10_RECEIPT_BRIDGE_MISMATCH",
+                "UNKNOWN",
+                "w4_read_receipt",
+                f"mismatched={','.join(mismatches)}",
+            )
+        ]
+    return True, state, []
 
 
 def _load_jsonl_event(ref: str, blob_sha: str, event_id: str) -> dict[str, Any]:
@@ -825,6 +939,7 @@ def audit_research_integrity(
     pit_evidence: PITEvidence,
     method_results: Sequence[MethodResult] = (),
     observed_at: str,
+    w4_read_receipt: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     observed = _time(observed_at, "audit.observed_at")
     snapshot_digest = snapshot.snapshot_digest()
@@ -837,7 +952,10 @@ def audit_research_integrity(
         digest_match = expected_w4_snapshot_digest == snapshot_digest
         if not digest_match:
             findings.append(_finding("W4_SNAPSHOT_DIGEST_MISMATCH", "BLOCKING", "expected_w4_snapshot_digest", "snapshot differs from comparison digest"))
-    findings.append(_finding("W4_AUTHORITY_BINDING_NOT_IMPLEMENTED_P0A", "UNKNOWN", "w4_authority_state", "canonical W4 provenance requires a separately governed read adapter"))
+    w4_verified, _, w4_findings = _verify_canonical_w4_binding(snapshot, w4_read_receipt)
+    findings += w4_findings
+    if not w4_verified:
+        findings.append(_finding("W4_AUTHORITY_BINDING_NOT_IMPLEMENTED_P0A", "UNKNOWN", "w4_authority_state", "canonical W4 provenance requires a separately governed read adapter"))
 
     reconciliation, more = _reconcile_trials(snapshot)
     findings += more
@@ -892,7 +1010,7 @@ def audit_research_integrity(
         "experiment_family_ref": snapshot.experiment_family_ref,
         "w4_snapshot_digest": snapshot_digest,
         "w4_snapshot_digest_matches_expected": digest_match,
-        "w4_authority_state": "EXTERNAL_CANONICAL_BINDING_REQUIRED",
+        "w4_authority_state": "CANONICAL_W4_BINDING_VERIFIED" if w4_verified else "EXTERNAL_CANONICAL_BINDING_REQUIRED",
         "registered_family_digest": snapshot.registered_family_digest,
         "computed_family_digest": snapshot.computed_family_digest(),
         "trial_reconciliation": reconciliation,
