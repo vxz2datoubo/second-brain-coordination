@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "DS10-DEFLATED-SHARPE-P0B/DEFLATED-SHARPE-RESULT.schema.json",
+  "title": "DeflatedSharpeResult/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["result_id", "method_id", "method_version", "experiment_family_ref", "family_revision", "family_content_digest", "selected_trial_id", "observed_sharpe", "sample_count", "skewness", "kurtosis", "raw_trial_count", "effective_trial_count", "trial_count_method_ref", "sharpe_cross_section_variance", "expected_max_sharpe_benchmark", "probabilistic_sharpe_against_benchmark", "deflated_sharpe_probability", "numerical_diagnostics", "input_integrity_state", "method_state", "uncertainties", "computation_digest"],
+  "properties": {
+    "result_id": {"type": "string", "minLength": 1},
+    "method_id": {"const": "DS10-DeflatedSharpe/Bailey-LopezDePrado-2014"},
+    "method_version": {"const": "1.0.0"},
+    "experiment_family_ref": {"type": ["string", "null"]},
+    "family_revision": {"type": ["string", "null"]},
+    "family_content_digest": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+    "selected_trial_id": {"type": ["string", "null"]},
+    "observed_sharpe": {"type": ["number", "null"]},
+    "sample_count": {"type": ["integer", "null"]},
+    "skewness": {"type": ["number", "null"]},
+    "kurtosis": {"type": ["number", "null"]},
+    "raw_trial_count": {"type": ["integer", "null"]},
+    "effective_trial_count": {"type": ["number", "null"]},
+    "trial_count_method_ref": {"type": ["string", "null"]},
+    "sharpe_cross_section_variance": {"type": ["number", "null"], "minimum": 0},
+    "expected_max_sharpe_benchmark": {"type": ["number", "null"]},
+    "probabilistic_sharpe_against_benchmark": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+    "deflated_sharpe_probability": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+    "numerical_diagnostics": {"type": "object"},
+    "input_integrity_state": {"enum": ["CANONICAL_CHAIN_VERIFIED", "INPUT_INTEGRITY_BLOCKED", "EFFECTIVE_TRIAL_COUNT_UNRESOLVED", "ABSTAIN"]},
+    "method_state": {"enum": ["PASS_COMPUTED", "NOT_APPLICABLE_SINGLE_TRIAL", "INSUFFICIENT_SAMPLE", "EFFECTIVE_TRIAL_COUNT_UNRESOLVED", "MOMENTS_INVALID", "NUMERICAL_FAILURE", "INPUT_INTEGRITY_BLOCKED", "ABSTAIN"]},
+    "uncertainties": {"type": "array", "items": {"type": "string"}},
+    "computation_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}
