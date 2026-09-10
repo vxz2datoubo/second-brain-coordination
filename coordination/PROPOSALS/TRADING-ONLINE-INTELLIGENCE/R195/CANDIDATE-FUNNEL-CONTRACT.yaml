@@ -1,0 +1,132 @@
+schema_version: "1.0"
+contract_id: "TRADING-ONLINE-CANDIDATE-FUNNEL-R195"
+status: "CANDIDATE_PROPOSAL_ONLY"
+source_issue: 690
+roadmap_issue: 688
+boundary: "DISCOVERY_ONLY / RESEARCH_ONLY / NO_TRADE"
+
+purpose: >-
+  Use cheap online whole-market screening to narrow the A-share universe before optional
+  expensive local TDX/TQ/L2 deep analysis, while preserving point-in-time universe identity,
+  provenance, pagination, missingness and anti-survivorship constraints.
+
+stages:
+  F0_UNIVERSE_BIND:
+    input: "declared market universe"
+    required_evidence:
+      - "market"
+      - "provider"
+      - "as_of"
+      - "query or universe identity"
+    output: "UNIVERSE_RECEIPT"
+
+  F1_CHEAP_ONLINE_SCAN:
+    examples:
+      - "price/change filters"
+      - "turnover filters"
+      - "industry/theme ranking"
+      - "market temperature/regime context"
+      - "provider anomaly events"
+    required_evidence:
+      - "exact predicates"
+      - "provider"
+      - "observed_at"
+      - "source timestamp when available"
+      - "total result count when available"
+      - "page/size/cursor state"
+      - "rate-limit or partial-result flags"
+    output: "ONLINE_DISCOVERY_SET"
+
+  F2_EVIDENCE_ENRICHMENT:
+    optional_ports:
+      - "financial/fundamental research"
+      - "news/event/announcement evidence"
+      - "overseas comparable evidence"
+      - "industry relative-strength evidence"
+    rule: "ONLY_COLLECT_WHEN_DECISION_RELEVANT; DO_NOT_TURN_ENRICHMENT_INTO_WINNER_AUTHORITY"
+    output: "ENRICHED_DISCOVERY_SET"
+
+  F3_LOCAL_DEEP_JUDGE:
+    optional: true
+    runs_only_when_local_deep_provider_available: true
+    candidate_inputs:
+      - "TDX/TQ/L2 tick data"
+      - "Volume Profile"
+      - "CVD"
+      - "Delta"
+      - "Absorption"
+      - "VWAP"
+      - "Footprint"
+      - "Wyckoff structure"
+    unavailable_in_online_only_mode: "REPORT_CAPABILITY_GAP_AND_CONTINUE_WITH_READ_ONLY_ONLINE_SYNTHESIS"
+    output: "LOCAL_DEEP_EVIDENCE_SET"
+
+  F4_DECISION_PACKET:
+    authority: "RESEARCH_SYNTHESIS_ONLY"
+    required:
+      - "bull hypothesis"
+      - "bear hypothesis"
+      - "counterevidence"
+      - "confidence or probability when defensible"
+      - "invalidation conditions"
+      - "source/freshness state"
+      - "capability gaps"
+    forbidden:
+      - "automatic W7 acceptance"
+      - "position/order authority"
+      - "winner-list truth"
+
+pit_and_universe_invariants:
+  point_in_time_only: true
+  full_universe_identity_preserved: true
+  filter_predicates_preserved: true
+  as_of_preserved: true
+  source_timestamp_preserved_when_available: true
+  pagination_state_preserved: true
+  total_result_count_preserved_when_available: true
+  partial_failure_preserved: true
+  missingness_preserved: true
+  survivor_filtering_hidden: false
+  caller_minted_winner_list_authority: false
+  screen_result_is_not_independent_trial_family: true
+
+ranking_rules:
+  ranking_allowed: true
+  ranking_features_require_verified_semantics: true
+  ambiguous_field_disposition: "EXCLUDE_FEATURE_AND_RECORD_UNRESOLVED_SEMANTICS"
+  provider_native_rank_is_evidence_not_truth: true
+  tie_break_policy_must_be_explicit_if_material: true
+
+cross_source_rules:
+  independent_sources_may_confirm_fact: true
+  material_disagreement: "DATA_DIVERGENCE"
+  averaging_away_disagreement_forbidden: true
+  source_specific_timestamp_and_semantics_required: true
+
+online_only_mode:
+  allowed_to_finish_without_local_deep_judge: true
+  output_label: "ONLINE_ONLY_READ_ONLY_SYNTHESIS"
+  required_capability_gap_disclosure: true
+  must_not_synthesize_local_microstructure_metrics: true
+
+observed_canary:
+  provider: "Longbridge"
+  market: "CN"
+  observed_at: "2026-09-10T23:20:04Z"
+  predicates:
+    - "prevchg >= 3%"
+    - "turnover_rate >= 3%"
+  provider_reported_total: 150
+  status: "DISCOVERY_MECHANISM_OBSERVED"
+  caveat: >-
+    This demonstrates online broad-scan feasibility only. It does not validate every
+    returned field's semantics and does not turn the 150 names into validated candidates
+    for capital allocation or trading.
+
+hard_boundaries:
+  - "NO_REAL_TRADE"
+  - "NO_ACCOUNT_FUNDS_ORDER_AUTHORITY"
+  - "NO_SURVIVORSHIP_LAUNDERING"
+  - "NO_LOOKAHEAD"
+  - "NO_UNVERIFIED_FIELD_IN_RANKING"
+  - "NO_COARSE_ONLINE_FLOW_AS_TRUE_TICK_MICROSTRUCTURE"
