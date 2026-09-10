@@ -1,0 +1,172 @@
+schema_version: "1.0"
+contract_id: "TRADING-ONLINE-GPT-RUNTIME-R195"
+status: "CANDIDATE_PROPOSAL_ONLY"
+source_issue: 690
+roadmap_issue: 688
+parent_program_issue: 31
+project_id: "TRADING_SYSTEM"
+mode: "ON_DEMAND_INTERACTIVE_ONLINE"
+boundary: "READ_MARKET_DATA / RESEARCH_ONLY / NO_TRADE"
+
+purpose: >-
+  Provide a governed online ChatGPT execution profile for A-share research when local
+  TDX/TQ/L2 is unavailable, while reusing existing Trading System authorities,
+  market-semantic contracts, Control Tower and review/canonicalization lifecycle.
+
+truth_hierarchy:
+  engineering_governance: "FRESH_GITHUB_CANONICAL_MAIN"
+  market_fact_truth: "DECLARED_RUNTIME_PROVIDER_WITH_PROVENANCE_AND_SEMANTIC_VERIFICATION"
+  local_microstructure_truth: "DECLARED_LOCAL_PROVIDER_WHEN_AVAILABLE_AND_SEPARATELY_VERIFIED"
+  provider_metadata_is_not_canonical_semantics: true
+  model_inference_is_not_market_fact: true
+
+mandatory_reuse:
+  project_adapter: "coordination/EXECUTION/PROJECT-ADAPTERS/TRADING-SYSTEM.yaml"
+  market_semantic_schema: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/MARKET-SEMANTIC-FIELD-SPEC.schema.json"
+  provider_capability_schema: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/PROVIDER-CAPABILITY-OBSERVATION.schema.json"
+  no_second_numeric_contract: true
+  no_second_control_plane: true
+
+runtime_ports:
+  MARKET_STRUCTURED_PRIMARY:
+    candidates: ["Longbridge"]
+    runtime_discovery_required: true
+    default_authority: "READ_MARKET_DATA"
+    place_order_allowed: false
+  FINANCIAL_RESEARCH:
+    candidates: ["Bigdata.com"]
+    runtime_discovery_required: true
+    default_authority: "READ_RESEARCH_DATA"
+    place_order_allowed: false
+  WEB_EVENT_ACQUISITION:
+    candidates: ["TinyFish"]
+    runtime_discovery_required: true
+    default_authority: "READ_PUBLIC_WEB_EVIDENCE"
+    place_order_allowed: false
+  ENGINEERING_GOVERNANCE:
+    candidates: ["GitHub"]
+    runtime_discovery_required: true
+    default_authority: "READ_GOVERNANCE_AND_PERSIST_CANDIDATE_EVIDENCE_WHEN_AUTHORIZED"
+  LOCAL_DEEP_MARKET_DATA:
+    candidates: ["TDX", "TQ", "L2"]
+    optional_in_online_mode: true
+    runtime_discovery_required: true
+    place_order_allowed: false
+
+execution_algorithm:
+  - "fresh_reconcile_github_main_and_current_trading_routes"
+  - "read_trading_adapter_and_r195_start_here"
+  - "discover_connected_provider_capabilities"
+  - "read_market_status_and_provider_freshness"
+  - "collect_structured_market_observations"
+  - "normalize_only_fields_with_verified_semantics"
+  - "emit_ambiguity_and_missingness_for_unverified_fields"
+  - "build_online_evidence_packet"
+  - "run_candidate_funnel_when_requested_or_useful"
+  - "collect_financial_news_or_web_evidence_only_when_decision_relevant"
+  - "if_local_provider_is_available_reconcile_online_and_local_sources_without_averaging_away_disagreement"
+  - "produce_read_only_research_synthesis_with_hypotheses_counterevidence_and_invalidators"
+  - "persist_candidate_evidence_only_when_current_authority_allows"
+
+connected_provider_evidence:
+  local_runtime_verified_label_forbidden: true
+  companion_schema: "CONNECTED-PROVIDER-OBSERVATION.schema.json"
+  allowed_online_classes:
+    - "CONNECTED_ONLINE_RUNTIME_OBSERVED"
+    - "CONNECTED_ONLINE_RUNTIME_PARTIAL"
+    - "ENTITLEMENT_UNVERIFIED"
+    - "OBSERVED_UNSUPPORTED"
+    - "STALE_REVALIDATION_REQUIRED"
+    - "UNKNOWN"
+  rule: >-
+    A successful connected ChatGPT plugin call proves an online connected-runtime
+    observation only. It does not prove local runtime capability, official API parity,
+    production-server availability, or future entitlement.
+
+semantic_normalization:
+  fail_closed_on_ambiguous_unit: true
+  fail_closed_on_ambiguous_scale: true
+  fail_closed_on_ambiguous_timestamp_semantics: true
+  fail_closed_on_session_semantics_conflict: true
+  fail_closed_on_adjustment_state_unknown: true
+  forbidden_behaviors:
+    - "guess provider unit from display label alone"
+    - "average materially disagreeing sources into a synthetic truth"
+    - "convert coarse aggregate flow into true tick Delta/CVD"
+    - "infer closing-auction semantics solely from incomplete provider session metadata"
+
+online_only_degradation:
+  explicit_capability_gaps_required: true
+  unavailable_unless_independently_verified:
+    - "TRUE_L2_DEPTH_HISTORY"
+    - "TICK_RECONSTRUCTED_DELTA"
+    - "CVD"
+    - "ABSORPTION"
+    - "FOOTPRINT"
+    - "EXCHANGE_QUEUE_MICROSTRUCTURE"
+  rule: "MISSING_LOCAL_L2_IS_A_CAPABILITY_GAP_NOT_PERMISSION_TO_SYNTHESIZE"
+
+candidate_funnel:
+  whole_market_online_scan_allowed: true
+  expensive_local_deep_scan_optional: true
+  preserve_full_universe_identity: true
+  preserve_query_predicates: true
+  preserve_as_of: true
+  preserve_total_result_count_when_available: true
+  preserve_pagination_and_partial_failure: true
+  survivor_filter_laundering_forbidden: true
+  screener_output_is_not_validation_acceptance: true
+
+cross_source_quorum:
+  enabled_when_multiple_independent_sources_are_available: true
+  material_disagreement_action: "EMIT_DATA_DIVERGENCE_AND_INVESTIGATE"
+  simple_averaging_forbidden: true
+  freshness_weighting_allowed_only_if_explicit_and_evidence_backed: true
+  source_specific_semantics_preserved: true
+
+run_output:
+  evidence_packet_schema: "ONLINE-TRADING-EVIDENCE-PACKET.schema.json"
+  required_sections:
+    - "runtime_identity"
+    - "provider_observations"
+    - "normalized_market_facts"
+    - "unresolved_semantics"
+    - "candidate_funnel_state"
+    - "data_divergences"
+    - "capability_gaps"
+    - "source_refs"
+  trade_recommendation_authority_created: false
+  order_authority_created: false
+
+persistence:
+  github_may_store:
+    - "governance metadata"
+    - "provider observation metadata"
+    - "non-secret evidence references"
+    - "normalized research evidence"
+    - "candidate funnel receipts"
+  github_must_not_store:
+    - "broker credentials"
+    - "provider secrets"
+    - "authentication cookies"
+    - "account session tokens"
+  online_chat_session_is_not_background_runtime: true
+  no_false_24x7_claim: true
+
+hard_boundaries:
+  - "NO_REAL_TRADE"
+  - "NO_ACCOUNT_OR_FUNDS_AUTHORITY"
+  - "NO_ORDER_PLACEMENT"
+  - "NO_BROKER_CREDENTIALS_IN_GITHUB"
+  - "NO_SYNTHETIC_RESULT_LAUNDERED_AS_LIVE_EVIDENCE"
+  - "NO_SECOND_MARKET_DATA_TRUTH"
+  - "NO_SECOND_NUMERIC_CONTRACT"
+  - "NO_SELF_REVIEW"
+  - "NO_SELF_MERGE"
+
+promotion_gate:
+  exact_head_ci_required: true
+  independent_review_required: true
+  separate_canonicalization_required: true
+  production_api_or_background_service_activation_requires_new_governed_slice: true
+  secret_or_credential_use_requires_owner_gate: true
