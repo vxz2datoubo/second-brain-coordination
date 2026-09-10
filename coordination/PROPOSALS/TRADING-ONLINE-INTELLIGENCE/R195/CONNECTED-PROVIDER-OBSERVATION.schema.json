@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ConnectedProviderObservationEnvelope/v1",
+  "title": "ConnectedProviderObservationEnvelope/v1",
+  "description": "Additive online/connected-runtime observation envelope. It does not replace ProviderCapabilityObservation/v1 and MUST NOT mint LOCAL_RUNTIME_VERIFIED.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "observation_id",
+    "provider",
+    "product",
+    "capability_id",
+    "transport_class",
+    "evidence_class",
+    "observed_at",
+    "connected_online_runtime_observed",
+    "local_runtime_observed",
+    "entitlement_state",
+    "observed_fields",
+    "semantic_field_refs",
+    "source_refs",
+    "freshness_state",
+    "missingness_state",
+    "ambiguity_flags",
+    "invalidation_conditions",
+    "next_verification_action"
+  ],
+  "properties": {
+    "observation_id": {"type": "string", "minLength": 1},
+    "provider": {"type": "string", "minLength": 1},
+    "product": {"type": "string", "minLength": 1},
+    "capability_id": {"type": "string", "minLength": 1},
+    "transport_class": {
+      "enum": ["CHATGPT_PLUGIN", "CONNECTED_CONNECTOR", "WEB_TOOL", "OTHER_CONNECTED_ONLINE"]
+    },
+    "evidence_class": {
+      "enum": [
+        "CONNECTED_ONLINE_RUNTIME_OBSERVED",
+        "CONNECTED_ONLINE_RUNTIME_PARTIAL",
+        "ENTITLEMENT_UNVERIFIED",
+        "OBSERVED_UNSUPPORTED",
+        "STALE_REVALIDATION_REQUIRED",
+        "UNKNOWN"
+      ]
+    },
+    "observed_at": {"type": "string", "format": "date-time"},
+    "source_timestamp": {"type": ["string", "null"], "format": "date-time"},
+    "connected_online_runtime_observed": {"type": "boolean"},
+    "local_runtime_observed": {"const": false},
+    "official_api_parity_verified": {"type": "boolean", "default": false},
+    "production_server_availability_verified": {"type": "boolean", "default": false},
+    "entitlement_state": {"type": "string", "minLength": 1},
+    "observed_fields": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "semantic_field_refs": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "source_refs": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "freshness_state": {
+      "enum": ["FRESH", "STALE", "SOURCE_TIMESTAMP_MISSING", "UNKNOWN"]
+    },
+    "missingness_state": {
+      "enum": ["PRESENT", "PARTIAL", "EMPTY", "NOT_AVAILABLE", "NOT_APPLICABLE", "ENTITLEMENT_UNVERIFIED", "UNKNOWN"]
+    },
+    "ambiguity_flags": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "AMBIGUOUS_UNIT",
+          "AMBIGUOUS_SCALE",
+          "AMBIGUOUS_TIME_SEMANTIC",
+          "AMBIGUOUS_SESSION_SEMANTIC",
+          "AMBIGUOUS_ADJUSTMENT_STATE",
+          "DOCUMENTED_RUNTIME_SHAPE_MISMATCH",
+          "NONE"
+        ]
+      }
+    },
+    "invalidation_conditions": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "next_verification_action": {"type": "string", "minLength": 1}
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"evidence_class": {"const": "CONNECTED_ONLINE_RUNTIME_OBSERVED"}},
+        "required": ["evidence_class"]
+      },
+      "then": {
+        "properties": {
+          "connected_online_runtime_observed": {"const": true}
+        }
+      }
+    },
+    {
+      "not": {
+        "properties": {"evidence_class": {"const": "LOCAL_RUNTIME_VERIFIED"}},
+        "required": ["evidence_class"]
+      }
+    }
+  ]
+}
