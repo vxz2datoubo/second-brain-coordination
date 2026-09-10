@@ -1,0 +1,52 @@
+schema_version: "1.0"
+task_id: "WORKBUDDY-R572-R8-PR660-REMEDIATION"
+project: "SECOND_BRAIN"
+repository: "vxz2datoubo/second-brain-coordination"
+source_issue: 572
+handoff_issue: 667
+pull_request: 660
+status: "READY"
+execution_allowed: true
+active: true
+executor: "WORKBUDDY"
+carrier_profile: "DEEP_ENGINEERING"
+planning_mode: true
+reasoning_level: "HIGH_WHEN_EXPOSED"
+model_selection:
+  preferred_affinity: "Deepseek-V4-Pro"
+  peer_alternative: "GLM-5.3"
+  runtime_refresh_required: true
+  frontier_allowed: false
+base:
+  canonical_main_at_handoff: "58c568ca280a023ff961aae4bd15f8492d18a8ce"
+  candidate_exact_head_at_handoff: "c29cea2e38b13dccfbe5af05ae83e993435c7db6"
+branch: "gpt/r572-r8-worker-slots-compat-remediation-20260909"
+collision_domain: "R572_R8_WORKER_SLOTS_COMPATIBILITY"
+write_surface:
+  - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R7.yaml"
+  - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-TERMINAL-TOMBSTONES.yaml"
+  - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R8.yaml"
+  - "coordination/CONTROL-TOWER/worker_slots.py"
+  - "coordination/CONTROL-TOWER/tests/test_worker_slots_r8_compat.py"
+  - "coordination/CONTROL-TOWER/R572-R8-WORKER-SLOTS-COMPATIBILITY-RECEIPT.yaml"
+forbidden:
+  - "ANY_SEVENTH_IMPLEMENTATION_PATH"
+  - "coordination/CONTROL-TOWER/worker_lifecycle.py"
+  - "ACTIVE_PROJECTION_MUTATION"
+  - "REAL_CAPTURE"
+  - "OPERATIONAL_W3_WRITE"
+  - "R184_LOCAL_BRIDGE_ACTIVATION"
+  - "TRADING_OR_RUNTIME_AUTHORITY"
+  - "DIRECT_MAIN_WRITE"
+  - "SELF_REVIEW"
+  - "SELF_MERGE"
+objective: >-
+  Continue PR #660 R8 difficult remediation under the existing six-file scope. Reproduce the exact-head
+  Program Control Tower failure, identify the minimal candidate-only observable regression, repair it without
+  changing acceptance or architecture, run focused and repository-required tests, freeze a new exact head,
+  and return evidence for independent review. Do not broaden the task.
+completion_signal: "WORKBUDDY_R572_R8_PR660_REMEDIATION_COMPLETE"
+return_target: "GPT_ARCHITECTURE_OWNER"
+owner_authorization:
+  text: "授权 WB 接力 #660 R8 remediation，保持现有六文件 scope。"
+  issue_comment: 5614462912
