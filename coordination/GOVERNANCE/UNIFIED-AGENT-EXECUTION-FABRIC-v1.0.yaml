@@ -3,6 +3,7 @@ protocol_id: "UNIFIED-AGENT-EXECUTION-FABRIC-v1"
 status: "CANDIDATE_EXTENSION_PENDING_INDEPENDENT_REVIEW"
 source_issue: 596
 latest_extension_issue: 605
+latest_control_tower_preflight_issue: 675
 authority:
   owner_decision: "ONE_GLOBAL_CONTROL_PLANE_WITH_PROJECT_ADAPTERS"
   canonical_engineering_sync_repo: "vxz2datoubo/second-brain-coordination"
@@ -177,9 +178,12 @@ compute_allocation:
 routing_algorithm:
   - "fresh_reconcile_current_main_and_active_routes"
   - "identify_project_and_load_project_adapter"
+  - "fresh_signal_tower_intake_decision_for_system_relevant_owner_input"
+  - "if_governed_mission_run_global_signal_preflight_and_bind_valid_reconciliation_receipt_and_task_release_packet"
   - "classify_task_S0_to_S5"
   - "classify_workload_value_tier_L0_to_L3"
   - "resolve_collision_domain_and_dependency_graph"
+  - "fresh_program_control_tower_preflight_for_any_repo_write_or_executor_dispatch"
   - "choose_execution_carrier"
   - "choose_model_profile_using_capability_cost_router"
   - "if_codex_standard_candidate_run_standard_expected_value_gate"
@@ -199,6 +203,9 @@ references:
   model_router: "coordination/GOVERNANCE/MODEL-CAPABILITY-COST-ROUTER-v1.0.yaml"
   local_bridge: "coordination/GOVERNANCE/LOCAL-WORKBUDDY-BRIDGE-CONTRACT-v1.0.yaml"
   carrier_concurrency: "coordination/GOVERNANCE/EXECUTION-CARRIER-AND-CONCURRENCY-CONTRACT-v1.0.yaml"
+  program_control_tower: "coordination/CONTROL-TOWER/README.md"
+  signal_tower_intake_contract: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/GLOBAL-SIGNAL-INTAKE-ADAPTIVE-GATEWAY-CONTRACT.yaml"
+  signal_tower_operational_ingress: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/R147-AUTOMATIC-INGRESS/README.md"
   model_snapshot: "coordination/EXECUTION/MODEL-CATALOG-SNAPSHOT-2026-09-04.yaml"
   gpt_bootstrap: "coordination/GPT-UNIFIED-ORCHESTRATOR-START-HERE.md"
   workbuddy_bootstrap: "coordination/WORKBUDDY-UNIFIED-START-HERE.md"
@@ -207,6 +214,18 @@ global_invariants:
   github_main_is_engineering_sync_truth: true
   project_runtime_sor_not_replaced_by_github: true
   active_task_route_required_for_execution: true
+  system_relevant_owner_input_requires_signal_tower_intake_decision_before_task_formation: true
+  signal_is_not_task: true
+  formal_governed_mission_requires_fresh_global_signal_reconciliation_receipt_and_task_release_packet: true
+  routine_conversation_must_not_be_forced_into_durable_signal_backlog: true
+  explicit_owner_no_capture_overrides_durable_admission: true
+  public_control_plane_forbids_raw_private_conversation_body: true
+  control_tower_pre_dispatch_admission_required_for_nontrivial_repo_writes_and_executor_dispatch: true
+  control_tower_stale_missing_or_inconsistent_evidence_fails_closed_for_ordinary_or_new_writes: true
+  control_tower_degraded_repair_requires_explicit_current_bounded_canonical_remediation_authority: true
+  control_tower_failed_or_unknown_signal_never_implies_O0_no_collision: true
+  unregistered_workbuddy_writer_start_forbidden: true
+  read_only_github_retrieval_does_not_require_write_admission: true
   single_writer_per_collision_domain: true
   no_direct_main_write_by_executor: true
   exact_head_review_identity: true
