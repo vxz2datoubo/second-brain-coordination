@@ -68,6 +68,11 @@ Examples already observed:
 
 For any such field, emit `UNVERIFIED`, `AMBIGUOUS_SEMANTICS`, `ENTITLEMENT_UNVERIFIED`, or `DATA_DIVERGENCE` as appropriate. Do not manufacture a canonical value.
 
+### Two additional fail-closed gates
+
+1. **Structural schema validation is not semantic referential verification.** A fact may enter `normalized_market_facts` only with the required verified/resolved structural gates, but the runtime must still verify its `semantic_field_ref` and semantic digest against the current canonical W2 semantic authority before canonical use. JSON Schema alone cannot prove that the referenced semantic identity is genuine or current.
+2. **Query time is not automatically point-in-time market-data identity.** A live screener observation may be used for discovery while `pit_identity_state=UNVERIFIED`, but it must not be reused as historical replay/backtest truth. `pit_identity_state=VERIFIED` requires a bound `market_data_as_of` and `market_session_date` plus provider semantics sufficient to support the claimed PIT identity.
+
 ## Online-only degradation contract
 
 When the local deep-data layer is unavailable, the online session MUST explicitly mark these as unavailable unless an online provider has been independently verified to supply equivalent semantics:
