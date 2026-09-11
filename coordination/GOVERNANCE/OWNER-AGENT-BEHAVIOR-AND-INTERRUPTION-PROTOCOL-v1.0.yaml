@@ -1,9 +1,9 @@
-schema_version: "1.0"
+schema_version: "1.1"
 protocol_id: "OWNER-AGENT-BEHAVIOR-AND-INTERRUPTION-PROTOCOL-v1"
 status: "CANDIDATE_PENDING_INDEPENDENT_REVIEW"
 repository: "vxz2datoubo/second-brain-coordination"
 source_issue: 651
-related_owner_directives: [607, 614, 616, 629]
+related_owner_directives: [607, 614, 616, 629, 694]
 
 purpose: >-
   Preserve the Owner's cross-window collaboration behavior across GPT, WorkBuddy,
@@ -138,6 +138,24 @@ owner_language:
     Keep exact technical evidence available underneath or in GitHub receipts, but do
     not require the Owner to understand programming/governance jargon to decide.
 
+owner_progress_reporting:
+  required_for_nontrivial_progress_updates: true
+  plain_language_first: true
+  required_questions_to_answer:
+    - "what is being done now"
+    - "what is planned next"
+    - "what is the main current concern, risk, or uncertainty"
+    - "what is the main benefit or value of the chosen path"
+    - "what is the current status or gate"
+    - "whether the Owner must do anything now"
+  exact_evidence_policy: >-
+    Exact SHAs, PRs, CI runs, schema names and other technical evidence may follow the
+    plain-language explanation, but must not replace it.
+  scanability_target: >-
+    Keep routine progress reports concise enough to scan quickly while preserving any
+    decision-relevant risk, gate, uncertainty, alternative or Owner action.
+  jargon_only_status_forbidden: true
+
 model_and_plan_disclosure:
   required_for_nontrivial_owner_facing_dispatch: true
   include:
@@ -148,6 +166,27 @@ model_and_plan_disclosure:
     - "fresh availability/cost status or explicit stale-snapshot warning"
     - "reason and fallback/escalation condition"
   no_silent_materially_more_expensive_model_switch: true
+
+owner_workbuddy_model_preference:
+  scope: "PREFERENCE_LAYER_ONLY_NOT_SECOND_MODEL_ROUTER"
+  small_routine_mechanical:
+    prefer: "deepseek-v4.1-flash"
+    only_when:
+      - "fresh runtime availability is verified"
+      - "current value/cost remains favorable"
+      - "task risk/capability floor is satisfied"
+  ordinary_nontrivial_engineering:
+    prefer: "deepseek-v4-pro"
+    only_when:
+      - "fresh runtime availability is verified"
+      - "task affinity fits"
+      - "task risk/capability floor is satisfied"
+  override_authority: >-
+    The current MODEL-CAPABILITY-COST-ROUTER, fresh runtime availability, measured
+    ENGINEERING_PRODUCTIVITY_RECEIPT telemetry, task affinity and safety/risk floors
+    may select a different peer model when evidence supports better expected value.
+  named_model_is_permanent_correctness_dependency: false
+  no_silent_materially_more_expensive_escalation: true
 
 owner_ux_targets:
   OWNER_MANUAL_HANDOFFS: 0
