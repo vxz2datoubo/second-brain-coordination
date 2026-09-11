@@ -29,16 +29,20 @@ DEFAULT_CONFIG = {
     "state_dir": ".autopilot-state",
     "executors": {
         "mechanical": True,
+        # headless 主执行：WorkBuddy CLI（codebuddy -p --model），用强模型做真实工程实现。
+        # Codex 只在交易系统等高价值任务用（GPT-6），不参与日常 headless 执行。
         "headless": False,
-        "headless_model_profile": "DEEP_ENGINEERING",
+        "headless_model_profile": "deepseek-v4-pro",
     },
-    # 双模型交叉验证：主执行用强模型，验算用快模型独立跑（codex review -m <model>）。
+    # 双模型交叉验证：主执行用 WorkBuddy 强模型（deepseek-v4-pro），验算用 WorkBuddy 快模型
+    # （deepseek-v4.1-flash）独立跑（codebuddy -p --model <model>）。Codex 只在交易系统等
+    # 高价值任务使用（GPT-6），不参与日常搭建/验算。
     # enabled=False 时由 OWNER 睡醒后手动用 CLI 验算；设为 True 则引擎在每轮 verify 后
-    # 追加一次独立 review。落地依赖本机 codex CLI 已登录。
+    # 追加一次独立 review。落地依赖本机 codebuddy CLI。
     "verification": {
         "enabled": False,
-        "model": "v4.1-flash",
-        "mode": "codex_review",
+        "model": "deepseek-v4.1-flash",
+        "mode": "codebuddy_headless",
     },
     "auto_merge": {
         "tier1_enabled": True,

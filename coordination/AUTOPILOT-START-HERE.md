@@ -74,22 +74,22 @@ python -m tools.autopilot.handoff --state-dir .autopilot-state --out handoff.md
 
 交接文档聚合了 8 小时自动驾驶的完整账本：已完成 / 待 review / 待独立验算的 PR、门禁 checkpoint、阻塞问题、未释放租约、日志摘要。醒来直接读这一份即可。
 
-### 5. 双模型交叉验算（CLI）
+### 5. 双模型交叉验算（WorkBuddy CLI）
 
-全自动模式下，CLI 比 App 更适合，因为能脚本化切换模型、完全无头：
+全自动模式下，WorkBuddy 的 CLI（`codebuddy`）比 App 更适合，因为能脚本化切换模型、完全无头：
 
 ```bash
-# 主执行：强模型 headless 跑（codex exec 非交互）
-codex exec -m <强模型> "任务描述"
+# 主执行：WorkBuddy 强模型 headless 跑（-p = 非交互 print-and-exit）
+codebuddy -p --model deepseek-v4-pro "任务描述"
 
-# 独立验算：快模型 review 每个 PR（与主执行隔离，避免自审）
-codex review -m v4.1-flash <PR_URL>
+# 独立验算：WorkBuddy 快模型 review 每个 PR（与主执行隔离，避免自审）
+codebuddy -p --model deepseek-v4.1-flash "独立 review PR <PR_URL>，验证正确性与遗漏"
 ```
 
-- `codex exec`：非交互执行，无人值守。
-- `codex review`：非交互代码 review，天然适合做"第二双眼睛"的验算。
-- `-m` / `--model`：一行切换模型，无需 GUI。
-- 配置里的 `verification` 段（`enabled: true` 时）可让引擎在每轮 verify 后自动追加一次独立 review；默认 `false`，由你睡醒后手动用 `codex review` 验算。
+- `codebuddy -p`：非交互执行，print-and-exit，无人值守。
+- `--model`：一行切换模型，无需 GUI。WorkBuddy 支持 `deepseek-v4-pro`（强）、`deepseek-v4.1-flash`（快）等模型。
+- **Codex CLI（`codex`）只在交易系统等高价值任务用（GPT-6），不参与日常搭建/验算。**
+- 配置里的 `verification` 段（`enabled: true` 时）可让引擎在每轮 verify 后自动追加一次独立 review；默认 `false`，由你睡醒后手动用 `codebuddy -p` 验算。
 
 ## 目录结构
 

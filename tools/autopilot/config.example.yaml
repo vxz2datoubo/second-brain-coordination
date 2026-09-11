@@ -17,15 +17,17 @@ poll_interval_seconds: 120
 executors:
   # 机械治理：同步/发现/租约/控制塔校验/测试/提交/推送（确定性，可全自动）
   mechanical: true
-  # headless：真实工程实现（写代码/解任务），调度外部 headless agent
+  # headless 主执行：真实工程实现（写代码/解任务），调度 WorkBuddy CLI（codebuddy -p --model）
+  # Codex 只在交易系统等高价值任务用（GPT-6），不参与日常 headless 执行
   headless: false
-  headless_model_profile: DEEP_ENGINEERING
+  headless_model_profile: deepseek-v4-pro
 
-# 双模型交叉验证：主执行用强模型，验算用快模型独立跑（codex review -m <model>）
+# 双模型交叉验证：主执行用 WorkBuddy 强模型（deepseek-v4-pro），验算用快模型独立跑
+# Codex 只在交易系统等高价值任务用（GPT-6），不参与日常搭建/验算
 verification:
-  enabled: false        # false=睡醒后手动 CLI 验算；true=引擎每轮 verify 后自动追加独立 review
-  model: v4.1-flash     # 快模型用于验算
-  mode: codex_review    # 落地方式：codex review -m <model>
+  enabled: false               # false=睡醒后手动 CLI 验算；true=引擎每轮 verify 后自动追加独立 review
+  model: deepseek-v4.1-flash   # 快模型用于验算（WorkBuddy 模型）
+  mode: codebuddy_headless     # 落地方式：codebuddy -p --model <model>
 
 auto_merge:
   # Tier1：机械低风险 PR（closeout/收据/快照/路由翻转），CI 绿 + exact-head + 白名单后自动 merge

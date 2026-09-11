@@ -132,8 +132,8 @@ def generate_handoff(state_dir: Path, out_path: Path | None = None) -> str:
         lines.append("引擎**没有**自动合并。建议你用 CLI 独立验算后，再走独立 review：")
         lines.append("")
         lines.append("```bash")
-        lines.append("# 用快模型独立 review 每个 PR（双模型交叉验证）")
-        lines.append("codex review -m v4.1-flash <PR_URL>")
+        lines.append("# 用快模型独立 review 每个 PR（双模型交叉验证，WorkBuddy CLI）")
+        lines.append("codebuddy -p --model deepseek-v4.1-flash \"独立 review PR <PR_URL>，验证正确性与遗漏\"")
         lines.append("```")
         lines.append("")
         for pr in review_requested:
