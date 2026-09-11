@@ -6,8 +6,8 @@ route_epoch: 193
 source_issue: 562
 executor: CODEX_STANDARD
 worker_slot_id: CODEX-R193-DS10-P0C-PBO-CSCV-1
-lease_state: ACTIVE_HELD
-execution_allowed: true
+lease_state: RELEASED_DEPENDENCY_PARK_NOT_COMPLETE
+execution_allowed: false
 second_user_start_command_required: false
 history_rewrite_allowed: false
 fresh_task_owned_standalone_clone_required: true
@@ -18,20 +18,26 @@ branch_head_at_activation: NOT_CREATED
 effective_spec_snapshot_id: TRADING-CODEX-R193-ISSUE562-SNAPSHOT-001
 effective_spec_snapshot_ref: issue-562-body
 stop_conditions:
-  - hard_boundary_or_role_conflict
-  - overlapping_writer_surface
-  - route_or_snapshot_identity_drift
-  - missing_fresh_task_owned_standalone_clone
-  - any_real_trade_or_order_placement
-  - any_account_broker_funds_position_write
-  - any_w4_strategy_experiment_write
-  - any_ds10_research_integrity_write
-  - any_ds10_deflated_sharpe_p0b_write
-  - any_second_experiment_or_trial_ledger_creation
-  - any_second_experiment_family_read_receipt_store_creation
-  - any_backtest_authority_or_w7_validation_or_probability_registry_creation
-  - any_market_data_truth_creation
-  - any_caller_minted_trust_root
-  - any_caller_minted_winner_list_or_trial_count_authority
-  - any_write_outside_additive_allowlist
-  - future_exact_head_frozen_for_review
+- hard_boundary_or_role_conflict
+- overlapping_writer_surface
+- route_or_snapshot_identity_drift
+- missing_fresh_task_owned_standalone_clone
+- any_real_trade_or_order_placement
+- any_account_broker_funds_position_write
+- any_w4_strategy_experiment_write
+- any_ds10_research_integrity_write
+- any_ds10_deflated_sharpe_p0b_write
+- any_second_experiment_or_trial_ledger_creation
+- any_second_experiment_family_read_receipt_store_creation
+- any_backtest_authority_or_w7_validation_or_probability_registry_creation
+- any_market_data_truth_creation
+- any_caller_minted_trust_root
+- any_caller_minted_winner_list_or_trial_count_authority
+- any_write_outside_additive_allowlist
+- future_exact_head_frozen_for_review
+preserved_exact_head: 170381b1d59a0690f0c3f4bf0fce4d7139ecb35e
+implementation_pr: 678
+release_reason: UPSTREAM_EVIDENCE_AUTHENTICITY_DEPENDENCY
+release_requirement_ref: issuecomment-5626752829
+resume_requires_new_fresh_route_claim_and_lease: true
+project_completion_asserted: false
