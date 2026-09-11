@@ -99,7 +99,13 @@ def _canonical_route_path(active: Mapping[str, Any], tree: Mapping[str, str]) ->
     return path
 
 def _route_binding(route: Mapping[str, Any]) -> tuple[str, int]:
-    """Read legacy top-level or current nested route identity without ambiguity."""
+    """Read supported canonical route identities without ambiguity.
+
+    Route documents evolved from top-level ``task_id`` through nested
+    ``binding.task_id`` and now also use top-level ``route_id``.  A route may
+    carry more than one representation during migration, but every present
+    identity must agree.  Missing or conflicting evidence remains fail-closed.
+    """
     nested_value = route.get('binding')
     if nested_value is None:
         nested: Mapping[str, Any] = {}
@@ -107,19 +113,25 @@ def _route_binding(route: Mapping[str, Any]) -> tuple[str, int]:
         nested = nested_value
     else:
         raise GatewayError('ACTIVE_ROUTE_BINDING_INVALID')
-    top_task = route.get('task_id')
-    top_epoch = route.get('route_epoch')
-    nested_task = nested.get('task_id')
-    nested_epoch = nested.get('route_epoch')
-    if top_task is not None and nested_task is not None and (top_task != nested_task):
-        raise GatewayError('ACTIVE_ROUTE_BINDING_AMBIGUOUS')
-    if top_epoch is not None and nested_epoch is not None and (top_epoch != nested_epoch):
-        raise GatewayError('ACTIVE_ROUTE_BINDING_AMBIGUOUS')
-    task_id = top_task if top_task is not None else nested_task
-    route_epoch = top_epoch if top_epoch is not None else nested_epoch
-    if not isinstance(task_id, str) or not task_id or (not isinstance(route_epoch, int)):
+
+    identities = [
+        value for value in (route.get('task_id'), nested.get('task_id'), route.get('route_id'))
+        if value is not None
+    ]
+    if any((not isinstance(value, str) or not value) for value in identities):
         raise GatewayError('ACTIVE_ROUTE_BINDING_INVALID')
-    return (task_id, route_epoch)
+    if len(set(identities)) > 1:
+        raise GatewayError('ACTIVE_ROUTE_BINDING_AMBIGUOUS')
+
+    epochs = [value for value in (route.get('route_epoch'), nested.get('route_epoch')) if value is not None]
+    if any((not isinstance(value, int) or isinstance(value, bool)) for value in epochs):
+        raise GatewayError('ACTIVE_ROUTE_BINDING_INVALID')
+    if len(set(epochs)) > 1:
+        raise GatewayError('ACTIVE_ROUTE_BINDING_AMBIGUOUS')
+
+    if not identities or not epochs:
+        raise GatewayError('ACTIVE_ROUTE_BINDING_INVALID')
+    return (identities[0], epochs[0])
 
 def _domain_authority_spec(contract: Mapping[str, Any], *, domain_id: str, repository: str) -> tuple[str, bool]:
     """Resolve one domain authority path only from a canonical task brief.
