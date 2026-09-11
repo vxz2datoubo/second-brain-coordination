@@ -1,35 +1,345 @@
-schema: TASK_BRIEF/v1
+schema_version: '1.2'
+record_type: AMEDTaskBrief
 task_id: CODEX-DS10-UPSTREAM-EVIDENCE-BINDING-R195
-route_epoch: 195
-project: SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001
-project_alias: TRADING_SYSTEM
-source_issue: 689
-parent_program_issue: 31
-executor: CODEX_STANDARD
-boundary: RESEARCH_ONLY / NO_TRADE
-canonical_main_at_prepare: 2b69f096f1ad4c3d2ceeb2176d8e20aea3ee6c73
-objective: 'Close the two PR #678 trust-root blockers by adding canonical W4 performance-evidence verification and
-  P0A evaluation-record verification without duplicating truth, then preserve P0B compatibility if W4 source pins
-  move.'
-ordered_mission:
-- Fresh trusted-main read and collision preflight
-- Extend W4 canonical read surface with ExperimentFamilyPerformanceEvidence/v1 producer/verifier using governed
-  synthetic evidence first
-- Add P0A ResearchIntegrityEvaluationRecord/v1 producer/verifier that re-reads canonical inputs and reruns evaluator
-- Preserve distinct W4 and DS10 snapshot digests with explicit mapping
-- Update P0B source pins/loading only if mechanically necessary and run regression
-- Run authenticity/PIT adversarial tests and exact-scope tests
-- Freeze exact head for independent review
-acceptance:
-- Caller-recomputed hashes cannot mint authenticity
-- Matrix mutation/reorder/deletion/substitution fails mechanically
-- Legacy v1 is not silently promoted
-- PIT/revision/metric/cost/evidence-ref laundering fails closed
-- Real verifier-produced synthetic integration succeeds
-- P0A authenticity is distinct from disposition
-- P0B compatibility remains explicit
-- No second ledger/store/truth plane
-- No W7/probability/risk/position/order/trade authority
+issue_or_pr: 'Issue #689; clean successor to PR #693'
+assigned_agent: CODEX_STANDARD
+mode: standard_engineering_research_only
+mode_label: Trading DS10 upstream canonical evidence binding
+mode_reason: Architecture is frozen; the remaining work is difficult code-centric provenance/PIT engineering. Codex Standard/App
+  is selected for quality; no frontier/Astra.
+task_weight: STRATEGIC
+proactive_mission_authoring_protocol: coordination/GOVERNANCE/PROACTIVE-MISSION-AUTHORING-AND-BOUNDED-INITIATIVE-GRANT-PROTOCOL-v1.0.yaml
+work_process_reporting_protocol: coordination/GOVERNANCE/AGENT-WORK-PROCESS-DIFFICULTY-DISCOVERY-AND-COORDINATION-REPORTING-PROTOCOL-v1.0.yaml
+read_claim_execute_protocol: coordination/GOVERNANCE/AGENT-READ-TASK-CLAIM-AND-EXECUTE-COMMAND-SEMANTICS-v1.0.yaml
+mission_intent:
+  fundamental_goal: Eliminate caller-minted trust roots between W4 performance evidence, P0A research-integrity evaluation,
+    and downstream P0C while preserving one canonical evidence chain.
+  user_capability_outcome: A research-only DS10 path whose authenticity/PIT evidence can be mechanically verified before any
+    downstream statistical result is trusted.
+  current_state_to_change: 'PR #678 is frozen because schema-valid caller content plus caller-computable hashes can counterfeit
+    provenance.'
+  causal_mechanism:
+  - W4 producer/verifier derives performance material from governed source bytes
+  - P0A verifier re-reads canonical inputs and reruns evaluator
+  - P0C later consumes verifier-produced material read-only
+  observable_success:
+  - forged audit and recomputed digest rejected
+  - matrix mutation/reorder/deletion/substitution rejected
+  - positive synthetic integration uses verifier-produced upstream evidence
+  success_criteria:
+  - trusted exact-main reads
+  - complete PIT provenance
+  - authenticity separated from disposition
+  - no second ledger/truth plane
+  - P0B compatibility explicit if pins move
+  failure_conditions:
+  - caller assertions become authority
+  - incomplete family silently filtered
+  - future/revised information leaks into earlier decision state
+  - scope crosses into P0C/W7/orders/trading
+  stop_conditions:
+  - authority/scope conflict
+  - canonical identity drift
+  - required evidence unavailable
+  - write outside allowlist
+  - real account/funds/order gate
+primary_delivery_and_non_negotiables:
+  minimum_required_deliverables:
+  - W4 ExperimentFamilyPerformanceEvidence/v1 producer+verifier
+  - P0A ResearchIntegrityEvaluationRecord/v1 producer+verifier
+  - snapshot bridge
+  - adversarial tests
+  - P0B compatibility only if mechanically required
+  frozen_constraints:
+  - 'PR #678 exact head 170381b1d59a0690f0c3f4bf0fce4d7139ecb35e remains immutable'
+  - RESEARCH_ONLY / NO_TRADE
+  - no second W4/P0A/P0C truth plane
+  required_commit_or_artifact_shape:
+  - one atomic upstream implementation head
+  - exact-head CI
+  - independent review
+  - separate canonicalization
+  evidence_gates:
+  - trusted source read
+  - PIT completeness
+  - negative authenticity tests
+  - exact-head identity
+  excluded_work:
+  - P0C mutation
+  - 'Issue #563 start'
+  - W7/probability/risk/position/order/trade authority
+system_position:
+  workstream: SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001 / DS10 research integrity
+  bounded_context: 'Issue #689 upstream evidence binding; downstream PR #678 remains parked'
+  systems_of_record:
+  - GitHub canonical main for engineering authority
+  - existing W4 family/registry as experiment SoR
+  - existing P0A evaluator as research-integrity logic
+  upstream_dependencies:
+  - canonical W4 family/read-binding
+  - canonical P0A evaluator
+  - canonical P0B source pins if touched
+  downstream_consumers:
+  - future clean P0C successor after upstream canonicalization
+  read_only_dependencies:
+  - 'PR #678 frozen candidate'
+  - 'Issue #689 frozen architecture decision'
+  canonical_components_not_to_duplicate:
+  - W4 experiment/trial ledger
+  - experiment-family read receipt store
+  - market-data/replay truth
+  - P0C trust store
+  related_active_tasks:
+  - R193 parked atomically by this governance transition
+proactive_mission_assignment:
+  initiative_required: true
+  optimize_for_fundamental_goal_not_literal_steps: true
+  better_than_minimum_is_expected_when_evidence_supports_it: true
+  executor_may_choose:
+  - internal implementation method
+  - validation/test design
+  - bounded architecture sequencing inside authorized paths
+  - A/B adjacent improvements with evidence and rollback
+  executor_must_not_wait_for_extra_instruction_to:
+  - challenge stale assumptions
+  - inspect adjacent tests/interfaces
+  - reuse simpler reliable methods
+  - report hard problems and exact coordination needs
+  proposal_or_stop_when:
+  - new canonical runtime/SoR required
+  - work belongs to another active owner
+  - exploration budget exceeded
+  - private/licensed/account/order authority required
+  - reliable solution unsupported by evidence
+read_claim_execute_semantics:
+  canonical_action: READ_LATEST_ROUTE_CLAIM_VALID_LEASE_AND_EXECUTE_IMMEDIATELY
+  second_user_start_command_required: false
+  read_only_acknowledgement_forbidden: true
+  plan_only_response_when_ready_forbidden: true
+  minimum_progress_before_return: Complete first meaningful authorized action, then continue to checkpoint, truthful blocker,
+    or completion.
+mandatory_discovery_questions:
+- Can trusted exact-main reads and existing W4/P0A components close provenance without a new trust store?
+- Which assumptions about family completeness, PIT timing, revisions, metrics, costs, or source pins are stale or missing?
+- What existing schemas/readers/verifiers/tests can be reused instead of duplicated?
+- Which bounded adjacent improvement materially increases authenticity or PIT correctness?
+- What remains UNKNOWN/BLOCKED because canonical evidence or runtime capability is absent?
+- Which exact owner/reviewer/canonicalizer input is required if coordination becomes necessary?
+- Which discoveries should feed back into validators, routes, tests, templates, or future DS10 tasks?
+active_discovery_duty:
+  required_checks:
+  - WRONG_OR_STALE_ASSUMPTION
+  - MISSING_REQUIREMENT
+  - DUPLICATE_RUNTIME_OR_SKILL
+  - INTERFACE_GAP
+  - REUSABLE_CAPABILITY
+  - SIMPLER_OR_BETTER_METHOD
+  - CROSS_MODULE_LINKAGE
+  - HIDDEN_COST_OR_RISK
+  - NEGATIVE_OR_COUNTERINTUITIVE_RESULT
+  - NEW_UNKNOWN
+  - COORDINATION_DEPENDENCY
+  - SYSTEM_FEEDBACK_OPPORTUNITY
+  required_output: SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT
+  no_material_discovery_rule: Report NONE_OBSERVED and list checks performed.
+anticipated_difficulty_and_unknowns:
+  planned_difficulty: D3_VERY_HARD
+  expected_hard_parts:
+  - trusted-source derivation across W4/P0A without caller-minted authority
+  - PIT completeness across trial/observation inputs
+  - source-pin compatibility without weakening arbitrary-module protections
+  - adversarial negative tests that distinguish authenticity from content integrity
+  likely_hidden_dependencies:
+  - W4 source pins loaded by P0A/P0B
+  - existing family event/materialization semantics
+  - lockbox/PIT method evidence
+  expected_unknowns:
+  - whether all historical trial artifacts expose enough provenance for verified materialization
+  - whether P0B pin changes are mechanically necessary
+  evidence_required_before_declaring_blocked:
+  - attempts made
+  - observed results
+  - minimum missing information or capability
+  - affected and unaffected scope
+  - exact coordination request
+  safe_abstention: Return UNKNOWN/BLOCKED for incomplete provenance; never promote self-consistent caller material to authentic
+    evidence.
+coordination_and_handoff_design:
+  likely_upstream_owners:
+  - GPT Architecture Owner
+  - canonical W4/P0A/P0B module owners
+  likely_downstream_owners:
+  - future P0C clean successor
+  - independent reviewer
+  - separate canonicalizer
+  authoritative_source_of_truth: fresh GitHub canonical main plus exact-head candidate evidence
+  handoff_artifacts:
+  - AGENT-EXECUTION-RECEIPT
+  - RESEARCH-LEDGER
+  - UNPLANNED-IMPROVEMENT-LEDGER
+  - SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT
+  - WORK-PROCESS-AND-COORDINATION-REPORT
+  - TEST-RUN-RECEIPT
+  - UNKNOWN-REGISTRY
+  - AI_HANDOFF
+  exact_coordination_request_shape:
+  - owner
+  - exact action/input/access/decision/test
+  - evidence reference
+  - urgency
+  - blocked gate
+  - unaffected work
+  - closure condition
+  work_that_can_continue_without_coordination:
+  - all A/B implementation/tests/remediation inside allowlist
+  - evidence packaging
+  - non-overlapping diagnostics
+  acceptance_and_close_conditions:
+  - all required tests pass
+  - exact head frozen
+  - independent review ACCEPT
+  - separate canonicalization before downstream resume
+system_feedback_and_double_loop_targets:
+  inspect_for_updates:
+  - protocols
+  - templates
+  - tests
+  - validators
+  - interfaces
+  - routes
+  - engineering lessons
+  executor_authority: A/B only inside current task; C/D remain proposal/user-gated.
+  GPT_acceptance_required: true
+hard_boundaries:
+  security:
+  - no secret/token/cookie/plaintext credentials
+  privacy:
+  - no unrelated private data ingestion
+  license:
+  - no unlicensed external data assumed
+  file_and_branch_ownership:
+  - exact allowlist only
+  - no direct main write
+  - no force push/rebase/reset/amend/history rewrite
+  wip_and_routing:
+  - single writer
+  - 'PR #678 immutable'
+  - no self-review/self-merge
+  trade_and_account:
+  - NO_REAL_TRADE
+  - NO_ACCOUNT_OR_BROKER_CREDENTIAL_ACCESS
+  - NO_FUNDS_OR_POSITION_AUTHORITY
+  - NO_ORDER_PLACEMENT
+  fact_inference_boundary:
+  - synthetic closure does not prove real market evidence availability
+research_trigger:
+  level: L1_REUSE_AND_QUICK_CHECK
+  trigger_reasons:
+  - architecture frozen; primary task is repository engineering
+  - external research is not required to close current provenance mechanics
+  required_source_classes:
+  - fresh canonical repository sources
+  - 'Issue #689 frozen spec'
+  - existing tests and schemas
+  a_share_adaptation_required: true
+  research_ledger_required: true
+exploration_budget:
+  primary_delivery_share: 80%
+  active_discovery_share: 15%
+  system_opportunity_share: 5%
+  max_new_architecture_proposals: 1
+  max_new_skill_candidates: 0
+  max_unplanned_files: 0
+  scope_expansion_without_gate: false
+improvement_authority:
+  A_SAFE_LOCAL_AUTONOMOUS:
+    allowed_examples:
+    - tests/fixtures inside allowlist
+    - simpler trusted-read helpers
+    - clearer provenance validation with rollback
+  B_BOUNDED_IMPLEMENT_AND_REPORT:
+    allowed_examples:
+    - additional adversarial tests
+    - small compatibility helpers required by source-pin movement
+  C_PROPOSAL_ONLY:
+    examples:
+    - new cross-module trust store
+    - new experiment/replay truth plane
+    - new global protocol
+  D_PROHIBITED_OR_USER_GATE:
+    examples:
+    - real market activation
+    - account/funds/order/trade authority
+    - secrets/permissions
+    - frontier/Astra spend
+agent_specific_initiative:
+  CODEX:
+    emphasis:
+    - architecture-sensitive implementation
+    - tests
+    - determinism
+    - interfaces
+    - foundational defect discovery
+  WORKBUDDY:
+    emphasis:
+    - ordinary implementation slices after decomposition
+    - mechanical tests and fixtures
+task_impact_forecast:
+  classification: HIGH_LEVERAGE_RESEARCH_INTEGRITY
+  direct_scope:
+  - W4 performance evidence
+  - P0A evaluation record
+  - conditional P0B compatibility
+  downstream_effect:
+  - unblocks lawful P0C successor after upstream canonicalization
+  - prevents forged self-hash evidence from entering PBO/CSCV
+  main_risks:
+  - duplicate truth plane
+  - PIT leakage
+  - weakened source pins
+  - false authenticity
+  rollback: 'freeze/close candidate and preserve current canonical W4/P0A/P0B plus frozen PR #678'
+required_evidence:
+  fact_classes:
+  - VERIFIED_REPOSITORY
+  - VERIFIED_TEST
+  - INFERENCE
+  - UNKNOWN
+  commands_and_exit_codes: true
+  tests_pass_fail_skip: true
+  negative_results: true
+  alternatives_and_tradeoffs: true
+  rollback: true
+mandatory_delivery_artifacts:
+- AGENT-EXECUTION-RECEIPT
+- RESEARCH-LEDGER
+- UNPLANNED-IMPROVEMENT-LEDGER
+- SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT
+- WORK-PROCESS-AND-COORDINATION-REPORT
+- TEST-RUN-RECEIPT
+- UNKNOWN-REGISTRY
+- AI_HANDOFF
+executor_lease_acknowledgement:
+  required: true
+  must_confirm:
+  - latest remote main, task ID, route epoch, Issue, branch, base and completion signal
+  - fundamental goal and proactive discovery duties
+  - A/B implementation boundary and C/D gates
+  - read task means claim and execute, not summarize and stop
+second_pass_audit:
+  required: true
+  reviewer: GPT
+  gates:
+  - TASK_ASSIGNMENT_INITIATIVE_QUALITY_GATE
+  - TASK_COMPLETENESS_GATE
+  - FACT_EVIDENCE_GATE
+  - RESEARCH_QUALITY_GATE
+  - ENGINEERING_CORRECTNESS_GATE
+  - IMPROVEMENT_VALUE_GATE
+  - PROCESS_DIFFICULTY_COORDINATION_GATE
+  - SYSTEM_EVOLUTION_GATE
+  - NEXT_ACTION_GATE
+canonical_main_at_prepare: f04c5ff4a83c35d60f27d44176f4f482c29895ea
 allowed_write_surface:
 - .github/workflows/ds10-upstream-evidence-binding-r195.yml
 - coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W4-STRATEGY-EXPERIMENT-FAMILY-P0/src/w4_experiment_family/read_binding.py
