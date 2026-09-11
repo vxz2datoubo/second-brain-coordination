@@ -42,17 +42,37 @@
       "items": {"type": "object"}
     },
     "normalized_market_facts": {
+      "description": "Only producer-attested, semantically verified facts may enter this array. Referential verification of semantic_field_ref/digest against canonical MarketSemanticFieldSpec/v1 remains a runtime validator responsibility; JSON Schema cannot dereference GitHub/W2 state by itself.",
       "type": "array",
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["fact_id", "subject", "field", "value", "semantic_field_ref", "provider", "source_timestamp", "observed_at"],
+        "required": [
+          "fact_id",
+          "subject",
+          "field",
+          "value",
+          "semantic_field_ref",
+          "semantic_field_digest",
+          "semantic_verification_state",
+          "unit_semantics_state",
+          "ambiguity_flags",
+          "source_observation_ref",
+          "provider",
+          "source_timestamp",
+          "observed_at"
+        ],
         "properties": {
           "fact_id": {"type": "string", "minLength": 1},
           "subject": {"type": "string", "minLength": 1},
           "field": {"type": "string", "minLength": 1},
           "value": {},
           "semantic_field_ref": {"type": "string", "minLength": 1},
+          "semantic_field_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "semantic_verification_state": {"const": "VERIFIED"},
+          "unit_semantics_state": {"const": "RESOLVED"},
+          "ambiguity_flags": {"type": "array", "maxItems": 0},
+          "source_observation_ref": {"type": "string", "minLength": 1},
           "provider": {"type": "string", "minLength": 1},
           "source_timestamp": {"type": ["string", "null"], "format": "date-time"},
           "observed_at": {"type": "string", "format": "date-time"}
@@ -76,17 +96,41 @@
     "candidate_funnel_state": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["executed", "provider", "query_predicates", "as_of", "coverage_state", "candidate_symbols"],
+      "required": [
+        "executed",
+        "provider",
+        "query_predicates",
+        "as_of",
+        "pit_identity_state",
+        "market_data_as_of",
+        "market_session_date",
+        "coverage_state",
+        "candidate_symbols"
+      ],
       "properties": {
         "executed": {"type": "boolean"},
         "provider": {"type": ["string", "null"]},
         "query_predicates": {"type": "array", "items": {"type": "string"}},
         "as_of": {"type": ["string", "null"], "format": "date-time"},
+        "pit_identity_state": {"enum": ["VERIFIED", "UNVERIFIED", "NOT_APPLICABLE"]},
+        "market_data_as_of": {"type": ["string", "null"], "format": "date-time"},
+        "market_session_date": {"type": ["string", "null"], "format": "date"},
         "total_result_count": {"type": ["integer", "null"], "minimum": 0},
         "coverage_state": {"enum": ["FULL_REPORTED_COVERAGE", "PARTIAL", "UNKNOWN", "NOT_RUN"]},
         "candidate_symbols": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
         "pagination_or_throttling_notes": {"type": "array", "items": {"type": "string"}}
-      }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"pit_identity_state": {"const": "VERIFIED"}}, "required": ["pit_identity_state"]},
+          "then": {
+            "properties": {
+              "market_data_as_of": {"type": "string", "format": "date-time"},
+              "market_session_date": {"type": "string", "format": "date"}
+            }
+          }
+        }
+      ]
     },
     "data_divergences": {
       "type": "array",
