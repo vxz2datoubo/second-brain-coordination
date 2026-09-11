@@ -1,0 +1,132 @@
+{
+  "schema": "CreativeExecutorWorkBatch/v1",
+  "batch_id": "SECOND-BRAIN-R194-DURABLE-MISSION-CLI-CARRIER-001",
+  "authority": "CANONICAL_BOUND_BATCH_EXECUTABLE",
+  "control_plane_repository": "vxz2datoubo/second-brain-coordination",
+  "execution_repository": "vxz2datoubo/second-brain-coordination",
+  "project_id": "SECOND_BRAIN",
+  "task_id": "WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION",
+  "route_epoch": 194,
+  "source_checkpoint": {
+    "branch": "main",
+    "exact_head": "f04c5ff4a83c35d60f27d44176f4f482c29895ea",
+    "checkpoint_remote_ref": "refs/heads/main"
+  },
+  "implementation_branch": "workbuddy/r194-durable-mission-cli-carrier",
+  "collision_domain": "WRITESET_SHA256:20eb574d28e8b72199a1e5e3aba4cedf6d4fb0bcebf9f7500344107e2ed1a980",
+  "route_authority": {
+    "execution_allowed": true,
+    "task_id": "WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION",
+    "active_issue": 681,
+    "governance_issue": 682,
+    "route_epoch": 194,
+    "route_ref": "coordination/ROUTES/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION.yaml",
+    "claim_ref": "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/WORK-CLAIM.yaml",
+    "lease_ref": "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/TASK-LEASE.yaml",
+    "snapshot_ref": "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/PREWRITE-RECONCILIATION-SNAPSHOT.yaml"
+  },
+  "canonical_collision_reservation": {
+    "write_paths": [
+      "tools/durable_mission_kernel/**",
+      "tests/durable_mission_kernel/**",
+      "tests/test_unified_execution_durable_mission_kernel.py",
+      "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/**",
+      "coordination/EXECUTION/PHASE-C-DURABLE-MISSION-CLI-CARRIER/**"
+    ],
+    "semantics": "CANONICAL_COLLISION_RESERVATION_FOR_LISTED_PATHS_ONLY",
+    "expected_collision_domain": "WRITESET_SHA256:20eb574d28e8b72199a1e5e3aba4cedf6d4fb0bcebf9f7500344107e2ed1a980"
+  },
+  "runtime_dispatch": {
+    "authorized_paths": [
+      "tools/durable_mission_kernel/**",
+      "tests/durable_mission_kernel/**",
+      "tests/test_unified_execution_durable_mission_kernel.py",
+      "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/**",
+      "coordination/EXECUTION/PHASE-C-DURABLE-MISSION-CLI-CARRIER/**"
+    ],
+    "authority_grants": ["EXECUTE_TASK", "WRITE_AUTHORIZED_PATHS"],
+    "authority_denials": [
+      "NO_R184_OR_LOCAL_BRIDGE_ACTIVATION",
+      "NO_REAL_CAPTURE",
+      "NO_OPERATIONAL_W3_WRITE",
+      "NO_PROGRAM_S2_START",
+      "NO_PRODUCTION_DEPLOYMENT_OR_BACKGROUND_SERVICE_ACTIVATION",
+      "NO_TRADING_FUNDS_ORDERS",
+      "NO_SECRET_TOKEN_COOKIE_PLAINTEXT_PERSISTENCE",
+      "NO_DIRECT_MAIN_WRITE",
+      "NO_SELF_REVIEW",
+      "NO_SELF_MERGE",
+      "NO_R175_MUTATION",
+      "NO_R184_MUTATION",
+      "NO_FORCE_PUSH_REBASE_RESET_AMEND_HISTORY_REWRITE"
+    ],
+    "carrier": "WORKBUDDY_CLI_HEADLESS",
+    "execution_mode": "SYNTHETIC_AND_DISPOSABLE_CLI_CARRIER_INTEGRATION_ONLY",
+    "model_profile": "DEEP_ENGINEERING",
+    "preferred_implementation_model": "deepseek-v4-pro",
+    "required_runtime_canary_model": "deepseek-v4.1-flash",
+    "model_resolution": "FRESH_AT_DISPATCH",
+    "direct_main_write_allowed": false,
+    "history_rewrite_allowed": false,
+    "production_deployment_allowed": false
+  },
+  "automatic_resume_within_batch": true,
+  "items": [
+    {
+      "item_id": "C0",
+      "owner": "WORKBUDDY",
+      "kind": "FRESH_CLI_AND_KERNEL_REUSE_AUDIT",
+      "status": "PLANNED",
+      "depends_on": [],
+      "write_paths": ["coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/**"],
+      "outcome": "Fresh-read canonical authority and current kernel; discover CLI version/model without creating a second carrier/control plane."
+    },
+    {
+      "item_id": "C1",
+      "owner": "WORKBUDDY",
+      "kind": "REAL_BOUNDED_CLI_EPISODE_AND_RESUME_ADAPTER",
+      "status": "PLANNED",
+      "depends_on": ["C0"],
+      "write_paths": ["tools/durable_mission_kernel/**", "tests/durable_mission_kernel/**"],
+      "outcome": "Implement bounded codebuddy -p episode execution, session identity, --resume across new process and kernel-owned exit/result attestation."
+    },
+    {
+      "item_id": "C2",
+      "owner": "WORKBUDDY",
+      "kind": "MISSION_PROGRESS_WATCHDOG",
+      "status": "PLANNED",
+      "depends_on": ["C1"],
+      "write_paths": ["tools/durable_mission_kernel/**", "tests/durable_mission_kernel/**"],
+      "outcome": "Detect live-but-stalled carriers using mission progress deadlines independent of process heartbeat."
+    },
+    {
+      "item_id": "C3",
+      "owner": "WORKBUDDY",
+      "kind": "CRASH_RECOVERY_AND_IDEMPOTENT_EPISODE_RECONCILIATION",
+      "status": "PLANNED",
+      "depends_on": ["C2"],
+      "write_paths": ["tools/durable_mission_kernel/**", "tests/durable_mission_kernel/**"],
+      "outcome": "Recover after supervisor crash without repeating committed episode; preserve OUTCOME_UNKNOWN until reconciled."
+    },
+    {
+      "item_id": "C4",
+      "owner": "WORKBUDDY",
+      "kind": "DETERMINISTIC_AND_LIVE_SYNTHETIC_CANARY_FREEZE",
+      "status": "PLANNED",
+      "depends_on": ["C3"],
+      "write_paths": ["tests/test_unified_execution_durable_mission_kernel.py", "coordination/EXECUTION/PHASE-C-DURABLE-MISSION-CLI-CARRIER/**", "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/**"],
+      "outcome": "Run regression plus live V4.1 Flash episode/resume/crash-recovery canary; freeze candidate exact head and return, without self-review or merge."
+    }
+  ],
+  "stop_conditions": [
+    "canonical R194 authority is absent/stale/mismatched",
+    "R175/R184/R193 collision admission fails",
+    "required runtime canary model cannot be discovered",
+    "R184/Local Bridge, production service, real capture/W3/S2/trading/secrets would be required",
+    "write outside authorized paths would be required",
+    "direct main/self-review/self-merge/history rewrite would be required"
+  ],
+  "return_package_required": true,
+  "return_target": "GPT_ARCHITECTURE_OWNER",
+  "completion_signal": "WORKBUDDY_R194_DURABLE_MISSION_CLI_CARRIER_READY_FOR_INDEPENDENT_REVIEW"
+}
