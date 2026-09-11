@@ -3,7 +3,7 @@ authority_id: "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R7-0001"
 authority_type: "GPT_ARCHITECTURE_OWNER_CORRECTIVE_MAINTENANCE_ADOPTION"
 issuer: "USER"
 actor: "GPT_ARCHITECTURE_OWNER"
-state: "ACTIVE"
+state: "RELEASED"
 
 predecessor_authority:
   path: "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R6.yaml"
@@ -14,15 +14,15 @@ predecessor_authority:
 purpose: >-
   Atomic post-R6 projection reconciliation for Issue #572. Migrate the stale canonical aggregate projections
   ACTIVE-GPT-ENGINEERING-WORKERS.yaml and ACTIVE-PROGRAM-LANES.yaml so both describe the same world after the R182/R183
-  implementation + closeout chains became canonical history. This slice consumes (does not replace) the canonical R6
-  worker_lifecycle.py resolver and its schema semantics, and derives no successor release authority of its own.
+  implementation + closeout chains became canonical history. This slice consumed (did not replace) the canonical R6
+  worker_lifecycle.py resolver and derived no successor release authority of its own.
 
 task_id: "GPT-CONTROL-TOWER-WORKER-LIFECYCLE-PROJECTION-MIGRATION-R7"
 maintenance_generation: 7
 issue: 572
 branch: "gpt/r572-r7-projection-migration-post-r6"
 pr: 658
-pr_binding_state: "BOUND_DRAFT_PR"
+pr_binding_state: "TERMINAL_CANONICAL_HISTORY"
 first_slice_mode: "ATOMIC_PROJECTION_RECONCILIATION_ONLY"
 user_authorization_comment: null
 prewrite_snapshot_comment: null
@@ -90,3 +90,24 @@ completion_gate:
   no_worker_lifecycle_or_worker_slots_write: true
   capacity_recomputed_only_after_canonical_migration: true
   next_successor_release_requires_separate_fresh_authority: true
+
+release_reason: >-
+  PR #658 exact head 940e18b6afe87af377b83347f41ef7f4e5c4b876 was independently accepted and
+  canonicalized as 91d8838da370496ecd2678633a7293cc5d161ec4. Its projection-only mission is complete.
+  Fresh normal Control Tower gates exposed a separate legacy worker_slots consumer-compatibility defect,
+  so that defect continues only under a new Owner-authorized R8 authority identity.
+released_scope_status: "NO_FURTHER_MODIFIER_WRITES_AUTHORIZED_BY_THIS_ARTIFACT"
+release_transition:
+  from_state: "ACTIVE"
+  to_state: "RELEASED"
+  terminal_for_authority_id: true
+  next_activation_requires_new_user_issued_authority_id: true
+release_provenance:
+  accepted_exact_head: "940e18b6afe87af377b83347f41ef7f4e5c4b876"
+  independent_review: 5160695113
+  canonical_merge: "91d8838da370496ecd2678633a7293cc5d161ec4"
+  exact_head_authority_ci_success: 34414265605
+  normal_control_tower_failure: 34414254750
+  normal_r145_gate_failure: 34414254739
+  owner_compatibility_scope_expansion: 5609806985
+  successor_authority: "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R8-0001"

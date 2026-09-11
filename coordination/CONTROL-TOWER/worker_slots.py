@@ -15,6 +15,14 @@ from control_tower import (
     classify_collision,
     load_yaml,
 )
+from worker_lifecycle import (
+    LIFECYCLE_ACTIVE,
+    LIFECYCLE_RESERVED,
+    LIFECYCLE_UNKNOWN,
+    audit_worker_registry_lifecycle,
+    registry_schema_supported,
+    resolve_worker_lifecycle,
+)
 
 GPT_WORKERS_REGISTRY = "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
 CLAIMS_FILE = "coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml"
@@ -22,11 +30,12 @@ R3_MAINTENANCE_ADOPTION_FILE = "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-
 R4_MAINTENANCE_ADOPTION_FILE = "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R4.yaml"
 MAINTENANCE_ADOPTION_FILE = "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R5.yaml"
 R6_MAINTENANCE_ADOPTION_FILE = "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R6.yaml"
+R7_MAINTENANCE_ADOPTION_FILE = "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R7.yaml"
+R8_MAINTENANCE_ADOPTION_FILE = "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R8.yaml"
 MAINTENANCE_TOMBSTONES_FILE = "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-TERMINAL-TOMBSTONES.yaml"
 R144_TASK_BRIEF_FILE = "coordination/TASK-BRIEFS/CODEX-CONTROL-TOWER-GPT-ENGINEERING-WORKER-FIRST-CLASS-R144.yaml"
 AGENT_TYPE = "GPT_ENGINEERING_WORKER"
 CHECK_ID = "CT-WS"
-EXPECTED_SCHEMA_VERSION = "1.0"
 EXPECTED_REGISTRY_ID = "ACTIVE-GPT-ENGINEERING-WORKERS-0001"
 EXPECTED_MAINTENANCE_AUTHORITY_TYPE = "GPT_ARCHITECTURE_OWNER_CORRECTIVE_MAINTENANCE_ADOPTION"
 EXPECTED_MAINTENANCE_AUTHORITY_ID = "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R5-0001"
@@ -37,6 +46,9 @@ EXPECTED_MAINTENANCE_INPUT_HEAD = "8a2eb5c41f9b67328211569ac7c8d4c71d0cf6d1"
 EXPECTED_RELEASED_SCOPE_STATUS = "NO_FURTHER_MODIFIER_WRITES_AUTHORIZED_BY_THIS_ARTIFACT"
 EXPECTED_TOMBSTONE_REGISTRY_ID = "R144-GPT-MAINTENANCE-TERMINAL-TOMBSTONES-0001"
 EXPECTED_TOMBSTONE_SEMANTICS = "MONOTONIC_TERMINAL_AUTHORITY_IDS / DELETE_OR_REWRITE_FAILS_CLOSED"
+R6_AUTHORITY_ID = "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R6-0001"
+R7_AUTHORITY_ID = "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R7-0001"
+
 R4_TERMINAL_RECORD = {
     "authority_id": EXPECTED_PREDECESSOR_AUTHORITY_ID,
     "authority_file": R4_MAINTENANCE_ADOPTION_FILE,
@@ -55,7 +67,6 @@ R5_TERMINAL_RECORD = {
     "reactivation_allowed": False,
     "terminality_source_review": 4974860616,
 }
-R6_AUTHORITY_ID = "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R6-0001"
 R6_TERMINAL_RECORD = {
     "authority_id": R6_AUTHORITY_ID,
     "authority_file": R6_MAINTENANCE_ADOPTION_FILE,
@@ -65,21 +76,23 @@ R6_TERMINAL_RECORD = {
     "reactivation_allowed": False,
     "terminality_source_review": 5108092436,
 }
-EXPECTED_TERMINAL_RECORDS: dict[str, dict[str, Any]] = {
+R7_TERMINAL_RECORD = {
+    "authority_id": R7_AUTHORITY_ID,
+    "authority_file": R7_MAINTENANCE_ADOPTION_FILE,
+    "terminal_state": "RELEASED",
+    "release_parent_head": "91d8838da370496ecd2678633a7293cc5d161ec4",
+    "released_scope_status": EXPECTED_RELEASED_SCOPE_STATUS,
+    "reactivation_allowed": False,
+    "terminality_source_review": 5160695113,
+}
+BASE_EXPECTED_TERMINAL_RECORDS: dict[str, dict[str, Any]] = {
     EXPECTED_PREDECESSOR_AUTHORITY_ID: R4_TERMINAL_RECORD,
     EXPECTED_MAINTENANCE_AUTHORITY_ID: R5_TERMINAL_RECORD,
     R6_AUTHORITY_ID: R6_TERMINAL_RECORD,
 }
 
-ACTIVATION_ACTIVE = "ACTIVE"
-ACTIVATION_RESERVED = "RESERVED"
-ACTIVATION_RELEASED = "RELEASED"
-CLOSURE_RELEASED = "RELEASED"
 ACTIVE_CLAIM_STATE = "ACTIVE_IMPLEMENTATION"
 RESERVED_CLAIM_STATE = "RESERVED_IMPLEMENTATION_NON_EXECUTABLE"
-ALLOWED_ACTIVATION_STATES = frozenset({ACTIVATION_ACTIVE, ACTIVATION_RESERVED, ACTIVATION_RELEASED})
-ALLOWED_CLOSURE_STATES = frozenset({CLOSURE_RELEASED})
-
 _STRING_SEQUENCE_FIELDS = (
     "write_paths",
     "read_paths",
@@ -143,13 +156,7 @@ def _first(mapping: dict[str, Any], *keys: str) -> Any:
 
 
 def _canonical(value: Any) -> str:
-    return json.dumps(
-        value,
-        ensure_ascii=False,
-        sort_keys=True,
-        separators=(",", ":"),
-        default=str,
-    )
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), default=str)
 
 
 def _safe_string_list(raw: dict[str, Any], key: str) -> list[str]:
@@ -226,6 +233,46 @@ def normalize_worker_slot(raw: dict[str, Any]) -> WorkerSlot:
     )
 
 
+def worker_slot_route_witness(slot: WorkerSlot) -> dict[str, Any]:
+    return {
+        "worker_slot_id": slot.worker_slot_id,
+        "agent_type": slot.agent_type,
+        "executor_role": slot.executor_role,
+        "model_id": slot.model_id,
+        "task_id": slot.task_id,
+        "route_epoch": slot.route_epoch,
+        "issue": slot.issue,
+        "pr": slot.pr,
+        "branch": slot.branch,
+        "status": slot.status,
+        "execution_allowed": slot.execution_allowed,
+        "completion_signal": slot.completion_signal,
+        "write_paths": list(slot.write_paths),
+        "read_paths": list(slot.read_paths),
+        "interfaces": list(slot.interfaces),
+        "read_domains": list(slot.read_domains),
+        "write_domains": list(slot.write_domains),
+        "authority_claims": list(slot.authority_claims),
+        "resource_class": slot.resource_class,
+        "provenance": slot.provenance,
+        "reviewer_role": slot.reviewer_role,
+        "reviewer_separation": slot.reviewer_separation,
+        "activation_state": slot.activation_state,
+        "closure_state": slot.closure_state,
+        "fingerprint": slot.fingerprint,
+    }
+
+
+def _lifecycle_mapping(slot: WorkerSlot) -> dict[str, Any]:
+    material = worker_slot_route_witness(slot)
+    material.pop("fingerprint", None)
+    return material
+
+
+def _lifecycle(slot: WorkerSlot):
+    return resolve_worker_lifecycle(_lifecycle_mapping(slot))
+
+
 def _program_capacity_policy(repo_root: Path) -> dict[str, Any]:
     try:
         program = load_yaml(repo_root.resolve() / PROGRAM_REGISTRY)
@@ -246,17 +293,6 @@ def _registry_required(repo_root: Path) -> bool:
     )
 
 
-def _load_registry_doc(repo_root: Path) -> tuple[dict[str, Any] | None, str | None]:
-    root = repo_root.resolve()
-    path = root / GPT_WORKERS_REGISTRY
-    if not path.exists():
-        return None, None
-    try:
-        return load_yaml(path), None
-    except (OSError, ValueError, TypeError):
-        return None, "WORKER_REGISTRY_NOT_MAPPING"
-
-
 def _load_yaml_mapping(repo_root: Path, relpath: str, error_code: str) -> tuple[dict[str, Any] | None, str | None]:
     path = repo_root.resolve() / relpath
     if not path.exists():
@@ -265,6 +301,10 @@ def _load_yaml_mapping(repo_root: Path, relpath: str, error_code: str) -> tuple[
         return load_yaml(path), None
     except (OSError, ValueError, TypeError):
         return None, error_code
+
+
+def _load_registry_doc(repo_root: Path) -> tuple[dict[str, Any] | None, str | None]:
+    return _load_yaml_mapping(repo_root, GPT_WORKERS_REGISTRY, "WORKER_REGISTRY_NOT_MAPPING")
 
 
 def _load_maintenance_adoption_doc(repo_root: Path) -> tuple[dict[str, Any] | None, str | None]:
@@ -291,6 +331,9 @@ def _maintenance_required(repo_root: Path) -> bool:
             R3_MAINTENANCE_ADOPTION_FILE,
             R4_MAINTENANCE_ADOPTION_FILE,
             MAINTENANCE_ADOPTION_FILE,
+            R6_MAINTENANCE_ADOPTION_FILE,
+            R7_MAINTENANCE_ADOPTION_FILE,
+            R8_MAINTENANCE_ADOPTION_FILE,
             MAINTENANCE_TOMBSTONES_FILE,
         )
     )
@@ -312,6 +355,16 @@ def maintenance_adoption_witness(repo_root: Path) -> dict[str, Any]:
     doc, error = _load_maintenance_adoption_doc(repo_root)
     predecessor, predecessor_error = _load_predecessor_maintenance_doc(repo_root)
     tombstones = terminal_tombstones_witness(repo_root)
+    current_generation: dict[str, Any] = {}
+    for label, relpath in (("r7", R7_MAINTENANCE_ADOPTION_FILE), ("r8", R8_MAINTENANCE_ADOPTION_FILE)):
+        generation_doc, generation_error = _load_yaml_mapping(
+            repo_root, relpath, f"MAINTENANCE_{label.upper()}_NOT_MAPPING"
+        )
+        current_generation[label] = {
+            "present": generation_doc is not None,
+            "load_error": generation_error,
+            "raw": generation_doc,
+        }
     if error:
         return {
             "present": True,
@@ -319,6 +372,7 @@ def maintenance_adoption_witness(repo_root: Path) -> dict[str, Any]:
             "raw": None,
             "predecessor": {"present": predecessor is not None, "load_error": predecessor_error, "raw": predecessor},
             "terminal_tombstones": tombstones,
+            "current_generation": current_generation,
         }
     result: dict[str, Any] = {
         "present": doc is not None,
@@ -329,6 +383,7 @@ def maintenance_adoption_witness(repo_root: Path) -> dict[str, Any]:
             "raw": predecessor,
         },
         "terminal_tombstones": tombstones,
+        "current_generation": current_generation,
     }
     if doc is None and _maintenance_required(repo_root):
         result["load_error"] = "MAINTENANCE_ADOPTION_MISSING"
@@ -372,48 +427,15 @@ def load_worker_slots(repo_root: Path) -> list[WorkerSlot]:
     return [normalize_worker_slot(raw) for raw in raw_slots if isinstance(raw, dict)]
 
 
-def worker_slot_route_witness(slot: WorkerSlot) -> dict[str, Any]:
-    return {
-        "worker_slot_id": slot.worker_slot_id,
-        "agent_type": slot.agent_type,
-        "executor_role": slot.executor_role,
-        "model_id": slot.model_id,
-        "task_id": slot.task_id,
-        "route_epoch": slot.route_epoch,
-        "issue": slot.issue,
-        "pr": slot.pr,
-        "branch": slot.branch,
-        "status": slot.status,
-        "execution_allowed": slot.execution_allowed,
-        "completion_signal": slot.completion_signal,
-        "write_paths": list(slot.write_paths),
-        "read_paths": list(slot.read_paths),
-        "interfaces": list(slot.interfaces),
-        "read_domains": list(slot.read_domains),
-        "write_domains": list(slot.write_domains),
-        "authority_claims": list(slot.authority_claims),
-        "resource_class": slot.resource_class,
-        "provenance": slot.provenance,
-        "reviewer_role": slot.reviewer_role,
-        "reviewer_separation": slot.reviewer_separation,
-        "activation_state": slot.activation_state,
-        "closure_state": slot.closure_state,
-        "fingerprint": slot.fingerprint,
-    }
-
-
 def _is_missing(value: Any) -> bool:
     return value is None or (isinstance(value, str) and not value.strip())
 
 
 def worker_slot_is_executable(slot: WorkerSlot) -> bool:
-    if slot.activation_state != ACTIVATION_ACTIVE:
+    resolution = _lifecycle(slot)
+    if not resolution.executable or resolution.lifecycle_state != LIFECYCLE_ACTIVE:
         return False
     if slot.agent_type != AGENT_TYPE or slot.executor_role != AGENT_TYPE:
-        return False
-    if slot.execution_allowed is not True:
-        return False
-    if slot.closure_state == CLOSURE_RELEASED:
         return False
     required = (
         slot.worker_slot_id,
@@ -475,12 +497,22 @@ def _raw_slot_schema_findings(raw: dict[str, Any], index: int) -> list[Finding]:
                 {"index": index, "actual": raw_execution_allowed, "actual_type": type(raw_execution_allowed).__name__},
             )
         )
-
-    identity_fields = {
+    for field in ("activation_state", "closure_state"):
+        value = raw.get(field)
+        if value is not None and not isinstance(value, str):
+            findings.append(
+                Finding(
+                    CHECK_ID,
+                    "ERROR",
+                    "WORKER_SLOT_LIFECYCLE_FIELD_TYPE_INVALID",
+                    "Lifecycle projection fields must be strings or null; semantics are resolved only by worker_lifecycle.py.",
+                    {"index": index, "field": field, "actual_type": type(value).__name__},
+                )
+            )
+    for field, value in {
         "agent_type": _first(raw, "agent_type", "canonical_agent_type"),
         "executor_role": _first(raw, "executor_role", "role"),
-    }
-    for field, value in identity_fields.items():
+    }.items():
         if not isinstance(value, str) or not value.strip():
             findings.append(
                 Finding(
@@ -491,7 +523,6 @@ def _raw_slot_schema_findings(raw: dict[str, Any], index: int) -> list[Finding]:
                     {"index": index, "field": field, "actual": value},
                 )
             )
-
     for key in _LIST_FIELDS:
         value = raw.get(key, [])
         if not isinstance(value, list):
@@ -514,7 +545,6 @@ def _raw_slot_schema_findings(raw: dict[str, Any], index: int) -> list[Finding]:
                     {"index": index, "field": key},
                 )
             )
-
     provenance = raw.get("provenance")
     if provenance is not None and not isinstance(provenance, dict):
         findings.append(
@@ -526,9 +556,9 @@ def _raw_slot_schema_findings(raw: dict[str, Any], index: int) -> list[Finding]:
                 {"index": index, "actual_type": type(provenance).__name__},
             )
         )
-
+    aliases = {"route_epoch": "epoch", "issue": "active_issue", "pr": "implementation_pr"}
     for key in ("route_epoch", "issue", "pr"):
-        value = _first(raw, key, {"route_epoch": "epoch", "issue": "active_issue", "pr": "implementation_pr"}[key])
+        value = _first(raw, key, aliases[key])
         if value is not None and (isinstance(value, bool) or not isinstance(value, (int, str))):
             findings.append(
                 Finding(
@@ -542,199 +572,82 @@ def _raw_slot_schema_findings(raw: dict[str, Any], index: int) -> list[Finding]:
     return findings
 
 
+def _expected_terminal_records(repo_root: Path) -> dict[str, dict[str, Any]]:
+    expected = dict(BASE_EXPECTED_TERMINAL_RECORDS)
+    if (repo_root.resolve() / R7_MAINTENANCE_ADOPTION_FILE).exists():
+        expected[R7_AUTHORITY_ID] = R7_TERMINAL_RECORD
+    return expected
+
+
 def _terminal_tombstone_findings(repo_root: Path) -> list[Finding]:
     doc, error = _load_terminal_tombstones_doc(repo_root)
     if error:
-        return [
-            Finding(
-                CHECK_ID,
-                "ERROR",
-                error,
-                "Terminal maintenance-authority tombstones must be a machine-readable canonical mapping.",
-                {"path": MAINTENANCE_TOMBSTONES_FILE},
-            )
-        ]
+        return [Finding(CHECK_ID, "ERROR", error, "Terminal maintenance-authority tombstones must be a machine-readable canonical mapping.", {"path": MAINTENANCE_TOMBSTONES_FILE})]
     if doc is None:
         if _maintenance_required(repo_root):
-            return [
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "MAINTENANCE_TOMBSTONES_MISSING",
-                    "R144 R5 requires the monotonic terminal-authority tombstone registry; deleting it fails closed.",
-                    {"path": MAINTENANCE_TOMBSTONES_FILE},
-                )
-            ]
+            return [Finding(CHECK_ID, "ERROR", "MAINTENANCE_TOMBSTONES_MISSING", "Maintenance requires the monotonic terminal-authority tombstone registry; deleting it fails closed.", {"path": MAINTENANCE_TOMBSTONES_FILE})]
         return []
 
     findings: list[Finding] = []
-    expected_identity = {
+    for field, expected in {
         "schema_version": "1.0",
         "registry_id": EXPECTED_TOMBSTONE_REGISTRY_ID,
         "semantics": EXPECTED_TOMBSTONE_SEMANTICS,
-    }
-    for field, expected in expected_identity.items():
+    }.items():
         if doc.get(field) != expected:
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "MAINTENANCE_TOMBSTONE_REGISTRY_IDENTITY_INVALID",
-                    "Terminal-authority tombstone registry identity/semantics drifted from the R144 R5 contract.",
-                    {"field": field, "actual": doc.get(field), "required": expected},
-                )
-            )
+            findings.append(Finding(CHECK_ID, "ERROR", "MAINTENANCE_TOMBSTONE_REGISTRY_IDENTITY_INVALID", "Terminal-authority tombstone registry identity/semantics drifted.", {"field": field, "actual": doc.get(field), "required": expected}))
 
     raw_records = doc.get("terminal_authorities")
     if not isinstance(raw_records, list):
-        return findings + [
-            Finding(
-                CHECK_ID,
-                "ERROR",
-                "MAINTENANCE_TOMBSTONE_RECORDS_NOT_LIST",
-                "terminal_authorities must be a list of exact monotonic tombstone records.",
-                {"actual_type": type(raw_records).__name__},
-            )
-        ]
+        return findings + [Finding(CHECK_ID, "ERROR", "MAINTENANCE_TOMBSTONE_RECORDS_NOT_LIST", "terminal_authorities must be a list of exact monotonic tombstone records.", {"actual_type": type(raw_records).__name__})]
 
     records: dict[str, dict[str, Any]] = {}
     for index, raw in enumerate(raw_records):
         if not isinstance(raw, dict):
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "MAINTENANCE_TOMBSTONE_RECORD_NOT_MAPPING",
-                    "Every terminal-authority tombstone must be a mapping.",
-                    {"index": index, "actual_type": type(raw).__name__},
-                )
-            )
+            findings.append(Finding(CHECK_ID, "ERROR", "MAINTENANCE_TOMBSTONE_RECORD_NOT_MAPPING", "Every terminal-authority tombstone must be a mapping.", {"index": index, "actual_type": type(raw).__name__}))
             continue
         authority_id = raw.get("authority_id")
         if not isinstance(authority_id, str) or not authority_id:
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "MAINTENANCE_TOMBSTONE_AUTHORITY_ID_INVALID",
-                    "Every tombstone requires a non-empty authority_id.",
-                    {"index": index, "actual": authority_id},
-                )
-            )
+            findings.append(Finding(CHECK_ID, "ERROR", "MAINTENANCE_TOMBSTONE_AUTHORITY_ID_INVALID", "Every tombstone requires a non-empty authority_id.", {"index": index, "actual": authority_id}))
             continue
         if authority_id in records:
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "MAINTENANCE_TOMBSTONE_DUPLICATE_AUTHORITY_ID",
-                    "A terminal authority ID may appear only once in the monotonic tombstone registry.",
-                    {"authority_id": authority_id},
-                )
-            )
+            findings.append(Finding(CHECK_ID, "ERROR", "MAINTENANCE_TOMBSTONE_DUPLICATE_AUTHORITY_ID", "A terminal authority ID may appear only once.", {"authority_id": authority_id}))
             continue
         records[authority_id] = raw
 
-    missing_expected = sorted(set(EXPECTED_TERMINAL_RECORDS) - set(records))
+    expected_records = _expected_terminal_records(repo_root)
+    missing_expected = sorted(set(expected_records) - set(records))
     if missing_expected:
-        findings.append(
-            Finding(
-                CHECK_ID,
-                "ERROR",
-                "MAINTENANCE_TOMBSTONE_EXPECTED_ID_MISSING",
-                "A previously terminal authority ID cannot be erased from the canonical tombstone registry.",
-                {"missing_authority_ids": missing_expected},
-            )
-        )
+        findings.append(Finding(CHECK_ID, "ERROR", "MAINTENANCE_TOMBSTONE_EXPECTED_ID_MISSING", "A previously terminal authority ID cannot be erased.", {"missing_authority_ids": missing_expected}))
 
-    for authority_id, expected_record in EXPECTED_TERMINAL_RECORDS.items():
+    for authority_id, expected_record in expected_records.items():
         actual = records.get(authority_id)
         if actual is None:
             continue
         for field, expected in expected_record.items():
             if actual.get(field) != expected:
-                findings.append(
-                    Finding(
-                        CHECK_ID,
-                        "ERROR",
-                        "MAINTENANCE_TOMBSTONE_BINDING_MISMATCH",
-                        "Terminal authority tombstone fields are exact authority material and may not drift.",
-                        {"authority_id": authority_id, "field": field, "actual": actual.get(field), "required": expected},
-                    )
-                )
+                findings.append(Finding(CHECK_ID, "ERROR", "MAINTENANCE_TOMBSTONE_BINDING_MISMATCH", "Terminal authority tombstone fields are exact authority material and may not drift.", {"authority_id": authority_id, "field": field, "actual": actual.get(field), "required": expected}))
 
     for authority_id, record in records.items():
         authority_file = record.get("authority_file")
         terminal_state = record.get("terminal_state")
         if not isinstance(authority_file, str) or not authority_file:
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "MAINTENANCE_TOMBSTONE_AUTHORITY_FILE_INVALID",
-                    "Tombstones must bind an exact authority artifact path.",
-                    {"authority_id": authority_id, "actual": authority_file},
-                )
-            )
+            findings.append(Finding(CHECK_ID, "ERROR", "MAINTENANCE_TOMBSTONE_AUTHORITY_FILE_INVALID", "Tombstones must bind an exact authority artifact path.", {"authority_id": authority_id, "actual": authority_file}))
             continue
         if terminal_state != "RELEASED" or record.get("reactivation_allowed") is not False:
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "MAINTENANCE_TOMBSTONE_TERMINAL_SEMANTICS_INVALID",
-                    "Tombstones must encode RELEASED and reactivation_allowed=false.",
-                    {"authority_id": authority_id, "terminal_state": terminal_state, "reactivation_allowed": record.get("reactivation_allowed")},
-                )
-            )
+            findings.append(Finding(CHECK_ID, "ERROR", "MAINTENANCE_TOMBSTONE_TERMINAL_SEMANTICS_INVALID", "Tombstones must encode RELEASED and reactivation_allowed=false.", {"authority_id": authority_id, "terminal_state": terminal_state, "reactivation_allowed": record.get("reactivation_allowed")}))
             continue
-        authority_doc, authority_error = _load_yaml_mapping(
-            repo_root,
-            authority_file,
-            "MAINTENANCE_TOMBSTONED_AUTHORITY_NOT_MAPPING",
-        )
+        authority_doc, authority_error = _load_yaml_mapping(repo_root, authority_file, "MAINTENANCE_TOMBSTONED_AUTHORITY_NOT_MAPPING")
         if authority_error or authority_doc is None:
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    authority_error or "MAINTENANCE_TOMBSTONED_AUTHORITY_MISSING",
-                    "A terminal tombstone must remain bound to its durable authority artifact.",
-                    {"authority_id": authority_id, "path": authority_file},
-                )
-            )
+            findings.append(Finding(CHECK_ID, "ERROR", authority_error or "MAINTENANCE_TOMBSTONED_AUTHORITY_MISSING", "A terminal tombstone must remain bound to its durable authority artifact.", {"authority_id": authority_id, "path": authority_file}))
             continue
         if authority_doc.get("authority_id") != authority_id:
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "MAINTENANCE_TOMBSTONED_AUTHORITY_ID_MISMATCH",
-                    "Tombstone and authority artifact must carry the same exact authority ID.",
-                    {"authority_id": authority_id, "actual": authority_doc.get("authority_id")},
-                )
-            )
+            findings.append(Finding(CHECK_ID, "ERROR", "MAINTENANCE_TOMBSTONED_AUTHORITY_ID_MISMATCH", "Tombstone and authority artifact must carry the same exact authority ID.", {"authority_id": authority_id, "actual": authority_doc.get("authority_id")}))
             continue
         if authority_doc.get("state") == "ACTIVE":
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "MAINTENANCE_TERMINAL_AUTHORITY_REACTIVATION",
-                    "A tombstoned authority ID is monotonically terminal and may never become ACTIVE again, even if every release receipt field is deleted.",
-                    {"authority_id": authority_id, "path": authority_file},
-                )
-            )
+            findings.append(Finding(CHECK_ID, "ERROR", "MAINTENANCE_TERMINAL_AUTHORITY_REACTIVATION", "A tombstoned authority ID is monotonically terminal and may never become ACTIVE again.", {"authority_id": authority_id, "path": authority_file}))
         elif authority_doc.get("state") != terminal_state:
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "MAINTENANCE_TOMBSTONED_AUTHORITY_STATE_MISMATCH",
-                    "A tombstoned authority artifact must remain in its terminal RELEASED state.",
-                    {"authority_id": authority_id, "actual": authority_doc.get("state"), "required": terminal_state},
-                )
-            )
+            findings.append(Finding(CHECK_ID, "ERROR", "MAINTENANCE_TOMBSTONED_AUTHORITY_STATE_MISMATCH", "A tombstoned authority artifact must remain RELEASED.", {"authority_id": authority_id, "actual": authority_doc.get("state"), "required": terminal_state}))
     return findings
 
 
@@ -742,61 +655,27 @@ def _maintenance_adoption_findings(repo_root: Path) -> list[Finding]:
     doc, error = _load_maintenance_adoption_doc(repo_root)
     required = _maintenance_required(repo_root)
     if error:
-        return [
-            Finding(
-                CHECK_ID,
-                "ERROR",
-                error,
-                "GPT corrective maintenance/adoption authority must be a machine-readable mapping.",
-                {"path": MAINTENANCE_ADOPTION_FILE},
-            )
-        ]
+        return [Finding(CHECK_ID, "ERROR", error, "GPT corrective maintenance/adoption authority must be a machine-readable mapping.", {"path": MAINTENANCE_ADOPTION_FILE})]
     if doc is None:
         if required:
-            return [
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "MAINTENANCE_ADOPTION_MISSING",
-                    "R144 R5 requires its fresh maintenance/adoption authority artifact; deleting it cannot silently remove governance.",
-                    {"path": MAINTENANCE_ADOPTION_FILE},
-                )
-            ]
+            return [Finding(CHECK_ID, "ERROR", "MAINTENANCE_ADOPTION_MISSING", "R144 R5 requires its retained maintenance/adoption authority artifact.", {"path": MAINTENANCE_ADOPTION_FILE})]
         return []
 
     findings: list[Finding] = []
-    required_scalars = {
+    for field, expected in {
         "schema_version": "1.0",
         "authority_id": EXPECTED_MAINTENANCE_AUTHORITY_ID,
         "authority_type": EXPECTED_MAINTENANCE_AUTHORITY_TYPE,
         "issuer": "USER",
         "actor": "GPT_ARCHITECTURE_OWNER",
-    }
-    for field, expected in required_scalars.items():
+    }.items():
         if doc.get(field) != expected:
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "MAINTENANCE_ADOPTION_IDENTITY_INVALID",
-                    "Corrective maintenance/adoption authority identity does not match the exact R144 R5 contract.",
-                    {"field": field, "actual": doc.get(field), "required": expected},
-                )
-            )
+            findings.append(Finding(CHECK_ID, "ERROR", "MAINTENANCE_ADOPTION_IDENTITY_INVALID", "Corrective maintenance/adoption authority identity does not match the exact R144 R5 contract.", {"field": field, "actual": doc.get(field), "required": expected}))
 
     task_brief, task_brief_error = _load_r144_task_brief(repo_root)
     if task_brief_error or task_brief is None:
-        findings.append(
-            Finding(
-                CHECK_ID,
-                "ERROR",
-                task_brief_error or "MAINTENANCE_TASK_BRIEF_MISSING",
-                "R144 maintenance exact binding requires the stable canonical R144 task brief.",
-                {"path": R144_TASK_BRIEF_FILE},
-            )
-        )
+        findings.append(Finding(CHECK_ID, "ERROR", task_brief_error or "MAINTENANCE_TASK_BRIEF_MISSING", "R144 maintenance exact binding requires the stable canonical task brief.", {"path": R144_TASK_BRIEF_FILE}))
         task_brief = {}
-
     expected_binding = {
         "task_id": task_brief.get("task_id"),
         "route_epoch": task_brief.get("route_epoch"),
@@ -809,58 +688,24 @@ def _maintenance_adoption_findings(repo_root: Path) -> list[Finding]:
     }
     for field, expected in expected_binding.items():
         if _is_missing(expected) or doc.get(field) != expected:
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "MAINTENANCE_ADOPTION_BINDING_MISMATCH",
-                    "Maintenance/adoption authority must mechanically match the exact R144 R5 task/epoch/Issue/PR/branch/review/adopted-head binding.",
-                    {"field": field, "actual": doc.get(field), "required": expected},
-                )
-            )
-
+            findings.append(Finding(CHECK_ID, "ERROR", "MAINTENANCE_ADOPTION_BINDING_MISMATCH", "Maintenance/adoption authority must mechanically match the exact R144 R5 binding.", {"field": field, "actual": doc.get(field), "required": expected}))
     for field in ("adopted_candidate_input_head", "activation_parent_head"):
         value = doc.get(field)
         if not isinstance(value, str) or not _HEX40.fullmatch(value):
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "MAINTENANCE_ADOPTION_INPUT_HEAD_INVALID",
-                    "Maintenance/adoption head bindings must be exact 40-hex commit identities.",
-                    {"field": field, "actual": value},
-                )
-            )
+            findings.append(Finding(CHECK_ID, "ERROR", "MAINTENANCE_ADOPTION_INPUT_HEAD_INVALID", "Maintenance/adoption head bindings must be exact 40-hex commit identities.", {"field": field, "actual": value}))
 
-    predecessor_ref = doc.get("predecessor_authority")
     expected_predecessor_ref = {
         "path": R4_MAINTENANCE_ADOPTION_FILE,
         "authority_id": EXPECTED_PREDECESSOR_AUTHORITY_ID,
         "required_state": "RELEASED",
         "required_terminal_scope_status": EXPECTED_RELEASED_SCOPE_STATUS,
     }
-    if predecessor_ref != expected_predecessor_ref:
-        findings.append(
-            Finding(
-                CHECK_ID,
-                "ERROR",
-                "MAINTENANCE_ADOPTION_PREDECESSOR_BINDING_INVALID",
-                "R5 must be a new authority identity chained to the released/tombstoned R4 authority; R4 may not be reactivated in place.",
-                {"actual": predecessor_ref, "required": expected_predecessor_ref},
-            )
-        )
+    if doc.get("predecessor_authority") != expected_predecessor_ref:
+        findings.append(Finding(CHECK_ID, "ERROR", "MAINTENANCE_ADOPTION_PREDECESSOR_BINDING_INVALID", "R5 must remain chained to the released R4 authority.", {"actual": doc.get("predecessor_authority"), "required": expected_predecessor_ref}))
 
     predecessor_doc, predecessor_error = _load_predecessor_maintenance_doc(repo_root)
     if predecessor_error or predecessor_doc is None:
-        findings.append(
-            Finding(
-                CHECK_ID,
-                "ERROR",
-                predecessor_error or "MAINTENANCE_PREDECESSOR_MISSING",
-                "R5 requires the retained R4 maintenance authority as a released predecessor record.",
-                {"path": R4_MAINTENANCE_ADOPTION_FILE},
-            )
-        )
+        findings.append(Finding(CHECK_ID, "ERROR", predecessor_error or "MAINTENANCE_PREDECESSOR_MISSING", "R5 requires the retained R4 authority.", {"path": R4_MAINTENANCE_ADOPTION_FILE}))
     else:
         predecessor_actual = {
             "authority_id": predecessor_doc.get("authority_id"),
@@ -873,29 +718,11 @@ def _maintenance_adoption_findings(repo_root: Path) -> list[Finding]:
             "released_scope_status": EXPECTED_RELEASED_SCOPE_STATUS,
         }
         if predecessor_actual != predecessor_expected:
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "MAINTENANCE_ADOPTION_PREDECESSOR_NOT_RELEASED",
-                    "The R4 authority must remain a released predecessor before the new R5 authority can operate.",
-                    {"actual": predecessor_actual, "required": predecessor_expected},
-                )
-            )
+            findings.append(Finding(CHECK_ID, "ERROR", "MAINTENANCE_ADOPTION_PREDECESSOR_NOT_RELEASED", "R4 must remain released before R5 can operate.", {"actual": predecessor_actual, "required": predecessor_expected}))
 
     state = doc.get("state")
     if state not in {"ACTIVE", "RELEASED"}:
-        findings.append(
-            Finding(
-                CHECK_ID,
-                "ERROR",
-                "MAINTENANCE_ADOPTION_STATE_INVALID",
-                "Maintenance/adoption authority state must be ACTIVE or RELEASED.",
-                {"actual": state},
-            )
-        )
-
-    state_machine = doc.get("state_machine")
+        findings.append(Finding(CHECK_ID, "ERROR", "MAINTENANCE_ADOPTION_STATE_INVALID", "Maintenance state must be ACTIVE or RELEASED.", {"actual": state}))
     expected_state_machine = {
         "active_scope_status": "BOUNDED_CORRECTIVE_MAINTENANCE_OPEN",
         "released_scope_status_required": EXPECTED_RELEASED_SCOPE_STATUS,
@@ -903,51 +730,19 @@ def _maintenance_adoption_findings(repo_root: Path) -> list[Finding]:
         "next_activation_requires_new_user_issued_authority_id": True,
         "terminality_must_not_depend_on_mutable_release_receipt_presence": True,
     }
-    if state_machine != expected_state_machine:
-        findings.append(
-            Finding(
-                CHECK_ID,
-                "ERROR",
-                "MAINTENANCE_ADOPTION_STATE_MACHINE_INVALID",
-                "R5 maintenance authority must declare the exact monotonic ACTIVE→RELEASED terminal-state contract.",
-                {"actual": state_machine, "required": expected_state_machine},
-            )
-        )
+    if doc.get("state_machine") != expected_state_machine:
+        findings.append(Finding(CHECK_ID, "ERROR", "MAINTENANCE_ADOPTION_STATE_MACHINE_INVALID", "R5 maintenance authority must retain the exact monotonic state contract.", {"actual": doc.get("state_machine"), "required": expected_state_machine}))
 
     release_fields = ("release_reason", "released_scope_status", "release_transition")
     if state == "ACTIVE":
-        present_release_fields = [field for field in release_fields if field in doc]
-        if present_release_fields:
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "MAINTENANCE_ADOPTION_REACTIVATION_FORBIDDEN",
-                    "An authority identity carrying release markers cannot be switched back to ACTIVE; a new user-issued authority_id is required.",
-                    {"release_fields_present": present_release_fields},
-                )
-            )
+        present = [field for field in release_fields if field in doc]
+        if present:
+            findings.append(Finding(CHECK_ID, "ERROR", "MAINTENANCE_ADOPTION_REACTIVATION_FORBIDDEN", "An authority carrying release markers cannot be switched back to ACTIVE.", {"release_fields_present": present}))
     elif state == "RELEASED":
         if _is_missing(doc.get("release_reason")):
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "MAINTENANCE_ADOPTION_RELEASE_RECEIPT_MISSING",
-                    "RELEASED maintenance authority requires a non-empty release_reason.",
-                    {},
-                )
-            )
+            findings.append(Finding(CHECK_ID, "ERROR", "MAINTENANCE_ADOPTION_RELEASE_RECEIPT_MISSING", "RELEASED maintenance authority requires release_reason.", {}))
         if doc.get("released_scope_status") != EXPECTED_RELEASED_SCOPE_STATUS:
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "MAINTENANCE_ADOPTION_RELEASE_SCOPE_INVALID",
-                    "RELEASED must mechanically mean this authority grants no further modifier writes.",
-                    {"actual": doc.get("released_scope_status"), "required": EXPECTED_RELEASED_SCOPE_STATUS},
-                )
-            )
+            findings.append(Finding(CHECK_ID, "ERROR", "MAINTENANCE_ADOPTION_RELEASE_SCOPE_INVALID", "RELEASED grants no further modifier writes.", {"actual": doc.get("released_scope_status"), "required": EXPECTED_RELEASED_SCOPE_STATUS}))
         expected_transition = {
             "from_state": "ACTIVE",
             "to_state": "RELEASED",
@@ -955,17 +750,9 @@ def _maintenance_adoption_findings(repo_root: Path) -> list[Finding]:
             "next_activation_requires_new_user_issued_authority_id": True,
         }
         if doc.get("release_transition") != expected_transition:
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "MAINTENANCE_ADOPTION_RELEASE_TRANSITION_INVALID",
-                    "RELEASED requires an explicit terminal ACTIVE→RELEASED transition; reactivation must use a new authority identity.",
-                    {"actual": doc.get("release_transition"), "required": expected_transition},
-                )
-            )
+            findings.append(Finding(CHECK_ID, "ERROR", "MAINTENANCE_ADOPTION_RELEASE_TRANSITION_INVALID", "RELEASED requires explicit terminal ACTIVE->RELEASED transition.", {"actual": doc.get("release_transition"), "required": expected_transition}))
 
-    must_be_false = (
+    for field in (
         "execution_allowed",
         "runtime_write_allowed",
         "trade_allowed",
@@ -973,56 +760,45 @@ def _maintenance_adoption_findings(repo_root: Path) -> list[Finding]:
         "acceptance_authority",
         "self_review_allowed",
         "retroactive_workbuddy_authorization",
-    )
-    for field in must_be_false:
-        value = doc.get(field)
-        if not isinstance(value, bool) or value is not False:
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "MAINTENANCE_ADOPTION_UNSAFE_AUTHORITY",
-                    "Corrective maintenance/adoption may never grant runtime execution, trading, merge, acceptance, self-review or retroactive authority.",
-                    {"field": field, "actual": value},
-                )
-            )
-
+    ):
+        if doc.get(field) is not False:
+            findings.append(Finding(CHECK_ID, "ERROR", "MAINTENANCE_ADOPTION_UNSAFE_AUTHORITY", "Corrective maintenance may never grant runtime/trade/review/merge authority.", {"field": field, "actual": doc.get(field)}))
     for field in ("independent_review_required", "same_pr_required", "fresh_exact_head_ci_required"):
-        value = doc.get(field)
-        if not isinstance(value, bool) or value is not True:
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "MAINTENANCE_ADOPTION_GUARD_MISSING",
-                    "Bounded maintenance/adoption requires same-PR continuity, fresh exact-head CI and separate independent review.",
-                    {"field": field, "actual": value},
-                )
-            )
-
+        if doc.get(field) is not True:
+            findings.append(Finding(CHECK_ID, "ERROR", "MAINTENANCE_ADOPTION_GUARD_MISSING", "Maintenance requires same-PR continuity, exact-head CI and independent review.", {"field": field, "actual": doc.get(field)}))
     allowed = doc.get("allowed_write_paths")
     if not isinstance(allowed, list) or not allowed or any(not isinstance(item, str) or not item for item in allowed):
-        findings.append(
-            Finding(
-                CHECK_ID,
-                "ERROR",
-                "MAINTENANCE_ADOPTION_WRITE_SCOPE_INVALID",
-                "Maintenance/adoption authority must declare a non-empty bounded list of write paths.",
-                {"actual": allowed},
-            )
-        )
-
+        findings.append(Finding(CHECK_ID, "ERROR", "MAINTENANCE_ADOPTION_WRITE_SCOPE_INVALID", "Maintenance must declare bounded write paths.", {"actual": allowed}))
     provenance = doc.get("provenance")
     if not isinstance(provenance, dict) or not provenance:
-        findings.append(
-            Finding(
-                CHECK_ID,
-                "ERROR",
-                "MAINTENANCE_ADOPTION_PROVENANCE_MISSING",
-                "Maintenance/adoption authority requires explicit truthful provenance and may not manufacture retroactive executor identity.",
-                {},
-            )
-        )
+        findings.append(Finding(CHECK_ID, "ERROR", "MAINTENANCE_ADOPTION_PROVENANCE_MISSING", "Maintenance requires truthful provenance.", {}))
+    return findings
+
+
+def _generation_authority_findings(repo_root: Path) -> list[Finding]:
+    findings: list[Finding] = []
+    for label, relpath in (("R7", R7_MAINTENANCE_ADOPTION_FILE), ("R8", R8_MAINTENANCE_ADOPTION_FILE)):
+        doc, error = _load_yaml_mapping(repo_root, relpath, f"MAINTENANCE_{label}_NOT_MAPPING")
+        if error:
+            findings.append(Finding(CHECK_ID, "ERROR", error, f"{label} maintenance authority must be a mapping.", {"path": relpath}))
+            continue
+        if doc is None:
+            continue
+        if doc.get("authority_type") != EXPECTED_MAINTENANCE_AUTHORITY_TYPE or doc.get("issuer") != "USER" or doc.get("actor") != "GPT_ARCHITECTURE_OWNER":
+            findings.append(Finding(CHECK_ID, "ERROR", f"MAINTENANCE_{label}_IDENTITY_INVALID", f"{label} maintenance authority identity is invalid.", {"path": relpath}))
+        if doc.get("state") not in {"ACTIVE", "RELEASED"}:
+            findings.append(Finding(CHECK_ID, "ERROR", f"MAINTENANCE_{label}_STATE_INVALID", f"{label} maintenance state must be ACTIVE or RELEASED.", {"actual": doc.get("state")}))
+        for field in ("execution_allowed", "runtime_write_allowed", "trade_allowed", "merge_authority", "acceptance_authority", "self_review_allowed"):
+            if doc.get(field) is not False:
+                findings.append(Finding(CHECK_ID, "ERROR", f"MAINTENANCE_{label}_UNSAFE_AUTHORITY", f"{label} maintenance may not grant runtime/trade/review/merge authority.", {"field": field, "actual": doc.get(field)}))
+        if doc.get("independent_review_required") is not True or doc.get("fresh_exact_head_ci_required") is not True:
+            findings.append(Finding(CHECK_ID, "ERROR", f"MAINTENANCE_{label}_GUARD_MISSING", f"{label} maintenance requires exact-head CI and independent review.", {}))
+        if doc.get("state") == "RELEASED":
+            if doc.get("released_scope_status") != EXPECTED_RELEASED_SCOPE_STATUS:
+                findings.append(Finding(CHECK_ID, "ERROR", f"MAINTENANCE_{label}_RELEASE_SCOPE_INVALID", f"{label} RELEASED must grant no further writes.", {"actual": doc.get("released_scope_status")}))
+            transition = doc.get("release_transition")
+            if not isinstance(transition, dict) or transition.get("to_state") != "RELEASED" or transition.get("terminal_for_authority_id") is not True:
+                findings.append(Finding(CHECK_ID, "ERROR", f"MAINTENANCE_{label}_RELEASE_TRANSITION_INVALID", f"{label} release must be terminal.", {"actual": transition}))
     return findings
 
 
@@ -1032,143 +808,48 @@ def _registry_findings(repo_root: Path) -> list[Finding]:
     findings: list[Finding] = []
     required = _registry_required(root)
     if error:
-        return [
-            Finding(
-                CHECK_ID,
-                "ERROR",
-                error,
-                "GPT Engineering Worker registry must be a YAML mapping; malformed authority input cannot degrade to an empty registry.",
-                {"path": GPT_WORKERS_REGISTRY},
-            )
-        ]
+        return [Finding(CHECK_ID, "ERROR", error, "GPT Engineering Worker registry must be a YAML mapping.", {"path": GPT_WORKERS_REGISTRY})]
     if doc is None:
         if required:
-            return [
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "WORKER_REGISTRY_MISSING",
-                    "R144-enabled Control Tower requires the canonical GPT Engineering Worker registry; missing authority source means NO EXECUTION.",
-                    {"path": GPT_WORKERS_REGISTRY},
-                )
-            ]
+            return [Finding(CHECK_ID, "ERROR", "WORKER_REGISTRY_MISSING", "Control Tower requires the canonical GPT Engineering Worker registry.", {"path": GPT_WORKERS_REGISTRY})]
         return findings
 
-    expected = {
-        "schema_version": EXPECTED_SCHEMA_VERSION,
-        "registry_id": EXPECTED_REGISTRY_ID,
-        "agent_type": AGENT_TYPE,
-    }
-    for field, required_value in expected.items():
-        if doc.get(field) != required_value:
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "WORKER_REGISTRY_IDENTITY_INVALID",
-                    "GPT Engineering Worker registry identity/schema does not match the canonical contract.",
-                    {"field": field, "actual": doc.get(field), "required": required_value},
-                )
-            )
+    if not registry_schema_supported(doc.get("schema_version")):
+        findings.append(Finding(CHECK_ID, "ERROR", "WORKER_REGISTRY_IDENTITY_INVALID", "GPT worker registry schema is not supported by canonical worker_lifecycle.py.", {"field": "schema_version", "actual": doc.get("schema_version"), "required": "canonical 1.5 or governed legacy compatibility"}))
+    for field, expected in {"registry_id": EXPECTED_REGISTRY_ID, "agent_type": AGENT_TYPE}.items():
+        if doc.get(field) != expected:
+            findings.append(Finding(CHECK_ID, "ERROR", "WORKER_REGISTRY_IDENTITY_INVALID", "GPT worker registry identity does not match the canonical contract.", {"field": field, "actual": doc.get(field), "required": expected}))
 
     if not isinstance(doc.get("parallel_routes_allowed"), bool):
-        findings.append(
-            Finding(
-                CHECK_ID,
-                "ERROR",
-                "WORKER_REGISTRY_PARALLEL_POLICY_INVALID",
-                "parallel_routes_allowed must be an explicit boolean authority value.",
-                {"actual": doc.get("parallel_routes_allowed")},
-            )
-        )
-
+        findings.append(Finding(CHECK_ID, "ERROR", "WORKER_REGISTRY_PARALLEL_POLICY_INVALID", "parallel_routes_allowed must be boolean.", {"actual": doc.get("parallel_routes_allowed")}))
     raw_slots = doc.get("worker_slots")
     if not isinstance(raw_slots, list):
-        findings.append(
-            Finding(
-                CHECK_ID,
-                "ERROR",
-                "WORKER_REGISTRY_SLOTS_NOT_LIST",
-                "worker_slots must be a list; malformed registry input must fail closed instead of becoming an empty active set.",
-                {"actual_type": type(raw_slots).__name__},
-            )
-        )
+        findings.append(Finding(CHECK_ID, "ERROR", "WORKER_REGISTRY_SLOTS_NOT_LIST", "worker_slots must be a list.", {"actual_type": type(raw_slots).__name__}))
     else:
         for index, raw in enumerate(raw_slots):
             if not isinstance(raw, dict):
-                findings.append(
-                    Finding(
-                        CHECK_ID,
-                        "ERROR",
-                        "WORKER_REGISTRY_SLOT_NOT_MAPPING",
-                        "Every worker_slots entry must be a mapping; invalid entries may not be silently dropped.",
-                        {"index": index, "actual_type": type(raw).__name__},
-                    )
-                )
+                findings.append(Finding(CHECK_ID, "ERROR", "WORKER_REGISTRY_SLOT_NOT_MAPPING", "Every worker_slots entry must be a mapping.", {"index": index, "actual_type": type(raw).__name__}))
                 continue
             findings.extend(_raw_slot_schema_findings(raw, index))
 
     capacity_policy = _program_capacity_policy(root)
     canonical_parallel = capacity_policy.get("gpt_engineering_worker_parallel_routes_allowed")
     if not isinstance(canonical_parallel, bool):
-        findings.append(
-            Finding(
-                CHECK_ID,
-                "ERROR",
-                "WORKER_REGISTRY_PROGRAM_PARALLEL_POLICY_MISSING",
-                "Program capacity policy must explicitly govern GPT Engineering Worker parallel routes.",
-                {"actual": canonical_parallel},
-            )
-        )
+        findings.append(Finding(CHECK_ID, "ERROR", "WORKER_REGISTRY_PROGRAM_PARALLEL_POLICY_MISSING", "Program capacity policy must govern GPT parallel routes.", {"actual": canonical_parallel}))
     elif doc.get("parallel_routes_allowed") is not canonical_parallel:
-        findings.append(
-            Finding(
-                CHECK_ID,
-                "ERROR",
-                "WORKER_REGISTRY_PARALLEL_POLICY_DRIFT",
-                "Worker registry parallel policy must match the canonical Program capacity policy.",
-                {"registry": doc.get("parallel_routes_allowed"), "program": canonical_parallel},
-            )
-        )
-
-    nested = capacity_policy.get("nested_parallelism")
-    if nested != "FORBIDDEN":
-        findings.append(
-            Finding(
-                CHECK_ID,
-                "ERROR",
-                "WORKER_REGISTRY_NESTED_PARALLELISM_POLICY_INVALID",
-                "GPT Engineering Worker first-class execution requires the canonical nested_parallelism=FORBIDDEN guard.",
-                {"actual": nested},
-            )
-        )
+        findings.append(Finding(CHECK_ID, "ERROR", "WORKER_REGISTRY_PARALLEL_POLICY_DRIFT", "Worker registry parallel policy must match Program capacity policy.", {"registry": doc.get("parallel_routes_allowed"), "program": canonical_parallel}))
+    if capacity_policy.get("nested_parallelism") != "FORBIDDEN":
+        findings.append(Finding(CHECK_ID, "ERROR", "WORKER_REGISTRY_NESTED_PARALLELISM_POLICY_INVALID", "nested_parallelism must remain FORBIDDEN.", {"actual": capacity_policy.get("nested_parallelism")}))
     return findings
 
 
 def _slot_required_field_findings(slot: WorkerSlot) -> list[Finding]:
     findings: list[Finding] = []
-    if slot.activation_state not in ALLOWED_ACTIVATION_STATES:
-        findings.append(
-            Finding(
-                CHECK_ID,
-                "ERROR",
-                "WORKER_SLOT_ACTIVATION_STATE_INVALID",
-                "Worker slot activation_state must be ACTIVE, RESERVED or RELEASED.",
-                {"worker_slot_id": slot.worker_slot_id, "activation_state": slot.activation_state},
-            )
-        )
-    if slot.closure_state is not None and slot.closure_state not in ALLOWED_CLOSURE_STATES:
-        findings.append(
-            Finding(
-                CHECK_ID,
-                "ERROR",
-                "WORKER_SLOT_CLOSURE_STATE_INVALID",
-                "Worker slot closure_state uses an unsupported value.",
-                {"worker_slot_id": slot.worker_slot_id, "closure_state": slot.closure_state},
-            )
-        )
-
-    if slot.activation_state in {ACTIVATION_ACTIVE, ACTIVATION_RESERVED}:
+    resolution = _lifecycle(slot)
+    if resolution.lifecycle_state == LIFECYCLE_UNKNOWN:
+        findings.append(Finding(CHECK_ID, "ERROR", "WORKER_SLOT_LIFECYCLE_UNKNOWN", "worker_lifecycle.py could not prove a safe lifecycle state; execution and free-capacity claims fail closed.", {"worker_slot_id": slot.worker_slot_id, "lifecycle_findings": list(resolution.findings)}))
+        return findings
+    if resolution.lifecycle_state in {LIFECYCLE_ACTIVE, LIFECYCLE_RESERVED}:
         values = {
             "worker_slot_id": slot.worker_slot_id,
             "agent_type": slot.agent_type,
@@ -1186,35 +867,11 @@ def _slot_required_field_findings(slot: WorkerSlot) -> list[Finding]:
         }
         for field in _LIVE_REQUIRED_FIELDS:
             if _is_missing(values[field]):
-                findings.append(
-                    Finding(
-                        CHECK_ID,
-                        "ERROR",
-                        "WORKER_SLOT_LIVE_BINDING_INCOMPLETE",
-                        "ACTIVE/RESERVED worker slots must carry complete explicit route, identity, provenance and reviewer-separation binding.",
-                        {"worker_slot_id": slot.worker_slot_id, "missing_field": field},
-                    )
-                )
+                findings.append(Finding(CHECK_ID, "ERROR", "WORKER_SLOT_LIVE_BINDING_INCOMPLETE", "ACTIVE/RESERVED slots require complete explicit route/identity/reviewer binding.", {"worker_slot_id": slot.worker_slot_id, "missing_field": field}))
         if not slot.write_paths:
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "WORKER_SLOT_WRITE_SURFACE_MISSING",
-                    "ACTIVE/RESERVED worker slots must declare a bounded write surface.",
-                    {"worker_slot_id": slot.worker_slot_id},
-                )
-            )
+            findings.append(Finding(CHECK_ID, "ERROR", "WORKER_SLOT_WRITE_SURFACE_MISSING", "ACTIVE/RESERVED slots require bounded write paths.", {"worker_slot_id": slot.worker_slot_id}))
         if not isinstance(slot.provenance, dict) or not slot.provenance:
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "WORKER_SLOT_PROVENANCE_MISSING",
-                    "ACTIVE/RESERVED worker slots require explicit provenance; unavailable fields must be recorded as UNKNOWN rather than omitted.",
-                    {"worker_slot_id": slot.worker_slot_id},
-                )
-            )
+            findings.append(Finding(CHECK_ID, "ERROR", "WORKER_SLOT_PROVENANCE_MISSING", "ACTIVE/RESERVED slots require explicit provenance.", {"worker_slot_id": slot.worker_slot_id}))
     return findings
 
 
@@ -1227,52 +884,31 @@ def _slot_claim_findings(repo_root: Path, slots: list[WorkerSlot], registry: dic
     raw_claims = claims_doc.get("claims") if isinstance(claims_doc, dict) else None
     if not isinstance(raw_claims, list):
         raw_claims = []
-
-    lanes = {
-        str(item.get("lane_id")): item
-        for item in (registry.get("program_lanes", []) or [])
-        if isinstance(item, dict) and item.get("lane_id")
-    }
+    lanes = {str(item.get("lane_id")): item for item in (registry.get("program_lanes", []) or []) if isinstance(item, dict) and item.get("lane_id")}
 
     for slot in slots:
+        resolution = _lifecycle(slot)
         required_claim_state = None
-        if slot.activation_state == ACTIVATION_ACTIVE:
+        if resolution.lifecycle_state == LIFECYCLE_ACTIVE:
             required_claim_state = ACTIVE_CLAIM_STATE
-        elif slot.activation_state == ACTIVATION_RESERVED:
+        elif resolution.lifecycle_state == LIFECYCLE_RESERVED:
             required_claim_state = RESERVED_CLAIM_STATE
         if required_claim_state is None:
             continue
 
-        candidates: list[dict[str, Any]] = []
-        for claim in raw_claims:
-            if not isinstance(claim, dict):
-                continue
-            if claim.get("execution_agent") != AGENT_TYPE:
-                continue
-            if str(claim.get("claim_state")) != required_claim_state:
-                continue
-            if _claim_slot_id(claim) == slot.worker_slot_id:
-                candidates.append(claim)
-
+        candidates = [
+            claim for claim in raw_claims
+            if isinstance(claim, dict)
+            and claim.get("execution_agent") == AGENT_TYPE
+            and str(claim.get("claim_state")) == required_claim_state
+            and _claim_slot_id(claim) == slot.worker_slot_id
+        ]
         if len(candidates) != 1:
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "WORKER_SLOT_EXACT_CLAIM_CARDINALITY",
-                    "Every ACTIVE/RESERVED GPT worker slot must be bound by exactly one matching Work Claim; orphan or multiply-claimed execution leases fail closed.",
-                    {
-                        "worker_slot_id": slot.worker_slot_id,
-                        "required_claim_state": required_claim_state,
-                        "matching_claims": len(candidates),
-                    },
-                )
-            )
+            findings.append(Finding(CHECK_ID, "ERROR", "WORKER_SLOT_EXACT_CLAIM_CARDINALITY", "Every ACTIVE/RESERVED GPT worker slot must have exactly one matching Work Claim.", {"worker_slot_id": slot.worker_slot_id, "required_claim_state": required_claim_state, "matching_claims": len(candidates)}))
             continue
-
         claim = candidates[0]
         binding = claim.get("route_binding") if isinstance(claim.get("route_binding"), dict) else {}
-        identity_expected = {
+        expected_identity = {
             "worker_slot_id": slot.worker_slot_id,
             "task_id": slot.task_id,
             "route_epoch": slot.route_epoch,
@@ -1280,7 +916,7 @@ def _slot_claim_findings(repo_root: Path, slots: list[WorkerSlot], registry: dic
             "pr": slot.pr,
             "branch": slot.branch,
         }
-        identity_claimed = {
+        claimed_identity = {
             "worker_slot_id": binding.get("worker_slot_id"),
             "task_id": binding.get("task_id"),
             "route_epoch": binding.get("route_epoch"),
@@ -1288,22 +924,8 @@ def _slot_claim_findings(repo_root: Path, slots: list[WorkerSlot], registry: dic
             "pr": binding.get("pr"),
             "branch": binding.get("branch"),
         }
-        if claim.get("worker_slot_id") != slot.worker_slot_id or identity_claimed != identity_expected:
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "WORKER_SLOT_ACTIVE_CLAIM_BINDING_DRIFT",
-                    "Worker slot and its exact Work Claim disagree on slot/task/epoch/issue/PR/branch identity.",
-                    {
-                        "worker_slot_id": slot.worker_slot_id,
-                        "claim_worker_slot_id": claim.get("worker_slot_id"),
-                        "claimed": identity_claimed,
-                        "expected": identity_expected,
-                    },
-                )
-            )
-
+        if claim.get("worker_slot_id") != slot.worker_slot_id or claimed_identity != expected_identity:
+            findings.append(Finding(CHECK_ID, "ERROR", "WORKER_SLOT_ACTIVE_CLAIM_BINDING_DRIFT", "Worker slot and Work Claim route identity disagree.", {"worker_slot_id": slot.worker_slot_id, "claimed": claimed_identity, "expected": expected_identity}))
         slot_surface = {
             "write_paths": _normalized_sequence(slot.write_paths),
             "read_paths": _normalized_sequence(slot.read_paths),
@@ -1323,28 +945,11 @@ def _slot_claim_findings(repo_root: Path, slots: list[WorkerSlot], registry: dic
             "resource_class": claim.get("resource_class"),
         }
         if slot_surface != claim_surface:
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "WORKER_SLOT_CLAIM_SURFACE_DRIFT",
-                    "Worker slot execution surface must exactly match its Work Claim so collision/resource governance cannot be bypassed.",
-                    {"worker_slot_id": slot.worker_slot_id, "slot": slot_surface, "claim": claim_surface},
-                )
-            )
-
+            findings.append(Finding(CHECK_ID, "ERROR", "WORKER_SLOT_CLAIM_SURFACE_DRIFT", "Worker slot execution surface must exactly match its Work Claim.", {"worker_slot_id": slot.worker_slot_id, "slot": slot_surface, "claim": claim_surface}))
         if slot.resource_class and "HEAVY" in str(slot.resource_class).upper():
             lane = lanes.get(str(claim.get("lane_id")), {})
             if not bool(lane.get("heavy_execution_authorized", False)):
-                findings.append(
-                    Finding(
-                        CHECK_ID,
-                        "ERROR",
-                        "WORKER_SLOT_HEAVY_WITHOUT_LANE_AUTHORIZATION",
-                        "A heavy GPT worker slot must be attached to a Program Lane with heavy_execution_authorized=true; the global heavy-stage gate remains authoritative.",
-                        {"worker_slot_id": slot.worker_slot_id, "lane_id": claim.get("lane_id")},
-                    )
-                )
+                findings.append(Finding(CHECK_ID, "ERROR", "WORKER_SLOT_HEAVY_WITHOUT_LANE_AUTHORIZATION", "Heavy GPT slot requires lane heavy_execution_authorized=true.", {"worker_slot_id": slot.worker_slot_id, "lane_id": claim.get("lane_id")}))
     return findings
 
 
@@ -1354,154 +959,55 @@ def worker_slot_findings(repo_root: Path) -> list[Finding]:
     findings.extend(_registry_findings(root))
     findings.extend(_terminal_tombstone_findings(root))
     findings.extend(_maintenance_adoption_findings(root))
+    findings.extend(_generation_authority_findings(root))
     slots = load_worker_slots(root)
 
     for slot in slots:
         findings.extend(_slot_required_field_findings(slot))
+        resolution = _lifecycle(slot)
         if not slot.worker_slot_id:
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "WORKER_SLOT_ID_MISSING",
-                    "GPT Engineering Worker slot lacks a stable worker_slot_id/lease identity.",
-                    {"fingerprint": slot.fingerprint},
-                )
-            )
+            findings.append(Finding(CHECK_ID, "ERROR", "WORKER_SLOT_ID_MISSING", "GPT worker slot lacks stable worker_slot_id.", {"fingerprint": slot.fingerprint}))
         if slot.agent_type != AGENT_TYPE or slot.executor_role != AGENT_TYPE:
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "WORKER_SLOT_IMPERSONATION",
-                    "GPT Engineering Worker slot declares a missing/non-GPT agent identity; GPT worker must not impersonate CODEX/QCLAW/WORKBUDDY and identity is never defaulted.",
-                    {
-                        "worker_slot_id": slot.worker_slot_id,
-                        "agent_type": slot.agent_type,
-                        "executor_role": slot.executor_role,
-                    },
-                )
-            )
+            findings.append(Finding(CHECK_ID, "ERROR", "WORKER_SLOT_IMPERSONATION", "GPT worker must carry explicit GPT identity and may not impersonate another executor.", {"worker_slot_id": slot.worker_slot_id, "agent_type": slot.agent_type, "executor_role": slot.executor_role}))
         if slot.reviewer_role and slot.reviewer_role == slot.executor_role:
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "WORKER_SLOT_SELF_REVIEW",
-                    "GPT Engineering Worker slot grants itself acceptance authority; execution identity must differ from reviewer role.",
-                    {"worker_slot_id": slot.worker_slot_id, "reviewer_role": slot.reviewer_role},
-                )
-            )
+            findings.append(Finding(CHECK_ID, "ERROR", "WORKER_SLOT_SELF_REVIEW", "Execution identity must differ from reviewer role.", {"worker_slot_id": slot.worker_slot_id, "reviewer_role": slot.reviewer_role}))
+        if resolution.lifecycle_state == LIFECYCLE_RESERVED and slot.execution_allowed:
+            findings.append(Finding(CHECK_ID, "ERROR", "WORKER_SLOT_RESERVED_EXECUTABLE", "A reserved slot may not carry an executable lease.", {"worker_slot_id": slot.worker_slot_id}))
+        if resolution.lifecycle_state == LIFECYCLE_UNKNOWN and slot.execution_allowed and str(slot.activation_state or "").upper() in {"RELEASED", "CLOSED", "FROZEN"}:
+            findings.append(Finding(CHECK_ID, "ERROR", "WORKER_SLOT_CLOSED_HAS_LEASE", "A closed/released/frozen slot retains an execution lease.", {"worker_slot_id": slot.worker_slot_id, "task_id": slot.task_id}))
+        if resolution.lifecycle_state == LIFECYCLE_ACTIVE and not worker_slot_is_executable(slot):
+            findings.append(Finding(CHECK_ID, "ERROR", "WORKER_SLOT_ACTIVE_NOT_EXECUTABLE", "An ACTIVE slot must satisfy every strict executable prerequisite.", {"worker_slot_id": slot.worker_slot_id, "status": slot.status, "execution_allowed": slot.execution_allowed}))
 
     seen: dict[str, list[str]] = {}
     for slot in slots:
-        if not slot.worker_slot_id:
-            continue
-        seen.setdefault(slot.worker_slot_id, []).append(slot.task_id or "UNKNOWN_TASK")
+        if slot.worker_slot_id:
+            seen.setdefault(slot.worker_slot_id, []).append(slot.task_id or "UNKNOWN_TASK")
     for slot_id, tasks in seen.items():
         if len(tasks) > 1:
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "WORKER_SLOT_DUPLICATE_ID",
-                    "Same GPT worker slot/lease identity is bound to more than one entry (silent overwrite / double booking).",
-                    {"worker_slot_id": slot_id, "tasks": tasks},
-                )
-            )
+            findings.append(Finding(CHECK_ID, "ERROR", "WORKER_SLOT_DUPLICATE_ID", "Same worker slot identity is double-booked.", {"worker_slot_id": slot_id, "tasks": tasks}))
 
-    for slot in slots:
-        if slot.activation_state == ACTIVATION_RESERVED and slot.execution_allowed:
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "WORKER_SLOT_RESERVED_EXECUTABLE",
-                    "A RESERVED worker slot may reserve a surface but may not carry an executable lease.",
-                    {"worker_slot_id": slot.worker_slot_id},
-                )
-            )
-        if slot.closure_state == CLOSURE_RELEASED or slot.activation_state == ACTIVATION_RELEASED:
-            if slot.execution_allowed or slot.activation_state == ACTIVATION_ACTIVE:
-                findings.append(
-                    Finding(
-                        CHECK_ID,
-                        "ERROR",
-                        "WORKER_SLOT_CLOSED_HAS_LEASE",
-                        "A closed/released GPT worker slot retains an execution lease.",
-                        {"worker_slot_id": slot.worker_slot_id, "task_id": slot.task_id},
-                    )
-                )
-        if slot.activation_state == ACTIVATION_ACTIVE and not worker_slot_is_executable(slot):
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "WORKER_SLOT_ACTIVE_NOT_EXECUTABLE",
-                    "A GPT worker slot marked ACTIVE must satisfy every strict executable prerequisite; malformed authority never normalizes into a lease.",
-                    {
-                        "worker_slot_id": slot.worker_slot_id,
-                        "status": slot.status,
-                        "execution_allowed": slot.execution_allowed,
-                    },
-                )
-            )
-
-    active_executable = [slot for slot in slots if worker_slot_is_executable(slot)]
     capacity_policy = _program_capacity_policy(root)
     if _registry_required(root) or (root / GPT_WORKERS_REGISTRY).exists():
         capacity = capacity_policy.get("gpt_engineering_worker_active_slots_max")
         if isinstance(capacity, bool) or not isinstance(capacity, int) or capacity < 1:
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "WORKER_SLOT_CAPACITY_POLICY_INVALID",
-                    "Program capacity policy must provide a positive bounded gpt_engineering_worker_active_slots_max value.",
-                    {"actual": capacity},
-                )
-            )
-            capacity = 0
-        if len(active_executable) > capacity:
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "WORKER_SLOT_CAPACITY_EXCEEDED",
-                    "More GPT Engineering Worker slots are executable than configured capacity allows.",
-                    {"active_slots": [slot.worker_slot_id for slot in active_executable], "limit": capacity},
-                )
-            )
+            findings.append(Finding(CHECK_ID, "ERROR", "WORKER_SLOT_CAPACITY_POLICY_INVALID", "Program capacity policy must provide a positive GPT slot limit.", {"actual": capacity}))
+        lifecycle_audit = audit_worker_registry_lifecycle(root)
+        if "GPT_WORKER_OCCUPIED_CAPACITY_EXCEEDED" in lifecycle_audit.findings:
+            findings.append(Finding(CHECK_ID, "ERROR", "WORKER_SLOT_CAPACITY_EXCEEDED", "Canonical lifecycle occupancy exceeds configured capacity.", {"occupied_slots": list(lifecycle_audit.occupied_capacity_slots), "limit": lifecycle_audit.configured_capacity_limit}))
 
-        if capacity_policy.get("nested_parallelism") == "FORBIDDEN":
-            task_slots: dict[str, list[str | None]] = {}
-            for slot in active_executable:
-                if slot.task_id:
-                    task_slots.setdefault(str(slot.task_id), []).append(slot.worker_slot_id)
-            for task_id, slot_ids in task_slots.items():
-                if len(slot_ids) > 1:
-                    findings.append(
-                        Finding(
-                            CHECK_ID,
-                            "ERROR",
-                            "WORKER_SLOT_NESTED_PARALLELISM_FORBIDDEN",
-                            "One task may not hold multiple active GPT worker slots while nested_parallelism is FORBIDDEN.",
-                            {"task_id": task_id, "worker_slots": slot_ids},
-                        )
-                    )
-
+    active_executable = [slot for slot in slots if worker_slot_is_executable(slot)]
+    if capacity_policy.get("nested_parallelism") == "FORBIDDEN":
+        task_slots: dict[str, list[str | None]] = {}
+        for slot in active_executable:
+            if slot.task_id:
+                task_slots.setdefault(str(slot.task_id), []).append(slot.worker_slot_id)
+        for task_id, slot_ids in task_slots.items():
+            if len(slot_ids) > 1:
+                findings.append(Finding(CHECK_ID, "ERROR", "WORKER_SLOT_NESTED_PARALLELISM_FORBIDDEN", "One task may not hold multiple active GPT worker slots.", {"task_id": task_id, "worker_slots": slot_ids}))
     for left, right in combinations(active_executable, 2):
         collision = classify_collision(_slot_claim_surface(left), _slot_claim_surface(right))
         if collision["level"] in {"O3", "O4"}:
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "WORKER_SLOT_COLLISION",
-                    "Two active GPT worker slots collide on a mutable surface or authority.",
-                    {"pair": [left.worker_slot_id, right.worker_slot_id], "collision": collision},
-                )
-            )
+            findings.append(Finding(CHECK_ID, "ERROR", "WORKER_SLOT_COLLISION", "Two active GPT worker slots collide on mutable surface/authority.", {"pair": [left.worker_slot_id, right.worker_slot_id], "collision": collision}))
 
     try:
         registry = load_yaml(root / PROGRAM_REGISTRY)
@@ -1520,14 +1026,12 @@ def validate_worker_slots(repo_root: Path) -> dict[str, Any]:
     registry_witness = worker_registry_witness(repo_root)
     maintenance_witness = maintenance_adoption_witness(repo_root)
     tombstone_witness = terminal_tombstones_witness(repo_root)
-    maintenance_errors = [
-        item for item in errors if str(item.get("code", "")).startswith("MAINTENANCE_")
-    ]
+    maintenance_errors = [item for item in errors if str(item.get("code", "")).startswith("MAINTENANCE_")]
     maintenance_raw = maintenance_witness.get("raw") if isinstance(maintenance_witness, dict) else None
     maintenance_state = maintenance_raw.get("state") if isinstance(maintenance_raw, dict) else None
-    maintenance_write_allowed = maintenance_state == "ACTIVE" and not maintenance_errors
+    lifecycle_audit = audit_worker_registry_lifecycle(repo_root)
     return {
-        "schema_version": "1.4",
+        "schema_version": "1.5",
         "agent_type": AGENT_TYPE,
         "worker_registry": registry_witness,
         "worker_registry_fingerprint": hashlib.sha256(_canonical(registry_witness).encode("utf-8")).hexdigest(),
@@ -1535,10 +1039,11 @@ def validate_worker_slots(repo_root: Path) -> dict[str, Any]:
         "maintenance_terminal_tombstones": tombstone_witness,
         "maintenance_authority_id": maintenance_raw.get("authority_id") if isinstance(maintenance_raw, dict) else None,
         "maintenance_authority_state": maintenance_state,
-        "maintenance_write_allowed": maintenance_write_allowed,
+        "maintenance_write_allowed": maintenance_state == "ACTIVE" and not maintenance_errors,
         "maintenance_adoption_structural_check": "PASS" if not maintenance_errors else "FAIL",
         "worker_slots": [worker_slot_route_witness(slot) for slot in slots],
         "active_executable_slots": [slot.worker_slot_id for slot in slots if worker_slot_is_executable(slot)],
+        "lifecycle_audit": lifecycle_audit.to_dict(),
         "errors": errors,
         "warnings": warnings,
         "worker_slot_structural_check": "PASS" if not errors else "FAIL",
