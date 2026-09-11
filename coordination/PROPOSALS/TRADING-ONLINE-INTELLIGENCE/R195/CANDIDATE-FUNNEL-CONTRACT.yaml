@@ -1,4 +1,4 @@
-schema_version: "1.0"
+schema_version: "1.1"
 contract_id: "TRADING-ONLINE-CANDIDATE-FUNNEL-R195"
 status: "CANDIDATE_PROPOSAL_ONLY"
 source_issue: 690
@@ -16,7 +16,8 @@ stages:
     required_evidence:
       - "market"
       - "provider"
-      - "as_of"
+      - "query observation time"
+      - "market-data as-of/session identity OR explicit PIT_IDENTITY_UNVERIFIED"
       - "query or universe identity"
     output: "UNIVERSE_RECEIPT"
 
@@ -32,6 +33,8 @@ stages:
       - "provider"
       - "observed_at"
       - "source timestamp when available"
+      - "market-data as-of/session identity when independently bound"
+      - "explicit PIT identity state"
       - "total result count when available"
       - "page/size/cursor state"
       - "rate-limit or partial-result flags"
@@ -78,9 +81,14 @@ stages:
 
 pit_and_universe_invariants:
   point_in_time_only: true
+  query_observation_time_is_not_market_data_as_of: true
+  pit_identity_must_be_explicit: true
+  pit_identity_states: ["VERIFIED", "UNVERIFIED", "NOT_APPLICABLE"]
+  replay_or_historical_use_requires_pit_identity_verified: true
   full_universe_identity_preserved: true
   filter_predicates_preserved: true
   as_of_preserved: true
+  market_session_date_preserved_when_verified: true
   source_timestamp_preserved_when_available: true
   pagination_state_preserved: true
   total_result_count_preserved_when_available: true
@@ -93,6 +101,18 @@ pit_and_universe_invariants:
 ranking_rules:
   ranking_allowed: true
   ranking_features_require_verified_semantics: true
+  normalized_fact_requires_semantic_gate: true
+  semantic_gate_minimum:
+    - "semantic_field_ref"
+    - "semantic_field_digest"
+    - "semantic_verification_state=VERIFIED"
+    - "unit_semantics_state=RESOLVED"
+    - "ambiguity_flags=[]"
+    - "source_observation_ref"
+  external_reference_integrity_rule: >-
+    JSON Schema can require the gate fields but cannot prove that a GitHub/W2 reference or
+    digest actually resolves. A runtime validator must bind semantic_field_ref/digest to the
+    current canonical MarketSemanticFieldSpec/v1 before normalization is accepted.
   ambiguous_field_disposition: "EXCLUDE_FEATURE_AND_RECORD_UNRESOLVED_SEMANTICS"
   provider_native_rank_is_evidence_not_truth: true
   tie_break_policy_must_be_explicit_if_material: true
@@ -112,21 +132,27 @@ online_only_mode:
 observed_canary:
   provider: "Longbridge"
   market: "CN"
-  observed_at: "2026-09-10T23:20:04Z"
+  query_observed_at: "2026-09-10T23:20:04Z"
+  pit_identity_state: "UNVERIFIED"
+  market_data_as_of: null
+  market_session_date: null
   predicates:
     - "prevchg >= 3%"
     - "turnover_rate >= 3%"
   provider_reported_total: 150
-  status: "DISCOVERY_MECHANISM_OBSERVED"
+  status: "DISCOVERY_MECHANISM_OBSERVED_PIT_IDENTITY_UNVERIFIED"
   caveat: >-
-    This demonstrates online broad-scan feasibility only. It does not validate every
-    returned field's semantics and does not turn the 150 names into validated candidates
-    for capital allocation or trading.
+    This demonstrates online broad-scan feasibility only. The query observation time is not
+    treated as the underlying market-data point-in-time. The provider result did not bind an
+    independently verified trade/session date in this canary, so it cannot be replay truth.
+    It also does not validate every returned field's semantics and does not turn the 150 names
+    into validated candidates for capital allocation or trading.
 
 hard_boundaries:
   - "NO_REAL_TRADE"
   - "NO_ACCOUNT_FUNDS_ORDER_AUTHORITY"
   - "NO_SURVIVORSHIP_LAUNDERING"
   - "NO_LOOKAHEAD"
+  - "NO_REPLAY_USE_WHILE_PIT_IDENTITY_UNVERIFIED"
   - "NO_UNVERIFIED_FIELD_IN_RANKING"
   - "NO_COARSE_ONLINE_FLOW_AS_TRUE_TICK_MICROSTRUCTURE"
