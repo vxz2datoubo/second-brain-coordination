@@ -34,6 +34,10 @@ ACTIVE_TASK_FILES = [
     "coordination/ACTIVE-WORKBUDDY-TASK.yaml",
 ]
 
+# 本引擎是 WorkBuddy 本地执行器，只执行分配给 WORKBUDDY 的任务。
+# Codex 任务（如 R193）由 Codex 侧执行，引擎发现后跳过。
+ENGINE_AGENT = "WORKBUDDY"
+
 # 租约/碰撞单写者键：同一任务真源只允许一个本地进程持有执行权。
 STATE_DIR_NAME = ".autopilot-state"
 CLAIM_FILE = "claims.json"
@@ -158,7 +162,11 @@ class AutopilotEngine:
             except yaml.YAMLError as e:
                 self.log(f"discover: cannot parse {rel}: {e}")
                 continue
-            tasks.append(self._to_view(data, rel))
+            view = self._to_view(data, rel)
+            if view.agent != ENGINE_AGENT:
+                self.log(f"discover: skip {view.task_id} (agent={view.agent}, engine={ENGINE_AGENT})")
+                continue
+            tasks.append(view)
         return tasks
 
     @staticmethod
@@ -226,8 +234,20 @@ class AutopilotEngine:
         actions: list[str] = []
         if self.cfg.executors_mechanical:
             actions += self.execute_mechanical(task)
-        if self.cfg.executors_headless:
-            actions.append("HEADLESS_DELEGATED")  # 实际调度见 executor 接口
+        # 批次执行：真正跑任务（验证类 + 实现类），产出 receipt
+        try:
+            from .executor import BatchExecutor
+            ex = BatchExecutor(self.cfg, self.log)
+            report = ex.run_batch(task)
+            if report is not None:
+                actions.append(f"BATCH:{report.batch_id}")
+                for item in report.items:
+                    actions.append(f"BATCH_ITEM:{item.item_id}:{item.status}")
+                if report.all_pass:
+                    ex.write_receipt(task, report)
+        except Exception as e:  # 执行器异常不能拖垮整轮
+            self.log(f"execute: batch executor error: {e}")
+            actions.append("BATCH_ERROR")
         return actions
 
     # ------------------------------------------------------------------
@@ -327,13 +347,8 @@ class AutopilotEngine:
             actions = self.execute(task)
             report.executed.append(task.task_id)
 
-            # 遇 gate（self-merge 锁 / merge 未授权 / 交易锁）→ checkpoint 继续下一个
-            if task.has_self_merge_lock or not task.merge_authorized:
-                report.gate_paused.append(task.task_id)
-                self.log(f"gate: {task.task_id} has merge/self-review lock, checkpoint and continue")
-                self.release_claim(task, "GATE_PAUSED")
-                continue
-
+            # 有 self-merge 锁 / merge 未授权的任务：照常执行 + 提交 + 建 PR，
+            # 但 merge 阶段会走 TIER2（不自动 merge，交给独立 review）。
             if not self.verify():
                 report.blocked.append(task.task_id)
                 self.release_claim(task, "VERIFY_FAILED")
