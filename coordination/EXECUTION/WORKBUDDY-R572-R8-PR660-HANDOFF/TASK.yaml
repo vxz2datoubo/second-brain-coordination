@@ -1,0 +1,53 @@
+schema_version: "1.0"
+task_id: "WORKBUDDY-R572-R8-PR660-REMEDIATION"
+project: "SECOND_BRAIN"
+repository: "vxz2datoubo/second-brain-coordination"
+source_issue: 572
+handoff_issue: 667
+pull_request: 660
+status: "READY_PENDING_CANONICAL_HANDOFF"
+execution_allowed_after_canonical_registration: true
+executor: "WORKBUDDY"
+carrier_profile: "DEEP_ENGINEERING"
+planning_mode: true
+reasoning_level: "HIGH_WHEN_EXPOSED"
+model_selection:
+  preferred_affinity: "Deepseek-V4-Pro"
+  peer_alternative: "GLM-5.3"
+  runtime_refresh_required: true
+  frontier_allowed: false
+source_checkpoint:
+  source_branch: "gpt/r572-r8-worker-slots-compat-remediation-20260909"
+  exact_head: "c29cea2e38b13dccfbe5af05ae83e993435c7db6"
+implementation_branch: "workbuddy/r572-r8-pr660-remediation"
+branch_creation_rule: "CREATE_ONLY_AFTER_HANDOFF_GOVERNANCE_IS_CANONICAL_AND_PR660_SOURCE_CHECKPOINT_STILL_MATCHES"
+collision_domain_semantics: "EXACT_AUTHORIZED_WRITESET"
+write_surface:
+  - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R7.yaml"
+  - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-TERMINAL-TOMBSTONES.yaml"
+  - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R8.yaml"
+  - "coordination/CONTROL-TOWER/worker_slots.py"
+  - "coordination/CONTROL-TOWER/tests/test_worker_slots_r8_compat.py"
+  - "coordination/CONTROL-TOWER/R572-R8-WORKER-SLOTS-COMPATIBILITY-RECEIPT.yaml"
+forbidden:
+  - "ANY_SEVENTH_IMPLEMENTATION_PATH"
+  - "coordination/CONTROL-TOWER/worker_lifecycle.py"
+  - "ACTIVE_PROJECTION_MUTATION"
+  - "REAL_CAPTURE"
+  - "OPERATIONAL_W3_WRITE"
+  - "R184_LOCAL_BRIDGE_ACTIVATION"
+  - "TRADING_OR_RUNTIME_AUTHORITY"
+  - "DIRECT_MAIN_WRITE"
+  - "SELF_REVIEW"
+  - "SELF_MERGE"
+objective: >-
+  Continue PR #660 R8 difficult remediation from the frozen exact source checkpoint. WorkBuddy must first reproduce
+  the Program Control Tower candidate regression, then make the minimum six-file-bounded repair, run focused tests,
+  freeze a new exact head, and return evidence to GPT Architecture Owner. GPT may then fast-forward PR #660's existing
+  source branch to the WorkBuddy-produced exact head without rewriting content and route independent review.
+completion_signal: "WORKBUDDY_R572_R8_PR660_REMEDIATION_COMPLETE"
+return_target: "GPT_ARCHITECTURE_OWNER"
+owner_authorization:
+  text: "授权 WB 接力 #660 R8 remediation，保持现有六文件 scope。"
+  handoff_issue: 667
+  comment: 5614462912

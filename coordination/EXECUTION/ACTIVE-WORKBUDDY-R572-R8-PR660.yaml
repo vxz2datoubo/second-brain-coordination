@@ -1,0 +1,72 @@
+schema_version: "4.6"
+router_protocol: "coordination/WORKBUDDY-TASK-ROUTER.md"
+task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
+registry_protocol: "coordination/EXECUTION/ACTIVE-TASK-INDEX-REGISTRY.json"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "WORKBUDDY"
+trigger_phrases: ["读取R572R8任务", "执行R572R8任务", "开始R572R8任务", "读取#667任务", "读取#660任务"]
+active_issue: 667
+source_issue: 572
+pull_request: 660
+task_id: "WORKBUDDY-R572-R8-PR660-REMEDIATION"
+route_epoch: 5728
+mode: "deep_engineering_existing_pr_clean_successor_remediation"
+mode_label: "R572 R8 PR #660 WorkBuddy clean-successor remediation"
+status: "READY"
+execution_allowed: true
+active: true
+blocked_by: null
+automatic_resume: true
+automatic_resume_within_task: true
+automatic_resume_within_batch: true
+second_user_start_command_required: false
+canonical_route: "coordination/ROUTES/WORKBUDDY-R572-R8-PR660-HANDOFF.yaml"
+task_brief: "coordination/EXECUTION/WORKBUDDY-R572-R8-PR660-HANDOFF/TASK.yaml"
+work_claim: "coordination/EXECUTION/WORKBUDDY-R572-R8-PR660-HANDOFF/WORK-CLAIM.yaml"
+task_lease: "coordination/EXECUTION/WORKBUDDY-R572-R8-PR660-HANDOFF/TASK-LEASE.yaml"
+executor_reservation: "coordination/EXECUTION/WORKBUDDY-R572-R8-PR660-HANDOFF/EXECUTOR-RESERVATION.yaml"
+prewrite_snapshot: "coordination/EXECUTION/WORKBUDDY-R572-R8-PR660-HANDOFF/PREWRITE-RECONCILIATION-SNAPSHOT.yaml"
+executable_batch: "coordination/EXECUTION/WORKBUDDY-R572-R8-PR660-HANDOFF/EXECUTABLE-BATCH.json"
+source_checkpoint:
+  branch: "gpt/r572-r8-worker-slots-compat-remediation-20260909"
+  checkpoint_remote_ref: "refs/heads/gpt/r572-r8-worker-slots-compat-remediation-20260909"
+  exact_head: "c29cea2e38b13dccfbe5af05ae83e993435c7db6"
+  baseline: "c29cea2e38b13dccfbe5af05ae83e993435c7db6"
+implementation_branch: "workbuddy/r572-r8-pr660-remediation"
+fixed_order: ["WB-R8-V1", "WB-R8-S1", "WB-R8-S2"]
+continue_without_user_message: true
+intermediate_gpt_audit_required: false
+return_target: "GPT_ARCHITECTURE_OWNER"
+completion_signal: "WORKBUDDY_R572_R8_PR660_REMEDIATION_COMPLETE"
+model_profile: "DEEP_ENGINEERING"
+preferred_model_affinity: "Deepseek-V4-Pro"
+peer_model: "GLM-5.3"
+model_availability_recheck_required: true
+planning_mode: true
+reasoning_level: "HIGH_WHEN_EXPOSED"
+authorized_paths:
+  - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R7.yaml"
+  - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-TERMINAL-TOMBSTONES.yaml"
+  - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R8.yaml"
+  - "coordination/CONTROL-TOWER/worker_slots.py"
+  - "coordination/CONTROL-TOWER/tests/test_worker_slots_r8_compat.py"
+  - "coordination/CONTROL-TOWER/R572-R8-WORKER-SLOTS-COMPATIBILITY-RECEIPT.yaml"
+hard_boundaries:
+  - "NO_SEVENTH_IMPLEMENTATION_PATH"
+  - "NO_WORKER_LIFECYCLE_PY_WRITE"
+  - "NO_ACTIVE_PROJECTION_MUTATION"
+  - "NO_REAL_CAPTURE"
+  - "NO_OPERATIONAL_W3_WRITE"
+  - "NO_R184_LOCAL_BRIDGE_START"
+  - "NO_TRADING_OR_RUNTIME_AUTHORITY"
+  - "NO_DIRECT_MAIN_WRITE"
+  - "NO_SELF_REVIEW"
+  - "NO_SELF_MERGE"
+  - "NO_FORCE_PUSH_REBASE_RESET_AMEND_HISTORY_REWRITE"
+read_behavior:
+  on_read_task: "SELECT_THIS_EXPLICIT_REGISTERED_INDEX_THEN_RUN_REGISTRY_WIDE_FRESH_CONFLICT_ADMISSION"
+  legacy_default_fallback_forbidden: true
+  arbitrary_issue_or_comment_as_execution_authority: false
+after_read: "BEGIN_WB_R8_V1_AND_CONTINUE_FIXED_BATCH_WITHOUT_SECOND_USER_COMMAND"
+updated_by: "GPT_ARCHITECTURE_OWNER"
+updated_at: "2026-09-10T01:34:00-05:00"
