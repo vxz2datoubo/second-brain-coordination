@@ -96,18 +96,30 @@ providers:
     display_name: "TinyFish"
     transport_class: "CHATGPT_PLUGIN"
     current_role: "WEB_EVENT_ACQUISITION_PORT"
-    observation_class: "UNKNOWN"
+    observation_class: "CONNECTED_ONLINE_RUNTIME_PARTIAL"
     local_runtime_verified: false
     production_server_api_verified: false
     capabilities:
-      browser_interaction:
-        state: "CONNECTED_TOOL_AVAILABLE_DOMAIN_COVERAGE_NOT_YET_VERIFIED"
-        note: "Useful for official/public web evidence acquisition; no A-share-specific runtime acceptance is minted by this registry."
+      official_a_share_source_discovery:
+        state: "OBSERVED"
+        evidence:
+          - "Domain-restricted search on cninfo.com.cn for 昆仑万维 300418 公告 returned official CNINFO/static CNINFO filings."
+          - "Observed examples include 2026 Q1 report, 2025 annual performance forecast, investor-relations record, and 2026 restricted-stock incentive plan."
+          - "Search result identity preserved security code 300418, filing titles, dates and official static.cninfo.com.cn URLs."
+      official_pdf_fetch:
+        state: "PARTIAL"
+        evidence:
+          - "fetch_content reached the discovered official 2026 Q1 PDF URL and preserved final URL identity"
+        limitation: "The canary did not establish reliable extracted filing text from that PDF response, so full-document content acquisition remains unverified."
+      interactive_browser_workflows:
+        state: "NOT_REQUIRED_FOR_FIRST_SLICE"
+        note: "Use only when public-source acquisition requires page interaction beyond search/fetch."
     invalidation_conditions:
       - "plugin disconnected"
       - "target website blocks automation"
       - "login/session unavailable"
       - "page evidence cannot be timestamped/provenanced"
+      - "official-source URL identity cannot be preserved"
 
   - provider_id: "GITHUB_CONNECTED"
     display_name: "GitHub"
