@@ -1,0 +1,54 @@
+# Autopilot 配置样例 —— 复制为 config.yaml 后按需修改。
+# 所有字段都有安全默认值，未写出的字段自动回退到 tools/autopilot/config.py 的默认。
+
+repo: vxz2datoubo/second-brain-coordination
+default_branch: main
+
+# SLEEP_AUTONOMY = 睡觉自动运行（Owner 问题数为 0，遇 gate 就 checkpoint 继续其他）
+# WRAP_UP         = 开始收尾（不开新 mission，完成当前 bounded step 后安全暂停）
+mode: SLEEP_AUTONOMY
+
+# 单次全自动运行的最长时长（小时）。你睡 8 小时就填 8。
+max_duration_hours: 8
+
+# 每轮循环之间的轮询间隔（秒）
+poll_interval_seconds: 120
+
+executors:
+  # 机械治理：同步/发现/租约/控制塔校验/测试/提交/推送（确定性，可全自动）
+  mechanical: true
+  # headless：真实工程实现（写代码/解任务），调度外部 headless agent
+  headless: false
+  headless_model_profile: DEEP_ENGINEERING
+
+# 双模型交叉验证：主执行用强模型，验算用快模型独立跑（codex review -m <model>）
+verification:
+  enabled: false        # false=睡醒后手动 CLI 验算；true=引擎每轮 verify 后自动追加独立 review
+  model: v4.1-flash     # 快模型用于验算
+  mode: codex_review    # 落地方式：codex review -m <model>
+
+auto_merge:
+  # Tier1：机械低风险 PR（closeout/收据/快照/路由翻转），CI 绿 + exact-head + 白名单后自动 merge
+  tier1_enabled: true
+  # Tier2：实质代码/架构/交易变更，保持独立 review（author != reviewer != canonicalizer）
+  tier2_enabled: false
+  tier1_path_globs:
+    - "coordination/CONTROL-TOWER/**"
+    - "coordination/ROUTES/**"
+    - "coordination/RESULTS/**"
+    - "coordination/PROGRAMS/**/*CLOSEOUT*"
+    - "coordination/PROGRAMS/**/*RECEIPT*"
+    - "coordination/PROGRAMS/**/POST-MERGE-*/**"
+    - ".autopilot-state/**"
+  tier1_forbidden_terms:
+    - trade
+    - order
+    - fund
+    - secret
+    - production
+    - credential
+    - password
+    - token
+    - private
+
+collision_domains: []
