@@ -1,0 +1,184 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "OnlineTradingEvidencePacket/v1",
+  "title": "OnlineTradingEvidencePacket/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "packet_id",
+    "project_id",
+    "mode",
+    "created_at",
+    "as_of",
+    "runtime_identity",
+    "provider_observations",
+    "normalized_market_facts",
+    "unresolved_semantics",
+    "candidate_funnel_state",
+    "data_divergences",
+    "capability_gaps",
+    "source_refs",
+    "authority_boundary"
+  ],
+  "properties": {
+    "packet_id": {"type": "string", "minLength": 1},
+    "project_id": {"const": "TRADING_SYSTEM"},
+    "mode": {"const": "ONLINE_GPT_READ_ONLY"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "as_of": {"type": "string", "format": "date-time"},
+    "runtime_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["carrier", "github_main_sha", "source_issue", "local_deep_provider_available"],
+      "properties": {
+        "carrier": {"const": "GPT_DIRECT_ONLINE"},
+        "github_main_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "source_issue": {"type": "integer", "const": 690},
+        "local_deep_provider_available": {"type": "boolean"}
+      }
+    },
+    "provider_observations": {
+      "type": "array",
+      "items": {"type": "object"}
+    },
+    "normalized_market_facts": {
+      "description": "Only producer-attested, semantically verified facts may enter this array. Referential verification of semantic_field_ref/digest against canonical MarketSemanticFieldSpec/v1 remains a runtime validator responsibility; JSON Schema cannot dereference GitHub/W2 state by itself.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "fact_id",
+          "subject",
+          "field",
+          "value",
+          "semantic_field_ref",
+          "semantic_field_digest",
+          "semantic_verification_state",
+          "unit_semantics_state",
+          "ambiguity_flags",
+          "source_observation_ref",
+          "provider",
+          "source_timestamp",
+          "observed_at"
+        ],
+        "properties": {
+          "fact_id": {"type": "string", "minLength": 1},
+          "subject": {"type": "string", "minLength": 1},
+          "field": {"type": "string", "minLength": 1},
+          "value": {},
+          "semantic_field_ref": {"type": "string", "minLength": 1},
+          "semantic_field_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "semantic_verification_state": {"const": "VERIFIED"},
+          "unit_semantics_state": {"const": "RESOLVED"},
+          "ambiguity_flags": {"type": "array", "maxItems": 0},
+          "source_observation_ref": {"type": "string", "minLength": 1},
+          "provider": {"type": "string", "minLength": 1},
+          "source_timestamp": {"type": ["string", "null"], "format": "date-time"},
+          "observed_at": {"type": "string", "format": "date-time"}
+        }
+      }
+    },
+    "unresolved_semantics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["provider", "field", "reason", "disposition"],
+        "properties": {
+          "provider": {"type": "string", "minLength": 1},
+          "field": {"type": "string", "minLength": 1},
+          "reason": {"type": "string", "minLength": 1},
+          "disposition": {"enum": ["UNVERIFIED", "AMBIGUOUS_SEMANTICS", "ENTITLEMENT_UNVERIFIED", "EXCLUDED_FROM_CANONICAL_USE"]}
+        }
+      }
+    },
+    "candidate_funnel_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "executed",
+        "provider",
+        "query_predicates",
+        "as_of",
+        "pit_identity_state",
+        "market_data_as_of",
+        "market_session_date",
+        "coverage_state",
+        "candidate_symbols"
+      ],
+      "properties": {
+        "executed": {"type": "boolean"},
+        "provider": {"type": ["string", "null"]},
+        "query_predicates": {"type": "array", "items": {"type": "string"}},
+        "as_of": {"type": ["string", "null"], "format": "date-time"},
+        "pit_identity_state": {"enum": ["VERIFIED", "UNVERIFIED", "NOT_APPLICABLE"]},
+        "market_data_as_of": {"type": ["string", "null"], "format": "date-time"},
+        "market_session_date": {"type": ["string", "null"], "format": "date"},
+        "total_result_count": {"type": ["integer", "null"], "minimum": 0},
+        "coverage_state": {"enum": ["FULL_REPORTED_COVERAGE", "PARTIAL", "UNKNOWN", "NOT_RUN"]},
+        "candidate_symbols": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "pagination_or_throttling_notes": {"type": "array", "items": {"type": "string"}}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"pit_identity_state": {"const": "VERIFIED"}}, "required": ["pit_identity_state"]},
+          "then": {
+            "properties": {
+              "market_data_as_of": {"type": "string", "format": "date-time"},
+              "market_session_date": {"type": "string", "format": "date"}
+            }
+          }
+        }
+      ]
+    },
+    "data_divergences": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["subject", "field", "sources", "disposition"],
+        "properties": {
+          "subject": {"type": "string", "minLength": 1},
+          "field": {"type": "string", "minLength": 1},
+          "sources": {"type": "array", "minItems": 2, "items": {"type": "string", "minLength": 1}},
+          "disposition": {"const": "DATA_DIVERGENCE"},
+          "notes": {"type": "string"}
+        }
+      }
+    },
+    "capability_gaps": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "TRUE_L2_DEPTH_HISTORY",
+          "TICK_RECONSTRUCTED_DELTA",
+          "CVD",
+          "ABSORPTION",
+          "FOOTPRINT",
+          "EXCHANGE_QUEUE_MICROSTRUCTURE",
+          "LOCAL_PROVIDER_NOT_AVAILABLE",
+          "OTHER"
+        ]
+      }
+    },
+    "source_refs": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "authority_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["read_market_data", "place_order", "account_authority", "funds_authority"],
+      "properties": {
+        "read_market_data": {"const": true},
+        "place_order": {"const": false},
+        "account_authority": {"const": false},
+        "funds_authority": {"const": false}
+      }
+    }
+  }
+}
