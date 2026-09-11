@@ -1,0 +1,39 @@
+schema: WORK_CLAIM/v1
+project: SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001
+project_alias: TRADING_SYSTEM
+task_id: CODEX-DS10-UPSTREAM-EVIDENCE-BINDING-R195
+route_epoch: 195
+source_issue: 689
+executor: CODEX_STANDARD
+worker_slot_id: CODEX-R195-DS10-UPSTREAM-EVIDENCE-BINDING-1
+implementation_baseline: 2d8421cbd4d599e56321306a023c499b65eba05a
+snapshot_base: 2d8421cbd4d599e56321306a023c499b65eba05a
+branch: codex/r195-ds10-upstream-evidence-binding
+branch_head_at_activation: NOT_CREATED
+effective_spec_snapshot_id: TRADING-DS10-UPSTREAM-EVIDENCE-BINDING-ISSUE689-001
+effective_spec_snapshot_ref: issuecomment-5626752829
+claim_state: ACTIVE_CLAIMED
+execution_allowed: true
+single_writer_surface:
+  primary:
+  - W4_VERIFIED_PERFORMANCE_EVIDENCE
+  - P0A_VERIFIED_RESEARCH_INTEGRITY_EVALUATION_RECORD
+  conditional:
+  - P0B_SOURCE_PIN_COMPATIBILITY_ONLY_IF_REQUIRED
+  excludes:
+  - DS10_PBO_CSCV_P0C_WRITE
+  - MARKET_DATA_ADAPTER_AUTHORITY
+  - PIT_REPLAY_ENGINE_AUTHORITY
+  - ORDER_EXECUTION_AUTHORITY
+  - ACCOUNT_BROKER_FUNDS_POSITION_ORDER_AUTHORITY
+  - W7_VALIDATION_AUTHORITY
+  - PROBABILITY_REGISTRY_AUTHORITY
+parallel_fences:
+  R193_PR678: PRESERVE_FROZEN_EXACT_HEAD_NO_MUTATION
+  R181_PR549: PRESERVE_PRIORITY_PARK_CHECKPOINT
+path_fence: EXACT_R195_ALLOWLIST_ONLY
+execution_environment:
+  fresh_task_owned_standalone_clone_required: true
+project_completion_asserted: false
+independent_accept_asserted: false
+canonicalization_asserted: false

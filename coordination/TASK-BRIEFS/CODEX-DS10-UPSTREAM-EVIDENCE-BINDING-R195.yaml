@@ -1,0 +1,54 @@
+schema: TASK_BRIEF/v1
+task_id: CODEX-DS10-UPSTREAM-EVIDENCE-BINDING-R195
+route_epoch: 195
+project: SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001
+project_alias: TRADING_SYSTEM
+source_issue: 689
+parent_program_issue: 31
+executor: CODEX_STANDARD
+boundary: RESEARCH_ONLY / NO_TRADE
+canonical_main_at_prepare: 2d8421cbd4d599e56321306a023c499b65eba05a
+objective: 'Close the two PR #678 trust-root blockers by adding canonical W4 performance-evidence verification and
+  P0A evaluation-record verification without duplicating truth, then preserve P0B compatibility if W4 source pins
+  move.'
+ordered_mission:
+- Fresh trusted-main read and collision preflight
+- Extend W4 canonical read surface with ExperimentFamilyPerformanceEvidence/v1 producer/verifier using governed
+  synthetic evidence first
+- Add P0A ResearchIntegrityEvaluationRecord/v1 producer/verifier that re-reads canonical inputs and reruns evaluator
+- Preserve distinct W4 and DS10 snapshot digests with explicit mapping
+- Update P0B source pins/loading only if mechanically necessary and run regression
+- Run authenticity/PIT adversarial tests and exact-scope tests
+- Freeze exact head for independent review
+acceptance:
+- Caller-recomputed hashes cannot mint authenticity
+- Matrix mutation/reorder/deletion/substitution fails mechanically
+- Legacy v1 is not silently promoted
+- PIT/revision/metric/cost/evidence-ref laundering fails closed
+- Real verifier-produced synthetic integration succeeds
+- P0A authenticity is distinct from disposition
+- P0B compatibility remains explicit
+- No second ledger/store/truth plane
+- No W7/probability/risk/position/order/trade authority
+allowed_write_surface:
+- .github/workflows/ds10-upstream-evidence-binding-r195.yml
+- coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W4-STRATEGY-EXPERIMENT-FAMILY-P0/src/w4_experiment_family/read_binding.py
+- coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W4-STRATEGY-EXPERIMENT-FAMILY-P0/src/w4_experiment_family/registry.py
+- coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W4-STRATEGY-EXPERIMENT-FAMILY-P0/EXPERIMENT-FAMILY-PERFORMANCE-EVIDENCE.schema.json
+- coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W4-STRATEGY-EXPERIMENT-FAMILY-P0/fixtures/performance-evidence.synthetic.json
+- coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W4-STRATEGY-EXPERIMENT-FAMILY-P0/tests/test_experiment_family.py
+- tests/test_w4_canonical_experiment_family_read_binding.py
+- coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/src/offline_research/research_integrity.py
+- coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/RESEARCH-INTEGRITY-EVALUATION-RECORD.schema.json
+- coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/fixtures/research-integrity-evaluation-record.synthetic.json
+- coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/tests/test_research_integrity.py
+- coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-DEFLATED-SHARPE-P0B/src/offline_research/deflated_sharpe.py
+- coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-DEFLATED-SHARPE-P0B/tests/test_deflated_sharpe.py
+- coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-DS10-UPSTREAM-EVIDENCE-BINDING-R195/**
+forbidden_write_surface:
+- coordination/ACTIVE-CODEX-TASK.yaml
+- coordination/ACTIVE-PROGRAM-LANES.yaml
+- coordination/ROUTES/**
+- coordination/TASK-BRIEFS/**
+- coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-PBO-CSCV-P0C/**
+completion_signal: DS10_UPSTREAM_EVIDENCE_BINDING_READY_FOR_INDEPENDENT_REVIEW

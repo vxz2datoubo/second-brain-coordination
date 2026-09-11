@@ -6,8 +6,8 @@ route_epoch: 193
 source_issue: 562
 executor: CODEX_STANDARD
 worker_slot_id: CODEX-R193-DS10-P0C-PBO-CSCV-1
-reservation_state: ACTIVE_RESERVED
-execution_allowed: true
+reservation_state: RELEASED_DEPENDENCY_PARK_NOT_COMPLETE
+execution_allowed: false
 implementation_baseline: edd852a93b89a40b1ef41189c3433cc2f213aaae
 snapshot_base: edd852a93b89a40b1ef41189c3433cc2f213aaae
 branch: codex/r193-ds10-p0c-pbo-cscv
@@ -15,27 +15,32 @@ branch_head_at_activation: NOT_CREATED
 effective_spec_snapshot_id: TRADING-CODEX-R193-ISSUE562-SNAPSHOT-001
 effective_spec_snapshot_ref: issue-562-body
 reserved_surface:
-  - ds10_p0c_pbo_cscv_reference_module
-  - reproduce_bailey_borwein_lopez_de_prado_zhu_cscv_pbo
-  - consume_canonical_p0a_w4_trial_family_chain
+- ds10_p0c_pbo_cscv_reference_module
+- reproduce_bailey_borwein_lopez_de_prado_zhu_cscv_pbo
+- consume_canonical_p0a_w4_trial_family_chain
 excluded_surface:
-  - w4_strategy_experiment_write
-  - strategy_experiment_registry_write
-  - ds10_research_integrity_write
-  - ds10_deflated_sharpe_p0b_write
-  - market_data_adapter
-  - pit_replay_engine
-  - order_execution_authority
-  - account_broker_funds_position_order
-  - probability_registry
-  - w7_validation_authority
-  - backtest_authority
-  - gpt_worker_r8_remediation_surface
-  - codex_r181_parked_checkpoint
-  - ds10_p0d_issue_563
+- w4_strategy_experiment_write
+- strategy_experiment_registry_write
+- ds10_research_integrity_write
+- ds10_deflated_sharpe_p0b_write
+- market_data_adapter
+- pit_replay_engine
+- order_execution_authority
+- account_broker_funds_position_order
+- probability_registry
+- w7_validation_authority
+- backtest_authority
+- gpt_worker_r8_remediation_surface
+- codex_r181_parked_checkpoint
+- ds10_p0d_issue_563
 execution_environment:
   fresh_task_owned_standalone_clone_required: true
 model_policy: RUNTIME_DISCOVER_ACTUAL_CODEX_MODEL_NO_FRONTIER_NO_ASTRA
 project_completion_asserted: false
 independent_accept_asserted: false
 canonicalization_asserted: false
+preserved_exact_head: 170381b1d59a0690f0c3f4bf0fce4d7139ecb35e
+implementation_pr: 678
+release_reason: UPSTREAM_EVIDENCE_AUTHENTICITY_DEPENDENCY
+release_requirement_ref: issuecomment-5626752829
+resume_requires_new_fresh_route_claim_and_lease: true

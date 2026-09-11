@@ -1,0 +1,41 @@
+schema: EFFECTIVE_SPEC_SNAPSHOT/v1
+spec_snapshot_id: TRADING-DS10-UPSTREAM-EVIDENCE-BINDING-ISSUE689-001
+task_id: CODEX-DS10-UPSTREAM-EVIDENCE-BINDING-R195
+route_epoch: 195
+source_issue: 689
+project: SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001
+project_alias: TRADING_SYSTEM
+executor: CODEX_STANDARD
+canonical_main_at_reconcile: 2d8421cbd4d599e56321306a023c499b65eba05a
+owner_direction_ref: issuecomment-5627167059
+architecture_decision_ref: issuecomment-5626752829
+reconciled_contract:
+  w4: Extend existing canonical family/read-binding with ExperimentFamilyPerformanceEvidence/v1; no second ledger/store.
+  p0a: Add ResearchIntegrityEvaluationRecord/v1 verifier that re-reads canonical inputs, re-verifies W4, reruns
+    evaluator, and separates authenticity from disposition.
+  snapshot_mapping: Preserve W4 family_snapshot_digest and DS10/P0A w4_snapshot_digest as distinct verified objects.
+  pit: Matrix provenance covers all selection-affecting trial/observation dependencies and data revisions.
+  p0b: Change source pins/loading only if mechanically required and regression-test compatibility.
+  p0c: 'PR #678 remains frozen until this upstream route is canonical.'
+capacity:
+  codex_active_execution_routes_max: 1
+  r193_dependency_park_and_r195_activation_atomic: true
+  codex_active_routes_after_admission: 1
+executor_model_verification:
+  policy: RUNTIME_DISCOVER_ACTUAL_CODEX_STANDARD_MODEL
+  reasoning: high
+  plan_first: true
+  frontier_default: false
+hard_locks:
+- NO_REAL_TRADE
+- NO_ACCOUNT_BROKER_FUNDS_POSITION_ORDER
+- NO_SECOND_STORE_OR_LEDGER
+- NO_P0C_PR678_MUTATION
+- NO_W7_OR_PROBABILITY_AUTHORITY
+- NO_SELF_REVIEW_SELF_ACCEPT_SELF_MERGE
+- NO_DIRECT_MAIN_WRITE
+- NO_DS10_P0D_563_START
+non_assertions:
+- no real-market evidence closure
+- no P0C blocker closure until downstream new head
+- no canonical project completion
