@@ -11,6 +11,7 @@ from enum import Enum
 from hashlib import sha256
 import json
 import re
+import unicodedata
 from typing import Any, Iterable
 
 from coordination.EXECUTION import canonical_write_paths as write_paths
@@ -139,10 +140,15 @@ class ExecutionRequest:
         except write_paths.CanonicalWritePathError as exc:
             raise ValueError(f"non-canonical write surface: {exc}") from exc
         object.__setattr__(self, "write_surfaces", canonical_surfaces)
+        if not self.repo_write and canonical_surfaces:
+            raise ValueError("repo_write=False requests cannot declare mutable write surfaces")
 
     @property
     def idempotency_key(self) -> str:
-        raw = f"{self.task_id}\0{self.route_epoch}\0{self.episode_id}\0{self.attempt}"
+        raw = (
+            f"{self.project_id}\0{self.task_id}\0{self.route_epoch}\0"
+            f"{self.episode_id}\0{self.attempt}"
+        )
         return sha256(raw.encode("utf-8")).hexdigest()
 
     @property
@@ -164,11 +170,31 @@ class ExecutionRequest:
     def broker_key(self) -> str:
         return "HX" + self.execution_identity[:16].upper()
 
+    @staticmethod
+    def _windows_conflict_key(value: str, *, path_like: bool) -> str:
+        normalized = unicodedata.normalize("NFC", value.strip())
+        if path_like:
+            normalized = normalized.replace("\\", "/")
+            while "//" in normalized:
+                normalized = normalized.replace("//", "/")
+            normalized = normalized.rstrip("/")
+        if not normalized:
+            raise ValueError("resource conflict identity must be non-empty")
+        return normalized.casefold()
+
     def all_claims(self) -> tuple[ResourceClaim, ...]:
         mode = ResourceMode.WRITE if self.repo_write else ResourceMode.READ
         implicit = [
-            ResourceClaim(ResourceType.BRANCH, self.branch, mode),
-            ResourceClaim(ResourceType.WORKTREE, self.worktree, mode),
+            ResourceClaim(
+                ResourceType.BRANCH,
+                self._windows_conflict_key(self.branch, path_like=False),
+                mode,
+            ),
+            ResourceClaim(
+                ResourceType.WORKTREE,
+                self._windows_conflict_key(self.worktree, path_like=True),
+                mode,
+            ),
             ResourceClaim(ResourceType.COLLISION_DOMAIN, self.collision_domain, mode),
         ]
         if self.repo_write:

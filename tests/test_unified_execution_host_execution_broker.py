@@ -30,6 +30,7 @@ AUTH = "sha256:" + "a" * 64
 def request(
     *,
     task_id: str,
+    project_id: str = "SECOND_BRAIN",
     branch: str | None = None,
     worktree: str | None = None,
     collision_domain: str | None = None,
@@ -41,7 +42,7 @@ def request(
     episode_id: str | None = None,
 ) -> ExecutionRequest:
     return ExecutionRequest(
-        project_id="SECOND_BRAIN",
+        project_id=project_id,
         task_id=task_id,
         route_epoch=310,
         mission_id=f"mission-{task_id}",
@@ -153,10 +154,10 @@ class HostExecutionBrokerTests(unittest.TestCase):
         clock = Clock()
         broker = HostExecutionBroker(self.db(), lease_ttl_ms=1000, clock=clock)
         first = broker.admit(request(task_id="old", worktree="F:/shared/wt"))
-        old = lease_for(first, ResourceType.WORKTREE, "F:/shared/wt")
+        old = lease_for(first, ResourceType.WORKTREE, "f:/shared/wt")
         clock.advance_ms(1100)
         second = broker.admit(request(task_id="new", worktree="F:/shared/wt"))
-        new = lease_for(second, ResourceType.WORKTREE, "F:/shared/wt")
+        new = lease_for(second, ResourceType.WORKTREE, "f:/shared/wt")
         self.assertEqual(second.outcome, DecisionOutcome.ADMIT)
         self.assertEqual(new.generation, old.generation + 1)
         with self.assertRaises(FencingError):
@@ -295,6 +296,60 @@ class HostExecutionBrokerTests(unittest.TestCase):
     def test_durable_broker_rejects_process_local_memory_database(self):
         with self.assertRaises(ValueError):
             HostExecutionBroker(":memory:")
+
+
+    def test_windows_equivalent_worktree_paths_conflict(self):
+        broker = HostExecutionBroker(self.db())
+        first = request(task_id="wt-case-a", worktree="F:/Shared/WT/")
+        second = request(task_id="wt-case-b", worktree=r"f:\shared\wt")
+        self.assertEqual(broker.admit(first).outcome, DecisionOutcome.ADMIT)
+        self.assertEqual(broker.admit(second).outcome, DecisionOutcome.BLOCK_CONFLICT)
+
+    def test_windows_equivalent_branch_names_conflict(self):
+        broker = HostExecutionBroker(self.db())
+        first = request(task_id="branch-case-a", branch="GPT/Shared")
+        second = request(task_id="branch-case-b", branch="gpt/shared")
+        self.assertEqual(broker.admit(first).outcome, DecisionOutcome.ADMIT)
+        self.assertEqual(broker.admit(second).outcome, DecisionOutcome.BLOCK_CONFLICT)
+
+    def test_exact_parent_write_surface_conflicts_with_child(self):
+        broker = HostExecutionBroker(self.db())
+        first = request(task_id="parent", write_surfaces=("tools/x",))
+        second = request(task_id="child-exact", write_surfaces=("tools/x/a.py",))
+        self.assertEqual(broker.admit(first).outcome, DecisionOutcome.ADMIT)
+        self.assertEqual(broker.admit(second).outcome, DecisionOutcome.BLOCK_CONFLICT)
+
+    def test_cross_project_same_task_identity_does_not_join(self):
+        broker = HostExecutionBroker(self.db())
+        first = request(task_id="shared-id", project_id="SECOND_BRAIN")
+        second = request(task_id="shared-id", project_id="TRADING_SYSTEM")
+        self.assertEqual(broker.admit(first).outcome, DecisionOutcome.ADMIT)
+        self.assertEqual(broker.admit(second).outcome, DecisionOutcome.BLOCK_CONFLICT)
+        self.assertNotEqual(first.idempotency_key, second.idempotency_key)
+
+    def test_rollover_requires_durable_checkpoint_ref(self):
+        broker = HostExecutionBroker(self.db())
+        with self.assertRaises(ValueError):
+            broker.episode_budget(
+                turns_used=20, max_turns=20, mission_complete=False, checkpoint_ref=None
+            )
+
+    def test_read_only_request_cannot_declare_write_surface(self):
+        with self.assertRaises(ValueError):
+            request(
+                task_id="readonly-with-write-surface",
+                repo_write=False,
+                write_surfaces=("tools/x/**",),
+            )
+
+    def test_renewal_is_audited(self):
+        broker = HostExecutionBroker(self.db())
+        decision = broker.admit(request(task_id="renew-audit"))
+        binding = decision.leases[0]
+        renewed = broker.renew(binding)
+        self.assertGreaterEqual(renewed.expires_at_ms, binding.expires_at_ms)
+        history = broker.history(decision.execution_id)
+        self.assertIn("LEASE_RENEWED", [event["event_type"] for event in history["events"]])
 
 
 if __name__ == "__main__":

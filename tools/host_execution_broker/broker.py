@@ -80,9 +80,9 @@ def _write_surfaces_overlap(left: str, right: str) -> bool:
     rroot, rtree = write_paths.parse_write_pattern(right)
     if lroot == rroot:
         return True
-    if ltree and rroot.startswith(lroot + "/"):
+    if rroot.startswith(lroot + "/"):
         return True
-    if rtree and lroot.startswith(rroot + "/"):
+    if lroot.startswith(rroot + "/"):
         return True
     return False
 
@@ -251,10 +251,10 @@ class HostExecutionBroker:
         self._expire_stale_leases(con)
         return con.execute(
             """SELECT * FROM executions
-               WHERE task_id=? AND route_epoch=? AND episode_id=?
+               WHERE project_id=? AND task_id=? AND route_epoch=? AND episode_id=?
                  AND status IN ('ADMITTED','RUNNING','CHECKPOINTING','RESUMING')
                ORDER BY created_at_ms DESC LIMIT 1""",
-            (request.task_id, request.route_epoch, request.episode_id),
+            (request.project_id, request.task_id, request.route_epoch, request.episode_id),
         ).fetchone()
 
     def _active_leases(
@@ -518,6 +518,12 @@ class HostExecutionBroker:
                 "UPDATE resource_leases SET expires_at_ms=? WHERE lease_id=?",
                 (expires_at, binding.lease_id),
             )
+            self._event(
+                con,
+                binding.execution_id,
+                "LEASE_RENEWED",
+                {"lease_id": binding.lease_id, "expires_at_ms": expires_at},
+            )
             con.execute("COMMIT")
             return LeaseBinding(
                 lease_id=binding.lease_id,
@@ -708,6 +714,10 @@ class HostExecutionBroker:
             return EpisodeBudgetDecision(
                 EpisodeBudgetOutcome.CONTINUE_EPISODE, False, False, checkpoint_ref
             )
+        if not checkpoint_ref:
+            raise ValueError(
+                "checkpoint_ref is required before rolling to a successor episode"
+            )
         return EpisodeBudgetDecision(
             EpisodeBudgetOutcome.CHECKPOINT_AND_SUCCESSOR,
             True,
@@ -718,6 +728,7 @@ class HostExecutionBroker:
     def history(self, execution_id: str) -> dict[str, object]:
         """Return durable terminal/readback evidence after resource release."""
         with self._connection() as con:
+            con.execute("BEGIN")
             execution = con.execute(
                 "SELECT * FROM executions WHERE execution_id=?", (execution_id,)
             ).fetchone()
@@ -740,6 +751,7 @@ class HostExecutionBroker:
                     (execution_id,),
                 )
             )
+            con.execute("COMMIT")
         return {
             "execution": dict(execution) if execution is not None else None,
             "leases": [dict(row) for row in leases],
