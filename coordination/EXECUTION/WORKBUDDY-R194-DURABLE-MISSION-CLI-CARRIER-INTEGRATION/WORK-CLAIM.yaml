@@ -9,6 +9,7 @@ route_epoch: 194
 source_issue: 681
 active_issue: 681
 governance_issue: 682
+pull_request: null
 agent: "WORKBUDDY"
 executor: "WORKBUDDY_ENGINEERING_EXECUTOR"
 branch: "workbuddy/r194-durable-mission-cli-carrier"
@@ -24,6 +25,17 @@ execution_allowed_observed: true
 claim_state: "ACTIVE"
 claim_timestamp: "2026-09-10T16:30:00Z"
 canonical_route: "coordination/ROUTES/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION.yaml"
+dependencies:
+  - "fresh current main readback matches canonical release baseline f04c5ff4a83c35d60f27d44176f4f482c29895ea"
+  - "R175 legacy/default index remains registered and unchanged"
+  - "R184 explicit index remains registered and unchanged"
+  - "R572/R8/PR660 explicit index remains registered and unchanged"
+  - "registry-wide write-surface and branch conflict admission passes for all registered tasks"
+  - "independent review ACCEPT and separate canonicalization occur before WorkBuddy process start"
+  - "core DEEP_ENGINEERING model and deepseek-v4.1-flash runtime canary resolve fresh at dispatch"
+mode: "synthetic_disposable_real_cli_carrier_integration"
+task_brief: "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/TASK-BRIEF.yaml"
+task_impact_forecast: "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/TASK-BRIEF.yaml"
 authorized_paths:
   - "tools/durable_mission_kernel/**"
   - "tests/durable_mission_kernel/**"
@@ -44,6 +56,7 @@ hard_boundaries:
   - "NO_R175_MUTATION"
   - "NO_R184_MUTATION"
   - "NO_FORCE_PUSH_REBASE_RESET_AMEND_HISTORY_REWRITE"
+read_claim_execute_protocol: "coordination/GOVERNANCE/AGENT-READ-TASK-CLAIM-AND-EXECUTE-COMMAND-SEMANTICS-v1.0.yaml"
 authority_grants:
   - "EXECUTE_TASK"
   - "WRITE_AUTHORIZED_PATHS"

@@ -41,6 +41,26 @@ active_peers:
     project: "TRADING_SYSTEM"
     executor: "CODEX_STANDARD"
     implementation_write_surface_disjoint: true
+  r572:
+    ref: "coordination/EXECUTION/ACTIVE-WORKBUDDY-R572-R8-PR660.yaml"
+    task_id: "WORKBUDDY-R572-R8-PR660-REMEDIATION"
+    route_epoch: 5728
+    source_issue: 572
+    active_issue: 667
+    pull_request: 660
+    implementation_branch: "workbuddy/r572-r8-pr660-remediation"
+    source_checkpoint_branch: "gpt/r572-r8-worker-slots-compat-remediation-20260909"
+    source_checkpoint_exact_head: "c29cea2e38b13dccfbe5af05ae83e993435c7db6"
+    write_surface:
+      - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R7.yaml"
+      - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-TERMINAL-TOMBSTONES.yaml"
+      - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R8.yaml"
+      - "coordination/CONTROL-TOWER/worker_slots.py"
+      - "coordination/CONTROL-TOWER/tests/test_worker_slots_r8_compat.py"
+      - "coordination/CONTROL-TOWER/R572-R8-WORKER-SLOTS-COMPATIBILITY-RECEIPT.yaml"
+    write_surface_disjoint: true
+    branch_distinct: true
+    must_remain_unmodified: true
 concurrency_reconciliation:
   proposed_r194_registered_ref: "coordination/EXECUTION/ACTIVE-WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION.yaml"
   reservation_surface:
@@ -53,6 +73,16 @@ concurrency_reconciliation:
   duplicate_task_identity_observed: false
   duplicate_route_epoch_observed: false
   known_peer_path_overlap_observed: false
+  r572_pr660_active_peer_reconciliation:
+    fresh_observed_active_index: "coordination/EXECUTION/ACTIVE-WORKBUDDY-R572-R8-PR660.yaml"
+    task_id: "WORKBUDDY-R572-R8-PR660-REMEDIATION"
+    route_epoch: 5728
+    pull_request: 660
+    implementation_branch: "workbuddy/r572-r8-pr660-remediation"
+    branch_collision_observed: false
+    collision_domain_disjoint_observed: true
+    write_surface_overlap_observed: false
+    basis: "R572 write surface is confined to coordination/CONTROL-TOWER/**; R194 write surface is tools/durable_mission_kernel/** + tests/durable_mission_kernel/** + tests/test_unified_execution_durable_mission_kernel.py + coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/** + coordination/EXECUTION/PHASE-C-DURABLE-MISSION-CLI-CARRIER/**; no path or branch intersection."
   release_rule: "R194_MAY_START_ONLY_AFTER_CANONICAL_ROUTE_AND_FRESH_REGISTRY_WIDE_CONFLICT_ADMISSION"
 ordered_batch:
   prepared_ref: "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/TASK-BRIEF.yaml"
