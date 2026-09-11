@@ -100,6 +100,22 @@ class ResourceClaim:
         return f"{self.resource_type.value}:{self.resource_id}"
 
 
+# Resource types with evidence that Windows-equivalent spellings identify the same
+# mutable host object. WORKTREE and BRANCH map to filesystem/git identities on the
+# Windows host. WORKBUDDY_DAEMON is a singleton service label, so case variants must
+# not mint parallel destructive leases.
+#
+# Deliberately excluded: WORKBUDDY_AGENT_SESSION, WORKBUDDY_ONE_TIME_RUNNER,
+# CODEX_SESSION, EXCLUSIVE_LOCAL_RUNTIME, COLLISION_DOMAIN and provider/resource
+# labels can contain opaque tokens whose case semantics are not established. LOCAL_PORT
+# keeps exact textual identity, and WRITE_SURFACE is already canonicalized separately.
+_WINDOWS_CASE_INSENSITIVE_HOST_RESOURCE_TYPES = frozenset({
+    ResourceType.WORKTREE,
+    ResourceType.BRANCH,
+    ResourceType.WORKBUDDY_DAEMON,
+})
+
+
 @dataclass(frozen=True)
 class ExecutionRequest:
     project_id: str
@@ -182,6 +198,23 @@ class ExecutionRequest:
             raise ValueError("resource conflict identity must be non-empty")
         return normalized.casefold()
 
+    @staticmethod
+    def _normalize_claim_resource_id(
+        resource_type: ResourceType, resource_id: str
+    ) -> str:
+        """Normalize explicit host-object claims to the same conflict key as implicit ones.
+
+        Only resource types in ``_WINDOWS_CASE_INSENSITIVE_HOST_RESOURCE_TYPES`` are normalized so
+        Windows-equivalent spellings cannot create parallel leases. WORKTREE uses
+        path-like normalization; everything else in the set is NFC-stripped and
+        casefolded. All other types (LOCAL_PORT, HOST, etc.) pass through unchanged.
+        """
+        if resource_type not in _WINDOWS_CASE_INSENSITIVE_HOST_RESOURCE_TYPES:
+            return resource_id
+        return ExecutionRequest._windows_conflict_key(
+            resource_id, path_like=(resource_type == ResourceType.WORKTREE)
+        )
+
     def all_claims(self) -> tuple[ResourceClaim, ...]:
         mode = ResourceMode.WRITE if self.repo_write else ResourceMode.READ
         implicit = [
@@ -204,22 +237,36 @@ class ExecutionRequest:
             )
         by_key: dict[tuple[str, str], ResourceClaim] = {}
         for claim in (*implicit, *self.resource_claims):
-            key = (claim.resource_type.value, claim.resource_id)
+            resource_id = self._normalize_claim_resource_id(
+                claim.resource_type, claim.resource_id
+            )
+            normalized = (
+                claim
+                if resource_id == claim.resource_id
+                else ResourceClaim(
+                    claim.resource_type,
+                    resource_id,
+                    claim.mode,
+                    claim.units,
+                    claim.exclusive,
+                )
+            )
+            key = (claim.resource_type.value, resource_id)
             previous = by_key.get(key)
             if previous is None:
-                by_key[key] = claim
+                by_key[key] = normalized
                 continue
             strongest_mode = (
                 ResourceMode.WRITE
-                if ResourceMode.WRITE in {previous.mode, claim.mode}
+                if ResourceMode.WRITE in {previous.mode, normalized.mode}
                 else ResourceMode.READ
             )
             by_key[key] = ResourceClaim(
-                claim.resource_type,
-                claim.resource_id,
+                normalized.resource_type,
+                normalized.resource_id,
                 strongest_mode,
-                max(previous.units, claim.units),
-                previous.exclusive or claim.exclusive,
+                max(previous.units, normalized.units),
+                previous.exclusive or normalized.exclusive,
             )
         return tuple(sorted(by_key.values(), key=lambda c: (c.resource_type.value, c.resource_id)))
 

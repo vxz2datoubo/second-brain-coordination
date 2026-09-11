@@ -224,25 +224,28 @@ class HostExecutionBroker:
         )
         if not expired:
             return
+        execution_ids = [str(row["execution_id"]) for row in expired]
+        # A lease set is atomic on expiry: if ANY active lease of an execution has
+        # expired, fence ALL remaining active leases for that execution and fence the
+        # execution itself. This closes the split-brain where a partially-renewed
+        # execution keeps one lease (e.g. BRANCH) while losing another (e.g.
+        # WORKTREE), stays RUNNING, and races a successor that acquires the freed
+        # resource. Once fenced, the surviving bindings fail renew,
+        # assert_effect_authorized, and process-start binding.
+        placeholders = ",".join("?" for _ in execution_ids)
         con.execute(
-            "UPDATE resource_leases SET status='FENCED', released_at_ms=? "
-            "WHERE status='ACTIVE' AND expires_at_ms<=?",
-            (now, now),
+            f"UPDATE resource_leases SET status='FENCED', released_at_ms=? "
+            f"WHERE status='ACTIVE' AND execution_id IN ({placeholders})",
+            (now, *execution_ids),
         )
-        for row in expired:
-            execution_id = str(row["execution_id"])
-            remaining = con.execute(
-                "SELECT COUNT(*) AS n FROM resource_leases "
-                "WHERE execution_id=? AND status='ACTIVE'",
-                (execution_id,),
-            ).fetchone()["n"]
-            if int(remaining) == 0:
-                con.execute(
-                    "UPDATE executions SET status='FENCED', terminal_state='LEASE_EXPIRED', "
-                    "updated_at_ms=? WHERE execution_id=? AND status IN "
-                    "('ADMITTED','RUNNING','CHECKPOINTING','RESUMING')",
-                    (now, execution_id),
-                )
+        for execution_id in execution_ids:
+            changed = con.execute(
+                "UPDATE executions SET status='FENCED', terminal_state='LEASE_EXPIRED', "
+                "updated_at_ms=? WHERE execution_id=? AND status IN "
+                "('ADMITTED','RUNNING','CHECKPOINTING','RESUMING')",
+                (now, execution_id),
+            ).rowcount
+            if changed:
                 self._event(con, execution_id, "LEASES_EXPIRED_AND_FENCED", {})
 
     def _active_attempt_for_episode(

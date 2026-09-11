@@ -351,6 +351,123 @@ class HostExecutionBrokerTests(unittest.TestCase):
         history = broker.history(decision.execution_id)
         self.assertIn("LEASE_RENEWED", [event["event_type"] for event in history["events"]])
 
+    def test_partial_lease_expiry_fences_whole_execution_and_successor_acquires(self):
+        clock = Clock()
+        broker = HostExecutionBroker(self.db(), lease_ttl_ms=1000, clock=clock)
+        first = broker.admit(
+            request(task_id="partial", branch="gpt/shared", worktree="F:/shared/wt")
+        )
+        worktree = lease_for(first, ResourceType.WORKTREE, "f:/shared/wt")
+        branch = lease_for(first, ResourceType.BRANCH, "gpt/shared")
+        # Renew only the branch lease so the worktree lease expires first.
+        clock.advance_ms(500)
+        broker.renew(branch)
+        clock.advance_ms(600)  # worktree expired; branch still within TTL
+        second = broker.admit(request(task_id="successor", worktree="F:/shared/wt"))
+        self.assertEqual(second.outcome, DecisionOutcome.ADMIT)
+        self.assertEqual(
+            lease_for(second, ResourceType.WORKTREE, "f:/shared/wt").generation,
+            worktree.generation + 1,
+        )
+        # The original execution's surviving branch lease must be fenced too.
+        with self.assertRaises(FencingError):
+            broker.assert_effect_authorized(branch)
+        with self.assertRaises(FencingError):
+            broker.renew(branch)
+        worker = WorkerIdentity(
+            pid=4242,
+            process_creation_identity="partial-proc",
+            session_id="partial-session",
+            executor_id="partial-executor",
+            task_id="partial",
+            route_epoch=310,
+            execution_lease_id=branch.lease_id,
+            generation=branch.generation,
+            fencing_token=branch.fencing_token,
+            cli_path="C:/tools/codebuddy.exe",
+            cli_version="2.148.0",
+        )
+        with self.assertRaises(ProcessOwnershipError):
+            broker.bind_process_start(first.execution_id, worker)
+        history = broker.history(first.execution_id)
+        self.assertEqual(history["execution"]["status"], "FENCED")
+        self.assertEqual(history["execution"]["terminal_state"], "LEASE_EXPIRED")
+
+    def test_explicit_worktree_claim_normalizes_and_dedupes_with_implicit(self):
+        req = request(
+            task_id="wt-explicit",
+            worktree="F:/Shared/WT",
+            claims=(ResourceClaim(ResourceType.WORKTREE, r"f:\shared\wt"),),
+        )
+        worktrees = [
+            claim for claim in req.all_claims() if claim.resource_type == ResourceType.WORKTREE
+        ]
+        self.assertEqual(len(worktrees), 1)
+        self.assertEqual(worktrees[0].resource_id, "f:/shared/wt")
+
+    def test_workbuddy_daemon_case_equivalent_names_conflict(self):
+        broker = HostExecutionBroker(self.db())
+        a = request(
+            task_id="daemon-a",
+            repo_write=False,
+            claims=(ResourceClaim(ResourceType.WORKBUDDY_DAEMON, "WorkBuddyDaemon"),),
+        )
+        b = request(
+            task_id="daemon-b",
+            repo_write=False,
+            claims=(ResourceClaim(ResourceType.WORKBUDDY_DAEMON, "workbuddydaemon"),),
+        )
+        self.assertEqual(broker.admit(a).outcome, DecisionOutcome.ADMIT)
+        self.assertEqual(broker.admit(b).outcome, DecisionOutcome.BLOCK_CONFLICT)
+
+    def test_case_equivalent_daemon_claims_dedupe_within_request(self):
+        req = request(
+            task_id="daemon-dedupe",
+            repo_write=False,
+            claims=(
+                ResourceClaim(ResourceType.WORKBUDDY_DAEMON, "WorkBuddyDaemon"),
+                ResourceClaim(ResourceType.WORKBUDDY_DAEMON, "workbuddydaemon"),
+            ),
+        )
+        daemons = [
+            claim for claim in req.all_claims() if claim.resource_type == ResourceType.WORKBUDDY_DAEMON
+        ]
+        self.assertEqual(len(daemons), 1)
+        self.assertEqual(daemons[0].resource_id, "workbuddydaemon")
+
+
+    def test_opaque_session_identity_preserves_case(self):
+        req = request(
+            task_id="opaque-session-case",
+            repo_write=False,
+            claims=(
+                ResourceClaim(ResourceType.WORKBUDDY_AGENT_SESSION, "Session-A"),
+                ResourceClaim(ResourceType.WORKBUDDY_AGENT_SESSION, "session-a"),
+            ),
+        )
+        sessions = [
+            claim
+            for claim in req.all_claims()
+            if claim.resource_type == ResourceType.WORKBUDDY_AGENT_SESSION
+        ]
+        self.assertEqual(len(sessions), 2)
+        self.assertEqual({claim.resource_id for claim in sessions}, {"Session-A", "session-a"})
+
+    def test_local_port_identity_is_not_casefolded(self):
+        req = request(
+            task_id="port-identity",
+            repo_write=False,
+            claims=(
+                ResourceClaim(ResourceType.LOCAL_PORT, "8080"),
+                ResourceClaim(ResourceType.LOCAL_PORT, "08080"),
+            ),
+        )
+        ports = [
+            claim for claim in req.all_claims() if claim.resource_type == ResourceType.LOCAL_PORT
+        ]
+        self.assertEqual(len(ports), 2)
+        self.assertEqual({claim.resource_id for claim in ports}, {"8080", "08080"})
+
 
 if __name__ == "__main__":
     unittest.main()
