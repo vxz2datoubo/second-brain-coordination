@@ -17,17 +17,31 @@ poll_interval_seconds: 120
 executors:
   # 机械治理：同步/发现/租约/控制塔校验/测试/提交/推送（确定性，可全自动）
   mechanical: true
-  # headless 主执行：真实工程实现（写代码/解任务），调度 WorkBuddy CLI（codebuddy -p --model）
-  # Codex 只在交易系统等高价值任务用（GPT-6），不参与日常 headless 执行
+  # headless 主执行：真实工程实现（写代码/解任务），用 model_routing.default_tier 的宿主+模型
   headless: false
-  headless_model_profile: deepseek-v4-pro
 
-# 双模型交叉验证：主执行用 WorkBuddy 强模型（deepseek-v4-pro），验算用快模型独立跑
-# Codex 只在交易系统等高价值任务用（GPT-6），不参与日常搭建/验算
+# 模型分档路由：按任务价值/复杂度路由到不同宿主 + 模型。
+# 这是 CLI 无人值守的核心价值——App 里手动切模型无法脚本化自动化，CLI 可编程切换。
+#   routine    简单任务 + 验算（快模型，第二双眼睛）
+#   standard   日常搭建（默认，强模型）
+#   high_value 高价值框架 / 反复解不开的问题（Codex GPT-6，算力贵）
+model_routing:
+  default_tier: standard       # 主执行默认档（日常搭建 = v4 pro）
+  verify_tier: routine         # 验算固定档（快模型独立 review，与主执行隔离）
+  tiers:
+    routine:                   # 简单任务 + 验算
+      host: codebuddy          # WorkBuddy CLI（codebuddy -p --model）
+      model: deepseek-v4.1-flash
+    standard:                  # 日常搭建
+      host: codebuddy
+      model: deepseek-v4-pro
+    high_value:                # 高价值框架 / 反复解不开的问题
+      host: codex              # Codex CLI（codex exec），GPT-6，算力贵
+      model: gpt-6
+
+# 双模型交叉验证：主执行用 default_tier（强模型），验算用 verify_tier（快模型）独立跑
 verification:
   enabled: false               # false=睡醒后手动 CLI 验算；true=引擎每轮 verify 后自动追加独立 review
-  model: deepseek-v4.1-flash   # 快模型用于验算（WorkBuddy 模型）
-  mode: codebuddy_headless     # 落地方式：codebuddy -p --model <model>
 
 auto_merge:
   # Tier1：机械低风险 PR（closeout/收据/快照/路由翻转），CI 绿 + exact-head + 白名单后自动 merge

@@ -6,7 +6,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -19,6 +19,9 @@ MODE_NORMAL_AUTONOMY = "NORMAL_AUTONOMY"
 MODE_WRAP_UP = "WRAP_UP"
 VALID_MODES = {MODE_SLEEP_AUTONOMY, MODE_NORMAL_AUTONOMY, MODE_WRAP_UP}
 
+# 合法宿主：WorkBuddy（codebuddy CLI，日常主力）与 Codex（codex CLI，高价值专用）
+VALID_HOSTS = {"codebuddy", "codex"}
+
 DEFAULT_CONFIG = {
     "repo": "vxz2datoubo/second-brain-coordination",
     "default_branch": "main",
@@ -29,20 +32,28 @@ DEFAULT_CONFIG = {
     "state_dir": ".autopilot-state",
     "executors": {
         "mechanical": True,
-        # headless 主执行：WorkBuddy CLI（codebuddy -p --model），用强模型做真实工程实现。
-        # Codex 只在交易系统等高价值任务用（GPT-6），不参与日常 headless 执行。
+        # headless 主执行：用 model_routing.default_tier 指定的宿主+模型做真实工程实现。
         "headless": False,
-        "headless_model_profile": "deepseek-v4-pro",
     },
-    # 双模型交叉验证：主执行用 WorkBuddy 强模型（deepseek-v4-pro），验算用 WorkBuddy 快模型
-    # （deepseek-v4.1-flash）独立跑（codebuddy -p --model <model>）。Codex 只在交易系统等
-    # 高价值任务使用（GPT-6），不参与日常搭建/验算。
+    # 模型分档路由：按任务价值/复杂度路由到不同宿主 + 模型。
+    # 这是 CLI 无人值守的核心价值——App 里手动切模型无法脚本化自动化，CLI 可编程切换。
+    #   routine    简单任务 + 验算（快模型，第二双眼睛）
+    #   standard   日常搭建（默认，强模型）
+    #   high_value 高价值框架 / 反复解不开的问题（Codex GPT-6，算力贵）
+    "model_routing": {
+        "default_tier": "standard",
+        "verify_tier": "routine",
+        "tiers": {
+            "routine": {"host": "codebuddy", "model": "deepseek-v4.1-flash"},
+            "standard": {"host": "codebuddy", "model": "deepseek-v4-pro"},
+            "high_value": {"host": "codex", "model": "gpt-6"},
+        },
+    },
+    # 双模型交叉验证：主执行用 default_tier（强模型），验算用 verify_tier（快模型）独立跑。
     # enabled=False 时由 OWNER 睡醒后手动用 CLI 验算；设为 True 则引擎在每轮 verify 后
     # 追加一次独立 review。落地依赖本机 codebuddy CLI。
     "verification": {
         "enabled": False,
-        "model": "deepseek-v4.1-flash",
-        "mode": "codebuddy_headless",
     },
     "auto_merge": {
         "tier1_enabled": True,
@@ -66,6 +77,12 @@ DEFAULT_CONFIG = {
 
 
 @dataclass
+class ModelTier:
+    host: str
+    model: str
+
+
+@dataclass
 class AutopilotConfig:
     repo: str
     default_branch: str
@@ -77,10 +94,10 @@ class AutopilotConfig:
     state_dir: Path
     executors_mechanical: bool
     executors_headless: bool
-    headless_model_profile: str
+    model_routing_tiers: dict[str, ModelTier]
+    model_routing_default_tier: str
+    model_routing_verify_tier: str
     verification_enabled: bool
-    verification_model: str
-    verification_mode: str
     tier1_enabled: bool
     tier2_enabled: bool
     tier1_path_globs: list[str]
@@ -94,6 +111,14 @@ class AutopilotConfig:
     @property
     def is_wrap_up(self) -> bool:
         return self.mode == MODE_WRAP_UP
+
+    @property
+    def default_tier(self) -> ModelTier:
+        return self.model_routing_tiers[self.model_routing_default_tier]
+
+    @property
+    def verify_tier(self) -> ModelTier:
+        return self.model_routing_tiers[self.model_routing_verify_tier]
 
 
 def _deep_merge(base: dict, override: dict) -> dict:
@@ -119,6 +144,14 @@ def load_config(path: Path | str | None, local_root: Path | str) -> AutopilotCon
             raw = _deep_merge(raw, user_cfg)
 
     root = Path(local_root).resolve()
+    tiers_raw = raw["model_routing"]["tiers"]
+    if not isinstance(tiers_raw, dict) or not tiers_raw:
+        raise ValueError("model_routing.tiers must be a non-empty mapping")
+    tiers: dict[str, ModelTier] = {
+        str(name): ModelTier(host=str(t["host"]), model=str(t["model"]))
+        for name, t in tiers_raw.items()
+    }
+
     cfg = AutopilotConfig(
         repo=str(raw["repo"]),
         default_branch=str(raw.get("default_branch", "main")),
@@ -130,10 +163,10 @@ def load_config(path: Path | str | None, local_root: Path | str) -> AutopilotCon
         state_dir=root / str(raw["state_dir"]),
         executors_mechanical=bool(raw["executors"]["mechanical"]),
         executors_headless=bool(raw["executors"]["headless"]),
-        headless_model_profile=str(raw["executors"]["headless_model_profile"]),
+        model_routing_tiers=tiers,
+        model_routing_default_tier=str(raw["model_routing"]["default_tier"]),
+        model_routing_verify_tier=str(raw["model_routing"]["verify_tier"]),
         verification_enabled=bool(raw["verification"]["enabled"]),
-        verification_model=str(raw["verification"]["model"]),
-        verification_mode=str(raw["verification"]["mode"]),
         tier1_enabled=bool(raw["auto_merge"]["tier1_enabled"]),
         tier2_enabled=bool(raw["auto_merge"]["tier2_enabled"]),
         tier1_path_globs=[str(g) for g in raw["auto_merge"]["tier1_path_globs"]],
@@ -155,5 +188,23 @@ def validate(cfg: AutopilotConfig) -> None:
         raise ValueError(f"repo must be owner/name, got {cfg.repo!r}")
     if not cfg.executors_mechanical and not cfg.executors_headless:
         raise ValueError("at least one executor (mechanical/headless) must be enabled")
+    if cfg.model_routing_default_tier not in cfg.model_routing_tiers:
+        raise ValueError(
+            f"model_routing.default_tier {cfg.model_routing_default_tier!r} "
+            f"not in tiers {sorted(cfg.model_routing_tiers)}"
+        )
+    if cfg.model_routing_verify_tier not in cfg.model_routing_tiers:
+        raise ValueError(
+            f"model_routing.verify_tier {cfg.model_routing_verify_tier!r} "
+            f"not in tiers {sorted(cfg.model_routing_tiers)}"
+        )
+    for name, tier in cfg.model_routing_tiers.items():
+        if tier.host not in VALID_HOSTS:
+            raise ValueError(
+                f"model_routing.tiers.{name}.host {tier.host!r} "
+                f"not in {sorted(VALID_HOSTS)}"
+            )
+        if not tier.model:
+            raise ValueError(f"model_routing.tiers.{name}.model must be non-empty")
     if not cfg.local_root.is_dir():
         raise ValueError(f"local_root does not exist: {cfg.local_root}")
