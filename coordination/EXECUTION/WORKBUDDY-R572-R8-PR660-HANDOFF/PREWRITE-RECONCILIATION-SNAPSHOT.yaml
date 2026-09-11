@@ -1,0 +1,56 @@
+schema: "WorkBuddyPrewriteReconciliationSnapshot/v1"
+snapshot_id: "WORKBUDDY-R572-R8-PR660-PREWRITE-001"
+project: "SECOND_BRAIN"
+repository: "vxz2datoubo/second-brain-coordination"
+created_by: "GPT_ARCHITECTURE_OWNER"
+created_at: "2026-09-10T01:34:00-05:00"
+canonical_main_before_release: "58c568ca280a023ff961aae4bd15f8492d18a8ce"
+source_issue: 572
+active_issue: 667
+task_id: "WORKBUDDY-R572-R8-PR660-REMEDIATION"
+route_epoch: 5728
+source_checkpoint:
+  ordinary_codex_branch_observed_head: "c29cea2e38b13dccfbe5af05ae83e993435c7db6"
+  immutable_checkpoint_ref: "refs/heads/gpt/r572-r8-worker-slots-compat-remediation-20260909"
+  immutable_checkpoint_exact_head: "c29cea2e38b13dccfbe5af05ae83e993435c7db6"
+  baseline: "c29cea2e38b13dccfbe5af05ae83e993435c7db6"
+  identity_status: "PASS_EXACT_PR660_CHECKPOINT_FROZEN_BY_SHA"
+prior_workbuddy_route:
+  route_epoch: 175
+  status: "READY"
+  execution_allowed: true
+  superseded_by_this_release: false
+current_codex_route:
+  route_epoch: 5728
+  source_issue: 667
+  status: "READY"
+  execution_allowed: true
+concurrency_reconciliation:
+  existing_r175_preserved: true
+  existing_r184_preserved: true
+  r175_registered_legacy_default_ref: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+  r184_registered_ref: "coordination/EXECUTION/ACTIVE-WORKBUDDY-R184-LOCAL-BRIDGE.yaml"
+  r572_r8_reserved_paths:
+    - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R7.yaml"
+    - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-TERMINAL-TOMBSTONES.yaml"
+    - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R8.yaml"
+    - "coordination/CONTROL-TOWER/worker_slots.py"
+    - "coordination/CONTROL-TOWER/tests/test_worker_slots_r8_compat.py"
+    - "coordination/CONTROL-TOWER/R572-R8-WORKER-SLOTS-COMPATIBILITY-RECEIPT.yaml"
+  same_repository_casefold_overlap_observed: false
+  implementation_branch_overlap_observed: false
+  gpt_writer_handoff_required_before_workbuddy_claim: true
+  architecture_or_acceptance_change: false
+ordered_batch:
+  prepared_ref: "coordination/EXECUTION/WORKBUDDY-R572-R8-PR660-HANDOFF/TASK.yaml"
+  executable_ref: "coordination/EXECUTION/WORKBUDDY-R572-R8-PR660-HANDOFF/EXECUTABLE-BATCH.json"
+  fixed_order: ["WB-R8-V1", "WB-R8-S1", "WB-R8-S2"]
+  order_changed: false
+  acceptance_commands_changed: false
+  architecture_changed: false
+activation_gate:
+  snapshot_precedes_workbuddy_branch: true
+  execution_allowed_now: false
+  requires_post_branch_fresh_readback: true
+  activation_commit_required: true
+return_target: "GPT_ARCHITECTURE_OWNER"
