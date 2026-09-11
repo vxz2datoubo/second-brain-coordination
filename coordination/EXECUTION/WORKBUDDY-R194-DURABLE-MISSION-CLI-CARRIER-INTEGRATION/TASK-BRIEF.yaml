@@ -1,0 +1,325 @@
+schema: "WORKBUDDY_TASK_BRIEF/v1"
+control_plane_repository: "vxz2datoubo/second-brain-coordination"
+execution_repository: "vxz2datoubo/second-brain-coordination"
+project_id: "SECOND_BRAIN"
+project: "SECOND_BRAIN"
+task_id: "WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION"
+route_epoch: 194
+source_issue: 681
+governance_issue: 682
+exact_base_sha: "f04c5ff4a83c35d60f27d44176f4f482c29895ea"
+implementation_branch: "workbuddy/r194-durable-mission-cli-carrier"
+collision_domain: "WRITESET_SHA256:20eb574d28e8b72199a1e5e3aba4cedf6d4fb0bcebf9f7500344107e2ed1a980"
+purpose: >-
+  Integrate a real bounded CodeBuddy/WorkBuddy CLI episode carrier into the existing Durable Mission Kernel,
+  with model/runtime attestation, session resume across processes, kernel-owned progress watchdog,
+  explicit exit/result attestation and crash-safe idempotent recovery. This extends the existing kernel;
+  it must not create a second scheduler, ledger, authority plane or production service.
+execution_mode: "SYNTHETIC_AND_DISPOSABLE_CLI_CARRIER_INTEGRATION_ONLY"
+primary_executor: "WORKBUDDY_ENGINEERING_EXECUTOR"
+carrier: "WORKBUDDY_CLI_HEADLESS"
+model_profile: "DEEP_ENGINEERING"
+preferred_implementation_model_affinity: "Deepseek-V4-Pro"
+peer_implementation_model: "GLM-5.3"
+required_runtime_canary_model: "deepseek-v4.1-flash"
+model_resolution: "FRESH_AT_DISPATCH"
+implementation_sequence:
+  C0: "Fresh local/repo capability audit; bind CLI executable/version/model discovery and preserve current kernel interfaces."
+  C1: "Implement real bounded CLI episode invocation, stable session identity, new-process --resume and explicit subprocess/result attestation."
+  C2: "Implement mission progress watchdog independent of PID/process heartbeat; classify live-but-stalled carriers fail-closed."
+  C3: "Implement durable journal/checkpoint recovery so a committed episode is not repeated after supervisor crash; reconcile outcome-unknown states."
+  C4: "Run deterministic tests plus live synthetic V4.1 Flash canary; freeze exact head and return for CI/review/canonicalization."
+required_tests:
+  - "clean deepseek-v4.1-flash episode then new-process resume"
+  - "no tool/file-memory dependency in clean resume fixture"
+  - "max-turns insufficiency remains versioned runtime evidence, not permanent invariant"
+  - "live PID/heartbeat without business progress trips watchdog"
+  - "outer background job terminal label cannot assert mission success"
+  - "crash after committed episode resumes without duplicate episode"
+  - "subprocess non-zero exit and malformed result fail closed"
+  - "existing durable mission kernel regression suite remains green"
+acceptance:
+  exact_head_ci_required: true
+  independent_review_required: true
+  separate_canonicalization_required: true
+  live_synthetic_canary_required: true
+  production_activation_implied: false
+hard_boundaries:
+  - "NO_R184_OR_LOCAL_BRIDGE_ACTIVATION"
+  - "NO_REAL_CAPTURE"
+  - "NO_OPERATIONAL_W3_WRITE"
+  - "NO_PROGRAM_S2_START"
+  - "NO_PRODUCTION_DEPLOYMENT_OR_BACKGROUND_SERVICE_ACTIVATION"
+  - "NO_TRADING_FUNDS_ORDERS"
+  - "NO_SECRET_TOKEN_COOKIE_PLAINTEXT_PERSISTENCE"
+  - "NO_DIRECT_MAIN_WRITE"
+  - "NO_SELF_REVIEW"
+  - "NO_SELF_MERGE"
+  - "NO_R175_MUTATION"
+  - "NO_R184_MUTATION"
+  - "NO_FORCE_PUSH_REBASE_RESET_AMEND_HISTORY_REWRITE"
+return_target: "GPT_ARCHITECTURE_OWNER"
+completion_signal: "WORKBUDDY_R194_DURABLE_MISSION_CLI_CARRIER_READY_FOR_INDEPENDENT_REVIEW"
+
+# Enterprise task-contract closure for current AGENTS.md / AMED / PMA-BIG.
+task_weight: "STANDARD"
+research_trigger_level: "L1_REUSE_AND_QUICK_CHECK"
+protocol_bindings:
+  AMED: "coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml"
+  PMA_BIG: "coordination/GOVERNANCE/PROACTIVE-MISSION-AUTHORING-AND-BOUNDED-INITIATIVE-GRANT-PROTOCOL-v1.0.yaml"
+  WPDCR: "coordination/GOVERNANCE/AGENT-WORK-PROCESS-DIFFICULTY-DISCOVERY-AND-COORDINATION-REPORTING-PROTOCOL-v1.0.yaml"
+  PDER: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
+  RTCE: "coordination/GOVERNANCE/AGENT-READ-TASK-CLAIM-AND-EXECUTE-COMMAND-SEMANTICS-v1.0.yaml"
+
+mission_intent:
+  fundamental_goal: >-
+    Turn the existing Durable Mission Kernel into a truthful bounded real WorkBuddy CLI episode carrier that can survive
+    maxTurns, client/RDC wait timeout, worker restart and stalled-but-alive processes without losing mission continuity
+    or starting duplicate writers.
+  user_capability_outcome: >-
+    Establish the carrier reliability needed for a later governed 2-4h and then 6-8h unattended overnight mission,
+    while this task itself remains synthetic/disposable and grants no production or trading authority.
+  current_state_to_change: >-
+    The kernel is synthetic-only and real CodeBuddy background/session evidence can diverge from process/heartbeat labels;
+    one episode termination or caller timeout can therefore be mistaken for mission termination without an authenticated adapter.
+  causal_mechanism:
+    - "Bind each episode to governed task/mission/episode/attempt identity plus CodeBuddy job/session generation and process-start evidence."
+    - "Treat maxTurns and client timeout as bounded episode conditions, reconcile durable JobStore/checkpoint state, then resume or roll over without duplicate effects."
+    - "Separate process-alive/heartbeat evidence from meaningful tool/file/git/test/checkpoint progress and fail closed on ambiguity."
+  observable_success:
+    - "A clean authenticated V4.1 Flash synthetic episode can resume the same governed session from a new process without relying on tool/file memory; conversational session state is allowed only when bound to the authenticated session identity."
+    - "A deliberately stalled-but-alive carrier is detected by the watchdog."
+    - "Supervisor timeout and crash-after-commit do not duplicate the committed episode."
+    - "Only a structured terminal episode result can advance mission state; outer process exit 0 alone cannot."
+  failure_conditions:
+    - "Duplicate episode or writer can be launched after timeout/retry."
+    - "Heartbeat/busy alone is accepted as meaningful progress."
+    - "Ambiguous JobStore/session/process state is promoted to PASS/COMPLETE."
+    - "Implementation requires a second scheduler/broker/ledger or production activation."
+  stop_conditions:
+    - "Canonical authority chain becomes stale or conflicting."
+    - "Required work leaves the authorized write surface."
+    - "Secrets, real capture, W3 production, trading/account/order/funds or production service activation are required."
+    - "Two bounded attempts leave the same root-cause ambiguity unresolved; return exact evidence to GPT Architecture Owner."
+
+primary_delivery_and_non_negotiables:
+  minimum_required_deliverables:
+    - "Authenticated real WorkBuddy CLI episode adapter under the existing Durable Mission Kernel."
+    - "Meaningful-progress watchdog with RUNNING/STALLED/OUTCOME_UNKNOWN distinctions."
+    - "Checkpoint/reconcile/resume/respawn/rollover behavior for maxTurns, caller timeout and crash-after-commit."
+    - "Deterministic tests plus one live synthetic V4.1 Flash canary and durable evidence receipts."
+  frozen_constraints:
+    - "Reuse existing CodeBuddy JobStore/background broker/respawn mechanisms and the canonical Host Execution Broker; do not build another broker or scheduler."
+    - "Synthetic/disposable only; no production background-service activation."
+    - "One mechanical verification per verification layer."
+  required_commit_or_artifact_shape:
+    - "One bounded implementation branch under the published authority; exact-head freeze before review."
+    - "Task-local execution/test/discovery/unknown/handoff receipts under authorized evidence paths."
+  evidence_gates:
+    - "Deterministic local tests."
+    - "Live synthetic CLI canary."
+    - "Exact-head CI."
+    - "Independent review."
+    - "Separate canonicalization."
+  excluded_work:
+    - "Host Broker redesign or second control plane."
+    - "Production scheduler/daemon activation."
+    - "Real trading, accounts, orders, funds or broker access."
+
+system_position:
+  workstream: "OVERNIGHT_DURABLE_AUTONOMY_PHASE_C_CLI_CARRIER"
+  bounded_context: "Issue #681 implementation governed by #682; successor of stale PR #683."
+  systems_of_record:
+    - "GitHub canonical main for engineering/governance authority."
+    - "Existing Durable Mission Kernel ledger/checkpoints for mission state."
+    - "Existing CodeBuddy JobStore/background broker for carrier job/session state."
+  upstream_dependencies:
+    - "Canonical Durable Mission Kernel interfaces."
+    - "Canonical Host Execution Broker R1 from PR #696 for host-resource arbitration; consume, do not duplicate."
+  downstream_consumers:
+    - "Issue #642 integrated 2-4h and 6-8h unattended canaries."
+    - "Future trading-system SLEEP_AUTONOMY mission carrier, only after separate production activation authority."
+  canonical_components_not_to_duplicate:
+    - "Unified Execution Fabric"
+    - "Host Execution Broker"
+    - "CodeBuddy JobStore/background broker"
+    - "Durable Mission Kernel ledger"
+    - "model router/reviewer/canonicalizer authority"
+
+proactive_mission_assignment:
+  initiative_required: true
+  optimize_for_fundamental_goal_not_literal_steps: true
+  better_method_value_test:
+    - "Improve correctness/recoverability/observability without expanding authority."
+    - "Reuse native CodeBuddy and canonical Host Broker capabilities before adding code."
+    - "Any extra complexity must have a deterministic test and rollback."
+  executor_may_choose:
+    - "internal adapter structure and test decomposition inside allowed paths"
+    - "bounded A/B observability, diagnostics and compatibility hardening"
+  proposal_or_stop_when:
+    - "new scheduler/broker/control plane would be required"
+    - "production/runtime activation would be required"
+    - "authority, permissions, secrets or trading boundary would expand"
+
+mandatory_discovery_questions:
+  - "What native CodeBuddy JobStore/background/respawn capability can be reused instead of duplicated?"
+  - "Which assumptions about maxTurns, timeout, PID, session, heartbeat or terminal labels are stale or false on the installed runtime?"
+  - "Can the implementation be simpler while preserving durable identity, idempotency and fail-closed reconciliation?"
+  - "What additional synthetic failure injection provides material evidence for overnight reliability?"
+  - "What remains UNKNOWN about worker lifetime, session recovery or progress semantics after bounded tests?"
+  - "Which exact input/test/review is needed if another owner or control-tower surface blocks this task?"
+  - "Which findings should feed Host Broker, Durable Mission policy, tests or future overnight-canary tasks without modifying those owners here?"
+
+anticipated_difficulty_and_unknowns:
+  planned_difficulty: "D2_HARD"
+  expected_hard_parts:
+    - "Distinguishing launcher/broker/payload identities across respawn and reconnect."
+    - "Reconciling outcome-unknown states without duplicate effects."
+    - "Detecting meaningful progress without coupling the kernel to fragile UI/process labels."
+  likely_hidden_dependencies:
+    - "Installed CodeBuddy version/runtime behavior and JobStore schema."
+    - "Host Broker runtime activation may lag its canonical code; this task must not assume production activation."
+  expected_unknowns:
+    - "Exact runtime-specific maxTurns/session edge cases until synthetic canary evidence exists."
+    - "Whether every native background failure exposes enough structured evidence for deterministic classification."
+  safe_abstention: "Return UNKNOWN/BLOCKED with exact observed state instead of inventing success or relaunching blindly."
+
+exploration_budget:
+  class: "STANDARD"
+  primary_delivery_share: "70-80%"
+  active_discovery_share: "10-20%"
+  system_opportunity_share: "5-10%"
+  max_new_architecture_proposals: 2
+  max_new_skill_candidates: 0
+  max_unplanned_files: 3
+  max_hypothesis_cycles_per_root_cause: 2
+  scope_expansion_without_gate: false
+
+improvement_authority:
+  A_SAFE_LOCAL_AUTONOMOUS:
+    allowed_examples:
+      - "task-local diagnostics, deterministic fixtures, schema validation and observability inside authorized paths"
+      - "simpler reuse of existing CodeBuddy/Host Broker APIs when behavior is test-proven"
+  B_BOUNDED_IMPLEMENT_AND_REPORT:
+    allowed_examples:
+      - "backward-compatible adapter/watchdog hardening needed to satisfy #681 acceptance"
+      - "bounded regression protection for discovered carrier edge cases"
+  C_PROPOSAL_ONLY:
+    examples:
+      - "changes to Host Broker, Unified Execution Fabric, new canonical scheduler, new service or cross-project authority"
+  D_PROHIBITED_OR_USER_GATE:
+    examples:
+      - "production service activation, credentials/permission expansion, real capture, operational W3, trading/account/order/funds"
+
+PMA_BIG:
+  bounded_initiative: true
+  pre_mortem_required: true
+  pre_mortem_failure_modes:
+    - "caller timeout triggers duplicate launch"
+    - "heartbeat-only zombie runs forever"
+    - "stale worker regains write capability after successor"
+    - "outer process exit 0 launders a failed/ambiguous episode into success"
+    - "session/PID reuse causes wrong attach or wrong termination"
+  hypothesis_cycles:
+    max_per_root_cause: 2
+    rule: "State a falsifiable hypothesis, run the cheapest discriminating synthetic test, preserve negative evidence, then revise or escalate."
+  causal_gate: "No implementation claim may be promoted unless the observed test distinguishes the claimed mechanism from at least one plausible competing failure explanation."
+  alternatives_required: true
+  alternatives_to_compare:
+    - "native CodeBuddy resume/respawn vs new adapter logic"
+    - "polling evidence vs event/checkpoint evidence"
+    - "resume same episode vs successor episode rollover"
+  no_feature_sprawl: true
+
+coordination_and_handoff_design:
+  likely_upstream_owners:
+    - "GPT Architecture Owner / #682 governance"
+    - "Control-tower Host Broker owner only for read-only integration facts or separately routed broker defects"
+  likely_downstream_owners:
+    - "Independent Reviewer"
+    - "Separate Canonicalizer"
+    - "#642 overnight canary integration"
+  authoritative_source_of_truth: "fresh canonical GitHub main plus exact task authority chain; local runtime observations are evidence, not authority."
+  work_that_can_continue_without_coordination:
+    - "all #681 adapter/watchdog/tests/evidence work inside allowed paths"
+  acceptance_and_close_conditions:
+    - "C0-C4 evidence complete, exact head frozen, CI eligible, live synthetic canary truthful, no authority expansion."
+
+system_feedback_and_double_loop_targets:
+  inspect_for_updates:
+    - "Durable Mission policy"
+    - "Host Broker integration assumptions"
+    - "carrier/watchdog regression tests"
+    - "overnight canary acceptance"
+  executor_authority: "A/B only inside this task; changes owned by other governance surfaces remain C proposal or D gate."
+  GPT_acceptance_required: true
+
+WPDCR:
+  required: true
+  required_moments:
+    - "LEASE_CLAIM"
+    - "FIRST_SUBSTANTIVE_ACTION"
+    - "EACH_C0_C4_CHECKPOINT"
+    - "MATERIAL_BLOCKER_OR_ESCALATION"
+    - "HANDOFF_OR_ROUTE_CHANGE"
+    - "COMPLETION"
+  required_sections:
+    - "PRIMARY_WORK_AND_PROCESS_TRACE"
+    - "DIFFICULTY_AND_COMPLEXITY"
+    - "NEW_AND_UNEXPECTED_DISCOVERIES"
+    - "EXPANDABLE_IDEAS_AND_HIGH_VALUE_OPPORTUNITIES"
+    - "UNRESOLVED_HARD_PROBLEMS_AND_UNKNOWNS"
+    - "PROBLEMS_FAILURES_AND_NEGATIVE_RESULTS"
+    - "COORDINATION_REQUESTS"
+    - "CROSS_AGENT_HANDOFF_AND_SYSTEM_IMPACT"
+    - "DECISIONS_ALTERNATIVES_AND_LESSONS"
+    - "NEXT_ACTION_AND_GATE"
+
+PDER:
+  required: true
+  severity_behavior:
+    S4: "stop affected scope and escalate immediately"
+    S3: "publish discovery/escalation at current checkpoint; continue only unaffected work"
+    S2: "record in current checkpoint and final handoff"
+    S1_S0: "record and deduplicate in task-local evidence"
+
+read_claim_execute_semantics:
+  trigger_phrases: ["读取任务", "执行任务", "开始任务", "读取并执行任务"]
+  canonical_action: "READ_LATEST_ROUTE_CLAIM_VALID_LEASE_AND_EXECUTE_IMMEDIATELY"
+  second_user_start_command_required: false
+  read_only_acknowledgement_forbidden: true
+  plan_only_response_when_ready_forbidden: true
+  minimum_progress_before_return: "Complete first meaningful authorized C0 action and evidence, then continue until checkpoint, truthful blocker or completion."
+
+executor_lease_acknowledgement:
+  required: true
+  must_confirm:
+    - "fresh remote main, task id, route epoch, source/governance issue, branch, base, collision/write surface and completion signal"
+    - "AMED A/B/C/D boundary and seven discovery questions"
+    - "PMA-BIG pre-mortem/hypothesis/causal/alternative gates"
+    - "WPDCR/PDER reporting and escalation obligations"
+
+mandatory_delivery_artifacts:
+  - "AGENT_EXECUTION_RECEIPT"
+  - "RESEARCH_LEDGER"
+  - "UNPLANNED_IMPROVEMENT_LEDGER"
+  - "TEST_RUN_RECEIPT"
+  - "LIVE_SYNTHETIC_CANARY_RECEIPT"
+  - "WORK_PROCESS_AND_COORDINATION_REPORT"
+  - "SYSTEM_DISCOVERY_AND_OPPORTUNITY_REPORT"
+  - "UNKNOWN_REGISTRY"
+  - "AI_HANDOFF"
+
+second_pass_audit_required: true
+closeout_contract:
+  stop_writes_on_exact_head_before_independent_review: true
+  preserve_negative_results: true
+  self_review: false
+  self_accept: false
+  self_merge: false
+
+clean_successor_provenance:
+  supersedes_pr: 683
+  supersedes_exact_head: "52700471def50afe8284e5616489cb04cfaf7c91"
+  reason: "Old candidate is stale against current main and predates current AMED/PMA-BIG/WPDCR/PDER task-contract requirements."
+  history_policy: "Preserve #683 as historical evidence; no rebase/force/amend or inherited review identity."

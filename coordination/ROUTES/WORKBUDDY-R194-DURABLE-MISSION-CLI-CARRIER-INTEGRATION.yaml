@@ -1,0 +1,107 @@
+schema_version: "1.0"
+route_id: "WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION"
+repository: "vxz2datoubo/second-brain-coordination"
+project: "SECOND_BRAIN"
+target_agent: "WORKBUDDY"
+task_id: "WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION"
+route_epoch: 194
+source_issue: 681
+active_issue: 681
+governance_issue: 682
+status: "READY"
+execution_allowed: true
+release_state: "GOVERNED_SYNTHETIC_IMPLEMENTATION_READY_AFTER_CANONICALIZATION"
+automatic_resume_within_task: true
+automatic_resume_within_batch: true
+second_user_start_command_required: false
+direct_main_write: false
+merge_authorized: false
+review_authority: false
+acceptance_authority: false
+source_checkpoint:
+  source_branch: "main"
+  checkpoint_remote_ref: "refs/heads/main"
+  exact_head: "f04c5ff4a83c35d60f27d44176f4f482c29895ea"
+  baseline: "f04c5ff4a83c35d60f27d44176f4f482c29895ea"
+  immutable: true
+governance_sources:
+  source_issue: "https://github.com/vxz2datoubo/second-brain-coordination/issues/681"
+  governance_issue: "https://github.com/vxz2datoubo/second-brain-coordination/issues/682"
+  durable_autonomy_objective: "https://github.com/vxz2datoubo/second-brain-coordination/issues/629"
+  integration_architecture: "https://github.com/vxz2datoubo/second-brain-coordination/issues/642"
+  live_cli_evidence_ref: "issuecomment-5621898681"
+  predecessor_route: "coordination/ROUTES/WORKBUDDY-R188-PHASE-B-DURABLE-MISSION-KERNEL.yaml"
+  project_adapter: "coordination/EXECUTION/PROJECT-ADAPTERS/SECOND-BRAIN.yaml"
+  model_router: "coordination/GOVERNANCE/MODEL-CAPABILITY-COST-ROUTER-v1.0.yaml"
+execution:
+  implementation_branch: "workbuddy/r194-durable-mission-cli-carrier"
+  branch_write_semantics: "GOVERNED_IMPLEMENTATION_BRANCH_WRITE_AUTHORIZED"
+  direct_main_write_allowed: false
+  history_rewrite_allowed: false
+  executable_batch: "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/EXECUTABLE-BATCH.json"
+  fixed_order: ["C0", "C1", "C2", "C3", "C4"]
+  reorder_allowed: false
+  skip_allowed: false
+  parallelize_items: false
+  continue_after_item_pass: true
+  carrier: "WORKBUDDY_CLI_HEADLESS"
+  execution_mode: "SYNTHETIC_AND_DISPOSABLE_CLI_CARRIER_INTEGRATION_ONLY"
+  model_profile: "DEEP_ENGINEERING"
+  preferred_implementation_model_affinity: "Deepseek-V4-Pro"
+  peer_implementation_model: "GLM-5.3"
+  required_runtime_canary_model: "deepseek-v4.1-flash"
+  model_resolution: "FRESH_AT_DISPATCH"
+workbuddy_exclusive:
+  - "tools/durable_mission_kernel/**"
+  - "tests/durable_mission_kernel/**"
+  - "tests/test_unified_execution_durable_mission_kernel.py"
+  - "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/**"
+  - "coordination/EXECUTION/PHASE-C-DURABLE-MISSION-CLI-CARRIER/**"
+write_ownership:
+  workbuddy_exclusive:
+    - "tools/durable_mission_kernel/**"
+    - "tests/durable_mission_kernel/**"
+    - "tests/test_unified_execution_durable_mission_kernel.py"
+    - "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/**"
+    - "coordination/EXECUTION/PHASE-C-DURABLE-MISSION-CLI-CARRIER/**"
+  r175_retained:
+    - "tools/workbuddy/**"
+    - "tests/workbuddy/**"
+  r184_retained:
+    - "tools/local_workbuddy_bridge/**"
+    - "tests/test_unified_execution_local_bridge.py"
+    - "tests/fixtures/local_workbuddy_bridge/**"
+  protected_governance_retained:
+    - "coordination/GOVERNANCE/**"
+    - "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+    - "coordination/EXECUTION/ACTIVE-WORKBUDDY-R184-LOCAL-BRIDGE.yaml"
+    - "coordination/ACTIVE-CODEX-TASK.yaml"
+    - ".github/workflows/unified-execution-fabric.yml"
+synthetic_runtime_policy:
+  classification: "BENCHMARK_TUNED_POLICY_NOT_PRODUCTION_DEFAULT"
+  startup_deadline_ms: 120000
+  progress_deadline_ms: 120000
+  episode_limit_ms: 600000
+  heartbeat_interval_ms: 5000
+  max_turns_floor_observed_on_2_148_0: 2
+  production_default: false
+bindings:
+  active_task: "coordination/EXECUTION/ACTIVE-WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION.yaml"
+  task_brief: "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/TASK-BRIEF.yaml"
+  work_claim: "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/WORK-CLAIM.yaml"
+  task_lease: "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/TASK-LEASE.yaml"
+  executor_reservation: "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/EXECUTOR-RESERVATION.yaml"
+  prewrite_snapshot: "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/PREWRITE-RECONCILIATION-SNAPSHOT.yaml"
+  executable_batch: "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/EXECUTABLE-BATCH.json"
+hard_stops:
+  - "authority chain is absent, stale, uncanonicalized or identity-mismatched"
+  - "R175 or R184 write surface overlaps R194"
+  - "deepseek-v4.1-flash is not runtime-discoverable for required canary"
+  - "implementation requires R184/Local Bridge activation"
+  - "implementation requires production/background service activation"
+  - "implementation requires real capture, operational W3, Program S2, trading/funds/orders or secrets"
+  - "any write outside the listed reservation scope is required"
+  - "direct main, self-review, self-merge or history rewrite is required"
+return_target: "GPT_ARCHITECTURE_OWNER"
+final_review: "SEPARATE_GPT_INDEPENDENT_REVIEW_VIA_ISSUE_453"
+completion_signal: "WORKBUDDY_R194_DURABLE_MISSION_CLI_CARRIER_READY_FOR_INDEPENDENT_REVIEW"

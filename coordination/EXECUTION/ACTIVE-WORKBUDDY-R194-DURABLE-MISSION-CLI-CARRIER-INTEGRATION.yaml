@@ -1,0 +1,76 @@
+schema_version: "5.0"
+router_protocol: "coordination/WORKBUDDY-TASK-ROUTER.md"
+task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
+registry_protocol: "coordination/EXECUTION/ACTIVE-TASK-INDEX-REGISTRY.json"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "WORKBUDDY"
+trigger_phrases: ["读取R194任务", "执行R194任务", "开始R194任务", "读取Durable Mission CLI Carrier任务"]
+active_issue: 681
+source_issue: 681
+governance_issue: 682
+pull_request: null
+task_id: "WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION"
+route_epoch: 194
+mode: "synthetic_disposable_real_cli_carrier_integration"
+mode_label: "R194 Durable Mission real CLI carrier + progress watchdog"
+status: "READY"
+execution_allowed: true
+active: true
+blocked_by: null
+automatic_resume: true
+automatic_resume_within_task: true
+automatic_resume_within_batch: true
+second_user_start_command_required: false
+canonical_route: "coordination/ROUTES/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION.yaml"
+task_brief: "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/TASK-BRIEF.yaml"
+work_claim: "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/WORK-CLAIM.yaml"
+task_lease: "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/TASK-LEASE.yaml"
+executor_reservation: "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/EXECUTOR-RESERVATION.yaml"
+prewrite_snapshot: "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/PREWRITE-RECONCILIATION-SNAPSHOT.yaml"
+executable_batch: "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/EXECUTABLE-BATCH.json"
+evidence_contract: "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/EVIDENCE-CONTRACT.yaml"
+source_checkpoint:
+  branch: "main"
+  checkpoint_remote_ref: "refs/heads/main"
+  exact_head: "f04c5ff4a83c35d60f27d44176f4f482c29895ea"
+  baseline: "f04c5ff4a83c35d60f27d44176f4f482c29895ea"
+implementation_branch: "workbuddy/r194-durable-mission-cli-carrier"
+fixed_order: ["C0", "C1", "C2", "C3", "C4"]
+continue_without_user_message: true
+return_target: "GPT_ARCHITECTURE_OWNER"
+completion_signal: "WORKBUDDY_R194_DURABLE_MISSION_CLI_CARRIER_READY_FOR_INDEPENDENT_REVIEW"
+model_profile: "DEEP_ENGINEERING"
+preferred_model_affinity: "Deepseek-V4-Pro"
+peer_model: "GLM-5.3"
+required_runtime_canary_model: "deepseek-v4.1-flash"
+model_availability_recheck_required: true
+core_model_unavailable_action: "SELECT_COMPATIBLE_DEEP_ENGINEERING_PEER_ELSE_FAIL_CLOSED_RETURN_TO_GPT"
+carrier_bootstrap: "WORKBUDDY_CLI_HEADLESS"
+execution_mode: "SYNTHETIC_AND_DISPOSABLE_CLI_CARRIER_INTEGRATION_ONLY"
+authorized_paths:
+  - "tools/durable_mission_kernel/**"
+  - "tests/durable_mission_kernel/**"
+  - "tests/test_unified_execution_durable_mission_kernel.py"
+  - "coordination/EXECUTION/WORKBUDDY-R194-DURABLE-MISSION-CLI-CARRIER-INTEGRATION/**"
+  - "coordination/EXECUTION/PHASE-C-DURABLE-MISSION-CLI-CARRIER/**"
+hard_boundaries:
+  - "NO_R184_OR_LOCAL_BRIDGE_ACTIVATION"
+  - "NO_REAL_CAPTURE"
+  - "NO_OPERATIONAL_W3_WRITE"
+  - "NO_PROGRAM_S2_START"
+  - "NO_PRODUCTION_DEPLOYMENT_OR_BACKGROUND_SERVICE_ACTIVATION"
+  - "NO_TRADING_FUNDS_ORDERS"
+  - "NO_SECRET_TOKEN_COOKIE_PLAINTEXT_PERSISTENCE"
+  - "NO_DIRECT_MAIN_WRITE"
+  - "NO_SELF_REVIEW"
+  - "NO_SELF_MERGE"
+  - "NO_R175_MUTATION"
+  - "NO_R184_MUTATION"
+  - "NO_FORCE_PUSH_REBASE_RESET_AMEND_HISTORY_REWRITE"
+read_behavior:
+  on_read_task: "SELECT_THIS_EXPLICIT_REGISTERED_INDEX_THEN_RUN_REGISTRY_WIDE_FRESH_CONFLICT_ADMISSION"
+  legacy_default_fallback_forbidden: true
+  arbitrary_issue_or_comment_as_execution_authority: false
+after_read: "FRESH_VALIDATE_AUTHORITY_THEN_BEGIN_C0_AND_AUTO_CONTINUE_FIXED_BATCH"
+updated_by: "GPT_ARCHITECTURE_OWNER"
+updated_at: "2026-09-10T16:22:00Z"
