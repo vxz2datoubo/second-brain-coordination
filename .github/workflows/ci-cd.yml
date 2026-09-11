@@ -1,0 +1,99 @@
+name: CI/CD (build-test-deploy)
+
+# 统一编排：build → test → deploy（控制塔 Web 看板 → GitHub Pages）。
+# 与现有零散泳道 workflow 并存：本 workflow 是全仓库统一门禁 + 部署，
+# 各泳道专用 workflow 继续负责自己领域的 exact-head 验证。
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: ci-cd-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install PyYAML
+      - name: Syntax check (all Python)
+        run: |
+          set -e
+          failed=0
+          while IFS= read -r -d '' f; do
+            python -m py_compile "$f" || failed=1
+          done < <(find . -name '*.py' -print0)
+          if [ "$failed" -ne 0 ]; then
+            echo "::error::syntax check failed"
+            exit 1
+          fi
+      - name: Whitespace / patch hygiene
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git diff --check "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}"
+          else
+            git diff-tree --check --root HEAD
+          fi
+
+  test:
+    name: test
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install PyYAML
+      - name: Run full unittest suite
+        run: |
+          python -m unittest discover -s tests -p 'test_*.py' -v
+      - name: Control Tower structural check
+        run: |
+          cd coordination/CONTROL-TOWER
+          python run_control_tower.py check --repo-root ../..
+      - name: Autopilot dry-run (discover only)
+        run: |
+          python -m tools.autopilot.autopilot --dry-run --repo-root .
+
+  deploy:
+    name: deploy (control tower dashboard)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install PyYAML
+      - name: Generate control tower dashboard
+        run: |
+          python -m tools.autopilot.dashboard --repo-root . --out docs/index.html
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
