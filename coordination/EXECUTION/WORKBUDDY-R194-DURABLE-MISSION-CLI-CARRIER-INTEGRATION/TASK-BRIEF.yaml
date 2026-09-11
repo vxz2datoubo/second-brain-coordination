@@ -19,7 +19,8 @@ execution_mode: "SYNTHETIC_AND_DISPOSABLE_CLI_CARRIER_INTEGRATION_ONLY"
 primary_executor: "WORKBUDDY_ENGINEERING_EXECUTOR"
 carrier: "WORKBUDDY_CLI_HEADLESS"
 model_profile: "DEEP_ENGINEERING"
-preferred_implementation_model: "deepseek-v4-pro"
+preferred_implementation_model_affinity: "Deepseek-V4-Pro"
+peer_implementation_model: "GLM-5.3"
 required_runtime_canary_model: "deepseek-v4.1-flash"
 model_resolution: "FRESH_AT_DISPATCH"
 implementation_sequence:
@@ -86,7 +87,7 @@ mission_intent:
     - "Treat maxTurns and client timeout as bounded episode conditions, reconcile durable JobStore/checkpoint state, then resume or roll over without duplicate effects."
     - "Separate process-alive/heartbeat evidence from meaningful tool/file/git/test/checkpoint progress and fail closed on ambiguity."
   observable_success:
-    - "A clean authenticated V4.1 Flash synthetic episode can be resumed from a new process without relying on conversational memory."
+    - "A clean authenticated V4.1 Flash synthetic episode can resume the same governed session from a new process without relying on tool/file memory; conversational session state is allowed only when bound to the authenticated session identity."
     - "A deliberately stalled-but-alive carrier is detected by the watchdog."
     - "Supervisor timeout and crash-after-commit do not duplicate the committed episode."
     - "Only a structured terminal episode result can advance mission state; outer process exit 0 alone cannot."
@@ -300,6 +301,8 @@ executor_lease_acknowledgement:
 
 mandatory_delivery_artifacts:
   - "AGENT_EXECUTION_RECEIPT"
+  - "RESEARCH_LEDGER"
+  - "UNPLANNED_IMPROVEMENT_LEDGER"
   - "TEST_RUN_RECEIPT"
   - "LIVE_SYNTHETIC_CANARY_RECEIPT"
   - "WORK_PROCESS_AND_COORDINATION_REPORT"
