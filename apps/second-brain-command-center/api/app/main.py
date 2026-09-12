@@ -22,10 +22,12 @@ from .repo_paths import get_paths
 from .schemas import (
     Envelope, Meta, Freshness, SourceRef, TrustBadge,
     RepoState, SystemHealth, HealthComponent,
+    DispatchIntentRequest,
 )
 from .adapters import git_local, github
 from .adapters import coordination as coord_adapter
 from .adapters import control_tower as ct_adapter
+from .adapters import dispatch as dispatch_adapter
 
 app = FastAPI(
     title="Second Brain Command Center API",
@@ -257,24 +259,33 @@ def agents():
 
 
 # --------------------------------------------------------------------------
-# Phase 2+ extension points — declared, NOT implemented (fail closed)
+# Phase 2A — Dispatch Intent (READ-ONLY; NEVER starts a process)
+#
+# Authority belongs to canonical repository state. A button press or chat text
+# is INTENT, never authority. This endpoint only reads Control Tower state,
+# evaluates which authorization inputs are present, and composes an explicit
+# DispatchIntent for a human gate. Process launch is Phase 2C and is forbidden
+# here. See coordination/GOVERNANCE/DISPATCH-INTENT-CONTRACT-v1.0.yaml.
 # --------------------------------------------------------------------------
 
 @app.post("/api/commands/dispatch-intent")
-def dispatch_intent():
-    raise HTTPException(
-        status_code=501,
-        detail=("DISPATCH_NOT_ENABLED: Phase 1 is READ-ONLY. "
-                "Dispatch requires Control Tower authority check (route/claim/lease/"
-                "collision) and is Phase 2. This endpoint exists only as a declared "
-                "extension point and fails closed."),
+def dispatch_intent(req: DispatchIntentRequest):
+    paths = get_paths()
+    coord = paths.coordination if paths.available else None
+    intent = dispatch_adapter.compose_intent(
+        coord,
+        project_id=req.project_id,
+        task_id=req.task_id,
+        route_epoch=req.route_epoch,
+        requested_by=req.requested_by,
     )
+    return Envelope(data=intent, meta=intent.meta)
 
 
 @app.post("/api/commands/start")
 def start_task():
     raise HTTPException(
         status_code=501,
-        detail=("START_NOT_ENABLED: Host Broker auto-dispatch is Phase 3 and requires "
-                "R194 physical canary proof. Fails closed."),
+        detail=("START_NOT_ENABLED: real process activation is Phase 2C and requires "
+                "independent review plus explicit Owner authorization. Fails closed."),
     )

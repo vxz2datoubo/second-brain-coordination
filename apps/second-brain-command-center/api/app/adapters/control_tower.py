@@ -13,7 +13,9 @@ import re
 from datetime import datetime, timezone
 from pathlib import Path
 
-from ..adapters.coordination import read_active_tasks, read_lanes
+from ..adapters.coordination import (
+    build_collisions, read_active_tasks, read_claims, read_lanes,
+)
 from ..schemas import (
     ControlTowerSummary, Freshness, Meta, SourceRef, TaskState, TrustBadge,
 )
@@ -22,6 +24,8 @@ from ..schemas import (
 def read_summary(coord: Path) -> ControlTowerSummary:
     lanes_doc, _ = read_lanes(coord)
     tasks, _ = read_active_tasks(coord)
+    claims, claim_meta = read_claims(coord)
+    collisions, collision_meta = build_collisions(coord)
     lanes = lanes_doc.get("program_lanes") or []
 
     # Build state histogram from real task states (never invented).
@@ -63,17 +67,19 @@ def read_summary(coord: Path) -> ControlTowerSummary:
                   path="coordination/ACTIVE-PROGRAM-LANES.yaml"),
         SourceRef(kind="control_tower",
                   path="coordination/CONTROL-TOWER/"),
-    ]
+    ] + list(claim_meta.sources) + list(collision_meta.sources)
     warnings: list[str] = []
     if not lanes:
         warnings.append("no program lanes readable")
+    warnings.extend(claim_meta.warnings)
+    warnings.extend(collision_meta.warnings)
 
     return ControlTowerSummary(
         counts=counts,
         lanes=lane_rows,
         routes=route_rows,
-        claims=[],
-        collisions=[],
+        claims=claims,
+        collisions=collisions,
         meta=Meta(
             freshness=Freshness.FRESH if lanes or tasks else Freshness.UNKNOWN,
             authority="CONTROL_TOWER",

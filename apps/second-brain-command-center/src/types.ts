@@ -130,12 +130,41 @@ export interface AgentView {
   liveness_reason?: string | null
 }
 
+export interface ClaimView {
+  task_id: string
+  claim_id?: string | null
+  agent?: string | null
+  branch?: string | null
+  route_epoch?: number | string | null
+  status_observed?: string | null
+  execution_allowed_observed?: boolean | null
+  active_issue?: number | string | null
+  pull_request?: number | string | null
+  authorized_paths: string[]
+  hard_boundaries: string[]
+  source_path?: string | null
+}
+
+export interface CollisionHolder {
+  agent: string
+  task_id: string
+  source: string
+}
+
+export type CollisionSeverity = 'OK' | 'SINGLE_AGENT_MULTI_TASK' | 'CROSS_AGENT_OVERLAP'
+
+export interface CollisionView {
+  surface: string
+  holders: CollisionHolder[]
+  severity: CollisionSeverity
+}
+
 export interface ControlTowerSummary {
   counts: Record<string, number>
   lanes: Record<string, unknown>[]
   routes: Record<string, unknown>[]
-  claims: Record<string, unknown>[]
-  collisions: Record<string, unknown>[]
+  claims: ClaimView[]
+  collisions: CollisionView[]
   projection_as_of?: string | null
 }
 
@@ -162,3 +191,62 @@ export interface SystemTop {
   lane_count: number
   last_refresh: string
 }
+
+/* ---- Phase 2A: Dispatch Intent (READ-ONLY; never starts a process) ---- */
+
+export type AuthorityState = 'CURRENT' | 'UNKNOWN' | 'STALE' | 'REVOKED'
+
+export type DispatchVerdict =
+  | 'ADMISSIBLE'
+  | 'BLOCKED_MISSING_AUTHORITY'
+  | 'BLOCKED_STATE_CONFLICT'
+  | 'BLOCKED_STALE_BASE'
+  | 'UPGRADE_TO_OWNER'
+
+export type DispatchNextGate =
+  | 'HUMAN_DISPATCH_APPROVAL'
+  | 'OWNER_REVIEW'
+  | 'KEEP_READ_ONLY'
+
+export interface AuthorityInputCheck {
+  input_id: string
+  label_zh: string
+  present: boolean
+  detail?: string | null
+  source_path?: string | null
+}
+
+export interface CriticPreScreen {
+  enabled: boolean
+  confidence?: number | null
+  governance_conflicts: string[]
+  requires_tier_upgrade: boolean
+  irreversible_or_externally_visible: boolean
+  rationale?: string | null
+  escalated_to_human: boolean
+  note?: string | null
+}
+
+export interface DispatchIntent {
+  dispatch_intent_id: string
+  created_at: string
+  requested_by: string
+  source: 'CONSOLE_BUTTON'
+  project_id: string
+  task_id: string
+  route_epoch?: number | string | null
+  executor?: string | null
+  carrier?: string | null
+  model?: string | null
+  branch?: string | null
+  canonical_main_sha?: string | null
+  authority_state: AuthorityState
+  readonly_authority_check: AuthorityInputCheck[]
+  missing_authorization_inputs: string[]
+  critic_pre_screen: CriticPreScreen
+  verdict: DispatchVerdict
+  next_gate: DispatchNextGate
+  plain_answer?: string | null
+  starts_any_process: boolean
+}
+

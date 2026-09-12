@@ -256,3 +256,82 @@ class SystemHealth(BaseModel):
     backend_version: str | None = None
     coordination_main_sha: str | None = None
     meta: Meta = Field(default_factory=Meta)
+
+
+# --------------------------------------------------------------------------
+# Phase 2A — Dispatch Intent (READ-ONLY; never launches a process)
+# --------------------------------------------------------------------------
+
+class AuthorityState(str, Enum):
+    CURRENT = "CURRENT"
+    UNKNOWN = "UNKNOWN"
+    STALE = "STALE"
+    REVOKED = "REVOKED"
+
+
+class DispatchVerdict(str, Enum):
+    ADMISSIBLE = "ADMISSIBLE"
+    BLOCKED_MISSING_AUTHORITY = "BLOCKED_MISSING_AUTHORITY"
+    BLOCKED_STATE_CONFLICT = "BLOCKED_STATE_CONFLICT"
+    BLOCKED_STALE_BASE = "BLOCKED_STALE_BASE"
+    UPGRADE_TO_OWNER = "UPGRADE_TO_OWNER"
+
+
+class DispatchNextGate(str, Enum):
+    HUMAN_DISPATCH_APPROVAL = "HUMAN_DISPATCH_APPROVAL"
+    OWNER_REVIEW = "OWNER_REVIEW"
+    KEEP_READ_ONLY = "KEEP_READ_ONLY"
+
+
+class AuthorityInputCheck(BaseModel):
+    """One read-only authorization input evaluated against canonical state."""
+    input_id: str
+    label_zh: str
+    present: bool
+    detail: str | None = None
+    source_path: str | None = None
+
+
+class CriticPreScreen(BaseModel):
+    """Cheap-model pre-screen. Ranks and routes; never approves."""
+    enabled: bool = False
+    confidence: float | None = None
+    governance_conflicts: list[str] = Field(default_factory=list)
+    requires_tier_upgrade: bool = False
+    irreversible_or_externally_visible: bool = False
+    rationale: str | None = None
+    escalated_to_human: bool = True
+    note: str | None = None
+
+
+class DispatchIntentRequest(BaseModel):
+    project_id: str
+    task_id: str
+    route_epoch: int | str | None = None
+    requested_by: str = "operator"
+
+
+class DispatchIntent(BaseModel):
+    """Phase 2A artifact. Composing one NEVER starts a process."""
+    dispatch_intent_id: str
+    created_at: datetime
+    requested_by: str
+    source: Literal["CONSOLE_BUTTON"] = "CONSOLE_BUTTON"
+    project_id: str
+    task_id: str
+    route_epoch: int | str | None = None
+    executor: str | None = None
+    carrier: str | None = None
+    model: str | None = None
+    branch: str | None = None
+    canonical_main_sha: str | None = None
+    authority_state: AuthorityState = AuthorityState.UNKNOWN
+    readonly_authority_check: list[AuthorityInputCheck] = Field(default_factory=list)
+    missing_authorization_inputs: list[str] = Field(default_factory=list)
+    critic_pre_screen: CriticPreScreen = Field(default_factory=CriticPreScreen)
+    verdict: DispatchVerdict = DispatchVerdict.BLOCKED_MISSING_AUTHORITY
+    next_gate: DispatchNextGate = DispatchNextGate.KEEP_READ_ONLY
+    plain_answer: str | None = None
+    starts_any_process: bool = False
+    meta: Meta = Field(default_factory=Meta)
+

@@ -344,3 +344,126 @@ def build_project_detail(coord: Path, project_id: str) -> ProjectDetail | None:
         detail.hard_boundaries = list(adapter_doc.get("hard_boundaries") or [])
         detail.relationships = relationships
     return detail
+
+
+# --------------------------------------------------------------------------
+# Work claims & collision surfaces (control-tower projection fill)
+# --------------------------------------------------------------------------
+
+def read_claims(coord: Path) -> tuple[list[dict], Meta]:
+    """Scan coordination/EXECUTION/**/WORK-CLAIM.yaml — READ-ONLY projection.
+
+    A work claim is an artifact the executor itself declared. This projection
+    only reports what the files say; it never grants or revokes authority.
+    """
+    sources = [SourceRef(kind="local_file",
+                         path="coordination/EXECUTION/**/WORK-CLAIM.yaml")]
+    if not coord.is_dir():
+        return [], Meta(
+            freshness=Freshness.UNKNOWN, authority="WORK_CLAIMS",
+            trust=TrustBadge.UNKNOWN, projection_status="UNAVAILABLE",
+            sources=sources, warnings=["coordination repo not available"],
+        )
+
+    claims: list[dict] = []
+    warnings: list[str] = []
+    for p in sorted(coord.glob("coordination/EXECUTION/**/WORK-CLAIM.yaml")):
+        doc = _load_yaml(p)
+        if not doc:
+            warnings.append(f"unreadable claim skipped: {p.parent.name}")
+            continue
+        claims.append({
+            "task_id": doc.get("task_id") or p.parent.name,
+            "claim_id": doc.get("claim_id"),
+            "agent": doc.get("agent"),
+            "branch": doc.get("branch"),
+            "route_epoch": doc.get("route_epoch"),
+            "status_observed": doc.get("status_observed"),
+            "execution_allowed_observed": doc.get("execution_allowed_observed"),
+            "active_issue": doc.get("active_issue") or doc.get("source_issue"),
+            "pull_request": doc.get("pull_request"),
+            "authorized_paths": [str(s) for s in (doc.get("authorized_paths") or [])],
+            "hard_boundaries": [str(s) for s in (doc.get("hard_boundaries") or [])],
+            "source_path": str(p.relative_to(coord)).replace("\\", "/"),
+        })
+
+    return claims, Meta(
+        freshness=Freshness.FRESH if claims else Freshness.UNKNOWN,
+        authority="WORK_CLAIMS",
+        trust=TrustBadge.CANONICAL,
+        projection_status="COMPLETE" if claims else "PARTIAL",
+        sources=sources, warnings=warnings,
+    )
+
+
+def build_collisions(coord: Path) -> tuple[list[dict], Meta]:
+    """Derive per-surface holder sets from leases + claims. READ-ONLY.
+
+    Grouping is EXACT STRING match on surface patterns; no glob semantics are
+    expanded, so this never reports overlap beyond what the files themselves
+    state. TASK-LEASE exclusive_write_surface is authoritative and wins;
+    WORK-CLAIM authorized_paths dedup into the same holder entry.
+
+    Severity (derived, never invented):
+      CROSS_AGENT_OVERLAP      — 2+ DIFFERENT agents hold the same surface (red)
+      SINGLE_AGENT_MULTI_TASK  — one agent holds it from 2+ tasks (amber)
+      OK                       — single holder (green)
+    """
+    sources = [
+        SourceRef(kind="local_file", path="coordination/EXECUTION/**/TASK-LEASE.yaml"),
+        SourceRef(kind="local_file", path="coordination/EXECUTION/**/WORK-CLAIM.yaml"),
+    ]
+    if not coord.is_dir():
+        return [], Meta(
+            freshness=Freshness.UNKNOWN, authority="COLLISION_DOMAINS",
+            trust=TrustBadge.UNKNOWN, projection_status="UNAVAILABLE",
+            sources=sources, warnings=["coordination repo not available"],
+        )
+
+    holders_by_surface: dict[str, list[dict]] = {}
+
+    for lp in sorted(coord.glob("coordination/EXECUTION/**/TASK-LEASE.yaml")):
+        doc = _load_yaml(lp)
+        if not doc:
+            continue
+        task_id = doc.get("task_id") or lp.parent.name
+        agent = doc.get("agent_type") or doc.get("agent") or "UNKNOWN"
+        for s in doc.get("exclusive_write_surface") or []:
+            holders_by_surface.setdefault(str(s), []).append(
+                {"agent": str(agent), "task_id": str(task_id), "source": "TASK-LEASE.yaml"})
+
+    for cp in sorted(coord.glob("coordination/EXECUTION/**/WORK-CLAIM.yaml")):
+        doc = _load_yaml(cp)
+        if not doc:
+            continue
+        task_id = str(doc.get("task_id") or cp.parent.name)
+        agent = str(doc.get("agent") or "UNKNOWN")
+        for s in doc.get("authorized_paths") or []:
+            lst = holders_by_surface.setdefault(str(s), [])
+            if not any(h["task_id"] == task_id and h["agent"] == agent for h in lst):
+                lst.append({"agent": agent, "task_id": task_id, "source": "WORK-CLAIM.yaml"})
+
+    collisions: list[dict] = []
+    cross_agent = 0
+    for surface, holders in sorted(holders_by_surface.items()):
+        agents = {h["agent"] for h in holders}
+        if len(agents) > 1:
+            severity = "CROSS_AGENT_OVERLAP"
+            cross_agent += 1
+        elif len(holders) > 1:
+            severity = "SINGLE_AGENT_MULTI_TASK"
+        else:
+            severity = "OK"
+        collisions.append({"surface": surface, "holders": holders, "severity": severity})
+
+    warnings: list[str] = []
+    if cross_agent:
+        warnings.append(f"{cross_agent} surface(s) held by 2+ different agents — verify single-writer before dispatch")
+
+    return collisions, Meta(
+        freshness=Freshness.FRESH if collisions else Freshness.UNKNOWN,
+        authority="COLLISION_DOMAINS",
+        trust=TrustBadge.DERIVED,
+        projection_status="COMPLETE" if collisions else "PARTIAL",
+        sources=sources, warnings=warnings,
+    )

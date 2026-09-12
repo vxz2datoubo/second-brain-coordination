@@ -4,6 +4,7 @@ import {
   PlainAnswer, BarChart, TrafficRow,
 } from '../components/ui'
 import { IconWarn, IconTower } from '../components/Icons'
+import { DispatchPanel } from '../components/DispatchPanel'
 import { useControlTower } from '../hooks'
 import { taskStateLabel, toneVar } from '../semantics'
 import type { Meta, TaskState } from '../types'
@@ -121,11 +122,91 @@ export default function ControlTowerPage() {
         </div>
       ) : <Empty>无执行路线</Empty>}
 
+      <SectionTitle>工作认领 · Claims</SectionTitle>
+      {d.claims.length ? (
+        <div className="table-wrap">
+          <table className="table">
+            <thead><tr><th>task_id</th><th>Agent</th><th>epoch</th><th>认领状态</th><th>可执行</th><th>Issue / PR</th><th>授权路径</th></tr></thead>
+            <tbody>
+              {d.claims.map((c, i) => (
+                <tr key={i}>
+                  <td className="mono" style={{ fontSize: 11 }}>{c.task_id}</td>
+                  <td>{c.agent ? <Pill tone="accent">{c.agent}</Pill> : '—'}</td>
+                  <td className="mono">{c.route_epoch != null ? String(c.route_epoch) : '—'}</td>
+                  <td className="mono" style={{ fontSize: 11 }}>{String(c.status_observed ?? '—')}</td>
+                  <td>{c.execution_allowed_observed ? <Pill tone="ok">YES</Pill> : <Pill tone="neutral">NO</Pill>}</td>
+                  <td className="mono">{c.active_issue ? `#${c.active_issue}` : '—'}{c.pull_request ? ` / #${c.pull_request}` : ''}</td>
+                  <td className="mono" style={{ fontSize: 11 }}>{c.authorized_paths.length} 项</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : <Empty>暂无工作认领工件（EXECUTION/**/WORK-CLAIM.yaml）</Empty>}
+
+      <SectionTitle>碰撞域 · Collision Surfaces</SectionTitle>
+      {(() => {
+        const bad = d.collisions.filter((c) => c.severity === 'CROSS_AGENT_OVERLAP').length
+        const amber = d.collisions.filter((c) => c.severity === 'SINGLE_AGENT_MULTI_TASK').length
+        if (d.collisions.length) {
+          return (
+            <div style={{ marginBottom: 10 }}>
+              <TrafficRow items={[
+                { label: '独占正常', tone: 'ok', value: d.collisions.length - bad - amber },
+                { label: '同人多任务', tone: amber > 0 ? 'warn' : 'neutral', value: amber },
+                { label: '跨 Agent 重叠', tone: bad > 0 ? 'bad' : 'neutral', value: bad },
+              ]} />
+              <div className="muted" style={{ fontSize: 11.5, marginTop: 8 }}>
+                绿=单持有者独占；黄=同一执行者的多个任务声明了同一写表面；红=不同执行者声明了同一写表面——派发前必须先裁决单一写者。
+              </div>
+            </div>
+          )
+        }
+        return null
+      })()}
+      {d.collisions.length ? (
+        <div className="table-wrap">
+          <table className="table">
+            <thead><tr><th>写表面（surface）</th><th>持有者</th><th>信号</th></tr></thead>
+            <tbody>
+              {d.collisions.map((c, i) => (
+                <tr key={i}>
+                  <td className="mono" style={{ fontSize: 11 }}>{c.surface}</td>
+                  <td>
+                    <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
+                      {c.holders.map((h, j) => (
+                        <Pill key={j} tone="neutral">{h.agent} · {h.task_id}</Pill>
+                      ))}
+                    </div>
+                  </td>
+                  <td>
+                    {c.severity === 'CROSS_AGENT_OVERLAP'
+                      ? <Pill tone="bad">红 · 跨 Agent 重叠</Pill>
+                      : c.severity === 'SINGLE_AGENT_MULTI_TASK'
+                        ? <Pill tone="warn">黄 · 同人多任务</Pill>
+                        : <Pill tone="ok">绿 · 独占正常</Pill>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : <Empty>暂无可推导的写表面（需要 lease / claim 工件）</Empty>}
+
+      <SectionTitle>派发 · Dispatch</SectionTitle>
+      <DispatchPanel
+        tasks={d.routes.map((r) => ({
+          task_id: String(r.task_id),
+          project_id: 'SECOND_BRAIN',
+          executor: r.agent != null ? String(r.agent) : null,
+        }))}
+      />
+
       <div className="banner banner-warn" style={{ marginTop: 20 }}>
         <IconWarn size={16} />
         <div>
-          <b>派发（Dispatch）尚未启用。</b>
-          <span className="muted"> Phase 1 为只读。点击派发需经控制塔校验 route / claim / lease / collision / reservation，属 Phase 2；自动启动属 Phase 3（需 Host Broker canary 证明）。</span>
+          <b>派发目前只到「生成意图」这一步。</b>
+          <span className="muted"> 点派发只会做一次只读授权核对并产出「派发意图」，绝不启动任何进程。真正拉起 CLI worker（由 RDC 执行）属 Phase 2C，需先过独立评审 + 你显式授权。详见 DISPATCH-INTENT-CONTRACT-v1.0。</span>
         </div>
       </div>
 
