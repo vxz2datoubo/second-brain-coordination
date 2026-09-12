@@ -12,13 +12,17 @@ execution_repository: "vxz2datoubo/second-brain-coordination"
 source_issue: 595
 pull_request: 705
 exact_base_sha: "e7d903c174565bc938a0e72b8672edb5b7793827"
-# NOTE on exact_head_sha: this document is itself part of the candidate, so it
-# cannot name its own commit hash without self-reference. The value below is the
-# head this request was composed against; after this file was added the branch
-# head became be6127816fa8a30a7b68fd183890fc0b75922e15 (this file's own commit).
-# The authoritative candidate head is therefore the CURRENT PR #705 head, and any
-# movement requires a new REVIEW_REQUEST per the freshness invariant.
-exact_head_sha: "be6127816fa8a30a7b68fd183890fc0b75922e15"
+# NOTE on exact_head_sha (self-reference is unavoidable for an in-branch request):
+#   This document is part of the candidate it describes, so it cannot name its own
+#   commit without a fixed-point paradox. The value below is the head the request
+#   was COMPOSED against. The AUTHORITATIVE candidate head is the current PR #705
+#   head as returned by the GitHub API, not this literal. Per the freshness
+#   invariant (any_head_movement_requires_new_review_request), the reviewer must
+#   read the PR head at review time. History: candidate was aa8f133e when scope
+#   was withdrawn; be612781 when this file was first added; ba5aaf27 after the
+#   self-reference note was folded in. No further history rewriting will occur.
+exact_head_sha: "ba5aaf27d81d28b0537069d75aa4ee8fd1907ed3"
+exact_head_sha_authoritative_source: "PR #705 .headRefOid at review time"
 
 changed_file_scope:
   count: 15
@@ -40,6 +44,28 @@ changed_file_scope:
     - "tests/fixtures/local_workbuddy_bridge/adversarial-fixtures.yaml"
     - "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/RETURN-PACKAGE.yaml"
     - "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/REVIEW-REQUEST.yaml"
+
+# ---------------------------------------------------------------------------
+# effective_spec_snapshot — the exact inputs that bound this candidate
+# ---------------------------------------------------------------------------
+effective_spec_snapshot:
+  task_brief: "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/TASK-BRIEF.yaml"
+  task_lease: "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/TASK-LEASE.yaml"
+  work_claim: "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/WORK-CLAIM.yaml"
+  executor_reservation: "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/EXECUTOR-RESERVATION.yaml"
+  route: "coordination/ROUTES/WORKBUDDY-R184-LOCAL-WORKBUDDY-BRIDGE.yaml"
+  route_epoch: 184
+  source_checkpoint_main: "bf4e722540f92ed560b29f884b3ac7c1c8d8895d"
+  governing_contract: "coordination/GOVERNANCE/LOCAL-WORKBUDDY-BRIDGE-CONTRACT-v1.0.yaml"
+  carrier_contract: "coordination/GOVERNANCE/EXECUTION-CARRIER-AND-CONCURRENCY-CONTRACT-v1.0.yaml"
+  trust_gate: "coordination/GOVERNANCE/UNIFIED-EXECUTION-FRESH-TRUST-GATE-v1.0.yaml"
+  lease_authority:
+    review_authority: false
+    merge_authority: false
+    no_self_review: true
+    no_self_merge: true
+    no_direct_main_write: true
+  dry_run_decree: "DRY_RUN_NEW_BRIDGE_BY_DEFAULT"
 
 # ---------------------------------------------------------------------------
 # CI status — read carefully; "red" here is NOT all attributable to this delta
