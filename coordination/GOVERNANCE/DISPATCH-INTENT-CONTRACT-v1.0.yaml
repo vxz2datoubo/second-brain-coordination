@@ -1,0 +1,164 @@
+schema_version: "1.0"
+protocol_id: "DISPATCH-INTENT-CONTRACT-v1"
+status: "CANDIDATE_PENDING_INDEPENDENT_REVIEW"
+source_issue: null
+owner_intent_source: "Owner (大头) session instruction 2026-09-11/12: 'pressing dispatch should let RDC read the task and schedule WorkBuddy / Codex / GPT CLI or activate the GPT window.'"
+companion_contracts:
+  - "coordination/GOVERNANCE/LOCAL-WORKBUDDY-BRIDGE-CONTRACT-v1.0.yaml"
+  - "coordination/GOVERNANCE/UNIFIED-AGENT-EXECUTION-FABRIC-v1.0.yaml"
+  - "coordination/GOVERNANCE/COMPUTE-LANE-AUTHORIZATION-v1.0.yaml"
+
+purpose: >-
+  Define the Phase 2A artifact produced when an operator presses the console Dispatch button.
+  Phase 2A NEVER starts a process. It performs a READ-ONLY authority check against canonical
+  Control Tower state, composes an explicit DispatchIntent, records which authorization inputs
+  are present and which are missing, and routes the intent to a human decision gate.
+  Process launch is Phase 2C and is out of scope for this contract.
+
+hard_boundary:
+  starts_any_process: false
+  writes_any_system_truth: false
+  mints_any_authority: false
+  calls_host_broker_admit: false
+  invokes_rdc: false
+  note: >-
+    Phase 2A is a pure projection + intent-composition step. Any implementation that launches,
+    attaches to, or kills a process under this contract is NON-COMPLIANT.
+
+caller_is_not_authority:
+  console_button_press_is_authority: false
+  chat_text_mints_authority: false
+  issue_text_mints_authority: false
+  operator_supplied_equivalent_strings_are_authority: false
+  statement: >-
+    Pressing Dispatch expresses INTENT, not AUTHORITY. Authority must already exist in canonical
+    repository state (route + claim + lease + reservation + prewrite snapshot + executable batch).
+
+dispatch_intent_schema:
+  required_fields:
+    - dispatch_intent_id
+    - created_at
+    - requested_by
+    - source
+    - project_id
+    - task_id
+    - route_epoch
+    - mission_id
+    - milestone_id
+    - episode_id
+    - attempt
+    - role
+    - branch
+    - worktree
+    - collision_domain
+    - carrier
+    - model
+    - canonical_main_sha
+    - authority_state
+    - authority_receipt_digest
+    - resource_claims
+    - write_surfaces
+    - readonly_authority_check
+    - missing_authorization_inputs
+    - critic_pre_screen
+    - verdict
+    - next_gate
+  field_semantics:
+    dispatch_intent_id:
+      format: "DI-<sha256(canonical-identity-material)[:24]>"
+      note: "Content-derived and stable; re-pressing Dispatch with identical inputs must yield the identical id (idempotency)."
+    source:
+      allowed_values: ["CONSOLE_BUTTON"]
+    authority_state:
+      allowed_values: ["CURRENT", "UNKNOWN", "STALE", "REVOKED"]
+      fail_closed_when: ["UNKNOWN", "STALE", "REVOKED"]
+    readonly_authority_check:
+      note: >-
+        Read-only evaluation of route/claim/lease/reservation/prewrite-snapshot/executable-batch/adapter
+        presence and consistency. Reads canonical state; never mutates it.
+    missing_authorization_inputs:
+      note: "Explicit list. Empty list is REQUIRED for verdict ADMISSIBLE."
+    verdict:
+      allowed_values:
+        - "ADMISSIBLE"
+        - "BLOCKED_MISSING_AUTHORITY"
+        - "BLOCKED_STATE_CONFLICT"
+        - "BLOCKED_STALE_BASE"
+        - "UPGRADE_TO_OWNER"
+    next_gate:
+      allowed_values: ["HUMAN_DISPATCH_APPROVAL", "OWNER_REVIEW", "KEEP_READ_ONLY"]
+
+readonly_authority_inputs_checked:
+  - input: "active route (ACTIVE-*-TASK.yaml)"
+    requirement: "status READY and execution_allowed true"
+  - input: "work claim"
+    requirement: "present and matching task_id + route_epoch"
+  - input: "task lease"
+    requirement: "present, unexpired, holder matches intended executor"
+  - input: "executor reservation"
+    requirement: "present and matching"
+  - input: "prewrite reconciliation snapshot"
+    requirement: "present and base matches canonical_main_sha"
+  - input: "executable batch"
+    requirement: "present and unmodified"
+  - input: "project adapter"
+    requirement: "registered and write surfaces canonical"
+  - input: "model availability"
+    requirement: "required model resolves unambiguously; no silent tier upgrade"
+  - input: "collision domain"
+    requirement: "no concurrent overlapping writer"
+
+fail_closed_rules:
+  - rule: "Any missing, unknown, stale or ambiguous input -> verdict BLOCKED_* and next_gate KEEP_READ_ONLY."
+    source_of_truth: "LOCAL-WORKBUDDY-BRIDGE-CONTRACT-v1.0.trusted_git_boundary.on_missing_changed_or_ambiguous_identity"
+  - rule: "Candidate-only or non-READY state -> BLOCKED_STALE_BASE."
+  - rule: "Canonical main moved between read and intent composition -> BLOCKED_STALE_BASE."
+  - rule: "Compute-tier upgrade required -> UPGRADE_TO_OWNER (never silent)."
+  - rule: "Any conflict with a governance contract -> UPGRADE_TO_OWNER."
+
+critic_pre_screen:
+  enabled: true
+  model_class: "CHEAP_MODEL"
+  model_selection_authority: "COMPUTE-LANE-AUTHORIZATION-v1.0"
+  output:
+    - "confidence (0.0-1.0)"
+    - "governance_conflicts (list)"
+    - "requires_tier_upgrade (bool)"
+    - "irreversible_or_externally_visible (bool)"
+    - "rationale"
+  escalate_to_human_when:
+    - "confidence < 0.7"
+    - "governance_conflicts is non-empty"
+    - "requires_tier_upgrade is true"
+    - "irreversible_or_externally_visible is true"
+  critic_can_approve: false
+  critic_can_only_rank_and_route: true
+
+idempotency:
+  key_definition: "sha256(project_id \\0 task_id \\0 route_epoch \\0 episode_id \\0 attempt)"
+  matches_broker_idempotency_key: true
+  duplicate_dispatch_same_authority_action: "RETURN_EXISTING_INTENT_NO_SECOND_INTENT"
+
+operator_visible_rendering:
+  requirement: >-
+    The console MUST render the intent as plain language plus a graphical
+    authorization checklist and a red/amber/green status, never as raw JSON only.
+  plain_language_template: >-
+    "{task_id} 想开工。授权齐了 {n}/{total} 项。{status_sentence}"
+  graphical_elements:
+    - "authorization checklist (each input: present/missing with icon)"
+    - "traffic light: green = ADMISSIBLE, amber = UPGRADE_TO_OWNER, red = BLOCKED_*"
+    - "one-line missing-input summary"
+
+explicit_non_goals:
+  - "Launch any process"
+  - "Call Host Broker admit"
+  - "Activate RDC"
+  - "Write to canonical repository state"
+  - "Act as a second control tower or second trust gate"
+  - "Treat the button press or chat text as authority"
+
+phase_map:
+  phase_2a: "THIS CONTRACT — read-only intent composition"
+  phase_2b: "RDC shadow mode (dry-run) — plan only, no launch"
+  phase_2c: "Real launch — REQUIRES independent review + explicit Owner authorization"

