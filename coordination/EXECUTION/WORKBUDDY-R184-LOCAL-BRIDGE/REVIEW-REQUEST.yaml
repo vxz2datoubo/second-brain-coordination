@@ -20,12 +20,15 @@ exact_base_sha: "e7d903c174565bc938a0e72b8672edb5b7793827"
 #   invariant (any_head_movement_requires_new_review_request), the reviewer must
 #   read the PR head at review time. History: candidate was aa8f133e when scope
 #   was withdrawn; be612781 when this file was first added; ba5aaf27 after the
-#   self-reference note was folded in. No further history rewriting will occur.
+#   self-reference note was folded in; 2a97731f after effective_spec_snapshot;
+#   d7544aff after ROUTE-REQUEST-RDC-SKILL.yaml; then author-response commits
+#   refreshing stale counts and correcting two inaccurate CI-attribution
+#   statements found by independent verification. No history rewriting occurred.
 exact_head_sha: "ba5aaf27d81d28b0537069d75aa4ee8fd1907ed3"
 exact_head_sha_authoritative_source: "PR #705 .headRefOid at review time"
 
 changed_file_scope:
-  count: 15
+  count: 16
   all_within_authorized_surface: true
   authorized_surface_source: "coordination/ROUTES/WORKBUDDY-R184-LOCAL-WORKBUDDY-BRIDGE.yaml > write_ownership.workbuddy_exclusive"
   files:
@@ -44,6 +47,7 @@ changed_file_scope:
     - "tests/fixtures/local_workbuddy_bridge/adversarial-fixtures.yaml"
     - "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/RETURN-PACKAGE.yaml"
     - "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/REVIEW-REQUEST.yaml"
+    - "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/ROUTE-REQUEST-RDC-SKILL.yaml"
 
 # ---------------------------------------------------------------------------
 # effective_spec_snapshot — the exact inputs that bound this candidate
@@ -90,15 +94,31 @@ exact_head_ci:
            so main's green badge does not cover this job."
     - name: "Creative runtime offline verification > exact-head-offline-verification > Verify diff and R175 scope"
       conclusion: "failure"
-      attributable_to_this_delta: false
-      reported: "R175_SCOPE_FAIL Out-of-scope R175 paths: (~600 paths)"
+      # CORRECTED per independent verification (VERIFICATION-RESULT.md item 7, attribution B):
+      # the two original evidence statements below were INACCURATE and have been replaced.
+      # Measured facts at verified head d7544aff:
+      #   - the guard rejects 336 paths (of which 333 are pre-existing noise on main from the
+      #     stale hardcoded BASELINE = 740788a3, 575 commits behind main);
+      #   - 3 of the rejected paths ARE this PR's EXECUTION files, and they REMAIN rejected
+      #     even at the correct merge-base, because the guard's ALLOWED pattern list does not
+      #     include coordination/EXECUTION/** at all.
+      # So the job's red on this PR is not pure baseline noise: it is a guard routing/scope
+      # conflict (the R175 creative-runtime guard fires on any PR touching tests/** or
+      # tools/** and rejects governance-file paths its ALLOWED list never covered). The
+      # route authorizing those 3 paths is the task's own governance source. Adjudication
+      # of this conflict belongs to the #453 formal review, not to the author.
+      attributable_to_this_delta: "PARTIAL (stale-baseline noise: no; guard ALLOWED-list routing conflict on 3 EXECUTION files: yes)"
+      reported: "R175_SCOPE_FAIL Out-of-scope R175 paths: (336 rejected; 333 pre-existing on main)"
       root_cause: >-
         tools/verify_r175_scope.py hardcodes BASELINE = "740788a3847a402923bf2e89093d910eda0c89d0",
-        which is 577 commits behind current main. The guard then flags every path that
-        moved since that stale baseline, on any PR touching tests/** or tools/**.
+        which is 575 commits behind current main. On any PR touching tests/** or tools/** it
+        flags every path moved since that stale baseline (333 paths on main alone). Its
+        ALLOWED pattern list does not include coordination/EXECUTION/**, so the 3 governance
+        files added by this PR are rejected independently of the stale baseline.
       evidence:
-        - "None of the ~600 listed paths are among this PR's 14 files."
-        - "Evaluated against the correct merge-base (origin/main...HEAD), all 14 files pass the guard."
+        - "CORRECTED: 3 of the rejected paths ARE this PR's EXECUTION files (RETURN-PACKAGE, REVIEW-REQUEST, ROUTE-REQUEST under coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/)."
+        - "CORRECTED: at the correct merge-base those 3 files are STILL rejected -- coordination/EXECUTION/** is absent from the guard's ALLOWED patterns; only the other 13 files pass."
+        - "The failure is therefore pre-existing-by-design for any governance-file PR plus stale-baseline noise; adjudication deferred to #453."
 
 # ---------------------------------------------------------------------------
 # Local verification performed by the author on the exact head
