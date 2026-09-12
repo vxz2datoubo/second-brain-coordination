@@ -12,14 +12,17 @@ task_id: "WORKBUDDY-R175-ORDERED-BATCH"
 route_epoch: 175
 mode: "ordered_bounded_batch"
 mode_label: "R175 WorkBuddy immutable-checkpoint ordered batch"
-status: "READY"
-execution_allowed: true
-active: true
-blocked_by: null
-automatic_resume: true
-automatic_resume_within_task: true
-automatic_resume_within_batch: true
-second_user_start_command_required: false
+status: "SUSPENDED"
+execution_allowed: false
+active: false
+blocked_by: "R175_POST_MERGE_GOVERNANCE_RECONCILIATION_PENDING"
+automatic_resume: false
+automatic_resume_within_task: false
+automatic_resume_within_batch: false
+second_user_start_command_required: true
+suspend_reason: "CODEX_STANDARD_ADJUDICATION_R175_POST_MERGE: current main 3bda040f is MERGED_PHYSICALLY / GOVERNANCE_RECONCILIATION_PENDING, not PROVEN_UNSAFE. Suspend stale R175 WorkBuddy execution shell pending retrospective independent review and a fresh current-main-based governed successor. Not ACCEPT, not canonical, not active."
+suspend_authority: "coordination/ACTIVE-WORKBUDDY-TASK.yaml freeze per Codex adjudication (issue #532 comment 5643586119)"
+reactivation_condition: "fresh current-main-based successor route + exact-head CI + independent review + separate canonicalization"
 
 canonical_route: "coordination/ROUTES/WORKBUDDY-R175-ORDERED-BATCH.yaml"
 task_brief: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/WORKBUDDY-ORDERED-BATCH-R175.yaml"
@@ -40,7 +43,7 @@ source_checkpoint:
 implementation_branch: "workbuddy/r175-ordered-batch-execution"
 
 fixed_order: ["WB-V1", "WB-V2", "WB-V3", "WB-V4", "WB-S1", "WB-S2", "WB-S3"]
-continue_without_user_message: true
+continue_without_user_message: false
 intermediate_codex_audit_required: false
 return_target: "CODEX"
 return_package_template: "coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175/WORKBUDDY-RETURN-PACKAGE-TEMPLATE.yaml"
@@ -61,7 +64,7 @@ hard_boundaries:
   - "NO_FORCE_PUSH_REBASE_RESET_AMEND_HISTORY_REWRITE"
 
 read_behavior:
-  on_read_task: "CLAIM_VALID_LEASE_AND_EXECUTE_IMMEDIATELY"
-after_read: "BEGIN_WB_V1_AND_CONTINUE_FIXED_BATCH_WITHOUT_SECOND_USER_COMMAND"
-updated_by: "GPT_GITHUB_INTEGRATOR"
-updated_at: "2026-09-01T16:20:00-05:00"
+  on_read_task: "HALT_AND_REPORT_SUSPENDED_NO_AUTO_EXECUTION"
+after_read: "DO_NOT_BEGIN_WB_V1_STOP_AT_GOVERNED_RECONCILIATION_GATE"
+updated_by: "WORKBUDDY_GOVERNANCE_RECONCILIATION_R175_SHELL_FREEZE"
+updated_at: "2026-09-12T04:05:00-05:00"
