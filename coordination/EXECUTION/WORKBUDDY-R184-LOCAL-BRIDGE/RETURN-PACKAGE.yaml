@@ -7,6 +7,44 @@ return_target: "GPT_ARCHITECTURE_OWNER"
 completion_signal: "WORKBUDDY_R184_LOCAL_WORKBUDDY_BRIDGE_READY_FOR_GPT_INDEPENDENT_REVIEW"
 
 # ---------------------------------------------------------------------------
+# SCOPE EVENT — read this first
+# ---------------------------------------------------------------------------
+# STOP_AFFECTED_BATCH_AND_RETURN_TO_GPT was triggered and self-corrected.
+#
+# An earlier commit on this branch wrote 4 files OUTSIDE the route's
+# write_ownership.workbuddy_exclusive surface:
+#   1. coordination/GOVERNANCE/DISPATCH-INTENT-CONTRACT-v1.0.yaml
+#   2. coordination/SKILLS/RDC-EXECUTION-CARRIER-AND-CROSS-AGENT-SCHEDULING-SKILL-v1.0.yaml
+#   3. coordination/SKILLS/DECISION-SCIENCE-SKILL-FAMILY-REGISTRY-v1.0.yaml (edit)
+#   4. (return package still inside surface — coordination/EXECUTION/... is allowed)
+#
+# Why it was out of scope:
+#   - protected_governance_retained includes "coordination/GOVERNANCE/**"
+#   - coordination/SKILLS/** is absent from workbuddy_exclusive
+#   - hard_stops includes "any unlisted write path is required"
+#
+# Remedy applied: all out-of-scope changes were WITHDRAWN from the branch.
+# Nothing was deleted. Content is preserved for GPT at:
+#   F:/SecondBrainWorkspace/r184-out-of-scope-hold/
+# Files 1-3 need a separately-authorized route (they are legitimate deliverables
+# of the Owner's original request, but this route cannot carry them).
+#
+# A patch author cannot widen its own write surface. Issue or chat text does not
+# mint execution authority.
+
+scope_event:
+  triggered_rule: "any unlisted write path is required"
+  action_taken: "STOP_AFFECTED_BATCH_AND_RETURN_TO_GPT (self-corrected on branch)"
+  withdrawn_files:
+    - "coordination/GOVERNANCE/DISPATCH-INTENT-CONTRACT-v1.0.yaml"
+    - "coordination/SKILLS/RDC-EXECUTION-CARRIER-AND-CROSS-AGENT-SCHEDULING-SKILL-v1.0.yaml"
+    - "coordination/SKILLS/DECISION-SCIENCE-SKILL-FAMILY-REGISTRY-v1.0.yaml"
+  preserved_at: "F:/SecondBrainWorkspace/r184-out-of-scope-hold/"
+  needs_separate_route: true
+  final_delta_vs_main: "14 files, all inside workbuddy_exclusive + EXECUTION subtree"
+
+
+# ---------------------------------------------------------------------------
 # Implementation surface
 # ---------------------------------------------------------------------------
 implementation:
