@@ -152,7 +152,7 @@ class LocalWorkBuddyBridge:
     def _mark_duplicate(self, view: AuthorityView) -> AuthorityView:
         key = self._idempotency_key(view)
         if self.receipts.find(key) is not None:
-            return AuthorityView(**{**view.__dict__, "duplicate_receipt_present": True})
+            return view.with_duplicate_receipt()
         return view
 
     # -- main entry -----------------------------------------------------
@@ -198,7 +198,7 @@ class LocalWorkBuddyBridge:
                     "reason": "plan was refused; nothing to hand off"}
 
         is_fake = isinstance(self.adapter, FakeProcessAdapter) or (
-            getattr(self.adapter, "adapter_id", "") == "FAKE_PROCESS_ADAPTER"
+            self.adapter.identity() == "FAKE_PROCESS_ADAPTER"
         )
         if not is_fake and not _ACTIVATION_GRANTED:
             raise BridgeBoundaryError(

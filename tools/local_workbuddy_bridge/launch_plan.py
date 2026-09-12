@@ -119,9 +119,47 @@ class AuthorityView:
     # -- idempotency layer ----------------------------------------------
     duplicate_receipt_present: bool = False
 
+    def with_duplicate_receipt(self) -> "AuthorityView":
+        """Return a copy flagged as already-receipted.
 
-def _refuse(decision: BridgeDecision, reason: str, view: AuthorityView) -> LaunchPlan:
-    return LaunchPlan(
+        Declared explicitly rather than via dict reflection so the public-safe
+        boundary guard (which fails closed on reflective namespace access) is
+        satisfied, and so the set of mutable fields stays auditable.
+        """
+        return AuthorityView(
+            task_id=self.task_id,
+            route_epoch=self.route_epoch,
+            is_registered=self.is_registered,
+            is_canonical=self.is_canonical,
+            canonical_authority_valid=self.canonical_authority_valid,
+            authority_state=self.authority_state,
+            lease_id=self.lease_id,
+            fencing_token=self.fencing_token,
+            reservation_id=self.reservation_id,
+            lease_valid=self.lease_valid,
+            broker_admission=self.broker_admission,
+            active_writer_present=self.active_writer_present,
+            canonical_main_sha=self.canonical_main_sha,
+            expected_main_sha=self.expected_main_sha,
+            branch=self.branch,
+            expected_branch=self.expected_branch,
+            route_epoch_valid=self.route_epoch_valid,
+            isolation_required=self.isolation_required,
+            isolated_worktree=self.isolated_worktree,
+            active_worktree_holders=self.active_worktree_holders,
+            carrier=self.carrier,
+            execution_identity=self.execution_identity,
+            model=self.model,
+            required_model=self.required_model,
+            collision_domain=self.collision_domain,
+            declared_collision_domain=self.declared_collision_domain,
+            cli_path=self.cli_path,
+            adapter=self.adapter,
+            duplicate_receipt_present=True,
+        )
+
+
+def _refuse(decision: BridgeDecision, reason: str, view: AuthorityView) -> LaunchPlan:    return LaunchPlan(
         decision=decision,
         reason=reason,
         task_id=view.task_id,
