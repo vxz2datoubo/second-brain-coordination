@@ -1,0 +1,105 @@
+schema_version: "1.0"
+route_id: "WORKBUDDY-R194-RDC-SKILL-PUBLICATION"
+repository: "vxz2datoubo/second-brain-coordination"
+project: "SECOND_BRAIN"
+target_agent: "WORKBUDDY"
+task_id: "WORKBUDDY-R194-RDC-SKILL-PUBLICATION"
+route_epoch: 194
+source_issue: 595
+active_issue: 595
+status: "AUTHORIZED_AWAITING_CONTROL_TOWER_MINT"
+# Nothing executes under this route beyond the publication PR itself.
+# execution_allowed stays false until the control tower mints the lease/claim
+# infrastructure and registers this epoch in the active-task index.
+execution_allowed: false
+release_state: "PUBLICATION_PENDING_INDEPENDENT_REVIEW"
+direct_main_write: false
+merge_authorized: false
+review_authority: false
+acceptance_authority: false
+
+# ---------------------------------------------------------------------------
+# Owner authorization (the mint that created this route)
+# ---------------------------------------------------------------------------
+owner_authorization:
+  mechanism: "owner_authorization_issue_comment"
+  precedent: "coordination/ROUTES/CODEX-CLTM-0021-R100-RECURRING-CANDIDATE-SOAK-IMPLEMENTATION.yaml:18"
+  issue: 595
+  comment_id: 5645571099
+  comment_url: "https://github.com/vxz2datoubo/second-brain-coordination/issues/595#issuecomment-5645571099"
+  author: "vxz2datoubo"
+  authored_at: "2026-09-12T11:21:29Z"
+  authorized_scope_verbatim: |
+    OWNER AUTHORIZATION — RDC skill publication route
+
+    I, the repo owner, authorize publishing a new route that carries the RDC
+    execution-carrier and cross-agent scheduling skill into this repository.
+
+    Authorized write surface for that route:
+    - coordination/SKILLS/RDC-EXECUTION-CARRIER-AND-CROSS-AGENT-SCHEDULING-SKILL-v1.0.yaml
+
+    Constraints:
+    - The skill stays CANDIDATE. Publication is not acceptance (ACCEPT_is_not_canonical).
+    - Independent review is required before it is treated as canonical.
+    - Real process activation remains FORBIDDEN until independent review and canonicalization complete.
+
+    Owner: vxz2datoubo
+source_checkpoint:
+  source_branch: "main"
+  checkpoint_remote_ref: "refs/heads/main"
+  exact_head: "e7d903c174565bc938a0e72b8672edb5b7793827"
+  baseline: "e7d903c174565bc938a0e72b8672edb5b7793827"
+  immutable: true
+
+governance_sources:
+  source_issue: "https://github.com/vxz2datoubo/second-brain-coordination/issues/595"
+  publication_request: "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/ROUTE-REQUEST-RDC-SKILL.yaml (on PR #705 branch)"
+  master_mapping_skill: "coordination/SKILLS/MASTER-SYSTEM-MAPPING-AND-DRIFT-CONTROL-SKILL-v1.0.yaml"
+  carrier_contract: "coordination/GOVERNANCE/EXECUTION-CARRIER-AND-CONCURRENCY-CONTRACT-v1.0.yaml"
+  bridge_contract: "coordination/GOVERNANCE/LOCAL-WORKBUDDY-BRIDGE-CONTRACT-v1.0.yaml"
+  host_broker_evidence: "evidence/issue310-host-broker-review-c2c67e19.txt"
+  rdc_canary_evidence: "evidence/rdc-wb-canary/"
+
+# ---------------------------------------------------------------------------
+# What this route carries: exactly one published artifact
+# ---------------------------------------------------------------------------
+publication:
+  artifact: "coordination/SKILLS/RDC-EXECUTION-CARRIER-AND-CROSS-AGENT-SCHEDULING-SKILL-v1.0.yaml"
+  artifact_state: "CANDIDATE_PENDING_INDEPENDENT_REVIEW"
+  held_before_publication: "F:/SecondBrainWorkspace/r184-out-of-scope-hold/ (withdrawn from R184 branch on scope violation, 2026-09-12)"
+  skill_contents_summary: >-
+    28-section four-quadrant mapping (K1 explicit-known / K2 tacit-known /
+    K3 legible-unknown / K4 opaque-unknown) of the RDC host command channel;
+    canonical flow; residency contract (resident daemon); read-only + launch-only
+    write posture; cheap-model critic pre-screen; cross-agent scheduling via
+    existing fabric; trust attack model; handoff contract; anti-pattern guards;
+    reality audit with corrected findings; external pattern library (OWASP
+    Agentic 2026, Invariant Labs, MCP, A2A, Temporal, Argo, Step Functions,
+    K8s Leases, DynamoDB Lock Client, Kleppmann, Cloudflare HITL).
+
+write_ownership:
+  workbuddy_exclusive:
+    - "coordination/SKILLS/RDC-EXECUTION-CARRIER-AND-CROSS-AGENT-SCHEDULING-SKILL-v1.0.yaml"
+    - "coordination/ROUTES/WORKBUDDY-R194-RDC-SKILL-PUBLICATION.yaml"
+  protected_governance_retained:
+    - "coordination/GOVERNANCE/**"
+    - "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+    - "coordination/EXECUTION/ACTIVE-TASK-INDEX-REGISTRY.json"
+  overlap_rule: "R194_IS_A_DISTINCT_PUBLICATION_LANE; ANY_OVERLAP_WITH_ACTIVE_R184_OR_R175_SURFACES_FAILS_CLOSED"
+
+constraints:
+  accept_is_not_canonical: true
+  independent_review_required_before_canonical: true
+  real_process_activation: "FORBIDDEN_UNTIL_INDEPENDENT_REVIEW_AND_CANONICALIZATION"
+  lease_minting: "CONTROL_TOWER_ONLY (GPT) — this route does not self-mint TASK-LEASE/WORK-CLAIM"
+
+hard_stops:
+  - "owner authorization comment is missing, mutated, or authored by any account other than vxz2datoubo"
+  - "any unlisted write path is required"
+  - "coordination/GOVERNANCE/** is touched (the dispatch-intent contract stays out of this lane)"
+  - "the skill is treated as accepted/canonical without independent review"
+  - "any real process is launched by or through the skill's described carrier"
+
+return_target: "GPT_ARCHITECTURE_OWNER"
+final_review: "SEPARATE_GPT_INDEPENDENT_REVIEW_VIA_ISSUE_453"
+completion_signal: "WORKBUDDY_R194_RDC_SKILL_PUBLISHED_AWAITING_INDEPENDENT_REVIEW"
