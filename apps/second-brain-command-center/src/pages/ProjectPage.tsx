@@ -1,10 +1,61 @@
 import { Fragment, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Card, SectionTitle, Badge, Provenance, ProvenancePanel, KeyVal, Empty, Pill, sha } from '../components/ui'
-import { IconChevron, IconWarn, IconGit } from '../components/Icons'
-import { useProject, useTasks } from '../hooks'
-import { projectStateLabel, taskStateLabel, toneVar } from '../semantics'
+import {
+  Card, SectionTitle, Badge, Provenance, ProvenancePanel, KeyVal, Empty, Pill, sha,
+  PlainAnswer, Tile, TrafficRow,
+} from '../components/ui'
+import { IconChevron, IconWarn, IconGit, IconAgent, IconTask, IconShield } from '../components/Icons'
+import { useProject, useTasks, useAgents } from '../hooks'
+import { projectStateLabel, taskStateLabel, livenessLabel, toneVar } from '../semantics'
 import type { Meta } from '../types'
+
+/** One-glance "what's this project doing right now" panel, in plain Chinese. */
+function ProjectPulse({
+  state, phase, executor, nextGate, blocker, tradingAuth, issue, pr,
+}: {
+  state: keyof typeof projectStateLabel
+  phase?: string | null
+  executor?: string | null
+  nextGate?: string | null
+  blocker?: string | null
+  tradingAuth?: boolean | null
+  issue?: number | string | null
+  pr?: number | string | null
+}) {
+  const label = projectStateLabel[state]
+  const tone = label.tone
+  let sentence: React.ReactNode
+  if (state === 'ACTIVE') {
+    sentence = (
+      <>
+        <b>这个项目正在推进中</b>{executor ? <>，当前由 <b>{executor}</b> 负责</> : null}
+        {nextGate ? <>，下一步要过「{nextGate}」这道门</> : null}。
+      </>
+    )
+  } else if (state === 'PAUSED') {
+    sentence = <><b>这个项目当前暂停了</b>，没有正在进行的施工。</>
+  } else if (state === 'BLOCKED') {
+    sentence = <><b>这个项目卡住了</b>{blocker ? <>：{blocker}</> : null}。</>
+  } else {
+    sentence = <>当前状态：<b>{label.zh}</b>。</>
+  }
+  return (
+    <div className="stack" style={{ gap: 12 }}>
+      <PlainAnswer tone={tone} icon={<IconGit size={18} />}>{sentence}</PlainAnswer>
+      <div className="tile-row">
+        <Tile label="项目状态" value={label.zh} sub={label.en} tone={tone} />
+        <Tile label="当前阶段" value={phase || '—'} tone="neutral" />
+        <Tile label="负责人" value={executor || '暂无'} sub={executor ? '正在施工' : '无活跃施工者'} tone={executor ? 'accent' : 'neutral'} icon={<IconAgent size={14} />} />
+        <Tile label="下一步门" value={nextGate || '—'} tone="review" icon={<IconTask size={14} />} />
+      </div>
+      <TrafficRow items={[
+        { label: '交易权限', tone: tradingAuth === false ? 'ok' : 'neutral', value: tradingAuth === false ? '只读研究' : '—' },
+        { label: 'Issue', tone: issue != null ? 'accent' : 'neutral', value: issue != null ? `#${issue}` : '—' },
+        { label: 'PR', tone: pr != null ? 'accent' : 'neutral', value: pr != null ? `#${pr}` : '—' },
+      ]} />
+    </div>
+  )
+}
 
 export default function ProjectPage() {
   const { projectId = '' } = useParams()
@@ -29,7 +80,7 @@ export default function ProjectPage() {
   return (
     <div>
       <SectionTitle right={
-        <button className="btn" onClick={proj.reload}>↻ 刷新本页</button>
+        <button className="btn" onClick={proj.reload}>刷新本页</button>
       }>
         <span className="row" style={{ gap: 10 }}>
           {p.display_name}
@@ -37,6 +88,14 @@ export default function ProjectPage() {
         </span>
       </SectionTitle>
 
+      {/* 人话版：一眼看清这个项目在干嘛 */}
+      <ProjectPulse
+        state={p.state} phase={p.phase} executor={p.active_executor}
+        nextGate={p.next_gate} blocker={p.blocker}
+        tradingAuth={p.trading_authorized} issue={p.issue} pr={p.pr}
+      />
+
+      <SectionTitle>详细资料</SectionTitle>
       <div className="grid-2">
         <Card>
           <h3 style={{ marginTop: 0, fontSize: 14 }}>项目目标 · Mission</h3>

@@ -2,7 +2,26 @@
 
 ## 一句话
 
-为整个第二大脑生态建立了一个**企业级、只读、全真实数据**的统一前端，**不是 Demo**。
+给整个第二大脑生态造了一个**只读、全真实数据、看得懂**的统一前端，**不是 Demo，不是静态原型**。
+
+**人话版总览见 `/overview.md`（图表优先）。本文是技术明细。**
+
+---
+
+## 零、本次修复（Owner 反馈两条，均已完成并有铁证）
+
+### 修复 1：点「刷新」页面不更新
+- **根因**：每个组件各自持有独立的数据 hook 实例，顶栏 `refreshAll()` 只 reload 了 App 自己持有的那几份，**页面组件的实例收不到通知**。
+- **修法**：新增 `src/refreshBus.ts` —— 一个全局刷新令牌 + 订阅集合；所有 `useAsync` 实例在 mount 时订阅，`bumpRefresh()` 一次广播触达全部。保留各 hook 的局部 `reload()` 供单点刷新。
+- **实测铁证**：**一次点击触发的 `/api` 请求数从 3 → 12**（`scripts/screenshot.mjs` 采集）。
+- **附带**：顶栏增加「HH:MM:SS 已更新」时间戳；支持键盘 `R` 刷新。
+
+### 修复 2：报告要人话 + 图表优先
+- 新增可复用报告原语（`src/components/ui.tsx`）：`PlainAnswer`（一句话结论）、`Tile`（大数字色块）、`BarChart`（纯 CSS 横向柱状，零依赖）、`TrafficRow`（状态灯）。
+- 首页新增 `SituationReport`：先给**人话结论** → 再给**色块 + 柱状图** → 详细术语下沉。
+- 控制塔页 / 项目页同源改造：一句话结论 + 条形图 + 红绿灯。
+- 铁律遵守：**色永不单独表意**，永远配中文标签（色盲 / 黑白屏可读）。
+
 
 ---
 
@@ -58,8 +77,10 @@
 `tests/test_bff_contract.py` 直接断言语义保证（非仅 200）：
 - false-alive 防护、candidate≠canonical、sync 语义、fail-closed、provenance 完整性、registry 驱动
 
-### 真实浏览器截图（8 张）
-`evidence/screenshots/` — 首页 / 交易项目页 / 第二大脑页 / 控制塔 / 任务 / 施工者 / 健康 / 移动端
+### 真实浏览器截图（10 张）
+`evidence/screenshots/` — 首页 / 交易项目页 / 第二大脑页 / 控制塔 / 任务 / 施工者 / 健康 / **刷新后状态对比** / 移动端
+
+**刷新修复铁证**：`09-after-refresh.png` + 控制台输出 `API calls triggered by one click = 12`
 
 ### 真实数据验证（实测输出）
 ```

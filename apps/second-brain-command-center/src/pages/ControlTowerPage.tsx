@@ -1,9 +1,12 @@
 import { useState } from 'react'
-import { Card, SectionTitle, Badge, Provenance, ProvenancePanel, Empty, Pill, sha } from '../components/ui'
+import {
+  Card, SectionTitle, Badge, Provenance, ProvenancePanel, Empty, Pill, sha,
+  PlainAnswer, BarChart, TrafficRow,
+} from '../components/ui'
 import { IconWarn, IconTower } from '../components/Icons'
 import { useControlTower } from '../hooks'
-import { toneVar } from '../semantics'
-import type { Meta } from '../types'
+import { taskStateLabel, toneVar } from '../semantics'
+import type { Meta, TaskState } from '../types'
 
 export default function ControlTowerPage() {
   const ct = useControlTower()
@@ -14,33 +17,62 @@ export default function ControlTowerPage() {
   const d = ct.data
   if (!d) return <Empty>无控制塔数据</Empty>
 
-  const order = ['READY', 'DISPATCHED', 'RUNNING', 'REVIEW', 'CANONICALIZATION', 'BLOCKED', 'STALLED', 'OUTCOME_UNKNOWN', 'OWNER_GATE', 'DONE', 'PAUSED', 'PLANNED']
+  const order: TaskState[] = ['READY', 'DISPATCHED', 'RUNNING', 'REVIEW', 'CANONICALIZATION', 'BLOCKED', 'STALLED', 'OUTCOME_UNKNOWN', 'OWNER_GATE', 'DONE', 'PAUSED', 'PLANNED']
+
+  const total = Object.values(d.counts).reduce((a, b) => a + (b ?? 0), 0)
+  const running = (d.counts.RUNNING ?? 0) + (d.counts.DISPATCHED ?? 0)
+  const waitingYou = (d.counts.OWNER_GATE ?? 0) + (d.counts.BLOCKED ?? 0) + (d.counts.OUTCOME_UNKNOWN ?? 0)
+  const barRows = order
+    .filter((k) => (d.counts[k] ?? 0) > 0)
+    .map((k) => ({ label: taskStateLabel[k]?.zh ?? k, value: d.counts[k] ?? 0, tone: taskStateLabel[k]?.tone ?? ('neutral' as const) }))
+    .sort((a, b) => b.value - a.value)
 
   return (
     <div>
       <SectionTitle right={
         <span className="row" style={{ gap: 10 }}>
-          {d.projection_as_of && <span className="muted">投影 as_of {d.projection_as_of}</span>}
+          {d.projection_as_of && <span className="muted">数据时点 {d.projection_as_of}</span>}
           <Provenance meta={ct.meta ?? ({} as Meta)} onOpen={setProv} />
         </span>
       }>控制塔 · Control Tower</SectionTitle>
 
-      <div className="banner banner-info">
-        <IconTower size={16} />
-        <div>
-          <b>控制塔是执行权威，不是本页。</b>
-          <span className="muted"> 本页只投影当前 route / claim / lane / 碰撞状态。执行真源以 canonical ACTIVE-* route、Work Claim、Release Gate 与 fresh witness 为准。</span>
-        </div>
+      {/* 人话版结论 */}
+      <PlainAnswer tone={waitingYou > 0 ? 'warn' : running > 0 ? 'accent' : 'ok'} icon={<IconTower size={18} />}>
+        {waitingYou > 0
+          ? <><b>有 {waitingYou} 个任务在等人处理</b>，{running} 个在跑，当前共 {total} 个任务。</>
+          : <><b>没有卡住的任务，{running} 个任务正在跑</b>，当前共 {total} 个任务。</>}
+        <span className="muted"> 控制塔才是执行权威，本页只是它的一张快照。</span>
+      </PlainAnswer>
+
+      <div className="grid-2" style={{ marginTop: 16 }}>
+        <Card>
+          <h3 style={{ margin: '0 0 12px', fontSize: 14 }}>任务状态分布（看得懂版）</h3>
+          <BarChart rows={barRows} emptyHint="当前没有活跃任务" />
+        </Card>
+        <Card>
+          <h3 style={{ margin: '0 0 12px', fontSize: 14 }}>一眼看重点</h3>
+          <TrafficRow items={[
+            { label: '执行中', tone: running > 0 ? 'ok' : 'neutral', value: running },
+            { label: '等你决定', tone: waitingYou > 0 ? 'warn' : 'ok', value: waitingYou },
+            { label: '等待验算', tone: (d.counts.REVIEW ?? 0) > 0 ? 'review' : 'neutral', value: d.counts.REVIEW ?? 0 },
+            { label: '已入正史', tone: 'neutral', value: d.counts.DONE ?? 0 },
+          ]} />
+          <div className="muted" style={{ fontSize: 11.5, marginTop: 12 }}>
+            绿色=正常，紫色=等验算，黄色=需你留意，红色=要处理。
+          </div>
+        </Card>
       </div>
 
-      <SectionTitle>状态分布 · State Distribution</SectionTitle>
+      <SectionTitle>状态明细（原始英文状态，供对照）</SectionTitle>
       <div className="ct-strip">
         {order.map((k) => {
           const v = d.counts[k] ?? 0
+          const lab = taskStateLabel[k]
           return (
             <div key={k} className="ct-cell" style={{ opacity: v === 0 ? 0.45 : 1 }}>
-              <div className="ct-count" style={{ color: v === 0 ? 'var(--text-3)' : 'var(--text-0)' }}>{v}</div>
-              <div className="ct-label">{k}</div>
+              <div className="ct-count" style={{ color: v === 0 ? 'var(--text-3)' : toneVar[lab?.tone ?? 'neutral'].fg }}>{v}</div>
+              <div className="ct-label">{lab?.zh ?? k}</div>
+              <div className="ct-label mono" style={{ fontSize: 10, opacity: 0.7 }}>{lab?.en ?? k}</div>
             </div>
           )
         })}

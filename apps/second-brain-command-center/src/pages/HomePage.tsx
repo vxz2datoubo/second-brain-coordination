@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Card, SectionTitle, Badge, Provenance, ProvenancePanel, sha, KeyVal, Empty, Pill } from '../components/ui'
-import { ICONS, IconChevron, IconWarn, IconShield } from '../components/Icons'
-import { useProjects, useControlTower, useSystem, useTasks } from '../hooks'
+import {
+  Card, SectionTitle, Badge, Provenance, ProvenancePanel, sha, KeyVal, Empty, Pill,
+  PlainAnswer, Tile, BarChart, TrafficRow,
+} from '../components/ui'
+import { ICONS, IconChevron, IconWarn, IconShield, IconTower, IconGit, IconAgent } from '../components/Icons'
+import { useProjects, useControlTower, useSystem, useTasks, useAgents } from '../hooks'
 import { projectStateLabel, taskStateLabel, PROJECT_ICON, toneVar } from '../semantics'
-import type { Meta, ProjectSummary } from '../types'
+import type { Meta, ProjectSummary, TaskState } from '../types'
 
 function ProjectCard({ p, onOpen, onProv }: {
   p: ProjectSummary; onOpen: () => void; onProv: (m: Meta) => void
@@ -69,6 +72,129 @@ function ControlTowerStrip() {
   )
 }
 
+/* ------------------------------------------------------------------ *
+ *  SituationReport — the "speak like a human" summary.
+ *
+ *  Leads with ONE plain sentence answering "现在到底怎么样了？", then
+ *  shows the same truth as big colour tiles + a bar chart instead of a
+ *  wall of terminology. Detailed/technical views stay further down the
+ *  page and behind the provenance drawer.
+ * ------------------------------------------------------------------ */
+function SituationReport({ onProv }: { onProv: (m: Meta) => void }) {
+  const projects = useProjects()
+  const tasks = useTasks()
+  const agents = useAgents()
+  const ct = useControlTower()
+  const system = useSystem()
+
+  const loading = projects.loading || tasks.loading || ct.loading
+  const ps = projects.data ?? []
+  const ts = tasks.data ?? []
+
+  // -- plain counts -------------------------------------------------
+  const working = ps.filter((p) => p.state === 'ACTIVE').length
+  const paused = ps.filter((p) => p.state === 'PAUSED').length
+  const stuck = ps.filter((p) => p.state === 'BLOCKED').length
+
+  const needYou = ts.filter((t) =>
+    t.state === 'OWNER_GATE' || t.state === 'BLOCKED' || t.state === 'OUTCOME_UNKNOWN').length
+  const inProgress = ts.filter((t) =>
+    t.state === 'DISPATCHED' || t.state === 'RUNNING').length
+  const waitingGate = ts.filter((t) =>
+    t.state === 'REVIEW' || t.state === 'CANONICALIZATION').length
+
+  const activeAgents = (agents.data ?? []).filter((a) => a.liveness === 'AGENT_ACTIVE' || a.liveness === 'MEANINGFUL_PROGRESS').length
+
+  const repo = system.data?.repos?.find((r) => r.repo.includes('second-brain-coordination'))
+  const syncOk = repo?.sync_state === 'SYNCED'
+
+  // -- dominant tasks as a bar chart (plain Chinese labels) ---------
+  const counts = ct.data?.counts ?? {}
+  const barRows = (Object.keys(counts) as TaskState[])
+    .filter((k) => (counts[k] ?? 0) > 0)
+    .map((k) => ({
+      label: taskStateLabel[k]?.zh ?? k,
+      value: counts[k] ?? 0,
+      tone: taskStateLabel[k]?.tone ?? ('neutral' as const),
+    }))
+    .sort((a, b) => b.value - a.value)
+
+  if (loading && ps.length === 0) return <div className="loading">正在读取真实状态…</div>
+
+  // -- the one-line answer -----------------------------------------
+  let headline: React.ReactNode
+  let tone: 'ok' | 'warn' | 'bad' | 'accent' = 'ok'
+  if (needYou > 0) {
+    tone = 'warn'
+    headline = (
+      <>
+        <b>有 {needYou} 件事在等你拍板</b>，{working} 个项目正在推进
+        {inProgress > 0 ? <>，{inProgress} 个任务在跑</> : null}。
+        <span className="muted"> 往下看标红/标黄的条目，那些是需要你处理的。</span>
+      </>
+    )
+  } else if (stuck > 0) {
+    tone = 'bad'
+    headline = (
+      <>
+        <b>{stuck} 个项目卡住了</b>，{working} 个在正常推进。
+        <span className="muted"> 没有等你拍板的事，但卡住的需要看看原因。</span>
+      </>
+    )
+  } else if (working > 0) {
+    tone = 'accent'
+    headline = (
+      <>
+        <b>一切正常，{working} 个项目在推进，暂时没有需要你出手的事。</b>
+        {inProgress > 0 ? <span className="muted"> 当前 {inProgress} 个任务在处理中。</span> : null}
+      </>
+    )
+  } else {
+    headline = <><b>系统当前比较安静</b>，没有项目在推进，也没有待办。</>
+  }
+
+  return (
+    <div className="stack" style={{ gap: 16 }}>
+      <PlainAnswer tone={tone} icon={<IconTower size={18} />}>{headline}</PlainAnswer>
+
+      {/* --- big tiles: the same truth at a glance --- */}
+      <div className="tile-row">
+        <Tile label="正在推进的项目" value={working} sub={`共 ${ps.length} 个项目`} tone={working > 0 ? 'ok' : 'neutral'} icon={<IconGit size={14} />} />
+        <Tile label="正在跑的任务" value={inProgress} sub="已派发 + 执行中" tone={inProgress > 0 ? 'accent' : 'neutral'} />
+        <Tile label="等你决定" value={needYou} sub="需你拍板 / 受阻 / 结果不明" tone={needYou > 0 ? 'warn' : 'ok'} />
+        <Tile label="在干活的智能体" value={activeAgents} sub="有真实任务证据的" tone={activeAgents > 0 ? 'ok' : 'neutral'} icon={<IconAgent size={14} />} />
+      </div>
+
+      <div className="grid-2">
+        <Card>
+          <h3 style={{ margin: '0 0 4px', fontSize: 14 }}>任务都在什么状态</h3>
+          <div className="muted" style={{ fontSize: 12, marginBottom: 12 }}>
+            柱子越长 = 越多任务处于这个状态
+          </div>
+          <BarChart rows={barRows} emptyHint="当前没有活跃任务" />
+        </Card>
+
+        <Card>
+          <h3 style={{ margin: '0 0 4px', fontSize: 14 }}>一句话状态灯</h3>
+          <div className="muted" style={{ fontSize: 12, marginBottom: 12 }}>
+            绿灯=没事，黄灯=需要注意，红灯=要处理
+          </div>
+          <TrafficRow items={[
+            { label: '项目推进', tone: working > 0 ? 'ok' : 'neutral', value: working },
+            { label: '已暂停', tone: paused > 0 ? 'warn' : 'neutral', value: paused },
+            { label: '受阻项目', tone: stuck > 0 ? 'bad' : 'ok', value: stuck },
+            { label: '等待入库', tone: waitingGate > 0 ? 'review' : 'neutral', value: waitingGate },
+            { label: '本地/远端同步', tone: syncOk ? 'ok' : 'warn', value: repo?.sync_state ?? '—' },
+          ]} />
+          <div style={{ marginTop: 12, display: 'flex', justifyContent: 'flex-end' }}>
+            {projects.data?.[0] && <Provenance meta={projects.data[0].meta} onOpen={onProv} />}
+          </div>
+        </Card>
+      </div>
+    </div>
+  )
+}
+
 export default function HomePage({ onRefresh }: { onRefresh: () => void }) {
   const nav = useNavigate()
   const projects = useProjects()
@@ -95,9 +221,16 @@ export default function HomePage({ onRefresh }: { onRefresh: () => void }) {
         </div>
       )}
 
-      {/* ---- 今天要处理 / priorities from real state ---- */}
-      <SectionTitle right={<span className="muted">数据来自真实项目注册表与控制塔</span>}>
-        当前系统概览
+      {/* ---- 人话版现状：先给结论，再给图 --- */}
+      <SectionTitle right={
+        <button className="btn" onClick={onRefresh}>刷新看最新</button>
+      }>
+        现在怎么样了
+      </SectionTitle>
+      <SituationReport onProv={setProv} />
+
+      <SectionTitle right={<span className="muted">数据来自真实项目注册表与控制塔 · 点卡片进项目</span>}>
+        四个项目
       </SectionTitle>
 
       {projects.loading && <div className="loading">正在读取项目真源…</div>}
