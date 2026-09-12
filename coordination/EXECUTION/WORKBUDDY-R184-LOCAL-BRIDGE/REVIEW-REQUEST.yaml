@@ -1,0 +1,176 @@
+schema: "GPT_INDEPENDENT_REVIEW_REQUEST_v1"
+task_id: "WORKBUDDY-R184-LOCAL-WORKBUDDY-BRIDGE"
+route_epoch: 184
+requested_by: "WORKBUDDY"
+requested_from: "GPT_ARCHITECTURE_OWNER (independent reviewer, did not author or execute this candidate)"
+
+# ---------------------------------------------------------------------------
+# Required fields per coordination/GOVERNANCE/UNIFIED-EXECUTION-INTERFACE-SCHEMAS-v1.0.yaml
+# ---------------------------------------------------------------------------
+control_plane_repository: "vxz2datoubo/second-brain-coordination"
+execution_repository: "vxz2datoubo/second-brain-coordination"
+source_issue: 595
+pull_request: 705
+exact_base_sha: "e7d903c174565bc938a0e72b8672edb5b7793827"
+# NOTE on exact_head_sha (self-reference is unavoidable for an in-branch request):
+#   This document is part of the candidate it describes, so it cannot name its own
+#   commit without a fixed-point paradox. The value below is the head the request
+#   was COMPOSED against. The AUTHORITATIVE candidate head is the current PR #705
+#   head as returned by the GitHub API, not this literal. Per the freshness
+#   invariant (any_head_movement_requires_new_review_request), the reviewer must
+#   read the PR head at review time. History: candidate was aa8f133e when scope
+#   was withdrawn; be612781 when this file was first added; ba5aaf27 after the
+#   self-reference note was folded in; 2a97731f after effective_spec_snapshot;
+#   d7544aff after ROUTE-REQUEST-RDC-SKILL.yaml; then author-response commits
+#   refreshing stale counts and correcting two inaccurate CI-attribution
+#   statements found by independent verification. No history rewriting occurred.
+exact_head_sha: "ba5aaf27d81d28b0537069d75aa4ee8fd1907ed3"
+exact_head_sha_authoritative_source: "PR #705 .headRefOid at review time"
+
+changed_file_scope:
+  count: 16
+  all_within_authorized_surface: true
+  authorized_surface_source: "coordination/ROUTES/WORKBUDDY-R184-LOCAL-WORKBUDDY-BRIDGE.yaml > write_ownership.workbuddy_exclusive"
+  files:
+    - "tools/local_workbuddy_bridge/__init__.py"
+    - "tools/local_workbuddy_bridge/contracts.py"
+    - "tools/local_workbuddy_bridge/fake_process_adapter.py"
+    - "tools/local_workbuddy_bridge/launch_plan.py"
+    - "tools/local_workbuddy_bridge/model_preflight.py"
+    - "tools/local_workbuddy_bridge/receipt_store.py"
+    - "tools/local_workbuddy_bridge/redaction.py"
+    - "tools/local_workbuddy_bridge/registry_adapter.py"
+    - "tools/local_workbuddy_bridge/return_package.py"
+    - "tools/local_workbuddy_bridge/watcher.py"
+    - "tools/local_workbuddy_bridge/worktree.py"
+    - "tests/test_unified_execution_local_bridge.py"
+    - "tests/fixtures/local_workbuddy_bridge/adversarial-fixtures.yaml"
+    - "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/RETURN-PACKAGE.yaml"
+    - "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/REVIEW-REQUEST.yaml"
+    - "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/ROUTE-REQUEST-RDC-SKILL.yaml"
+
+# ---------------------------------------------------------------------------
+# effective_spec_snapshot — the exact inputs that bound this candidate
+# ---------------------------------------------------------------------------
+effective_spec_snapshot:
+  task_brief: "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/TASK-BRIEF.yaml"
+  task_lease: "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/TASK-LEASE.yaml"
+  work_claim: "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/WORK-CLAIM.yaml"
+  executor_reservation: "coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/EXECUTOR-RESERVATION.yaml"
+  route: "coordination/ROUTES/WORKBUDDY-R184-LOCAL-WORKBUDDY-BRIDGE.yaml"
+  route_epoch: 184
+  source_checkpoint_main: "bf4e722540f92ed560b29f884b3ac7c1c8d8895d"
+  governing_contract: "coordination/GOVERNANCE/LOCAL-WORKBUDDY-BRIDGE-CONTRACT-v1.0.yaml"
+  carrier_contract: "coordination/GOVERNANCE/EXECUTION-CARRIER-AND-CONCURRENCY-CONTRACT-v1.0.yaml"
+  trust_gate: "coordination/GOVERNANCE/UNIFIED-EXECUTION-FRESH-TRUST-GATE-v1.0.yaml"
+  lease_authority:
+    review_authority: false
+    merge_authority: false
+    no_self_review: true
+    no_self_merge: true
+    no_direct_main_write: true
+  dry_run_decree: "DRY_RUN_NEW_BRIDGE_BY_DEFAULT"
+
+# ---------------------------------------------------------------------------
+# CI status — read carefully; "red" here is NOT all attributable to this delta
+# ---------------------------------------------------------------------------
+exact_head_ci:
+  overall: "RED (two jobs failing)"
+  jobs:
+    - name: "W4 canonical experiment-family read binding R190 offline"
+      conclusion: "success"
+      note: "GREEN on the exact head"
+    - name: "Unified Execution Fabric > verify > Dependency-free governance invariants"
+      conclusion: "failure"
+      reported: "failures=2, errors=3, skipped=3"
+      attributable_to_this_delta: false
+      root_cause: >-
+        ExecutionContractError: canonical_authority: active route is not executable.
+        PR #704 froze the R175 active-route index to SUSPENDED, but R186/R187/R188
+        governance tests still assert READY. That mismatch is latent on main.
+      evidence:
+        - "Reproduced on a clean tree via `git stash push -u` -> identical failures=2/errors=3."
+        - "The `verify` workflow triggers on `pull_request` only; it never ran on the main push,
+           so main's green badge does not cover this job."
+    - name: "Creative runtime offline verification > exact-head-offline-verification > Verify diff and R175 scope"
+      conclusion: "failure"
+      # CORRECTED per independent verification (VERIFICATION-RESULT.md item 7, attribution B):
+      # the two original evidence statements below were INACCURATE and have been replaced.
+      # Measured facts at verified head d7544aff:
+      #   - the guard rejects 336 paths (of which 333 are pre-existing noise on main from the
+      #     stale hardcoded BASELINE = 740788a3, 575 commits behind main);
+      #   - 3 of the rejected paths ARE this PR's EXECUTION files, and they REMAIN rejected
+      #     even at the correct merge-base, because the guard's ALLOWED pattern list does not
+      #     include coordination/EXECUTION/** at all.
+      # So the job's red on this PR is not pure baseline noise: it is a guard routing/scope
+      # conflict (the R175 creative-runtime guard fires on any PR touching tests/** or
+      # tools/** and rejects governance-file paths its ALLOWED list never covered). The
+      # route authorizing those 3 paths is the task's own governance source. Adjudication
+      # of this conflict belongs to the #453 formal review, not to the author.
+      attributable_to_this_delta: "PARTIAL (stale-baseline noise: no; guard ALLOWED-list routing conflict on 3 EXECUTION files: yes)"
+      reported: "R175_SCOPE_FAIL Out-of-scope R175 paths: (336 rejected; 333 pre-existing on main)"
+      root_cause: >-
+        tools/verify_r175_scope.py hardcodes BASELINE = "740788a3847a402923bf2e89093d910eda0c89d0",
+        which is 575 commits behind current main. On any PR touching tests/** or tools/** it
+        flags every path moved since that stale baseline (333 paths on main alone). Its
+        ALLOWED pattern list does not include coordination/EXECUTION/**, so the 3 governance
+        files added by this PR are rejected independently of the stale baseline.
+      evidence:
+        - "CORRECTED: 3 of the rejected paths ARE this PR's EXECUTION files (RETURN-PACKAGE, REVIEW-REQUEST, ROUTE-REQUEST under coordination/EXECUTION/WORKBUDDY-R184-LOCAL-BRIDGE/)."
+        - "CORRECTED: at the correct merge-base those 3 files are STILL rejected -- coordination/EXECUTION/** is absent from the guard's ALLOWED patterns; only the other 13 files pass."
+        - "The failure is therefore pre-existing-by-design for any governance-file PR plus stale-baseline noise; adjudication deferred to #453."
+
+# ---------------------------------------------------------------------------
+# Local verification performed by the author on the exact head
+# ---------------------------------------------------------------------------
+local_verification:
+  bridge_suite: "41 passed (tests/test_unified_execution_local_bridge.py)"
+  creative_suite: "91 passed, 1 skipped, 388 deselected (pytest -k creative) -- observed 92 total incl. skip"
+  whitespace: "git diff --check clean (LF normalized; repo core.autocrlf=false)"
+  process_spawn_primitives: "zero (grep-audited: no subprocess/os.system/exec calls in tools/local_workbuddy_bridge/)"
+  reflective_namespace_access: "zero in package (fixed after CI boundary violation)"
+
+# ---------------------------------------------------------------------------
+# What the reviewer should focus on
+# ---------------------------------------------------------------------------
+review_focus:
+  - "Does the bridge honor missing/unknown/stale inputs with FAIL_CLOSED_NO_PROCESS_START?"
+  - "Is real process activation genuinely unreachable in Phase 2B (_ACTIVATION_GRANTED hard-coded False, no setter)?"
+  - "Is the isolated-worktree plan non-colliding and containment-checked?"
+  - "Does the return package reject secret-shaped values BEFORE redacting (validate-then-redact ordering)?"
+  - "Is idempotency keyed on (task_id, route_epoch, execution_identity) such that duplicate receipts are detected?"
+  - "Does the model preflight correctly distinguish locally-resolvable models from tier-upgrade markers?"
+  - "Is the write surface exactly the authorized 4 surfaces, with nothing widened by this patch?"
+  - "Do the 5 CI failures predate this branch (i.e. are they truly pre-existing latent-on-main)?"
+
+# ---------------------------------------------------------------------------
+# Scope event the reviewer must weigh
+# ---------------------------------------------------------------------------
+scope_event_disclosure:
+  triggered_rule: "any unlisted write path is required (route hard_stops)"
+  action_taken: "STOP_AFFECTED_BATCH_AND_RETURN_TO_GPT (self-corrected on branch)"
+  withdrawn_from_branch:
+    - "coordination/GOVERNANCE/DISPATCH-INTENT-CONTRACT-v1.0.yaml"
+    - "coordination/SKILLS/RDC-EXECUTION-CARRIER-AND-CROSS-AGENT-SCHEDULING-SKILL-v1.0.yaml"
+    - "coordination/SKILLS/DECISION-SCIENCE-SKILL-FAMILY-REGISTRY-v1.0.yaml"
+  preserved_at: "F:/SecondBrainWorkspace/r184-out-of-scope-hold/"
+  note: >-
+    These three are legitimate deliverables of the Owner's original request but this route
+    cannot carry them. A patch author cannot widen its own write surface. They require a
+    separately-authorized route.
+
+# ---------------------------------------------------------------------------
+# Blocking issue flagged for the reviewer (not fixed under this route)
+# ---------------------------------------------------------------------------
+blocking_finding:
+  id: "R184-B1"
+  severity: "HIGH"
+  summary: "mcp.json on main contains a PLAINTEXT GitHub token."
+  impact: "Must be remediated before Phase 2C carrier activation. Do NOT paste the value anywhere."
+  owner_action_needed: true
+
+forbidden_reuse_of_older_verdicts: true
+freshness_invariant: "any_head_movement_requires_new_review_request"
+verdict_semantics: "ACCEPT_is_not_canonical"
+
+requested_next_gate: "independent #453 review at exact head aa8f133e -> Owner authorization -> Phase 2C"

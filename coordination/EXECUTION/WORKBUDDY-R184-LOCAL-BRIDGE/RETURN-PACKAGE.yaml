@@ -1,0 +1,227 @@
+schema: "WorkBuddyTaskReturn/v1"
+task_id: "WORKBUDDY-R184-LOCAL-WORKBUDDY-BRIDGE"
+route_epoch: 184
+executor: "WORKBUDDY"
+status: "IMPLEMENTED_DRY_RUN_AWAITING_INDEPENDENT_REVIEW"
+return_target: "GPT_ARCHITECTURE_OWNER"
+completion_signal: "WORKBUDDY_R184_LOCAL_WORKBUDDY_BRIDGE_READY_FOR_GPT_INDEPENDENT_REVIEW"
+
+# ---------------------------------------------------------------------------
+# SCOPE EVENT — read this first
+# ---------------------------------------------------------------------------
+# STOP_AFFECTED_BATCH_AND_RETURN_TO_GPT was triggered and self-corrected.
+#
+# An earlier commit on this branch wrote 4 files OUTSIDE the route's
+# write_ownership.workbuddy_exclusive surface:
+#   1. coordination/GOVERNANCE/DISPATCH-INTENT-CONTRACT-v1.0.yaml
+#   2. coordination/SKILLS/RDC-EXECUTION-CARRIER-AND-CROSS-AGENT-SCHEDULING-SKILL-v1.0.yaml
+#   3. coordination/SKILLS/DECISION-SCIENCE-SKILL-FAMILY-REGISTRY-v1.0.yaml (edit)
+#   4. (return package still inside surface — coordination/EXECUTION/... is allowed)
+#
+# Why it was out of scope:
+#   - protected_governance_retained includes "coordination/GOVERNANCE/**"
+#   - coordination/SKILLS/** is absent from workbuddy_exclusive
+#   - hard_stops includes "any unlisted write path is required"
+#
+# Remedy applied: all out-of-scope changes were WITHDRAWN from the branch.
+# Nothing was deleted. Content is preserved for GPT at:
+#   F:/SecondBrainWorkspace/r184-out-of-scope-hold/
+# Files 1-3 need a separately-authorized route (they are legitimate deliverables
+# of the Owner's original request, but this route cannot carry them).
+#
+# A patch author cannot widen its own write surface. Issue or chat text does not
+# mint execution authority.
+
+scope_event:
+  triggered_rule: "any unlisted write path is required"
+  action_taken: "STOP_AFFECTED_BATCH_AND_RETURN_TO_GPT (self-corrected on branch)"
+  withdrawn_files:
+    - "coordination/GOVERNANCE/DISPATCH-INTENT-CONTRACT-v1.0.yaml"
+    - "coordination/SKILLS/RDC-EXECUTION-CARRIER-AND-CROSS-AGENT-SCHEDULING-SKILL-v1.0.yaml"
+    - "coordination/SKILLS/DECISION-SCIENCE-SKILL-FAMILY-REGISTRY-v1.0.yaml"
+  preserved_at: "F:/SecondBrainWorkspace/r184-out-of-scope-hold/"
+  preserved_at_precision: >-
+    The hold directory holds EVOLVED versions, not the exact withdrawn bytes:
+    the RDC skill was finalized there after withdrawal (publication_constraint added);
+    the DECISION-SCIENCE copy is the with-R184-companion variant under a renamed file.
+    The exact withdrawn bytes are recoverable from git commit 4879542e on this branch.
+  needs_separate_route: true
+  final_delta_vs_main: "16 files, all inside workbuddy_exclusive + EXECUTION subtree (the author-response commits that refreshed this package and the review request add no new surfaces)"
+
+
+# ---------------------------------------------------------------------------
+# Implementation surface
+# ---------------------------------------------------------------------------
+implementation:
+  package: "tools/local_workbuddy_bridge/"
+  tests: "tests/test_unified_execution_local_bridge.py"
+  fixtures: "tests/fixtures/local_workbuddy_bridge/adversarial-fixtures.yaml"
+  branch: "workbuddy/r184-local-workbuddy-bridge"
+  branch_parent_required: "bf4e722540f92ed560b29f884b3ac7c1c8d8895d"
+  dry_run_default: true
+  real_process_activation: "IMPOSSIBLE_IN_PHASE_2B"
+  activation_switch: "_ACTIVATION_GRANTED = False (hard-coded; no supported setter)"
+
+# ---------------------------------------------------------------------------
+# Required components (TASK-BRIEF.yaml required_components) -> implementation
+# ---------------------------------------------------------------------------
+required_components:
+  - name: "canonical task registry discovery adapter"
+    file: "tools/local_workbuddy_bridge/registry_adapter.py"
+    status: PRESENT
+  - name: "fresh trust-gate admission wrapper"
+    file: "tools/local_workbuddy_bridge/launch_plan.py"
+    status: PRESENT
+    note: "Consumes trust-gate verdicts via AuthorityView; never re-derives authority."
+  - name: "local durable launch/idempotency receipt store"
+    file: "tools/local_workbuddy_bridge/receipt_store.py"
+    status: PRESENT
+    note: "File-backed JSON; survives restart; keyed to immutable writer identity."
+  - name: "isolated worktree preparation abstraction"
+    file: "tools/local_workbuddy_bridge/worktree.py"
+    status: PRESENT
+    note: "Plans isolation only; creation deferred post-canonicalization."
+  - name: "allowlisted CodeBuddy SDK/CLI/localhost-API launch plan adapter"
+    file: "tools/local_workbuddy_bridge/contracts.py"
+    status: PRESENT
+    note: "ProcessAdapter protocol; _ALLOWED_ADAPTERS allowlist in launch_plan.py."
+  - name: "fake process adapter used by all automated tests"
+    file: "tools/local_workbuddy_bridge/fake_process_adapter.py"
+    status: PRESENT
+    note: "Refuses non-dry-run plans; records launch calls; starts nothing."
+  - name: "credential/secret redaction boundary"
+    file: "tools/local_workbuddy_bridge/redaction.py"
+    status: PRESENT
+    note: "Single choke point; rejects (not launders) credential-bearing entries."
+  - name: "model availability/identity preflight abstraction"
+    file: "tools/local_workbuddy_bridge/model_preflight.py"
+    status: PRESENT
+    note: "No silent tier upgrade; free-text model ids rejected."
+  - name: "return-package and telemetry serializer"
+    file: "tools/local_workbuddy_bridge/return_package.py"
+    status: PRESENT
+
+# ---------------------------------------------------------------------------
+# Mandatory adversarial tests (TASK-BRIEF.yaml mandatory_adversarial_tests)
+# ---------------------------------------------------------------------------
+adversarial_coverage:
+  - requirement: "stale or moved canonical main fails closed"
+    test: "test_01_stale_canonical_main_rejected"
+    status: PASS
+  - requirement: "unregistered task index fails closed"
+    test: "test_02_unregistered_task_rejected"
+    status: PASS
+  - requirement: "wrong writer lease identity fails closed"
+    test: "test_03_wrong_lease_rejected"
+    status: PASS
+  - requirement: "duplicate launch with same immutable authority is idempotently rejected without second writer"
+    test: "test_04_duplicate_identity_refused"
+    status: PASS
+    evidence: "receipt count stays 1; no second receipt minted"
+  - requirement: "branch or base mismatch fails closed"
+    test: "test_05_branch_mismatch_rejected"
+    status: PASS
+  - requirement: "same-repository collision conflict fails before local launch"
+    test: "test_06_collision_conflict_rejected"
+    status: PASS
+  - requirement: "candidate-only / non-READY state fails closed"
+    test: "test_07_candidate_only_rejected"
+    status: PASS
+  - requirement: "malicious free-text shell content cannot become command execution"
+    test: "test_09_hidden_shell_never_executes"
+    status: PASS
+    evidence: "argv derived only from validated structured fields; no process-spawn primitives in package"
+  - requirement: "credential-looking values are rejected/redacted from persisted evidence"
+    test: "test_10_credentials_redacted"
+    status: PASS
+  - requirement: "required model mismatch/unavailability fails closed"
+    test: "test_08_model_mismatch_rejected"
+    status: PASS
+  - requirement: "R175 remains discoverable, unchanged, and conflict-isolated"
+    test: "test_r175_frozen_task_discoverable_but_not_executable"
+    status: PASS
+    evidence: "discoverable=True, executable=False"
+  - requirement: "no real WorkBuddy/CodeBuddy child process is spawned in CI or unit tests"
+    test: "test_12_no_real_child_process_in_tests"
+    status: PASS
+    evidence: "grep: zero subprocess/Popen/os.system/shell=True primitives in package"
+  - requirement: "Windows case/Unicode-equivalent protected paths retain canonical conflict behavior"
+    test: "test_13_windows_case_insensitive_collision_identity + test_13b_unicode_normalization_stable"
+    status: PASS
+
+added_adversarial_tests_beyond_brief:
+  - "fencing-token structural falsification (malformed token rejected, not merely empty)"
+  - "lease-id structural falsification"
+  - "worktree path traversal / drive-escape / separator-escape rejection"
+  - "shared-worktree collision detection"
+  - "unsafe git branch name rejection"
+  - "no-silent-tier-upgrade (gpt-6 / frontier markers)"
+  - "plan cannot claim a real launch (constructor assertion)"
+
+# ---------------------------------------------------------------------------
+# Acceptance commands (TASK-BRIEF.yaml acceptance_commands)
+# ---------------------------------------------------------------------------
+acceptance:
+  full_suite:
+    command: "python -m unittest discover -s tests -p 'test_unified_execution*.py' -v"
+    observed: "369 tests; failures=2, errors=3, skipped=2"
+    note: >-
+      The 2 failures + 3 errors are PRE-EXISTING and unrelated to this task.
+      Verified by stashing all R184 changes and re-running: identical
+      failures=2, errors=3 on a clean tree. They belong to R186/R187/R188
+      runtime-release byte-exactness assertions against a runtime-main ref.
+      Bridge-only delta before/after: 0 new failures.
+  bridge_suite:
+    command: "python -m unittest tests.test_unified_execution_local_bridge -v"
+    observed: "41 tests, OK (0 failures, 0 errors)"
+  whitespace:
+    command: "git diff --check"
+    observed: "clean"
+  secret_scan:
+    command: "git diff --cached | grep -E '<credential patterns>'"
+    observed: "clean; no credential patterns in staged diff"
+
+# ---------------------------------------------------------------------------
+# Findings / unknowns (honest reporting; never conflate safety with acceptance)
+# ---------------------------------------------------------------------------
+findings:
+  - "The bridge is a COMPOSITION layer. It reads the registry, trust gate and broker; it never reimplements them."
+  - "Real process activation is architecturally unreachable in Phase 2B (hard-coded False switch)."
+  - "The package contains zero process-spawn primitives, verified by grep across all 11 modules."
+  - "Credential boundary REJECTS rather than silently redacts in return packages, so a leak is an incident not noise."
+
+unknowns:
+  - "Whether the exact-head CI under canonical Python 3.11 is green — not verifiable locally; requires the PR."
+  - "Whether the Owner will authorize Phase 2C (real launch) — an Owner decision, not a bridge decision."
+  - "The real CodeBuddy CLI argv contract has not been exercised against a live binary (by design, dry-run only)."
+
+blocking_issue:
+  severity: HIGH
+  scope: "outside this task's write surface"
+  description: >-
+    The active WorkBuddy host mcp.json contains a PLAINTEXT GitHub token. This
+    must be remediated before any carrier activation (Phase 2C). It is recorded
+    here rather than fixed, because the file is outside the R184 authorized
+    write surface and mutating it would itself be an unauthorized write.
+  recommended_action: "Owner rotates the token and migrates to a scoped credential store."
+
+# ---------------------------------------------------------------------------
+# Hard boundaries honoured
+# ---------------------------------------------------------------------------
+hard_boundaries_honoured:
+  - DRY_RUN_NEW_BRIDGE_BY_DEFAULT
+  - NO_REAL_BRIDGE_PROCESS_ACTIVATION_BEFORE_INDEPENDENT_REVIEW_AND_CANONICALIZATION
+  - NO_REAL_WORKBUDDY_CHILD_PROCESS_FROM_TESTS_OR_CI
+  - NO_MUTATION_OF_R175_ACTIVE_ROUTE_CLAIM_LEASE_OR_BRANCH
+  - NO_WRITE_TO_TOOLS_WORKBUDDY_OR_TESTS_WORKBUDDY
+  - NO_SECOND_CONTROL_TOWER_OR_SECOND_TRUST_GATE
+  - NO_WEAK_REIMPLEMENTATION_OF_PROTECTED_GIT_TRANSPORT
+  - NO_DIRECT_MAIN_IMPLEMENTATION_WRITE
+  - NO_SELF_REVIEW
+  - NO_SELF_MERGE
+  - NO_FORCE_PUSH_REBASE_RESET_AMEND_HISTORY_REWRITE
+  - NO_CREDENTIAL_SECRET_VALUE_PERSISTENCE
+  - NO_ACCOUNT_ORDER_TRADE_FUNDS_AUTHORITY
+  - NO_PRODUCTION_DEPLOYMENT
+
+next_gate: "REVIEW_REQUEST/v1 -> independent #453 review at exact head -> Owner authorization -> Phase 2C"
