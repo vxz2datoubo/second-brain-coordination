@@ -1,0 +1,77 @@
+{
+  "schema": "CreativeExecutorWorkBatch/v1",
+  "batch_id": "REPLACE_ME",
+  "project_id": "CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001",
+  "authority": "TEMPLATE_ONLY_UNTIL_BOUND_TO_CANONICAL_WORKBUDDY_ROUTE",
+  "source_checkpoint": {
+    "branch": "codex/REPLACE_ME",
+    "exact_head": "40_HEX_SHA",
+    "checkpoint_remote_ref": "refs/remotes/origin/codex/checkpoint-REPLACE_ME"
+  },
+  "route_authority": {
+    "execution_allowed": false,
+    "task_id": null,
+    "active_issue": null,
+    "route_epoch": null,
+    "route_ref": null,
+    "claim_ref": null,
+    "lease_ref": null,
+    "snapshot_ref": null
+  },
+  "codex_retained_write_surfaces": [
+    "creative_runtime/**",
+    "apps/cli/**",
+    "apps/web/**"
+  ],
+  "automatic_resume_within_batch": true,
+  "items": [
+    {
+      "item_id": "WB-V1",
+      "owner": "WORKBUDDY",
+      "kind": "CLEAN_REPRODUCTION",
+      "status": "PLANNED",
+      "complexity": "D1",
+      "depends_on": [],
+      "write_paths": [],
+      "acceptance_commands": ["REPLACE_WITH_EXACT_HEAD_VERIFIER"],
+      "architecture_change": false,
+      "acceptance_oracle_change": false,
+      "receipt_ref": null
+    },
+    {
+      "item_id": "WB-V2",
+      "owner": "WORKBUDDY",
+      "kind": "ADVERSARIAL_MATRIX",
+      "status": "PLANNED",
+      "complexity": "D1",
+      "depends_on": ["WB-V1"],
+      "write_paths": [],
+      "acceptance_commands": ["REPLACE_WITH_SYNTHETIC_ROBUSTNESS_MATRIX"],
+      "architecture_change": false,
+      "acceptance_oracle_change": false,
+      "receipt_ref": null
+    },
+    {
+      "item_id": "WB-S1",
+      "owner": "WORKBUDDY",
+      "kind": "SIMPLE_IMPLEMENTATION",
+      "status": "PLANNED",
+      "complexity": "D1",
+      "depends_on": ["WB-V2"],
+      "write_paths": ["tests/workbuddy/**", "tools/workbuddy/**"],
+      "acceptance_commands": ["REPLACE_WITH_BOUNDED_TASK_TEST"],
+      "architecture_change": false,
+      "acceptance_oracle_change": false,
+      "receipt_ref": null
+    }
+  ],
+  "stop_conditions": [
+    "canonical WorkBuddy route is absent or disabled",
+    "source checkpoint or route identity drifts",
+    "blocking finding",
+    "unlisted write path",
+    "architecture or acceptance-oracle change",
+    "credential, real-user-data, external paid generation, deployment, trading or canonical knowledge access"
+  ],
+  "return_package_required": true
+}

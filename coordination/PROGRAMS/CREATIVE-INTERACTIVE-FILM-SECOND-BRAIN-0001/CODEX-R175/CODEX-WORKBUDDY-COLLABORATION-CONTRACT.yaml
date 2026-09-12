@@ -1,0 +1,93 @@
+{
+  "schema": "CodexWorkBuddyCollaborationContract/v1",
+  "project_id": "CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001",
+  "authority": "PROCESS_CONTRACT_ONLY_DOES_NOT_GRANT_EXECUTION",
+  "goal": "Keep high-reasoning architecture and core implementation on Codex while WorkBuddy performs exact-head reproduction, adversarial matrices, environment validation and separately routed simple work.",
+  "roles": {
+    "CODEX": {
+      "owns": [
+        "architecture and stable contracts",
+        "core runtime and migration implementation",
+        "acceptance oracles and focused developer tests",
+        "safe pushed quota checkpoints",
+        "triage and repair of core-code findings"
+      ],
+      "must_not": [
+        "call executor evidence independent acceptance",
+        "leave substantive progress only in a local worktree",
+        "write a WorkBuddy-owned surface after a valid handoff"
+      ]
+    },
+    "WORKBUDDY": {
+      "owns_after_valid_route": [
+        "clean-clone exact-head reproduction",
+        "Windows and local environment probes",
+        "adversarial, concurrency, storage-scaling and soak matrices",
+        "operator runbook reproduction",
+        "simple implementation explicitly assigned on a separate workbuddy branch"
+      ],
+      "must_not": [
+        "patch the Codex branch",
+        "change acceptance oracles while reporting a pass",
+        "claim final independent acceptance, Ready, merge or canonical status",
+        "start from Baton, chat or this contract without a canonical executable WorkBuddy route"
+      ]
+    },
+    "GPT": {
+      "activation": "USER_EXPLICITLY_SAYS_SYNC_OR_CLOSEOUT",
+      "owns": [
+        "stage-level cross-module review",
+        "governed route publication and integration",
+        "final merge recommendation"
+      ]
+    }
+  },
+  "relay_modes": {
+    "VERIFICATION_BATON": {
+      "purpose": "Test one immutable pushed Codex head without moving it.",
+      "requires": [
+        "exact pushed SHA",
+        "remote branch identity",
+        "clean standalone clone",
+        "canonical WorkBuddy route with execution_allowed=true",
+        "machine receipt with independent_acceptance=false"
+      ],
+      "codex_may_continue": "YES_ON_NON_OVERLAPPING_FUTURE_SURFACE"
+    },
+    "IMPLEMENTATION_BATON": {
+      "purpose": "Continue a bounded simple or environment-facing slice while Codex compute is unavailable.",
+      "requires": [
+        "safe pushed Codex checkpoint",
+        "fresh WorkBuddy Issue, route, claim, lease and snapshot",
+        "separate workbuddy/... branch",
+        "explicit non-overlapping allowlist",
+        "single writer reservation"
+      ],
+      "codex_may_continue": "NO_ON_HANDED_OFF_SURFACE_UNTIL_RETURN_BATON"
+    }
+  },
+  "state_machine": [
+    {"state": "CODEX_RUNNING", "next": ["CODEX_CHECKPOINT_READY"]},
+    {"state": "CODEX_CHECKPOINT_READY", "next": ["BLOCKED_PENDING_TARGET_ROUTE", "WORKBUDDY_ROUTE_READY"]},
+    {"state": "BLOCKED_PENDING_TARGET_ROUTE", "next": ["WORKBUDDY_ROUTE_READY"]},
+    {"state": "WORKBUDDY_ROUTE_READY", "next": ["WORKBUDDY_RUNNING"]},
+    {"state": "WORKBUDDY_RUNNING", "next": ["WORKBUDDY_RESULT_READY", "BLOCKED"]},
+    {"state": "WORKBUDDY_RESULT_READY", "next": ["CODEX_RESUME_READY", "STAGE_CLOSEOUT_READY"]},
+    {"state": "CODEX_RESUME_READY", "next": ["CODEX_RUNNING"]},
+    {"state": "STAGE_CLOSEOUT_READY", "next": ["GPT_REVIEW_AFTER_USER_TRIGGER"]}
+  ],
+  "handoff_invariants": [
+    "one writer per formal object or file surface",
+    "source and target write surfaces are disjoint",
+    "every tested candidate is identified by a 40-character SHA",
+    "a moved head invalidates the prior executor receipt",
+    "green tests are evidence, not final acceptance",
+    "no credentials, real customer data, external paid generation, deployment, trading or canonical knowledge write",
+    "no force-push, rebase, amend, reset or history rewrite"
+  ],
+  "economics": {
+    "codex_spend_priority": ["hard architecture", "core implementation", "failure semantics", "acceptance oracle"],
+    "workbuddy_spend_priority": ["repetition", "clean reproduction", "environment matrix", "soak", "simple isolated tooling"],
+    "anti_waste_rule": "Run one supported local Python suite unless a canonical route or CI contract explicitly requires a version matrix."
+  }
+}

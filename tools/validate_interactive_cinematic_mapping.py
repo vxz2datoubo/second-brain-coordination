@@ -1,0 +1,236 @@
+"""Validate the task-local interactive-cinematic mapping candidate.
+
+This checks reference integrity and fail-closed measurement semantics. It does
+not make the mapping canonical or grant execution, provider, review or merge
+authority.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+from pathlib import Path
+from typing import Any
+from urllib.parse import urlparse
+
+
+SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+LAYERS = {"explicit_known", "implicit_known", "explainable_unknown", "opaque_unknown"}
+EVIDENCE_TIERS = {"E0_RECORDED", "E1_DETERMINISTIC", "E2_CLEAN_REPRODUCED", "E3_INDEPENDENTLY_ATTESTED"}
+METRIC_STATUSES = {"FIXED_CONTRACT", "EXTERNAL_VERSIONED_CONSTRAINT", "MEASURED", "UNKNOWN_REQUIRES_MEASUREMENT"}
+
+
+class MappingValidationError(ValueError):
+    """Raised when candidate mapping evidence is incomplete or contradictory."""
+
+
+def _load(path: Path) -> dict[str, Any]:
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raise MappingValidationError(f"cannot read {path}: {exc}") from exc
+    if not isinstance(value, dict):
+        raise MappingValidationError(f"{path} must contain an object")
+    return value
+
+
+def _require(mapping: dict[str, Any], key: str, where: str) -> Any:
+    if key not in mapping:
+        raise MappingValidationError(f"{where}.{key} is required")
+    return mapping[key]
+
+
+def _unique(records: list[dict[str, Any]], key: str, where: str) -> dict[str, dict[str, Any]]:
+    result: dict[str, dict[str, Any]] = {}
+    for index, record in enumerate(records):
+        if not isinstance(record, dict):
+            raise MappingValidationError(f"{where}[{index}] must be an object")
+        identity = _require(record, key, f"{where}[{index}]")
+        if not isinstance(identity, str) or not identity:
+            raise MappingValidationError(f"{where}[{index}].{key} must be non-empty")
+        if identity in result:
+            raise MappingValidationError(f"duplicate {key}: {identity}")
+        result[identity] = record
+    return result
+
+
+def _string_list(value: Any, where: str, *, allow_empty: bool = False) -> list[str]:
+    if not isinstance(value, list) or (not allow_empty and not value):
+        raise MappingValidationError(f"{where} must be a {'possibly empty ' if allow_empty else 'non-empty '}string list")
+    if not all(isinstance(item, str) and item.strip() for item in value):
+        raise MappingValidationError(f"{where} must contain non-empty strings")
+    return value
+
+
+def _public_safe(payloads: list[dict[str, Any]]) -> None:
+    for payload in payloads:
+        if payload.get("contains_private_data") is not False:
+            raise MappingValidationError("candidate must explicitly contain no private data")
+        if payload.get("contains_credentials") is not False:
+            raise MappingValidationError("candidate must explicitly contain no credentials")
+
+
+def validate_mapping(
+    system_map: dict[str, Any],
+    metrics: dict[str, Any],
+    research: dict[str, Any],
+    lineage: dict[str, Any],
+) -> list[str]:
+    expected_schemas = {
+        "system": "InteractiveCinematicSystemMap/v1",
+        "metrics": "InteractiveCinematicMetricRegistry/v1",
+        "research": "InteractiveCinematicResearchLedger/v1",
+        "lineage": "InteractiveCinematicCandidateLineage/v1",
+    }
+    observed = {
+        "system": system_map.get("schema"),
+        "metrics": metrics.get("schema"),
+        "research": research.get("schema"),
+        "lineage": lineage.get("schema"),
+    }
+    if observed != expected_schemas:
+        raise MappingValidationError(f"schema mismatch: {observed}")
+    _public_safe([system_map, metrics, research, lineage])
+
+    sources = _unique(_require(research, "sources", "research"), "source_id", "sources")
+    for source_id, source in sources.items():
+        parsed = urlparse(_require(source, "url", source_id))
+        if parsed.scheme != "https" or not parsed.netloc:
+            raise MappingValidationError(f"{source_id} must use an https primary/official URL")
+        for field in ("source_class", "publisher", "proposition_used", "integration", "limitation", "revalidate_when"):
+            value = _require(source, field, source_id)
+            if not isinstance(value, str) or not value.strip():
+                raise MappingValidationError(f"{source_id}.{field} must be non-empty")
+
+    metric_records = _unique(_require(metrics, "metrics", "metrics"), "metric_id", "metrics")
+    for metric_id, metric in metric_records.items():
+        status = _require(metric, "status", metric_id)
+        if status not in METRIC_STATUSES:
+            raise MappingValidationError(f"unsupported metric status: {metric_id}:{status}")
+        for field in (
+            "name", "unit", "direction", "formula_revision", "population", "window",
+            "source_ref", "owner", "cadence", "response",
+        ):
+            value = _require(metric, field, metric_id)
+            if not isinstance(value, str) or not value.strip():
+                raise MappingValidationError(f"{metric_id}.{field} must be non-empty")
+        if not isinstance(_require(metric, "hard_gate", metric_id), bool):
+            raise MappingValidationError(f"{metric_id}.hard_gate must be boolean")
+        for field in ("baseline", "target", "warning_threshold", "failure_threshold"):
+            _require(metric, field, metric_id)
+        if status == "UNKNOWN_REQUIRES_MEASUREMENT":
+            if metric["baseline"] is not None or metric["target"] is not None:
+                raise MappingValidationError(f"unknown metric {metric_id} must not invent baseline or target")
+            if metric["hard_gate"] is not False:
+                raise MappingValidationError(f"unknown metric {metric_id} cannot be a hard gate")
+            plan = metric.get("discovery_plan")
+            if not isinstance(plan, str) or not plan.strip():
+                raise MappingValidationError(f"unknown metric {metric_id} requires discovery_plan")
+        elif metric["baseline"] is None or metric["target"] is None:
+            raise MappingValidationError(f"known metric {metric_id} requires baseline and target")
+        source_ref = metric["source_ref"]
+        if source_ref.startswith("R-") and source_ref not in sources:
+            raise MappingValidationError(f"metric {metric_id} references unknown research source {source_ref}")
+
+    checks = _unique(_require(system_map, "drift_checks", "system_map"), "check_id", "drift_checks")
+    for check_id, check in checks.items():
+        for field in ("method", "cadence", "owner", "failure"):
+            value = _require(check, field, check_id)
+            if not isinstance(value, str) or not value.strip():
+                raise MappingValidationError(f"{check_id}.{field} must be non-empty")
+
+    declared_layers = set(_string_list(_require(system_map, "layers", "system_map"), "system_map.layers"))
+    if declared_layers != LAYERS:
+        raise MappingValidationError(f"system_map.layers must be exactly {sorted(LAYERS)}")
+    cards = _unique(_require(system_map, "cards", "system_map"), "card_id", "cards")
+    populated_layers: set[str] = set()
+    combined_source_usage = json.dumps(system_map, ensure_ascii=False) + json.dumps(metrics, ensure_ascii=False)
+    for card_id, card in cards.items():
+        layer = _require(card, "layer", card_id)
+        if layer not in LAYERS:
+            raise MappingValidationError(f"unsupported layer: {card_id}:{layer}")
+        populated_layers.add(layer)
+        tier = _require(card, "evidence_tier", card_id)
+        if tier not in EVIDENCE_TIERS:
+            raise MappingValidationError(f"unsupported evidence tier: {card_id}:{tier}")
+        confidence = _require(card, "confidence", card_id)
+        if not isinstance(confidence, (int, float)) or isinstance(confidence, bool) or not 0 <= confidence <= 1:
+            raise MappingValidationError(f"{card_id}.confidence must be between 0 and 1")
+        for field in (
+            "subject", "statement", "authority_ref", "owner", "source_of_record",
+            "allowed_writer", "failure_behavior", "user_action", "human_explanation",
+        ):
+            value = _require(card, field, card_id)
+            if not isinstance(value, str) or not value.strip():
+                raise MappingValidationError(f"{card_id}.{field} must be non-empty")
+        _string_list(_require(card, "modules", card_id), f"{card_id}.modules")
+        _string_list(_require(card, "interfaces", card_id), f"{card_id}.interfaces")
+        anchor_ids = _string_list(_require(card, "metric_anchor_ids", card_id), f"{card_id}.metric_anchor_ids")
+        drift_ids = _string_list(_require(card, "drift_check_ids", card_id), f"{card_id}.drift_check_ids")
+        unknown_anchors = [item for item in anchor_ids if item not in metric_records]
+        unknown_checks = [item for item in drift_ids if item not in checks]
+        if unknown_anchors:
+            raise MappingValidationError(f"{card_id} references unknown metrics: {unknown_anchors}")
+        if unknown_checks:
+            raise MappingValidationError(f"{card_id} references unknown drift checks: {unknown_checks}")
+    if populated_layers != LAYERS:
+        raise MappingValidationError(f"every layer requires at least one card: observed={sorted(populated_layers)}")
+    unused_sources = [source_id for source_id in sources if source_id not in combined_source_usage]
+    if unused_sources:
+        raise MappingValidationError(f"research sources lack architecture integration references: {unused_sources}")
+
+    candidates = _unique(_require(lineage, "candidates", "lineage"), "candidate_id", "candidates")
+    for candidate_id, candidate in candidates.items():
+        head = _require(candidate, "exact_head", candidate_id)
+        if not isinstance(head, str) or not SHA_RE.fullmatch(head):
+            raise MappingValidationError(f"{candidate_id}.exact_head must be a 40-character SHA")
+        if candidate.get("canonical") is not False:
+            raise MappingValidationError(f"candidate {candidate_id} must remain noncanonical")
+        branch = _require(candidate, "branch", candidate_id)
+        if not isinstance(branch, str) or not branch.startswith("codex/"):
+            raise MappingValidationError(f"{candidate_id}.branch must identify CODEX")
+        _string_list(_require(candidate, "capabilities", candidate_id), f"{candidate_id}.capabilities")
+        _string_list(_require(candidate, "safe_source_paths", candidate_id), f"{candidate_id}.safe_source_paths")
+        _string_list(_require(candidate, "known_risks", candidate_id), f"{candidate_id}.known_risks")
+        mode = _require(candidate, "import_mode", candidate_id)
+        if not isinstance(mode, str) or not mode or "CHERRY_PICK" in mode:
+            raise MappingValidationError(f"{candidate_id}.import_mode must require a governed mechanical port")
+
+    return [
+        "schemas_valid",
+        "public_safe_flags_valid",
+        "research_sources_primary_and_integrated",
+        "metric_semantics_and_unknowns_valid",
+        "four_layers_complete",
+        "card_metric_and_drift_refs_valid",
+        "candidate_lineage_exact_and_noncanonical",
+    ]
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--repo", type=Path, default=Path("."))
+    parser.add_argument(
+        "--program-dir",
+        default="coordination/PROGRAMS/CREATIVE-INTERACTIVE-FILM-SECOND-BRAIN-0001/CODEX-R175",
+    )
+    args = parser.parse_args()
+    root = args.repo.resolve(strict=True)
+    program = root / args.program_dir
+    try:
+        checks = validate_mapping(
+            _load(program / "INTERACTIVE-CINEMATIC-SYSTEM-MAP.yaml"),
+            _load(program / "NUMERIC-ANCHOR-AND-DRIFT-REGISTRY.yaml"),
+            _load(program / "RESEARCH-SOURCE-LEDGER.yaml"),
+            _load(program / "CANDIDATE-LINEAGE-AND-INTEGRATION-MAP.yaml"),
+        )
+    except MappingValidationError as exc:
+        print(json.dumps({"status": "FAIL", "error": str(exc)}, ensure_ascii=False))
+        return 1
+    print(json.dumps({"status": "PASS", "checks": checks}, ensure_ascii=False, indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
