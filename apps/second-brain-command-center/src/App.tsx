@@ -1,10 +1,11 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Routes, Route, NavLink, useNavigate } from 'react-router-dom'
 import {
   IconHome, IconGrid, IconTower, IconTask, IconAgent, IconHealth,
-  IconRefresh, IconBrain, IconChart, IconFilm, IconCamera, IconWarn,
+  IconRefresh, IconBrain, IconChart, IconFilm, IconCamera, IconWarn, IconClock,
 } from './components/Icons'
 import { useHealth, useSystem, useProjects } from './hooks'
+import { bumpRefresh } from './refreshBus'
 import HomePage from './pages/HomePage'
 import ProjectPage from './pages/ProjectPage'
 import ControlTowerPage from './pages/ControlTowerPage'
@@ -33,14 +34,36 @@ export default function App() {
   const projects = useProjects()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
+  const [lastRefresh, setLastRefresh] = useState<number | null>(null)
 
+  // Single top-level entry point (iron rule 9). bumpRefresh() fans out to EVERY
+  // mounted hook instance — App's own AND every page's — so one click updates
+  // the whole UI. Each hook also keeps its local reload() for focused use.
   const refreshAll = useCallback(() => {
     setRefreshing(true)
+    bumpRefresh()
     health.reload(); system.reload(); projects.reload()
+    setLastRefresh(Date.now())
     setTimeout(() => setRefreshing(false), 600)
   }, [health, system, projects])
 
+  // Keyboard shortcut R / Ctrl+R-ish affordance: press "r" to refresh (when not typing).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null
+      const typing = el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)
+      if (!typing && (e.key === 'r' || e.key === 'R') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        refreshAll()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [refreshAll])
+
   const repo = system.data?.repos?.find((r) => r.repo.includes('second-brain-coordination'))
+  const lastRefreshLabel = lastRefresh
+    ? new Date(lastRefresh).toLocaleTimeString('zh-CN', { hour12: false })
+    : null
 
   return (
     <div className="shell">
@@ -100,8 +123,14 @@ export default function App() {
             </div>
           )}
 
-          <button className="btn" onClick={refreshAll} title="刷新全部数据（手动刷新，非高频轮询）">
-            <IconRefresh size={15} />
+          {lastRefreshLabel && (
+            <span className="refresh-stamp" title="本页数据最后一次拉取的时间（数据时点见各卡片来源）">
+              <IconClock size={12} /> {lastRefreshLabel} 已更新
+            </span>
+          )}
+
+          <button className="btn" onClick={refreshAll} title="刷新全部数据（手动刷新，非高频轮询）· 快捷键 R">
+            <IconRefresh size={15} className={refreshing ? 'spin' : ''} />
             {refreshing ? '刷新中…' : '刷新'}
           </button>
         </header>

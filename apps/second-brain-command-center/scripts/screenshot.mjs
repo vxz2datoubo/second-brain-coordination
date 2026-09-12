@@ -1,7 +1,7 @@
 /**
  * Evidence screenshot runner — captures real browser proof for each page.
  * Usage: node scripts/screenshot.mjs
- * Requires the dev server (5173) + BFF (8788) to be running.
+ * Requires the dev server (5173) + BFF (8790) to be running.
  */
 import { chromium } from 'playwright-core'
 import { mkdirSync } from 'node:fs'
@@ -36,6 +36,18 @@ for (const s of shots) {
   console.log(`captured ${s.name} (${s.path})`)
 }
 
+/* ---- refresh-button proof: click 刷新 and count the /api refetches ---- */
+await page.goto(BASE + '/', { waitUntil: 'networkidle' })
+await page.waitForTimeout(1500)
+let apiCalls = 0
+page.on('request', (r) => { if (r.url().includes('/api/')) apiCalls += 1 })
+const btn = page.locator('.topbar button.btn', { hasText: '刷新' }).first()
+await btn.click()
+await page.waitForTimeout(2500)
+await page.screenshot({ path: `${OUT}/09-after-refresh.png`, fullPage: true })
+console.log(`captured 09-after-refresh · API calls triggered by one click = ${apiCalls}`)
+if (apiCalls < 4) console.log('  !! WARNING: refresh did not fan out to all hooks')
+
 // mobile viewport proof
 const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } })
 await mobile.goto(BASE + '/', { waitUntil: 'networkidle' })
@@ -46,3 +58,4 @@ console.log('captured 08-mobile-home (390px)')
 await browser.close()
 console.log('\nCONSOLE ERRORS:', errors.length)
 errors.slice(0, 20).forEach((e) => console.log('  -', e))
+

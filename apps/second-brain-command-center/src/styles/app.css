@@ -176,3 +176,71 @@
 }
 .hamburger { display: none; }
 @media (max-width: 900px) { .hamburger { display: inline-flex; } }
+
+/* ---------------- Refresh affordance ---------------- */
+.refresh-stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  color: var(--text-3);
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px 9px;
+  margin-right: 8px;
+  white-space: nowrap;
+}
+.spin { animation: sbc-spin .9s linear infinite; }
+@keyframes sbc-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
+
+/* ---------------- Plain-language report primitives ---------------- */
+/* Big status tiles: colour + plain-Chinese label + count. Never colour-only. */
+.tile-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-3);
+}
+.tile {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-3) var(--space-4);
+}
+.tile-label { font-size: 12px; color: var(--text-2); display: flex; align-items: center; gap: 6px; }
+.tile-value { font-size: 24px; font-weight: 650; font-variant-numeric: tabular-nums; line-height: 1.25; margin-top: 2px; }
+.tile-sub { font-size: 11.5px; color: var(--text-3); margin-top: 2px; }
+
+/* Horizontal bar chart (inline SVG-free, CSS width driven). */
+.bar-row { display: grid; grid-template-columns: 96px 1fr 44px; align-items: center; gap: 10px; margin: 5px 0; font-size: 12.5px; }
+.bar-track { background: var(--bg-2); border-radius: 999px; height: 10px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 999px; transition: width .35s ease; }
+.bar-count { text-align: right; font-variant-numeric: tabular-nums; color: var(--text-2); }
+
+/* "One-line plain answer" callout. */
+.plain-answer {
+  display: flex; align-items: flex-start; gap: 10px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+  font-size: 14px; line-height: 1.6;
+}
+.plain-answer b { color: var(--accent); }
+
+/* Traffic-light summary chips. */
+.traffic { display: flex; flex-wrap: wrap; gap: 8px; }
+.traffic-item {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--bg-1); border: 1px solid var(--border);
+  border-radius: 999px; padding: 5px 12px; font-size: 12.5px;
+}
+.traffic-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+
+/* ---------------- Mobile: bar rows keep legible ---------------- */
+@media (max-width: 560px) {
+  .bar-row { grid-template-columns: 74px 1fr 38px; font-size: 12px; }
+  .tile-value { font-size: 21px; }
+}

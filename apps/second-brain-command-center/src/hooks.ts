@@ -5,6 +5,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { api, ApiError } from './api'
+import { getRefreshTick, subscribeRefresh } from './refreshBus'
 import type {
   AgentView, ControlTowerSummary, Meta, ProjectDetail, ProjectSummary,
   SystemHealth, SystemTop, TaskView, Envelope,
@@ -32,6 +33,11 @@ export function useAsync<T>(
   const alive = useRef(true)
 
   useEffect(() => { alive.current = true; return () => { alive.current = false } }, [])
+
+  // Global refresh bus: any mounted instance refetches when bumpRefresh() fires.
+  // This is what makes the top-bar refresh button reach every page, not just
+  // the instance App.tsx happens to hold.
+  useEffect(() => subscribeRefresh(() => setTick((t) => t + 1)), [])
 
   useEffect(() => {
     setLoading(true); setError(null)
