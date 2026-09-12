@@ -1,0 +1,113 @@
+/* =========================================================================
+   Second Brain Command Center — Design Tokens
+   Enterprise / premium / calm / information-dense.
+   No neon, no cyberpunk, no gamified UI. Theme-token based.
+   ========================================================================= */
+
+:root {
+  /* --- surfaces (dark, default) --- */
+  --bg-0: #0c0f14;        /* app background */
+  --bg-1: #12161d;        /* panel */
+  --bg-2: #171c25;        /* raised panel / card */
+  --bg-3: #1e2530;        /* hover / inset */
+  --border: #262e3b;
+  --border-strong: #333d4d;
+
+  /* --- text --- */
+  --text-0: #e8edf5;      /* primary */
+  --text-1: #a9b4c4;      /* secondary */
+  --text-2: #6f7b8c;      /* muted */
+  --text-3: #4b lexically-5563; /* disabled (fixed below) */
+
+  /* --- accents --- */
+  --accent: #4c8dff;      /* primary interaction */
+  --accent-soft: rgba(76, 141, 255, 0.14);
+  --cyan: #2fd4d4;
+
+  /* --- semantic (status) --- */
+  --ok: #35c07f;          /* verified / healthy */
+  --ok-soft: rgba(53, 192, 127, 0.14);
+  --warn: #e0a63a;        /* warning / waiting */
+  --warn-soft: rgba(224, 166, 58, 0.14);
+  --bad: #e5544b;         /* blocked / failure */
+  --bad-soft: rgba(229, 84, 75, 0.14);
+  --review: #a877f0;      /* review / reasoning */
+  --review-soft: rgba(168, 119, 240, 0.14);
+  --neutral: #6f7b8c;     /* inactive / historical */
+  --neutral-soft: rgba(111, 123, 140, 0.14);
+  --candidate: #4cc9f0;   /* candidate (not canonical) */
+  --candidate-soft: rgba(76, 201, 240, 0.14);
+
+  /* --- geometry --- */
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei",
+          Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
+  --shadow-lg: 0 8px 28px rgba(0, 0, 0, 0.4);
+}
+
+:root[data-theme="light"] {
+  --bg-0: #f4f6f9;
+  --bg-1: #ffffff;
+  --bg-2: #ffffff;
+  --bg-3: #eef1f6;
+  --border: #dfe4ec;
+  --border-strong: #c4ccd9;
+  --text-0: #141a24;
+  --text-1: #4c5666;
+  --text-2: #7a8494;
+  --shadow: 0 1px 3px rgba(20, 30, 50, 0.08);
+  --shadow-lg: 0 8px 28px rgba(20, 30, 50, 0.12);
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--bg-0);
+  color: var(--text-0);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+code, .mono {
+  font-family: var(--mono);
+  font-size: 0.86em;
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* --- accessibility --- */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+/* status must never be conveyed by color alone: badges always carry a label */
