@@ -1,0 +1,109 @@
+schema: "ROUTE_REQUEST/v1"
+request_id: "R184-RQ1-RDC-SKILL-PUBLICATION"
+requested_by: "WORKBUDDY"
+requested_from: "OWNER (大头) + GPT_ARCHITECTURE_OWNER"
+request_date: "2026-09-12"
+status: "AWAITING_OWNER_AUTHORIZATION_COMMENT"
+
+# ---------------------------------------------------------------------------
+# Why this request exists
+# ---------------------------------------------------------------------------
+rationale: >-
+  The Owner's original request (2026-09-11/12) asked for a complete four-quadrant
+  mapping skill for RDC, plus a dispatch-intent contract. Those are legitimate
+  deliverables. However, the route that executed the R184 work
+  (WORKBUDDY-R184-LOCAL-WORKBUDDY-BRIDGE) defines a closed write surface that
+  does NOT include coordination/SKILLS/** or coordination/GOVERNANCE/**.
+  Writing them there triggered the route's own hard stop
+  ("any unlisted write path is required" -> STOP_AFFECTED_BATCH_AND_RETURN_TO_GPT).
+  They were withdrawn from the branch and preserved. This request asks for the
+  separately-authorized route that can legally carry them.
+  A patch author cannot widen its own write surface.
+
+# ---------------------------------------------------------------------------
+# Assets awaiting publication (already finalized, validated, held outside repo)
+# ---------------------------------------------------------------------------
+held_assets:
+  base_dir: "F:/SecondBrainWorkspace/r184-out-of-scope-hold/"
+  items:
+    - name: "RDC execution-carrier and cross-agent scheduling skill"
+      held_path: "RDC-EXECUTION-CARRIER-AND-CROSS-AGENT-SCHEDULING-SKILL-v1.0.yaml"
+      proposed_repo_path: "coordination/SKILLS/RDC-EXECUTION-CARRIER-AND-CROSS-AGENT-SCHEDULING-SKILL-v1.0.yaml"
+      size: "522+ lines, 25 sections"
+      yaml_valid: true
+      quadrants_covered: ["K1_EXPLICIT_KNOWN", "K2_TACIT_OR_INFERRED_KNOWN", "K3_LEGIBLE_UNKNOWN", "K4_OPAQUE_UNKNOWN"]
+      external_sources: ["OWASP Top 10 for Agentic Applications 2026", "Invariant Labs toxic agent flow 2025", "MCP modelcontextprotocol.io", "A2A a2a-protocol.org v1.0", "Temporal saga", "Argo Workflows", "AWS Step Functions", "K8s Leases", "DynamoDB Lock Client", "Kleppmann distributed locking", "Cloudflare Agents HITL"]
+      finalization_notes:
+        - "reality_audit corrected: plaintext-token claim was a WRONG ATTRIBUTION (file is local ~/.workbuddy/mcp.json, never in git)."
+        - "reality_audit updated: local_workbuddy_bridge state moved from CONTRACT_COMPLETE_CODE_NEVER_IMPLEMENTED to IMPLEMENTED_DRY_RUN_AWAITING_INDEPENDENT_REVIEW."
+    - name: "Dispatch-intent contract"
+      held_path: "DISPATCH-INTENT-CONTRACT-v1.0.yaml"
+      proposed_repo_path: "coordination/GOVERNANCE/DISPATCH-INTENT-CONTRACT-v1.0.yaml"
+      note: "coordination/GOVERNANCE/** is explicitly protected_governance_retained; this item needs the strongest scrutiny and may warrant GPT authorship rather than WorkBuddy submission."
+    - name: "Decision-science skill-family registry companion entry"
+      held_path: "DECISION-SCIENCE-SKILL-FAMILY-REGISTRY-v1.0.with-r184-companion.yaml"
+      proposed_repo_path: "coordination/SKILLS/DECISION-SCIENCE-SKILL-FAMILY-REGISTRY-v1.0.yaml"
+      note: "This is a proposed EDIT to an existing file; current repo copy is byte-identical to main."
+
+# ---------------------------------------------------------------------------
+# The authorization mechanism (governance-compliant, per existing precedent)
+# ---------------------------------------------------------------------------
+authorization_mechanism:
+  precedent: "coordination/ROUTES/CODEX-CLTM-0021-R100-RECURRING-CANDIDATE-SOAK-IMPLEMENTATION.yaml:18"
+  precedent_field: "owner_authorization_issue_comment: 5277767515"
+  meaning: >-
+    Governance authority is minted by an OWNER-authored GitHub issue comment,
+    referenced by numeric id in the route. Chat text does not mint authority
+    (issue_or_chat_text_does_not_mint_execution_authority). The comment's
+    GitHub timestamp + author identity is what makes it citable evidence.
+
+  required_owner_action:
+    step_1: "Open issue #595 (https://github.com/vxz2datoubo/second-brain-coordination/issues/595)"
+    step_2: "Post a comment authorizing a new route to publish the RDC skill (and optionally the other two assets)"
+    step_3: "Tell WORKBUDDY the comment URL or let WORKBUDDY look it up"
+
+  suggested_comment_text: |
+    OWNER AUTHORIZATION — RDC skill publication route
+
+    I authorize a new route to be published that carries the RDC execution-carrier
+    and cross-agent scheduling skill into the repository.
+
+    Authorized write surface for that route:
+      - coordination/SKILLS/RDC-EXECUTION-CARRIER-AND-CROSS-AGENT-SCHEDULING-SKILL-v1.0.yaml
+
+    Constraint: the skill remains a CANDIDATE. Publishing it is not acceptance.
+    Independent review is still required before it is treated as canonical.
+    Real process activation remains FORBIDDEN until independent review and
+    canonicalization complete.
+
+    Signed: Owner (vxz2datoubo)
+
+# ---------------------------------------------------------------------------
+# Proposed route skeleton (for GPT to complete; NOT self-published by WorkBuddy)
+# ---------------------------------------------------------------------------
+proposed_route_skeleton:
+  route_name: "WORKBUDDY-R185-RDC-SKILL-PUBLICATION"
+  note: "A request, not a published route. WorkBuddy must not publish this itself."
+  fields_to_fill_by_gpt:
+    - "canonical_main_at_route_publish: <sha>"
+    - "owner_authorization_issue_comment: <id from the Owner comment above>"
+    - "write_ownership.workbuddy_exclusive: [coordination/SKILLS/RDC-EXECUTION-CARRIER-AND-CROSS-AGENT-SCHEDULING-SKILL-v1.0.yaml]"
+    - "protected_governance_retained: coordination/GOVERNANCE/**"
+    - "hard_stops: [any unlisted write path is required -> STOP_AFFECTED_BATCH_AND_RETURN_TO_GPT]"
+    - "review_authority: false / merge_authority: false"
+
+# ---------------------------------------------------------------------------
+# What WorkBuddy will NOT do without the authorization
+# ---------------------------------------------------------------------------
+workbuddy_self_restraint:
+  will_not: 
+    - "Publish the RDC skill to coordination/SKILLS/** without a route that names it."
+    - "Self-authorize by citing this or any other chat text."
+    - "Update the route's own write surface."
+    - "Treat the skill's presence as acceptance."
+  will_do: 
+    - "Keep the finalized asset at the hold path, validated and ready."
+    - "Publish only after the route exists and cites an Owner comment id."
+    - "Hand to independent review immediately after publication."
+
+expiry: "ON_OWNER_DECISION_OR_ROUTE_PUBLICATION"
