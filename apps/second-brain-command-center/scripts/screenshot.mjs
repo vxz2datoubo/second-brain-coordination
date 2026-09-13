@@ -58,4 +58,3 @@ console.log('captured 08-mobile-home (390px)')
 await browser.close()
 console.log('\nCONSOLE ERRORS:', errors.length)
 errors.slice(0, 20).forEach((e) => console.log('  -', e))
-

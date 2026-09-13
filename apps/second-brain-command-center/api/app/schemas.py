@@ -334,4 +334,3 @@ class DispatchIntent(BaseModel):
     plain_answer: str | None = None
     starts_any_process: bool = False
     meta: Meta = Field(default_factory=Meta)
-

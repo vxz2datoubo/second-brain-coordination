@@ -249,4 +249,3 @@ export interface DispatchIntent {
   plain_answer?: string | null
   starts_any_process: boolean
 }
-
