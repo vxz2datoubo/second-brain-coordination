@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CSCVInput/v1",
+  "description": "Public-safe shape of a complete synchronous matrix supplied to the read-only DS-10 P0C calculation.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "w4_read_receipt", "p0a_audit", "trial_ids", "observation_ids", "performance_matrix", "performance_measure_id", "performance_measure_version", "higher_is_better", "group_count", "max_combinations", "performance_evidence_refs", "cost_semantics", "family_revision_ref", "family_revision_digest", "canonical_read_receipt_ref", "canonical_read_receipt_digest", "integrity_audit_ref", "integrity_audit_digest", "observation_axis_id", "observation_time_index_digest", "performance_matrix_digest", "tie_policy", "missingness_policy", "gross_net_semantics", "pit_evidence_ref", "rule_snapshot_ref", "data_snapshot_ref", "method_id", "method_version", "method_code_digest", "ordering_policy", "combination_policy"],
+  "properties": {
+    "schema": {"const": "CSCVInput/v1"},
+    "w4_read_receipt": {"type": "object"}, "p0a_audit": {"type": "object"},
+    "trial_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "observation_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "performance_matrix": {"type": "array", "minItems": 1, "items": {"type": "array", "minItems": 1, "items": {"type": "number"}}},
+    "performance_measure_id": {"type": "string", "minLength": 1}, "performance_measure_version": {"type": "string", "minLength": 1},
+    "higher_is_better": {"const": true}, "group_count": {"type": "integer", "minimum": 2}, "max_combinations": {"type": "integer", "minimum": 1},
+    "performance_evidence_refs": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}, "cost_semantics": {"type": "string", "minLength": 1},
+    "family_revision_ref": {"type": "string", "minLength": 1}, "family_revision_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "canonical_read_receipt_ref": {"type": "string", "pattern": "^CanonicalExperimentFamilyReadReceipt/v1:[0-9a-f]{64}$"}, "canonical_read_receipt_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "integrity_audit_ref": {"type": "string", "pattern": "^ResearchIntegrityAudit/v1:.+"}, "integrity_audit_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "observation_axis_id": {"type": "string", "minLength": 1}, "observation_time_index_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "performance_matrix_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "tie_policy": {"const": "STRICT_NO_MATERIAL_TIES"}, "missingness_policy": {"const": "COMPLETE_SYNCHRONOUS_MATRIX_REQUIRED"}, "gross_net_semantics": {"const": "NET_OF_DECLARED_COSTS_REQUIRED"},
+    "pit_evidence_ref": {"type": "string", "minLength": 1}, "rule_snapshot_ref": {"type": "string", "minLength": 1}, "data_snapshot_ref": {"type": "string", "minLength": 1},
+    "method_id": {"const": "DS10-PBO-CSCV/Bailey-Borwein-LopezDePrado-Zhu-2015"}, "method_version": {"const": "1.1.0"}, "method_code_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "ordering_policy": {"const": "TRIAL_ID_ASCENDING__OBSERVATION_ROW_ORDER_PRESERVED"}, "combination_policy": {"const": "LEXICOGRAPHIC_ORIENTED_IS_HALVES"}
+  }
+}

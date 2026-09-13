@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PBOResult/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "result_id", "method_id", "method_version", "family_revision_ref", "family_revision_digest", "canonical_read_receipt_ref", "canonical_read_receipt_digest", "integrity_audit_ref", "integrity_audit_digest", "input_chain_digest", "applicability_state", "evaluated_split_count", "pbo_estimate", "pbo_numerator", "pbo_denominator", "combination_manifest_digest", "ordered_split_ledger_digest", "logit_distribution_digest", "split_results", "authority", "computation_digest"],
+  "properties": {
+    "schema": {"const": "PBOResult/v1"},
+    "result_id": {"type": "string", "pattern": "^ds10-pbo-cscv-[0-9a-f]{16}$"},
+    "method_id": {"const": "DS10-PBO-CSCV/Bailey-Borwein-LopezDePrado-Zhu-2015"},
+    "method_version": {"const": "1.1.0"},
+    "family_ref": {"type": ["string", "null"]}, "family_content_digest": {"type": ["string", "null"]},
+    "family_revision_ref": {"type": ["string", "null"]}, "family_revision_digest": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+    "canonical_read_receipt_ref": {"type": ["string", "null"]}, "canonical_read_receipt_digest": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+    "integrity_audit_ref": {"type": ["string", "null"]}, "integrity_audit_digest": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"}, "input_chain_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "strategy_count": {"type": ["integer", "null"], "minimum": 0}, "observation_count": {"type": ["integer", "null"], "minimum": 0},
+    "group_count": {"type": ["integer", "null"], "minimum": 0}, "group_sizes": {"type": "array", "items": {"type": "integer", "minimum": 0}},
+    "combination_count": {"type": ["integer", "null"], "minimum": 0}, "evaluated_split_count": {"type": "integer", "minimum": 0},
+    "performance_measure_id": {"type": ["string", "null"]}, "performance_measure_version": {"type": ["string", "null"]}, "higher_is_better": {"type": ["boolean", "null"]},
+    "ordering_policy": {"const": "TRIAL_ID_ASCENDING__OBSERVATION_ROW_ORDER_PRESERVED"}, "combination_policy": {"const": "LEXICOGRAPHIC_ORIENTED_IS_HALVES"},
+    "cost_semantics": {"type": ["string", "null"]},
+    "gross_net_semantics": {"type": ["string", "null"]}, "tie_policy": {"const": "STRICT_NO_MATERIAL_TIES"}, "missingness_policy": {"const": "COMPLETE_SYNCHRONOUS_MATRIX_REQUIRED"},
+    "performance_matrix_digest": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"}, "observation_axis_id": {"type": ["string", "null"]}, "observation_time_index_digest": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+    "pit_evidence_ref": {"type": ["string", "null"]}, "rule_snapshot_ref": {"type": ["string", "null"]}, "data_snapshot_ref": {"type": ["string", "null"]}, "method_code_digest": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+    "applicability_state": {"enum": ["PASS_COMPUTED", "INSUFFICIENT_STRATEGIES", "INSUFFICIENT_OBSERVATIONS", "INVALID_PARTITION_DESIGN", "COMBINATORIAL_BUDGET_EXCEEDED", "MISSINGNESS_UNRESOLVED", "NUMERICAL_FAILURE", "INPUT_INTEGRITY_BLOCKED", "ABSTAIN"]},
+    "pbo_estimate": {"type": ["number", "null"], "minimum": 0, "maximum": 1}, "pbo_numerator": {"type": "integer", "minimum": 0}, "pbo_denominator": {"type": "integer", "minimum": 0}, "median_mass_count": {"type": "integer", "minimum": 0},
+    "combination_manifest_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "ordered_split_ledger_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "logit_distribution_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "split_results": {"type": "array", "items": {"$ref": "#/$defs/split"}}, "numerical_diagnostics": {"type": "object"}, "uncertainties": {"type": "array", "items": {"type": "string"}},
+    "authority": {"$ref": "#/$defs/authority"}, "computation_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "$defs": {
+    "split": {"type": "object", "additionalProperties": false, "required": ["schema", "split_id", "is_group_ids", "oos_group_ids", "selected_trial_id", "selected_trial_identity_digest", "is_score", "oos_score", "is_score_vector_digest", "oos_score_vector_digest", "oos_rank", "omega", "logit", "split_overfit", "median_mass", "tie_diagnostic", "missingness_diagnostic", "split_digest_semantics", "computation_digest"], "properties": {"schema": {"const": "CSCVSplitResult/v1"}, "split_id": {"type": "string"}, "is_group_ids": {"type": "array", "items": {"type": "integer"}}, "oos_group_ids": {"type": "array", "items": {"type": "integer"}}, "selected_trial_id": {"type": "string"}, "selected_trial_identity_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "is_score": {"type": "number"}, "oos_score": {"type": "number"}, "is_score_vector_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "oos_score_vector_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "oos_rank": {"type": "integer", "minimum": 1}, "omega": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1}, "logit": {"type": "number"}, "split_overfit": {"type": "boolean"}, "median_mass": {"type": "boolean"}, "tie_diagnostic": {"const": "NO_MATERIAL_TIES"}, "missingness_diagnostic": {"const": "COMPLETE_SYNCHRONOUS_MATRIX"}, "split_digest_semantics": {"const": "CSCV_SPLIT_V1"}, "computation_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}},
+    "authority": {"type": "object", "additionalProperties": false, "properties": {"experiment_registry_write_authority": {"const": false}, "strategy_experiment_write_authority": {"const": false}, "trial_ledger_authority": {"const": false}, "read_receipt_store_authority": {"const": false}, "market_data_truth_authority": {"const": false}, "probability_authority": {"const": false}, "w7_validation_authority": {"const": false}, "risk_authority": {"const": false}, "position_authority": {"const": false}, "order_authority": {"const": false}, "trade_authority": {"const": false}, "pbo_result_is_w7_accept": {"const": false}}, "required": ["experiment_registry_write_authority", "strategy_experiment_write_authority", "trial_ledger_authority", "read_receipt_store_authority", "market_data_truth_authority", "probability_authority", "w7_validation_authority", "risk_authority", "position_authority", "order_authority", "trade_authority", "pbo_result_is_w7_accept"]}
+  }
+}

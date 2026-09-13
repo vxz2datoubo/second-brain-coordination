@@ -1,0 +1,72 @@
+name: ds10-pbo-cscv-p0c
+
+on:
+  push:
+    branches: [codex/r193-ds10-p0c-pbo-cscv]
+  workflow_dispatch:
+    inputs:
+      exact_ref:
+        description: Full 40-character commit SHA to test
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  p0c-reference:
+    name: p0c-reference-py${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Resolve and check out the exact requested head
+        shell: bash
+        env:
+          REQUESTED_REF: ${{ github.event_name == 'workflow_dispatch' && inputs.exact_ref || github.sha }}
+        run: |
+          test "${#REQUESTED_REF}" -eq 40
+          git checkout --detach "$REQUESTED_REF"
+          test "$(git rev-parse HEAD)" = "$REQUESTED_REF"
+          printf 'tested_head=%s\n' "$REQUESTED_REF"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Materialise canonical main comparison base
+        run: git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+      - name: Compile P0C reference and regression entrypoints
+        run: |
+          python -m py_compile coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-PBO-CSCV-P0C/src/offline_research/pbo_cscv.py
+          python -m py_compile coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-DEFLATED-SHARPE-P0B/src/offline_research/deflated_sharpe.py
+      - name: Run P0C, P0A, P0B, W4 family, and W4 canonical read-binding regressions
+        run: |
+          python -X utf8 coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-PBO-CSCV-P0C/tests/test_pbo_cscv.py
+          python -X utf8 coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-RESEARCH-INTEGRITY-P0A/tests/test_research_integrity.py
+          python -X utf8 coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-DEFLATED-SHARPE-P0B/tests/test_deflated_sharpe.py
+          python -X utf8 coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/W4-STRATEGY-EXPERIMENT-FAMILY-P0/tests/test_experiment_family.py
+          python -X utf8 -m unittest tests/test_w4_canonical_experiment_family_read_binding.py -v
+      - name: Enforce R193 allowed write surface against canonical main
+        run: |
+          python - <<'PY'
+          import subprocess
+
+          allowed_exact = {".github/workflows/ds10-pbo-cscv-p0c.yml"}
+          allowed_prefixes = (
+              "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DS10-PBO-CSCV-P0C/",
+              "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-DS10-P0C-PBO-CSCV-R193/",
+          )
+          changed = {line.strip() for line in subprocess.check_output(
+              ["git", "diff", "--name-only", "origin/main...HEAD"], text=True
+          ).splitlines() if line.strip()}
+          unexpected = sorted(path for path in changed if path not in allowed_exact and not path.startswith(allowed_prefixes))
+          if unexpected:
+              raise SystemExit(f"R193_SCOPE_VIOLATION unexpected={unexpected}")
+          print(f"R193_SCOPE_PASS changed={len(changed)}")
+          PY
+      - name: Whitespace gate
+        run: git diff --check origin/main...HEAD
