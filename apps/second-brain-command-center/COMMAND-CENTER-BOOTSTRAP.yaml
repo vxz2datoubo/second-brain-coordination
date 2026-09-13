@@ -1,0 +1,75 @@
+# COMMAND-CENTER-BOOTSTRAP.yaml
+# 跨 AI 宿主的恢复导航指针 —— 这不是第二真源，只是"往哪看"的路标。
+#
+# 任何新的 WorkBuddy / Codex / GPT / 未来 AI 载体，fresh 读取本文件后，
+# 应能理解 Command Center 是什么、代码在哪、怎么跑、数据从哪来。
+# 不得依赖任何本地聊天记忆。
+schema_version: "1.0"
+artifact: SECOND_BRAIN_COMMAND_CENTER
+display_name: "洛雪认知控制中心"
+
+# ---- 稳定入口 ----
+stable_entry:
+  repository: vxz2datoubo/second-brain-coordination
+  read_first:
+    - coordination/GPT-UNIFIED-ORCHESTRATOR-START-HERE.md
+    - coordination/GOVERNANCE/OWNER-AGENT-BEHAVIOR-AND-INTERRUPTION-PROTOCOL-v1.0.yaml
+    - coordination/EXECUTION/PROJECT-REGISTRY.yaml
+  command_center_path: apps/second-brain-command-center/
+
+# ---- 导航 ----
+navigation:
+  command_center_readme: apps/second-brain-command-center/README.md
+  architecture: apps/second-brain-command-center/docs/ARCHITECTURE.md
+  data_source_map: apps/second-brain-command-center/docs/DATA-SOURCE-MAP.md
+  status_semantics: apps/second-brain-command-center/docs/STATUS-SEMANTICS.md
+  project_plugin_contract: apps/second-brain-command-center/docs/PROJECT-PLUGIN-CONTRACT.md
+  project_registry: coordination/EXECUTION/PROJECT-REGISTRY.yaml
+  project_adapters: coordination/EXECUTION/PROJECT-ADAPTERS/
+  control_tower_entry: coordination/CONTROL-TOWER/README.md
+  runtime_discovery: coordination/ACTIVE-PROGRAM-LANES.yaml
+
+# ---- 运行 ----
+run:
+  frontend:
+    path: apps/second-brain-command-center/
+    install: npm install
+    dev: npm run dev          # http://localhost:5173
+  backend:
+    path: apps/second-brain-command-center/api/
+    install: pip install -r requirements.txt
+    dev: python -m uvicorn app.main:app --host 127.0.0.1 --port 8790
+  unified_launcher: apps/second-brain-command-center/start.sh
+
+# ---- 数据源（权威矩阵见 DATA-SOURCE-MAP.md）----
+data_sources:
+  github:
+    role: ENGINEERING_SYNC_TRUTH
+    transport: gh_cli_read_only (server-side only)
+  local_repo:
+    role: RUNTIME_OBSERVED
+  control_tower:
+    role: EXECUTION_AUTHORITY_PROJECTION
+  w3:
+    role: SEMANTIC_MEMORY_TRUTH
+    status: NOT_CONNECTED_IN_PHASE_1
+  trading_provider:
+    role: MARKET_DATA
+    status: NOT_CONNECTED_NO_TRADE
+  ai_director_domain:
+    role: DOMAIN_AUTHORITY
+    repository: vxz2datoubo/eustia-ai-film
+
+# ---- 边界 ----
+phase: 1
+capabilities:
+  read: true
+  project: true
+  dispatch: false        # Phase 2
+  start_process: false   # Phase 3
+  write_truth: false
+  trade: false
+governance:
+  is_second_control_plane: false
+  ui_state_is_system_truth: false
+  credential_boundary: BFF

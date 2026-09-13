@@ -1,0 +1,118 @@
+schema_version: "1.0"
+route_id: "WORKBUDDY-R195-COMMAND-CENTER-CANONICALIZATION"
+repository: "vxz2datoubo/second-brain-coordination"
+project: "SECOND_BRAIN"
+target_agent: "WORKBUDDY"
+task_id: "WORKBUDDY-R195-COMMAND-CENTER-CANONICALIZATION"
+route_epoch: 195
+source_issue: 595
+active_issue: 595
+status: "AUTHORIZED_AWAITING_CONTROL_TOWER_MINT"
+# This route canonicalizes an already-built, READ-ONLY operator console.
+# execution_allowed stays false: nothing executes under this route beyond
+# the publication PR itself.
+execution_allowed: false
+release_state: "PUBLICATION_PENDING_INDEPENDENT_REVIEW"
+direct_main_write: false
+merge_authorized: false
+review_authority: false
+acceptance_authority: false
+
+# ---------------------------------------------------------------------------
+# Owner authorization (the mint that created this route)
+# PENDING: comment_id is backfilled verbatim from the owner's issue comment
+# before the PR is opened. Hard stop if absent or authored by anyone else.
+# ---------------------------------------------------------------------------
+owner_authorization:
+  mechanism: "owner_authorization_issue_comment"
+  precedent: "coordination/ROUTES/WORKBUDDY-R194-RDC-SKILL-PUBLICATION.yaml (owner_authorization block)"
+  issue: 595
+  comment_id: 5646745759
+  comment_url: "https://github.com/vxz2datoubo/second-brain-coordination/issues/595#issuecomment-5646745759"
+  author: "vxz2datoubo"
+  authored_at: "2026-09-12T15:13:43Z"
+  authorized_scope_verbatim: |
+    OWNER AUTHORIZATION — R195 command-center canonicalization route
+
+    I, the repo owner, authorize publishing a new route that canonicalizes the
+    Second Brain Command Center operator console (apps/second-brain-command-center/)
+    into this repository.
+
+    Authorized write surface for that route:
+    - apps/second-brain-command-center/**
+    - coordination/ROUTES/WORKBUDDY-R195-COMMAND-CENTER-CANONICALIZATION.yaml
+
+    Constraints:
+    - The app stays PENDING_INDEPENDENT_REVIEW. Publication is not acceptance (ACCEPT_is_not_canonical).
+    - Independent review is required before it is treated as canonical.
+    - The app remains READ-ONLY: /api/commands/start must stay 501. Real process
+      activation remains FORBIDDEN until independent review and canonicalization complete.
+    - coordination/GOVERNANCE/** stays untouched (the dispatch-intent contract remains in hold).
+
+    Owner: vxz2datoubo
+source_checkpoint:
+  source_branch: "main"
+  checkpoint_remote_ref: "refs/heads/main"
+  exact_head: "e7d903c174565bc938a0e72b8672edb5b7793827"
+  baseline: "e7d903c174565bc938a0e72b8672edb5b7793827"
+  immutable: true
+
+governance_sources:
+  source_issue: "https://github.com/vxz2datoubo/second-brain-coordination/issues/595"
+  prior_artifact_branch: "workbuddy/command-center-mvp (Phase 1 MVP commits 7100ae71, 51f1e876; built under direct owner instruction in working copy, never canonicalized — this route fixes that gap)"
+  dispatch_intent_contract_hold: "F:/SecondBrainWorkspace/r184-out-of-scope-hold/DISPATCH-INTENT-CONTRACT-v1.0.yaml (stays OUT of this lane; coordination/GOVERNANCE/** is protected)"
+  carrier_contract: "coordination/GOVERNANCE/EXECUTION-CARRIER-AND-CONCURRENCY-CONTRACT-v1.0.yaml"
+  unified_schemas: "coordination/GOVERNANCE/UNIFIED-EXECUTION-INTERFACE-SCHEMAS-v1.0.yaml"
+  rdc_skill: "coordination/SKILLS/RDC-EXECUTION-CARRIER-AND-CROSS-AGENT-SCHEDULING-SKILL-v1.0.yaml (PR #706)"
+
+# ---------------------------------------------------------------------------
+# What this route carries: canonicalization of the operator console app
+# ---------------------------------------------------------------------------
+publication:
+  artifact_root: "apps/second-brain-command-center/"
+  artifact_state: "BUILT_AND_VERIFIED_PENDING_INDEPENDENT_REVIEW"
+  contents_summary: >-
+    Phase 1 READ-ONLY Command Center MVP (React/TS + thin FastAPI BFF):
+    projects canonical repo state (projects/tasks/agents/control tower/
+    health) with {data, meta} provenance envelopes; gh CLI held server-side.
+    Phase 2A dispatch-intent: POST /api/commands/dispatch-intent composes a
+    READ-ONLY authority check over 9 canonical inputs with fail-closed
+    verdicts and plain-language answers; the button press is intent, never
+    authority; /api/commands/start remains 501. Control-tower projections:
+    read_claims() over EXECUTION/**/WORK-CLAIM.yaml and build_collisions()
+    deriving per-surface holders from TASK-LEASE (authoritative) + WORK-CLAIM
+    (dedup) with green/amber/red severity. Verification: verify-dispatch.mjs
+    12/12 PASS, verify-control-tower.mjs 7/7 PASS, tsc clean; evidence
+    screenshots committed under evidence/screenshots/.
+  read_only_boundary: >-
+    The app NEVER writes system truth, never starts processes, never merges,
+    never trades. UI state is not system truth; every response carries
+    provenance meta. The 501 start endpoint is part of the verified surface.
+
+write_ownership:
+  workbuddy_exclusive:
+    - "apps/second-brain-command-center/**"
+    - "coordination/ROUTES/WORKBUDDY-R195-COMMAND-CENTER-CANONICALIZATION.yaml"
+  protected_governance_retained:
+    - "coordination/GOVERNANCE/**"
+    - "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+    - "coordination/EXECUTION/ACTIVE-TASK-INDEX-REGISTRY.json"
+  overlap_rule: "R195_IS_A_DISTINCT_PUBLICATION_LANE; ANY_OVERLAP_WITH_ACTIVE_R194_OR_UNMERGED_R184_SURFACES_FAILS_CLOSED"
+
+constraints:
+  accept_is_not_canonical: true
+  independent_review_required_before_canonical: true
+  real_process_activation: "FORBIDDEN_UNTIL_INDEPENDENT_REVIEW_AND_CANONICALIZATION (start endpoint must stay 501)"
+  dispatch_intent_contract: "stays in hold; wiring it into coordination/GOVERNANCE/** is out of this lane"
+  lease_minting: "CONTROL_TOWER_ONLY (GPT) — this route does not self-mint TASK-LEASE/WORK-CLAIM"
+
+hard_stops:
+  - "owner authorization comment is missing, mutated, or authored by any account other than vxz2datoubo"
+  - "any unlisted write path is required (outside apps/second-brain-command-center/** and this ROUTE file)"
+  - "coordination/GOVERNANCE/** is touched (DISPATCH-INTENT-CONTRACT stays out of this lane)"
+  - "the app is treated as accepted/canonical without independent review"
+  - "any real process is launched by or through the app (start endpoint unfail-closed)"
+
+return_target: "GPT_ARCHITECTURE_OWNER"
+final_review: "SEPARATE_GPT_INDEPENDENT_REVIEW_VIA_ISSUE_453"
+completion_signal: "WORKBUDDY_R195_COMMAND_CENTER_CANONICALIZED_AWAITING_INDEPENDENT_REVIEW"
